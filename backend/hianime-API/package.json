@@ -1,0 +1,17 @@
+{
+  "name": "hianime",
+  "scripts": {
+    "start": "bun run index.js",
+    "dev": "bun --watch run index.js"
+  },
+  "dependencies": {
+    "aniwatch": "^2.17.0",
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.7",
+    "hono": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
