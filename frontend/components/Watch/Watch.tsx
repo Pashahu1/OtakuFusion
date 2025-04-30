@@ -1,29 +1,45 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import { getEpisodes } from "../../api/getEpisodes";
+import { getEpisodes } from "../../api/getEpisodes"; // путь отредактируй по своему проекту
 
 export const Watch: React.FC<{ animeId: string }> = ({ animeId }) => {
   const [episodes, setEpisodes] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);
 
   useEffect(() => {
-    // Загружаем эпизоды при монтировании компонента
-    const fetchEpisodes = async () => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       const data = await getEpisodes(animeId);
+      if (data.length === 0) {
+        setError("Эпизоды не найдены");
+      }
       setEpisodes(data);
+      setLoading(false);
     };
-    fetchEpisodes();
+
+    fetchData();
   }, [animeId]);
 
-  const handleEpisodeClick = (episodeId: string) => {
-    setSelectedEpisode(episodeId);
+  const handleEpisodeClick = (id: string) => {
+    setSelectedEpisode(id);
   };
 
   return (
     <div className="anime-player">
       <h1>Аниме Плеер</h1>
 
+      {loading && <p>Загрузка...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
       <div className="episode-list">
+        {!loading && episodes.length === 0 && !error && (
+          <p>Нет эпизодов для отображения.</p>
+        )}
+
         {episodes.map((episode) => (
           <div
             key={episode.episodeId}
@@ -35,13 +51,11 @@ export const Watch: React.FC<{ animeId: string }> = ({ animeId }) => {
         ))}
       </div>
 
-      {/* Плеер для выбранной серии */}
       {selectedEpisode && (
         <div className="player">
           <h3>Просмотр эпизода: {selectedEpisode}</h3>
-          {/* Встроенный плеер или iframe */}
           <iframe
-            src={`https://example.com/watch/${selectedEpisode}`} // замените на реальный URL источника
+            src={`https://example.com/watch/${selectedEpisode}`} // замени на актуальную ссылку
             width="800"
             height="450"
             frameBorder="0"
