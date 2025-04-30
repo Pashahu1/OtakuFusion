@@ -1,5 +1,7 @@
 export const getHomePage = async () => {
-  const res = await fetch("http://localhost:3030/api/v1/home");
+  const res = await fetch(
+    "https://hianime-api-production-2098.up.railway.app/api/v1/home"
+  );
   if (!res.ok) {
     throw new Error("Fetch uncorrect");
   }
