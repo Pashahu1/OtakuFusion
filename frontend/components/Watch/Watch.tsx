@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { getEpisodes } from "../../api/getEpisodes"; // путь отредактируй по своему проекту
+import { Episode } from "../../types/AnimeTypes";
 
 export const Watch: React.FC<{ animeId: string }> = ({ animeId }) => {
-  const [episodes, setEpisodes] = useState<any[]>([]);
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);

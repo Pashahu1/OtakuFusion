@@ -70,3 +70,18 @@ export interface AnimeDetailsResponse {
   status: boolean;
   data: AnimeDetails;
 }
+
+export interface Episode {
+  title: string;
+  episodeId: string;
+  number: number;
+  isFiller: boolean;
+}
+
+export interface EpisodesResponse {
+  status: boolean;
+  episodes: {
+    totalEpisodes: number;
+    episodes: Episode[];
+  };
+}
