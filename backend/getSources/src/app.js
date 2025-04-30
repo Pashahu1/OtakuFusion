@@ -1,13 +1,20 @@
-import express from 'express'
-import routes from './routes/routes.js'
-import cors from 'cors'
+import express from "express";
+import routes from "./routes/routes.js";
+import cors from "cors";
 
-const app = express()
+const app = express();
 
-app.use(cors())
-app.get('/', (req, res) => {
-  res.send('hello')
-})
-app.use('/api/v1', routes)
+app.use(
+  cors({
+    origin: "https://otaku-fusion.vercel.app",
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-export default app
+app.get("/", (req, res) => {
+  res.send("hello");
+});
+app.use("/api/v1", routes);
+
+export default app;
