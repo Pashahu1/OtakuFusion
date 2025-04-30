@@ -6,7 +6,7 @@ import { HomeCatalog } from "../../../types/AnimeTypes";
 
 export default function Anime() {
   const [homeCatalog, setHomeCatalog] = useState<HomeCatalog | null>(null);
-  console.log(homeCatalog);
+
   const catalog = {
     genres: homeCatalog?.genres,
     latestCompleted: homeCatalog?.latestCompleted,

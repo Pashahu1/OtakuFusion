@@ -4,14 +4,18 @@ export const getSources = async (
   server: string,
   category: string
 ) => {
-  const res = await fetch(
-    `https://getsources-production-56b4.up.railway.app/api/v1/servers?episodeId=${episodeId}&ep=${ep}&server=${server}&category=${category}`
-  );
+  try {
+    const res = await fetch(
+      `https://getsources-production-56b4.up.railway.app/api/v1/servers?episodeId=${episodeId}&ep=${ep}&server=${server}&category=${category}`
+    );
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch sources");
+    if (!res.ok) {
+      throw new Error("Failed to fetch sources");
+    }
+
+    const data = await res.json();
+    return data; // Возвращаем данные о сервере
+  } catch (error) {
+    console.error("Ошибка при получении источников:", error);
   }
-
-  const data = await res.json();
-  return data;
 };

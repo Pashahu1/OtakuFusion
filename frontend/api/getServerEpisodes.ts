@@ -4,5 +4,5 @@ export const getServerEpisodes = async (episodeId: string) => {
   );
   const data = await res.json();
 
-  return data;
+  return data.servers; // Возвращаем массив с серверами
 };
