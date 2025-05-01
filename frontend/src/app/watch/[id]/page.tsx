@@ -1,19 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { getAnimeDetails } from "../../../../api/getAnimeDetails";
-import { AnimeDetails, EpisodeData } from "../../../../types/AnimeTypes";
+import { AnimeDetails } from "../../../../types/AnimeTypes";
 import { getEpisodes } from "../../../../api/getEpisodes";
-import { Watch } from "../../../../components/Watch/Watch";
 
 export default function WatchPage() {
   const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
   const { id } = useParams() as { id: string };
-  const searchParams = useSearchParams();
-  const episodeId = searchParams.get("ep") || "1";
-
-  console.log(episodeId);
 
   useEffect(() => {
     const details = async () => {
@@ -52,8 +47,6 @@ export default function WatchPage() {
       <p>{animeDetails?.synopsis}</p>
       <p>{animeDetails?.title}</p>
       <p>{animeDetails?.type}</p>
-
-      <Watch />
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { getHomePage } from "../../../api/getHomePage";
 import { HomeCatalog } from "../../../types/AnimeTypes";
 import "./HomePage.scss";
 import { AnimeSection } from "../../../components/shared/AnimeSection/AnimeSection";
-import { SideBar } from "../../../components/Layout/SideBar/SideBar";
 import { Preview } from "../../../components/Preview/Preview";
 
 export default function Home() {
