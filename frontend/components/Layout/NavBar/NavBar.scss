@@ -1,0 +1,10 @@
+.navbar {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+
+  &-list {
+    display: flex;
+    gap: 20px;
+  }
+}

@@ -1,0 +1,13 @@
+.navbar-list-item__link {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  color: white;
+  &:hover {
+    color: #f0f0f0;
+    opacity: 0.5;
+  }
+}
+
+.active {
+  color: #7d8fa9;
+}

@@ -1,0 +1,21 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  &__main {
+    margin: 0 auto;
+  }
+
+  &__cards {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+}

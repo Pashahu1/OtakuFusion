@@ -1,12 +1,19 @@
 @import "tailwindcss";
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   display: flex;
   flex-direction: column;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  background-color: #111213;
 }
+
+/* #1d1e20 */
 
 ul {
   margin: 0;
@@ -15,4 +22,25 @@ ul {
 
 main {
   flex: 1;
+}
+
+.main-container {
+  margin: 0 auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+  color: white;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+  color: white;
 }

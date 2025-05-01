@@ -6,7 +6,6 @@ import { getAnimeDetails } from "../../../../api/getAnimeDetails";
 import { AnimeDetails, EpisodeData } from "../../../../types/AnimeTypes";
 import { getEpisodes } from "../../../../api/getEpisodes";
 import { Watch } from "../../../../components/Watch/Watch";
-import { Episodes } from "../../../../components/shared/Episodes/Episodes";
 
 export default function WatchPage() {
   const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
@@ -54,8 +53,7 @@ export default function WatchPage() {
       <p>{animeDetails?.title}</p>
       <p>{animeDetails?.type}</p>
 
-      {/* <Watch episodeId={episodeId} />
-      <Episodes animeId={id} currentEpisodeId={episodeId} /> */}
+      <Watch />
     </div>
   );
 }

@@ -2,28 +2,13 @@
 import { useEffect, useState } from "react";
 import { getHomePage } from "../../../api/getHomePage";
 import { HomeCatalog } from "../../../types/AnimeTypes";
-import { Card } from "../../../components/shared/Card/Card";
+import "./HomePage.scss";
+import { AnimeSection } from "../../../components/shared/AnimeSection/AnimeSection";
+import { SideBar } from "../../../components/Layout/SideBar/SideBar";
+import { Preview } from "../../../components/Preview/Preview";
 
 export default function Home() {
   const [homeCatalog, setHomeCatalog] = useState<HomeCatalog | null>(null);
-
-  const catalog = {
-    genres: homeCatalog?.genres,
-    latestCompleted: homeCatalog?.latestCompleted,
-    latestEpisode: homeCatalog?.latestEpisode,
-    mostFavorite: homeCatalog?.mostFavorite,
-    mostPopular: homeCatalog?.mostPopular,
-    newAdded: homeCatalog?.newAdded,
-    spotlight: homeCatalog?.spotlight,
-    top10: {
-      today: homeCatalog?.top10.today,
-      week: homeCatalog?.top10.week,
-      month: homeCatalog?.top10.month,
-    },
-    topAiring: homeCatalog?.topAiring,
-    topUpcoming: homeCatalog?.topUpcoming,
-    trending: homeCatalog?.trending,
-  };
 
   useEffect(() => {
     const homePageCatalog = async () => {
@@ -34,34 +19,25 @@ export default function Home() {
     homePageCatalog();
   }, []);
 
-  console.log(homeCatalog);
-
   return (
-    <div>
-      <div>
-        <h1>Most Favorites</h1>
-        <ul>
-          {/* {catalog.genres?.map((gen) => (
-            <li key={gen}>
-              <a href="!#">{gen}</a>
-            </li>
-          ))} */}
-        </ul>
-      </div>
-      <div>
-        <h2>Most Popular</h2>
-        {/* {catalog.mostPopular?.map((popular) => (
-          <Card
-            key={popular.id}
-            anime={{
-              ...popular,
-              alternativeTitle: popular.alternativeTitle || "N/A",
-              episodes: popular.episodes || 0,
-              poster: popular.poster || "default-poster.jpg",
-              type: popular.type || "Unknown",
-            }}
-          />
-        ))} */}
+    <div className="home-page">
+      <div className="home-page__content">
+        <section className="home-page__header">
+          <Preview catalog={homeCatalog?.spotlight || []} />
+        </section>
+        <section className="home-page__main">
+          <div className="home-page__cards">
+            <AnimeSection
+              title="Latest Completed"
+              catalog={homeCatalog?.latestCompleted || []}
+            />
+            <AnimeSection
+              title="Trending Anime"
+              catalog={homeCatalog?.trending || []}
+            />
+          </div>
+        </section>
+        {/* <SideBar /> */}
       </div>
     </div>
   );

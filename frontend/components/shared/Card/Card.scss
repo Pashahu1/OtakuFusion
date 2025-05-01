@@ -1,0 +1,13 @@
+.anime-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 180px;
+  gap: 10px;
+
+  &__img {
+    flex: 1;
+    width: 100%;
+    border-radius: 30px;
+  }
+}
