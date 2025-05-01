@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card } from "../../../components/shared/Card/Card";
 import { getHomePage } from "../../../api/getHomePage";
 import { HomeCatalog } from "../../../types/AnimeTypes";
+import { Card } from "../../../components/shared/Card/Card";
 
-export default function Anime() {
+export default function Home() {
   const [homeCatalog, setHomeCatalog] = useState<HomeCatalog | null>(null);
 
   const catalog = {
@@ -41,16 +41,16 @@ export default function Anime() {
       <div>
         <h1>Most Favorites</h1>
         <ul>
-          {catalog.genres?.map((gen) => (
+          {/* {catalog.genres?.map((gen) => (
             <li key={gen}>
               <a href="!#">{gen}</a>
             </li>
-          ))}
+          ))} */}
         </ul>
       </div>
       <div>
         <h2>Most Popular</h2>
-        {catalog.mostPopular?.map((popular) => (
+        {/* {catalog.mostPopular?.map((popular) => (
           <Card
             key={popular.id}
             anime={{
@@ -61,7 +61,7 @@ export default function Anime() {
               type: popular.type || "Unknown",
             }}
           />
-        ))}
+        ))} */}
       </div>
     </div>
   );

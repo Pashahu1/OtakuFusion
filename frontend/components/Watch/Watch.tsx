@@ -1,69 +1,57 @@
 "use client";
-
 import { useEffect, useState } from "react";
-import { getEpisodes } from "../../api/getEpisodes"; // путь отредактируй по своему проекту
+import { getEpisodes } from "../../api/getEpisodes";
 import { Episode } from "../../types/AnimeTypes";
+import { getServerEpisodes } from "../../api/getServerEpisodes";
+import { useParams, useSearchParams } from "next/navigation";
 
-export const Watch: React.FC<{ animeId: string }> = ({ animeId }) => {
-  const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);
+type Props = {
+  episodeId: string;
+};
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      const data = await getEpisodes(animeId);
-      if (data.length === 0) {
-        setError("Эпизоды не найдены");
-      }
-      setEpisodes(data);
-      setLoading(false);
-    };
+export const Watch: React.FC<Props> = ({ episodeId }) => {
+  // const [episodes, setEpisodes] = useState<Episode[]>([]);
+  // const [server, setServer] = useState<string[]>([]);
+  // const [loading, setLoading] = useState<boolean>(true);
+  // const [error, setError] = useState<string | null>(null);
 
-    fetchData();
-  }, [animeId]);
+  console.log(episodeId);
 
-  const handleEpisodeClick = (id: string) => {
-    setSelectedEpisode(id);
-  };
+  // useEffect(() => {
+  //   const fetchingEpisodes = async () => {
+  //     try {
+  //       const episodesData: Episode[] = await getEpisodes(animeId);
+  //       setEpisodes(episodesData);
+
+  //       const currentEpisode = episodesData.find((e) => e.episodeId === ep);
+
+  //       if (currentEpisode) {
+  //         const server = await getServerEpisodes(currentEpisode.episodeId);
+  //         setServer(server);
+  //       }
+
+  //       setLoading(false);
+  //     } catch (err: any) {
+  //       setError(err.message);
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   if (animeId && ep) fetchingEpisodes();
+  // }, [animeId, ep]);
+
+  // useEffect(() => {
+  //   const fetchingEpisodes = async () => {
+
+  // }, [animeId]);
+
+  // console.log(episodes);
+  // console.log(server);
 
   return (
     <div className="anime-player">
       <h1>Аниме Плеер</h1>
-
-      {loading && <p>Загрузка...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <div className="episode-list">
-        {!loading && episodes.length === 0 && !error && (
-          <p>Нет эпизодов для отображения.</p>
-        )}
-
-        {episodes.map((episode) => (
-          <div
-            key={episode.episodeId}
-            className="episode-item"
-            onClick={() => handleEpisodeClick(episode.episodeId)}
-          >
-            <h2>{episode.title}</h2>
-          </div>
-        ))}
-      </div>
-
-      {selectedEpisode && (
-        <div className="player">
-          <h3>Просмотр эпизода: {selectedEpisode}</h3>
-          <iframe
-            src={`https://example.com/watch/${selectedEpisode}`} // замени на актуальную ссылку
-            width="800"
-            height="450"
-            frameBorder="0"
-            allowFullScreen
-          />
-        </div>
-      )}
+      <video src={`https://my-cdn.com/stream/${episodeId}`} controls autoPlay />
     </div>
   );
 };

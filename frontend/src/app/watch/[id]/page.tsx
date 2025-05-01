@@ -1,14 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { getAnimeDetails } from "../../../../api/getAnimeDetails";
-import { AnimeDetails } from "../../../../types/AnimeTypes";
+import { AnimeDetails, EpisodeData } from "../../../../types/AnimeTypes";
 import { getEpisodes } from "../../../../api/getEpisodes";
+import { Watch } from "../../../../components/Watch/Watch";
+import { Episodes } from "../../../../components/shared/Episodes/Episodes";
 
-export default function Waching() {
+export default function WatchPage() {
   const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
   const { id } = useParams() as { id: string };
+  const searchParams = useSearchParams();
+  const episodeId = searchParams.get("ep") || "1";
+
+  console.log(episodeId);
+
   useEffect(() => {
     const details = async () => {
       if (id) {
@@ -46,6 +53,9 @@ export default function Waching() {
       <p>{animeDetails?.synopsis}</p>
       <p>{animeDetails?.title}</p>
       <p>{animeDetails?.type}</p>
+
+      {/* <Watch episodeId={episodeId} />
+      <Episodes animeId={id} currentEpisodeId={episodeId} /> */}
     </div>
   );
 }

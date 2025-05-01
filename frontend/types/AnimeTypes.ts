@@ -85,3 +85,16 @@ export interface EpisodesResponse {
     episodes: Episode[];
   };
 }
+
+export interface ServerData {
+  serverName: string;
+  serverId: number;
+}
+
+export interface EpisodeData {
+  episodeId: string;
+  episodeNo: number;
+  sub: ServerData[];
+  dub: ServerData[];
+  raw: ServerData[];
+}

@@ -9,7 +9,7 @@ export const Card: React.FC<props> = ({ anime }) => {
   return (
     <article>
       <img src={anime.poster} alt="Anime Cover" />
-      <Link href={`/anime/${anime.id}`}>
+      <Link href={`/watch/${anime.id}`}>
         <h3>{anime.title}</h3>
       </Link>
     </article>

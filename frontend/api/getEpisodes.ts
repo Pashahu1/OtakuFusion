@@ -3,7 +3,7 @@ import { Episode, EpisodesResponse } from "../types/AnimeTypes";
 export const getEpisodes = async (id: string): Promise<Episode[]> => {
   try {
     const res = await fetch(
-      `https://getsources-production-56b4.up.railway.app/api/v1/episodes/${id}`
+      `https://hianime-api-production-2098.up.railway.app/api/v1/episodes/${id}`
     );
 
     if (!res.ok) {
