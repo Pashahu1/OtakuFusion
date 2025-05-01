@@ -6,11 +6,12 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
 import "./Preview.scss";
+
 type Props = {
   catalog: AnimeItem[];
 };
 
-export const Preview = ({ catalog }: { catalog: any[] }) => {
+export const Preview: React.FC<Props> = ({ catalog }) => {
   return (
     <Swiper
       modules={[Navigation, Pagination, Scrollbar, A11y]}

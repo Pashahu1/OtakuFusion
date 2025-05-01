@@ -9,6 +9,7 @@ export const AZFilter = () => {
   const handleClick = (letter: string) => {
     router.push(`/animes/az-list?letter=${letter}&page=1`);
   };
+
   return (
     <div className="az-filter">
       {letters.map((letter) => (

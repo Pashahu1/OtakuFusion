@@ -36,7 +36,6 @@ export default function Home() {
             />
           </div>
         </section>
-        {/* <SideBar /> */}
       </div>
     </div>
   );

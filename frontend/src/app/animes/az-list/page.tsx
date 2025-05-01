@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { getAZList } from "../../../../api/getAZList";
 import { Card } from "../../../../components/shared/Card/Card";
 import { AZFilter } from "../../../../components/AZFilter/AZFilter";
+import { AnimeCard } from "../../../../types/AnimeTypes";
 
 export default function AZListPage() {
   const search = useSearchParams();
   const letter = search.get("letter") || "A";
   const page = search.get("page") || "1";
-  const [animes, setAnimes] = useState<any[]>([]);
+  const [animes, setAnimes] = useState<AnimeCard[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
