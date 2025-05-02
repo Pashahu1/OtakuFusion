@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getHomePage } from "../../../api/getHomePage";
 import "./HomePage.scss";
 import { AnimeSection } from "../../../components/shared/AnimeSection/AnimeSection";
