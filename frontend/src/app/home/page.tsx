@@ -6,10 +6,11 @@ import { AnimeSection } from "../../../components/shared/AnimeSection/AnimeSecti
 import { Preview } from "../../../components/Preview/Preview";
 import { useSelector } from "react-redux";
 import { useActions } from "../../../hooks/useActions";
+import { RootState } from "../../../store/store";
 
 export default function Home() {
   const { setAnimeHomeCatalog } = useActions();
-  const homeCatalog = useSelector((state: any) => state.animeHomeCatalog);
+  const homeCatalog = useSelector((state: RootState) => state.animeHomeCatalog);
 
   useEffect(() => {
     const homePageCatalog = async () => {
