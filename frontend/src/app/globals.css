@@ -22,10 +22,7 @@ ul {
 
 main {
   flex: 1;
-}
-
-.main-container {
-  margin: 0 auto;
+  padding: 4.5rem 0 0;
 }
 
 h1,
@@ -36,11 +33,20 @@ h5,
 h6 {
   margin: 0;
   padding: 0;
+}
+
+p,
+span {
+  margin: 0;
+  padding: 0;
   color: white;
 }
 
-p {
+input {
   margin: 0;
   padding: 0;
+  border: none;
+  outline: none;
+  background-color: transparent;
   color: white;
 }

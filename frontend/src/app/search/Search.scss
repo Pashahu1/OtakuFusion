@@ -1,0 +1,12 @@
+.search-page {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  background-color: #141519;
+  padding: 25px;
+
+  &__input {
+    width: 50%;
+    margin: 0 auto;
+  }
+}

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { getAnimeDetails } from "../../../../api/getAnimeDetails";
 import { AnimeDetails } from "../../../../types/AnimeTypes";
 import { getEpisodes } from "../../../../api/getEpisodes";
-
+import "./WatchPage.scss";
 export default function WatchPage() {
   const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
   const { id } = useParams() as { id: string };
@@ -23,12 +23,24 @@ export default function WatchPage() {
 
   return (
     <div>
+      <h1 className="text-2xl font-bold mb-4">Аніме Плеер</h1>
+      <div>
+        <img
+          className="watch-anime-poster"
+          src={animeDetails?.poster}
+          alt={animeDetails?.title}
+        />
+        <div>
+          <h1>{animeDetails?.title}</h1>
+          <span>{animeDetails?.alternativeTitle}</span>
+        </div>
+      </div>
       <p>{animeDetails?.MAL_score}</p>
       <p>
         {animeDetails?.aired.from}
         <span>{animeDetails?.aired.to}</span>
       </p>
-      <p>{animeDetails?.alternativeTitle}</p>
+
       <p>{animeDetails?.duration}</p>
       <p>
         <span>{animeDetails?.episodes.dub}</span>
@@ -37,7 +49,7 @@ export default function WatchPage() {
       </p>
       <p>{animeDetails?.genres}</p>
       <p>{animeDetails?.japanese}</p>
-      <img src={animeDetails?.poster} alt={animeDetails?.title} />
+
       <p>{animeDetails?.premiered}</p>
       <p>{animeDetails?.producers}</p>
       <p>{animeDetails?.rating}</p>
@@ -45,7 +57,6 @@ export default function WatchPage() {
       <p>{animeDetails?.studios}</p>
       <p>{animeDetails?.synonyms}</p>
       <p>{animeDetails?.synopsis}</p>
-      <p>{animeDetails?.title}</p>
       <p>{animeDetails?.type}</p>
     </div>
   );

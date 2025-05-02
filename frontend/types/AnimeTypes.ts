@@ -2,7 +2,7 @@ export interface AnimeItem {
   id: string;
   title: string;
   image: string;
-  [key: string]: any; // на випадок, якщо ще є якісь поля
+  [key: string]: any;
 }
 
 export interface Top10 {

@@ -12,7 +12,7 @@ export const getEpisodes = async (id: string): Promise<Episode[]> => {
 
     const data: EpisodesResponse = await res.json();
 
-    return data.episodes.episodes;
+    return Array.isArray(data.episodes) ? data.episodes : [];
   } catch (error) {
     console.error("Ошибка при получении эпизодов:", error);
     return [];

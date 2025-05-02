@@ -1,18 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
 import { getHomePage } from "../../../api/getHomePage";
-import { HomeCatalog } from "../../../types/AnimeTypes";
 import "./HomePage.scss";
 import { AnimeSection } from "../../../components/shared/AnimeSection/AnimeSection";
 import { Preview } from "../../../components/Preview/Preview";
+import { useSelector } from "react-redux";
+import { useActions } from "../../../hooks/useActions";
 
 export default function Home() {
-  const [homeCatalog, setHomeCatalog] = useState<HomeCatalog | null>(null);
+  const { setAnimeHomeCatalog } = useActions();
+  const homeCatalog = useSelector((state: any) => state.animeHomeCatalog);
 
   useEffect(() => {
     const homePageCatalog = async () => {
       const data = await getHomePage();
-      setHomeCatalog(data.data);
+      setAnimeHomeCatalog(data.data);
     };
 
     homePageCatalog();
@@ -22,7 +24,7 @@ export default function Home() {
     <div className="home-page">
       <div className="home-page__content">
         <section className="home-page__header">
-          <Preview catalog={homeCatalog?.spotlight || []} />
+          <Preview />
         </section>
         <section className="home-page__main">
           <div className="home-page__cards">

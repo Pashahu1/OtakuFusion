@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import "./AZFilter.scss";
 
 const letters: string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
