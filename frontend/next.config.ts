@@ -18,5 +18,8 @@ module.exports = {
         pathname: "/**",
       },
     ],
+    experimental: {
+      missingSuspenseWithCSRBailout: false,
+    },
   },
 };
