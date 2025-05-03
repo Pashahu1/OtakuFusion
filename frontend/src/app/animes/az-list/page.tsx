@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { getAZList } from "../../../../api/getAZList";
 import { Card } from "../../../../components/shared/Card/Card";
 import { useActions } from "../../../../hooks/useActions";
@@ -46,14 +46,16 @@ export default function AZListPage() {
   });
 
   return (
-    <div className="animes-page">
-      <h1 className="animes-page__title">A-Z List</h1>
-      <div className="animes-page__container">
-        {filteredAnimes.map((anime) => (
-          <Card key={anime.id} anime={anime} />
-        ))}
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="animes-page">
+        <h1 className="animes-page__title">A-Z List</h1>
+        <div className="animes-page__container">
+          {filteredAnimes.map((anime) => (
+            <Card key={anime.id} anime={anime} />
+          ))}
+        </div>
+        <Pagination page={page} total={totalPages} />
       </div>
-      <Pagination page={page} total={totalPages} />
-    </div>
+    </Suspense>
   );
 }
