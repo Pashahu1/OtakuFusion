@@ -17,11 +17,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <Provider store={store}>
         <body className={inter.className}>
-          <Header />
-          <main className="main">
-            <Suspense>{children}</Suspense>
-          </main>
-          <Footer />
+          <Suspense fallback={<div>Loading...</div>}>
+            <Header />
+            <main className="main">{children}</main>
+
+            <Footer />
+          </Suspense>
         </body>
       </Provider>
     </html>

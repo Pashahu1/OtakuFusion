@@ -53,9 +53,8 @@ export default function AZListPage() {
           <Card key={anime.id} anime={anime} />
         ))}
       </div>
-      <Suspense>
-        <Pagination page={page} total={totalPages} />
-      </Suspense>
+
+      <Pagination page={page} total={totalPages} />
     </div>
   );
 }
