@@ -45,18 +45,20 @@ export const AZFilter = () => {
   };
 
   return (
-    <div className="az-filter">
-      <ul className="az-filter__list">
-        {letters.map((letter) => (
-          <li
-            key={letter}
-            onClick={() => handleClick(letter)}
-            className="az-filter__item"
-          >
-            {letter}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="az-filter">
+        <ul className="az-filter__list">
+          {letters.map((letter) => (
+            <li
+              key={letter}
+              onClick={() => handleClick(letter)}
+              className="az-filter__item"
+            >
+              {letter}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Suspense>
   );
 };

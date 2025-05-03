@@ -26,22 +26,24 @@ export const Pagination: React.FC<Props> = ({ page, total }) => {
   };
 
   return (
-    <div className="pagination">
-      <button
-        onClick={handlePrevPage}
-        className="pagination__button button__prev"
-      >
-        Prev
-      </button>
-      <span>
-        {page} - {total}
-      </span>
-      <button
-        className="pagination__button button__next"
-        onClick={handleNextPage}
-      >
-        Next
-      </button>
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="pagination">
+        <button
+          onClick={handlePrevPage}
+          className="pagination__button button__prev"
+        >
+          Prev
+        </button>
+        <span>
+          {page} - {total}
+        </span>
+        <button
+          className="pagination__button button__next"
+          onClick={handleNextPage}
+        >
+          Next
+        </button>
+      </div>
+    </Suspense>
   );
 };
