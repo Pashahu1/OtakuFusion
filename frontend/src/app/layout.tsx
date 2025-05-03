@@ -18,9 +18,9 @@ export default function RootLayout({
       <Provider store={store}>
         <body className={inter.className}>
           <Header />
-          <Suspense>
-            <main className="main">{children}</main>
-          </Suspense>
+          <main className="main">
+            <Suspense>{children}</Suspense>
+          </main>
           <Footer />
         </body>
       </Provider>
