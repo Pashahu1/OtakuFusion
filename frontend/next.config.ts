@@ -1,6 +1,9 @@
 // next.config.js
 module.exports = {
   reactStrictMode: true,
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
   allowedDevOrigins: [
     "http://localhost:3000",
     "https://otaku-fusion.vercel.app",
@@ -18,8 +21,5 @@ module.exports = {
         pathname: "/**",
       },
     ],
-    experimental: {
-      missingSuspenseWithCSRBailout: false,
-    },
   },
 };
