@@ -1,0 +1,17 @@
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 50px;
+  gap: 20px;
+
+  &__button {
+    width: 160px;
+    padding: 10px;
+    background-color: #ff640a;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}

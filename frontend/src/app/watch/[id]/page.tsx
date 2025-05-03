@@ -10,6 +10,8 @@ export default function WatchPage() {
   const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
   const { id } = useParams() as { id: string };
 
+  console.log(animeDetails?.poster);
+
   useEffect(() => {
     const details = async () => {
       if (id) {

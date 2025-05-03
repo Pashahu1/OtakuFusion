@@ -1,8 +1,21 @@
 export interface AnimeItem {
   id: string;
   title: string;
-  image: string;
-  [key: string]: any;
+  alternativeTitle: string;
+  poster: string;
+  rank: number;
+  type: "TV" | "Movie" | "OVA" | "ONA" | "Special" | "Unknown";
+  quality: "HD" | "SD" | "FHD" | string;
+  duration: string;
+  aired: string;
+  synopsis: string;
+  episodes: AnimeEpisodes;
+}
+
+export interface AnimeEpisodes {
+  sub: number;
+  dub: number;
+  eps: number;
 }
 
 export interface Top10 {
@@ -11,18 +24,18 @@ export interface Top10 {
   month: AnimeItem[];
 }
 
-export interface HomeCatalog {
-  genres: string[];
+export interface HomeCatalogData {
+  spotlight: AnimeItem[];
+  trending: AnimeItem[];
+  topAiring: AnimeItem[];
+  mostPopular: AnimeItem[];
+  mostFavorite: AnimeItem[];
   latestCompleted: AnimeItem[];
   latestEpisode: AnimeItem[];
-  mostFavorite: AnimeItem[];
-  mostPopular: AnimeItem[];
   newAdded: AnimeItem[];
-  spotlight: AnimeItem[];
-  top10: Top10;
-  topAiring: AnimeItem[];
   topUpcoming: AnimeItem[];
-  trending: AnimeItem[];
+  top10: Top10;
+  genres: string[];
 }
 
 export interface Episodes {
@@ -97,4 +110,15 @@ export interface EpisodeData {
   sub: ServerData[];
   dub: ServerData[];
   raw: ServerData[];
+}
+
+export interface PageInfo {
+  currentPage: number;
+  hasNextPage: boolean;
+  totalPages: number;
+}
+
+export interface AZList {
+  response: AnimeItem[];
+  pageInfo: PageInfo;
 }

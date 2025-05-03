@@ -9,13 +9,13 @@ import { useActions } from "../../../hooks/useActions";
 import { RootState } from "../../../store/store";
 
 export default function Home() {
-  const { setAnimeHomeCatalog } = useActions();
+  const { getHomeCatalog } = useActions();
   const homeCatalog = useSelector((state: RootState) => state.animeHomeCatalog);
 
   useEffect(() => {
     const homePageCatalog = async () => {
       const data = await getHomePage();
-      setAnimeHomeCatalog(data.data);
+      getHomeCatalog(data.data);
     };
 
     homePageCatalog();
@@ -34,8 +34,8 @@ export default function Home() {
               catalog={homeCatalog?.latestCompleted || []}
             />
             <AnimeSection
-              title="Trending Anime"
-              catalog={homeCatalog?.trending || []}
+              title="Top Upcoming"
+              catalog={homeCatalog?.topUpcoming || []}
             />
           </div>
         </section>

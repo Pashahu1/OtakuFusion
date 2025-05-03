@@ -1,0 +1,22 @@
+.animes {
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+    gap: 20px;
+
+    &__container {
+      display: grid;
+      grid-template-columns: repeat(6, 280px);
+      align-items: center;
+
+      gap: 30px 20px;
+    }
+  }
+}

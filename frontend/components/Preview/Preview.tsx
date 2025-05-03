@@ -1,14 +1,51 @@
 import { A11y, Navigation, Pagination, Scrollbar } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { AnimeItem } from "../../types/AnimeTypes";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
 import "./Preview.scss";
 import { useSelector } from "react-redux";
-import { Card } from "../shared/Card/Card";
 import { RootState } from "../../store/store";
+import { SwiperCard } from "../SwiperCard/SwiperCard";
+import myHeroesAcademLogo from "../../public/MHAVigilantes.avif";
+import fireForceLogo from "../../public/FireForce.avif";
+import onePiceLogo from "../../public/OP-Egghead.avif";
+import fireforceBack from "../../public/backdropfc_wide.avif";
+import myHeroeBack from "../../public/backdropmg_wide.avif";
+import onePieceBack from "../../public/backdrop_wide.avif";
+import toBeHeroBack from "../../public/to-be-hero-x.jpg";
+import windBreakerBack from "../../public/backdropwb_wide.avif";
+import toBeHeroXLogo from "../../public/toBeHeroXLogo.svg";
+import windBreakerLogo from "../../public/Wind_Breaker_Anime_Logo.png";
+
+const previewSwiper = [
+  {
+    id: "Fire Force Season 3",
+    titlePage: fireForceLogo,
+    poster: fireforceBack,
+  },
+  {
+    id: "My Hero Academia: Vigilantes",
+    titlePage: myHeroesAcademLogo,
+    poster: myHeroeBack,
+  },
+  {
+    id: "One Piece",
+    titlePage: onePiceLogo,
+    poster: onePieceBack,
+  },
+  {
+    id: "Wind Breaker Season 2",
+    titlePage: windBreakerLogo,
+    poster: windBreakerBack,
+  },
+  {
+    id: "To Be Hero X",
+    titlePage: toBeHeroXLogo,
+    poster: toBeHeroBack,
+  },
+];
 
 export const Preview = () => {
   const homeCatalog = useSelector((state: RootState) => state.animeHomeCatalog);
@@ -17,6 +54,7 @@ export const Preview = () => {
     <Swiper
       modules={[Navigation, Pagination, Scrollbar, A11y]}
       slidesPerView={1}
+      style={{ height: "100vh" }}
       pagination={{
         el: ".preview-card__pagination",
         clickable: true,
@@ -28,38 +66,34 @@ export const Preview = () => {
       loop={true}
       navigation
     >
-      {homeCatalog?.spotlight.map((anime: AnimeItem) => (
+      {previewSwiper.map((anime) => (
         <SwiperSlide key={anime.id}>
           <div
             className="preview-card"
             style={{
-              backgroundImage: `url(${anime.poster})`,
+              backgroundImage: `url(${anime.poster.src})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
             }}
           >
-            <div className="preview-card__overlay">
-              <h1>{anime.title}</h1>
-            </div>
+            <p className="preview-card__overlay">
+              <img
+                className="preview-card__title"
+                src={anime.titlePage.src}
+                alt={anime.id}
+              />
+            </p>
           </div>
         </SwiperSlide>
       ))}
-      <div className="preview-card__content">
-        <h1 className="preview-card__title">Trending</h1>
-        <div className="preview-card__container">
-          {homeCatalog?.spotlight.map((anime: AnimeItem) => (
-            <Card
-              key={anime.id}
-              anime={{
-                ...anime,
-                alternativeTitle: anime.alternativeTitle || "N/A",
-                episodes: anime.episodes || 0,
-                poster: anime.poster || "default-poster.jpg",
-                type: anime.type || "Unknown",
-              }}
-            />
-          ))}
+      <div className="preview-card__header">
+        <div className="preview-card__content">
+          <h1 className="preview-card__title">Trending</h1>
+
+          <div className="preview-card__container">
+            <SwiperCard catalog={homeCatalog.trending} />
+          </div>
         </div>
       </div>
       <div className="preview-card__pagination"></div>

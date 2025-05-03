@@ -21,7 +21,7 @@
     position: absolute;
     bottom: 70%;
     left: 0;
-    padding: 2rem;
+    padding: 0 2rem;
     color: white;
     width: 100%;
 
@@ -32,7 +32,7 @@
     }
   }
 
-  &__content {
+  &__header {
     display: flex;
     flex-direction: column;
     position: absolute;
@@ -48,24 +48,43 @@
     );
     gap: 20px;
     z-index: 1;
+  }
 
-    &__title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      z-index: 2;
-    }
+  &__title {
+    font-size: 2rem;
+    font-weight: 700;
+    align-self: flex-start;
+    z-index: 2;
+  }
+
+  &__description {
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin-bottom: 1rem;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+    color: white;
+    width: 100%;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.8) 0%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
+    z-index: 1;
 
     &__description {
       font-size: 1.2rem;
       font-weight: 400;
       margin-bottom: 1rem;
     }
-  }
-
-  &__container {
-    display: flex;
-    gap: 20px;
   }
 }
 
@@ -92,7 +111,7 @@
 .swiper-horizontal > .swiper-pagination-bullets,
 .swiper-pagination-bullets.swiper-pagination-horizontal {
   width: auto;
-  bottom: 35%;
+  bottom: 55%;
   left: 30px;
 }
 
@@ -101,6 +120,7 @@
   color: white;
   width: 40px;
   height: 40px;
+  top: 35%;
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 50%;
   display: flex;
