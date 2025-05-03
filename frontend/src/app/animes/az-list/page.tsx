@@ -46,17 +46,16 @@ export default function AZListPage() {
   });
 
   return (
-    <Suspense>
-      <div className="animes-page">
-        <h1 className="animes-page__title">A-Z List</h1>
-        <div className="animes-page__container">
-          {filteredAnimes.map((anime) => (
-            <Card key={anime.id} anime={anime} />
-          ))}
-        </div>
-
-        <Pagination page={page} total={totalPages} />
+    <div className="animes-page">
+      <h1 className="animes-page__title">A-Z List</h1>
+      <div className="animes-page__container">
+        {filteredAnimes.map((anime) => (
+          <Card key={anime.id} anime={anime} />
+        ))}
       </div>
-    </Suspense>
+      <Suspense>
+        <Pagination page={page} total={totalPages} />
+      </Suspense>
+    </div>
   );
 }
