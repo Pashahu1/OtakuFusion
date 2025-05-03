@@ -46,7 +46,7 @@ export default function AZListPage() {
   });
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense>
       <div className="animes-page">
         <h1 className="animes-page__title">A-Z List</h1>
         <div className="animes-page__container">
