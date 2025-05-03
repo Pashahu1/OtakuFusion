@@ -1,3 +1,4 @@
+"use client";
 import "./Pagination.scss";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
