@@ -24,6 +24,9 @@ export const SwiperCard: React.FC<Props> = ({ catalog }) => {
           1200: {
             slidesPerView: 8,
           },
+          1980: {
+            slidesPerView: 10,
+          },
         }}
       >
         {catalog.map((anime: AnimeItem) => (

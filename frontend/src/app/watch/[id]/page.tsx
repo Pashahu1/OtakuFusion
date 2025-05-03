@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { getAnimeDetails } from "../../../../api/getAnimeDetails";
 import { AnimeDetails } from "../../../../types/AnimeTypes";
 import { getEpisodes } from "../../../../api/getEpisodes";
-import "./WatchPage.scss";
 export default function WatchPage() {
   const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
   const { id } = useParams() as { id: string };
