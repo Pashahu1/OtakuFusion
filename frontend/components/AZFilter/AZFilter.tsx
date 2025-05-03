@@ -1,7 +1,6 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import "./AZFilter.scss";
-import { Suspense } from "react";
 
 const letters: string[] = [
   "0-9",

@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { getAZList } from "../../../../api/getAZList";
 import { Card } from "../../../../components/shared/Card/Card";
 import { useActions } from "../../../../hooks/useActions";

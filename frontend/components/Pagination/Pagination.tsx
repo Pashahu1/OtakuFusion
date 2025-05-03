@@ -2,7 +2,6 @@
 import "./Pagination.scss";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { Suspense } from "react";
 type Props = {
   page: string;
   total: number;
