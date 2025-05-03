@@ -18,7 +18,7 @@ export default function RootLayout({
       <Provider store={store}>
         <body className={inter.className}>
           <Header />
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense>
             <main className="main">{children}</main>
           </Suspense>
           <Footer />
