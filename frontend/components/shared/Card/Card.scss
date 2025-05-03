@@ -2,21 +2,32 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 280px;
+  width: 250px;
+  padding: 10px;
   gap: 10px;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
 
   &__img-container {
     position: relative;
-    height: 480px;
+    width: 100%;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+    border-radius: 8px;
 
     @media (max-width: 1980px) {
-      height: 350px;
+      aspect-ratio: 2/3;
     }
   }
 
   &__img {
-    flex: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover; // обрезает изображение под контейнер
+    object-position: center;
   }
 }

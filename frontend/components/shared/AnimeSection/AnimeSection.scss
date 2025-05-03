@@ -11,8 +11,7 @@
 
   &__container {
     display: grid;
-    grid-template-columns: repeat(5, 280px);
-    gap: 20px;
-    row-gap: 30px;
+    grid-template-columns: repeat(5, 250px);
+    row-gap: 20px;
   }
 }

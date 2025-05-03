@@ -1,8 +1,8 @@
 .preview-card {
   width: 100vw;
   height: 100vh;
-  position: relative;
-  overflow: hidden;
+  // position: relative;
+  // overflow: hidden;
 
   &__pagination {
     display: flex;
@@ -17,11 +17,12 @@
     --swiper-pagination-bullet-horizontal-gap: 6px;
   }
 
+  &__title {
+    width: 352px;
+  }
+
   &__overlay {
-    position: absolute;
-    bottom: 70%;
-    left: 0;
-    padding: 0 2rem;
+    padding: 2rem;
     color: white;
     width: 100%;
 
@@ -35,9 +36,9 @@
   &__header {
     display: flex;
     flex-direction: column;
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    // position: absolute;
+    // bottom: 0;
+    // left: 0;
     padding: 2rem;
     color: white;
     width: 100%;

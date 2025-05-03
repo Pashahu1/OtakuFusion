@@ -18,10 +18,10 @@ export const SwiperCard: React.FC<Props> = ({ catalog }) => {
           0: {
             slidesPerView: 2,
           },
-          1200: {
-            slidesPerView: 6,
+          800: {
+            slidesPerView: 5,
           },
-          1980: {
+          1200: {
             slidesPerView: 8,
           },
         }}

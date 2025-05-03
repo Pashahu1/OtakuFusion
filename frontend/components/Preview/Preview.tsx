@@ -13,10 +13,10 @@ import myHeroesAcademLogo from "../../public/MHAVigilantes.png";
 import fireForceLogo from "../../public/FireForce.png";
 import onePiceLogo from "../../public/Egghead.png";
 import fireforceBack from "../../public/backdropfc_wide.jpg";
-import myHeroeBack from "../../public/backdropmg_wide.jpg";
-import onePieceBack from "../../public/backdrop_wide.jpg";
+import myHeroeBack from "../../public/Vigilantes.jpg";
+import onePieceBack from "../../public/backdrop_wide.jpeg";
 import toBeHeroBack from "../../public/to-be-hero-x.jpg";
-import windBreakerBack from "../../public/backdropwb_wide.jpg";
+import windBreakerBack from "../../public/WindBreak.jpg";
 import toBeHeroXLogo from "../../public/toBeHeroXLogo.svg";
 import windBreakerLogo from "../../public/Wind_Breaker_Anime_Logo.png";
 
@@ -76,6 +76,9 @@ export const Preview = () => {
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
+              objectFit: "cover",
+              width: "100%",
+              height: "100%",
             }}
           >
             <p className="preview-card__overlay">
@@ -88,13 +91,13 @@ export const Preview = () => {
           </div>
         </SwiperSlide>
       ))}
-      <div className="preview-card__header">
-        <div className="preview-card__content">
-          <h1 className="preview-card__title">Trending</h1>
 
-          <div className="preview-card__container">
-            <SwiperCard catalog={homeCatalog.trending} />
-          </div>
+      <div className="preview-card__header"></div>
+      <div className="preview-card__content">
+        <h1 className="preview-card__title">Trending</h1>
+
+        <div className="preview-card__container">
+          <SwiperCard catalog={homeCatalog.trending} />
         </div>
       </div>
       <div className="preview-card__pagination"></div>

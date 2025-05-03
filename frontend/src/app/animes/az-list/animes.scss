@@ -13,10 +13,10 @@
 
     &__container {
       display: grid;
-      grid-template-columns: repeat(6, 280px);
+      grid-template-columns: repeat(6, 250px);
       align-items: center;
 
-      gap: 30px 20px;
+      gap: 20px 0;
     }
   }
 }
