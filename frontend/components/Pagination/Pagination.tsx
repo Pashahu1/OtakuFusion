@@ -11,7 +11,7 @@ export const Pagination: React.FC<Props> = ({ page, total }) => {
   const searchParams = useSearchParams();
   const currentPage = searchParams.get("page") || "1";
   const letter = searchParams.get("letter") || "All";
-  let current = Number(currentPage);
+  const current = Number(currentPage);
 
   const handleNextPage = () => {
     router.push(`/animes?letter=${letter}&page=${current + 1}`);
