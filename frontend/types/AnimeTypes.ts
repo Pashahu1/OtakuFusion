@@ -122,3 +122,5 @@ export interface AZList {
   response: AnimeItem[];
   pageInfo: PageInfo;
 }
+
+export interface SearchList {}
