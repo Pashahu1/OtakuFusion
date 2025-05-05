@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
-import "./Search.scss";
-import { getAnimeSearch } from "../../../api/getAnimeSearch";
-import { AnimeItem } from "../../../types/AnimeTypes";
-import { Card } from "../../../components/shared/Card/Card";
-import { useRouter } from "next/navigation";
+// import { useEffect, useState } from "react";
+// import "./Search.scss";
+// import { getAnimeSearch } from "../../../api/getAnimeSearch";
+// import { AnimeItem } from "../../../types/AnimeTypes";
+// import { Card } from "../../../components/shared/Card/Card";
+// import { useRouter } from "next/navigation";
 
-let debounceTimeout: NodeJS.Timeout;
+// let debounceTimeout: NodeJS.Timeout;
 
 export default function Search() {
   // const [animes, setAnimes] = useState<AnimeItem[]>([]);

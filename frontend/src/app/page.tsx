@@ -1,4 +1,4 @@
-import { Watch } from "../../components/Watch/Watch";
+// import { Watch } from "../../components/Watch/Watch";
 
 export default function Info() {
   return (

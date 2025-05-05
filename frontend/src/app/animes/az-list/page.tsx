@@ -1,13 +1,13 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { getAZList } from "../../../../api/getAZList";
-import { Card } from "../../../../components/shared/Card/Card";
-import { useActions } from "../../../../hooks/useActions";
-import { RootState } from "../../../../store/store";
-import { useSelector } from "react-redux";
-import "./animes.scss";
-import { Pagination } from "../../../../components/Pagination/Pagination";
+// import { useSearchParams } from "next/navigation";
+// import { useEffect } from "react";
+// import { getAZList } from "../../../../api/getAZList";
+// import { Card } from "../../../../components/shared/Card/Card";
+// import { useActions } from "../../../../hooks/useActions";
+// import { RootState } from "../../../../store/store";
+// import { useSelector } from "react-redux";
+// import "./animes.scss";
+// import { Pagination } from "../../../../components/Pagination/Pagination";
 
 export default function AZListPage() {
   // const search = useSearchParams();
