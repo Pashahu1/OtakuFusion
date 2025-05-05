@@ -1,6 +1,6 @@
 export const getHomePage = async () => {
   const res = await fetch(
-    "https://hianime-api-production-2098.up.railway.app/api/v1/home"
+    "https://otaku-fusion-fizq.vercel.app/api/v2/hianime/home"
   );
   if (!res.ok) {
     throw new Error("Fetch uncorrect");

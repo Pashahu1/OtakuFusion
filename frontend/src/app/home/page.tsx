@@ -21,14 +21,16 @@ export default function Home() {
     homePageCatalog();
   }, []);
 
+  console.log(homeCatalog)
+
   return (
     <div className="home-page">
       <div className="home-page__content">
         <section className="home-page__header">
-          <Preview />
+          {/* <Preview /> */}
         </section>
         <section className="home-page__main">
-          <div className="home-page__cards">
+          {/* <div className="home-page__cards">
             <AnimeSection
               title="Latest Completed"
               catalog={homeCatalog?.latestCompleted || []}
@@ -37,7 +39,7 @@ export default function Home() {
               title="Top Upcoming"
               catalog={homeCatalog?.topUpcoming || []}
             />
-          </div>
+          </div> */}
         </section>
       </div>
     </div>

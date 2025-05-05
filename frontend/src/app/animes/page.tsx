@@ -8,7 +8,7 @@ export default function Animes() {
     <div className="animes">
       <div className="animes__content">
         <ControlPanel />
-        <AZListPage />
+        {/* <AZListPage /> */}
       </div>
     </div>
   );

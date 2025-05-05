@@ -6,24 +6,24 @@ import { getAnimeDetails } from "../../../../api/getAnimeDetails";
 import { AnimeDetails } from "../../../../types/AnimeTypes";
 import { getEpisodes } from "../../../../api/getEpisodes";
 export default function WatchPage() {
-  const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
-  const { id } = useParams() as { id: string };
+  // const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
+  // const { id } = useParams() as { id: string };
 
-  useEffect(() => {
-    const details = async () => {
-      if (id) {
-        const res = await getAnimeDetails(id);
-        setAnimeDetails(res.data);
-        console.log(getEpisodes(id));
-      }
-    };
-    details();
-  }, [id]);
+  // useEffect(() => {
+  //   const details = async () => {
+  //     if (id) {
+  //       const res = await getAnimeDetails(id);
+  //       setAnimeDetails(res.data);
+  //       console.log(getEpisodes(id));
+  //     }
+  //   };
+  //   details();
+  // }, [id]);
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Аніме Плеер</h1>
-      <div>
+      {/* <div>
         <img
           className="watch-anime-poster"
           src={animeDetails?.poster}
@@ -56,7 +56,7 @@ export default function WatchPage() {
       <p>{animeDetails?.studios}</p>
       <p>{animeDetails?.synonyms}</p>
       <p>{animeDetails?.synopsis}</p>
-      <p>{animeDetails?.type}</p>
+      <p>{animeDetails?.type}</p> */}
     </div>
   );
 }
