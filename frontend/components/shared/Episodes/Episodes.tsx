@@ -1,44 +1,44 @@
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Episode } from "../../../types/AnimeTypes";
-import { getEpisodes } from "../../../api/getEpisodes";
+// import { useRouter } from "next/navigation";
+// import { useEffect, useState } from "react";
+// import { Episode } from "../../../types/AnimeTypes";
+// import { getEpisodes } from "../../../api/getEpisodes";
 
-type Props = {
-  animeId: string;
-  currentEpisodeId: string;
-};
+// type Props = {
+//   animeId: string;
+//   currentEpisodeId: string;
+// };
 
-export const Episodes: React.FC<Props> = ({ animeId, currentEpisodeId }) => {
-  const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [isClient, setIsClient] = useState(false);
-  const router = useRouter();
+export const Episodes = () => {
+  // const [episodes, setEpisodes] = useState<Episode[]>([]);
+  // const [isClient, setIsClient] = useState(false);
+  // const router = useRouter();
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  // useEffect(() => {
+  //   setIsClient(true);
+  // }, []);
 
-  useEffect(() => {
-    const fetchEpisodes = async () => {
-      try {
-        const data = await getEpisodes(animeId);
-        setEpisodes(data);
-      } catch {
-        console.error("Error fetching episodes");
-      }
-    };
+  // useEffect(() => {
+  //   const fetchEpisodes = async () => {
+  //     try {
+  //       const data = await getEpisodes(animeId);
+  //       setEpisodes(data);
+  //     } catch {
+  //       console.error("Error fetching episodes");
+  //     }
+  //   };
 
-    fetchEpisodes();
-  }, [animeId]);
+  //   fetchEpisodes();
+  // }, [animeId]);
 
-  if (!isClient) {
-    return null;
-  }
+  // if (!isClient) {
+  //   return null;
+  // }
 
   return (
     <div>
       <h2>Episodes</h2>
       <ul>
-        {episodes.map((episode) => (
+        {/* {episodes.map((episode) => (
           <li key={episode.episodeId}>
             <p
               onClick={() =>
@@ -49,7 +49,7 @@ export const Episodes: React.FC<Props> = ({ animeId, currentEpisodeId }) => {
               {episode.number}
             </p>
           </li>
-        ))}
+        ))} */}
       </ul>
     </div>
   );
