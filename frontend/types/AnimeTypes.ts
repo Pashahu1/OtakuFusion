@@ -1,3 +1,3 @@
-export interface AnimeTypes {
-  id: string;
-}
+// export interface AnimeTypes {
+//   id: string;
+// }
