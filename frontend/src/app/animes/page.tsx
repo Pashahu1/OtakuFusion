@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { ControlPanel } from "../../../components/ControlPanel/ControlPanel";
+import { ControlPanel } from '../../../components/ControlPanel/ControlPanel';
 // import AZListPage from "./az-list/page";
 
 export default function Animes() {

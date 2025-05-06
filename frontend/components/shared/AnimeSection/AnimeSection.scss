@@ -1,6 +1,7 @@
 .anime-section {
   display: flex;
   flex-direction: column;
+  grid-column: 1;
   gap: 20px;
 
   &__content {

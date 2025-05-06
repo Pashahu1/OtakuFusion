@@ -1,90 +1,93 @@
-.preview-card {
-  width: 100vw;
-  height: 100vh;
-  // position: relative;
-  // overflow: hidden;
-
-  &__pagination {
-    display: flex;
-    position: absolute;
-    gap: 5px;
-    z-index: 1;
-    --swiper-pagination-bullet-inactive-color: #999;
-    --swiper-pagination-bullet-inactive-opacity: 0.5;
-    --swiper-pagination-bullet-size: 8px;
-    --swiper-pagination-bullet-width: 8px;
-    --swiper-pagination-bullet-height: 8px;
-    --swiper-pagination-bullet-horizontal-gap: 6px;
-  }
-
-  &__title {
-    width: 352px;
-  }
-
-  &__overlay {
-    padding: 2rem;
-    color: white;
+.preview {
+  max-height: 1250px;
+  &-card {
     width: 100%;
+    height: 100%;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    &__pagination {
+      display: flex;
+      position: absolute;
+      gap: 5px;
+      z-index: 1;
+      --swiper-pagination-bullet-inactive-color: #999;
+      --swiper-pagination-bullet-inactive-opacity: 0.5;
+      --swiper-pagination-bullet-size: 8px;
+      --swiper-pagination-bullet-width: 8px;
+      --swiper-pagination-bullet-height: 8px;
+      --swiper-pagination-bullet-horizontal-gap: 6px;
+    }
+
+    &__overlay {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-rows: 1fr auto;
+      gap: 20px;
+      padding: 1rem;
+
+      // &__title {
+      //   font-size: 2rem;
+      //   font-weight: 700;
+      //   margin-bottom: 1rem;
+      // }
+      &-title-page {
+        grid-column: 1 / 5;
+        width: 352px;
+      }
+
+      &-text {
+        grid-column: 1 / 5;
+      }
+
+      &-button {
+        background-color: #ff640a;
+        padding: 10px;
+        grid-column: 1 / 3;
+      }
+    }
+
+    &__header {
+      padding: 8rem 4rem 0;
+    }
 
     &__title {
       font-size: 2rem;
       font-weight: 700;
-      margin-bottom: 1rem;
+      align-self: flex-start;
+      z-index: 2;
     }
-  }
-
-  &__header {
-    display: flex;
-    flex-direction: column;
-    // position: absolute;
-    // bottom: 0;
-    // left: 0;
-    padding: 2rem;
-    color: white;
-    width: 100%;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.8) 0%,
-      rgba(0, 0, 0, 0.5) 100%
-    );
-    gap: 20px;
-    z-index: 1;
-  }
-
-  &__title {
-    font-size: 2rem;
-    font-weight: 700;
-    align-self: flex-start;
-    z-index: 2;
-  }
-
-  &__description {
-    font-size: 1.2rem;
-    font-weight: 400;
-    margin-bottom: 1rem;
-  }
-
-  &__content {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    padding: 1rem;
-    color: white;
-    width: 100%;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.8) 0%,
-      rgba(0, 0, 0, 0.5) 100%
-    );
-    z-index: 1;
 
     &__description {
       font-size: 1.2rem;
       font-weight: 400;
       margin-bottom: 1rem;
+    }
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      padding: 1rem;
+      z-index: 2;
+      transform: translateY(-50%);
+      color: white;
+      width: 100%;
+      background: linear-gradient(to top, rgba(17, 18, 19) 0%, rgba(0, 0, 0, 0.5) 100%);
+      z-index: 1;
+      backdrop-filter: blur(10px);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      padding-top: 2rem;
+
+      &__description {
+        font-size: 1.2rem;
+        font-weight: 400;
+        margin-bottom: 1rem;
+      }
     }
   }
 }
@@ -101,10 +104,33 @@
 }
 
 .swiper-pagination-bullet-active {
-  background-color: #ff640a;
+  position: relative;
+  background-color: #999;
   width: 48px;
+  height: 8px;
   border-radius: 4px;
   opacity: 1;
+}
+
+.swiper-pagination-bullet-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #ff640a;
+  height: 100%;
+  width: 0;
+  border-radius: 4px;
+  animation: fillBullet 5s forwards;
+}
+
+@keyframes fillBullet {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 .swiper-pagination-fraction,
@@ -112,8 +138,8 @@
 .swiper-horizontal > .swiper-pagination-bullets,
 .swiper-pagination-bullets.swiper-pagination-horizontal {
   width: auto;
-  bottom: 55%;
-  left: 30px;
+  bottom: 35%;
+  left: 50px;
 }
 
 .swiper-button-prev,

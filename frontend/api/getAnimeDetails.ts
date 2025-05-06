@@ -1,7 +1,5 @@
-export const getAnimeDetails = async (id: string) => {
-  const response = await fetch(
-    `https://hianime-api-production-2098.up.railway.app/api/v1/anime/${id}`
-  );
+export const getAnimeDetails = async (animeId: string) => {
+  const response = await fetch(`/api/v2/hianime/anime/${animeId}`);
   const data = response.json();
 
   return data;

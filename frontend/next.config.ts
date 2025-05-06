@@ -1,22 +1,16 @@
-// next.config.js
-module.exports = {
-  reactStrictMode: true,
-  allowedDevOrigins: [
-    "http://localhost:3000",
-    "https://otaku-fusion.vercel.app",
-  ],
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:4000/api/:path*',
+      },
+    ];
+  },
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "assets.example.com",
-        pathname: "/account123/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cdn.noitatnemucod.net",
-        pathname: "/**",
-      },
-    ],
+    domains: ['cdn.noitatnemucod.net'],
   },
 };
+
+module.exports = nextConfig;

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 // import { useEffect, useState } from "react";
 // import "./Search.scss";
 // import { getAnimeSearch } from "../../../api/getAnimeSearch";

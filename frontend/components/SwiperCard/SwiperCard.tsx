@@ -1,13 +1,13 @@
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/scrollbar";
-import { AnimeItem } from "../../types/AnimeTypes";
-import { Card } from "../shared/Card/Card";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/scrollbar';
+import { AnimeCard } from '../../types/AnimeCard';
+import { Card } from '../shared/Card/Card';
 
 type Props = {
-  catalog: AnimeItem[];
+  catalog: AnimeCard[];
 };
 
 export const SwiperCard: React.FC<Props> = ({ catalog }) => {
@@ -29,17 +29,9 @@ export const SwiperCard: React.FC<Props> = ({ catalog }) => {
           },
         }}
       >
-        {catalog.map((anime: AnimeItem) => (
-          <SwiperSlide key={anime.id}>
-            <Card
-              anime={{
-                ...anime,
-                alternativeTitle: anime.alternativeTitle || "N/A",
-                episodes: anime.episodes || 0,
-                poster: anime.poster || "default-poster.jpg",
-                type: anime.type || "Unknown",
-              }}
-            />
+        {catalog.map((anime: AnimeCard) => (
+          <SwiperSlide key={anime.rank}>
+            <Card anime={anime} />
           </SwiperSlide>
         ))}
       </Swiper>

@@ -1,11 +1,9 @@
 export const getHomePage = async () => {
-  const res = await fetch(
-    "https://otaku-fusion-fizq.vercel.app/api/v2/hianime/home"
-  );
-  if (!res.ok) {
-    throw new Error("Fetch uncorrect");
+  const resp = await fetch('/api/v2/hianime/home');
+  if (!resp.ok) {
+    throw new Error(`HTTP error! status: ${resp}`);
   }
-  const data = await res.json();
+  const data = await resp.json();
 
-  return data;
+  return data.data;
 };

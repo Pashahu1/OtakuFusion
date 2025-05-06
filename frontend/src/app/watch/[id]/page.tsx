@@ -1,20 +1,19 @@
-"use client";
+'use client';
 
-// import { useEffect, useState } from "react";
-// import { useParams } from "next/navigation";
-// import { getAnimeDetails } from "../../../../api/getAnimeDetails";
-// import { AnimeDetails } from "../../../../types/AnimeTypes";
-// import { getEpisodes } from "../../../../api/getEpisodes";
+// import { useEffect, useState } from 'react';
+// import { useParams } from 'next/navigation';
+// import { getAnimeDetails } from '../../../../api/getAnimeDetails';
+// import { AnimeResponse } from '../../../../types/AnimeInfoTypes';
 export default function WatchPage() {
-  // const [animeDetails, setAnimeDetails] = useState<AnimeDetails | null>(null);
+  // const [animeDetails, setAnimeDetails] = useState<AnimeResponse | null>(null);
   // const { id } = useParams() as { id: string };
 
   // useEffect(() => {
   //   const details = async () => {
   //     if (id) {
   //       const res = await getAnimeDetails(id);
-  //       setAnimeDetails(res.data);
-  //       console.log(getEpisodes(id));
+  //       setAnimeDetails(res.data.anime);
+  //       console.log(res.data.anime);
   //     }
   //   };
   //   details();
@@ -23,40 +22,7 @@ export default function WatchPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Аніме Плеер</h1>
-      {/* <div>
-        <img
-          className="watch-anime-poster"
-          src={animeDetails?.poster}
-          alt={animeDetails?.title}
-        />
-        <div>
-          <h1>{animeDetails?.title}</h1>
-          <span>{animeDetails?.alternativeTitle}</span>
-        </div>
-      </div>
-      <p>{animeDetails?.MAL_score}</p>
-      <p>
-        {animeDetails?.aired.from}
-        <span>{animeDetails?.aired.to}</span>
-      </p>
-
-      <p>{animeDetails?.duration}</p>
-      <p>
-        <span>{animeDetails?.episodes.dub}</span>
-        <span>{animeDetails?.episodes.eps}</span>
-        <span>{animeDetails?.episodes.sub}</span>
-      </p>
-      <p>{animeDetails?.genres}</p>
-      <p>{animeDetails?.japanese}</p>
-
-      <p>{animeDetails?.premiered}</p>
-      <p>{animeDetails?.producers}</p>
-      <p>{animeDetails?.rating}</p>
-      <p>{animeDetails?.status}</p>
-      <p>{animeDetails?.studios}</p>
-      <p>{animeDetails?.synonyms}</p>
-      <p>{animeDetails?.synopsis}</p>
-      <p>{animeDetails?.type}</p> */}
+      {/* <div></div> */}
     </div>
   );
 }

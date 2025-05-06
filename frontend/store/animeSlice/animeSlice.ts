@@ -1,26 +1,25 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { HomeCatalogData } from "../../types/AnimeTypes";
+import { createSlice } from '@reduxjs/toolkit';
+import { HomePageType } from '../../types/HomePageTypes';
 
-const initialState: HomeCatalogData = {
-  spotlight: [],
-  trending: [],
-  topAiring: [],
-  mostPopular: [],
-  mostFavorite: [],
-  latestCompleted: [],
-  latestEpisode: [],
-  newAdded: [],
-  topUpcoming: [],
-  top10: {
+const initialState: HomePageType = {
+  genres: [],
+  latestEpisodeAnimes: [],
+  spotlightAnimes: [],
+  top10Animes: {
     today: [],
     week: [],
     month: [],
   },
-  genres: [],
+  topAiringAnimes: [],
+  topUpcomingAnimes: [],
+  trendingAnimes: [],
+  mostPopularAnimes: [],
+  mostFavoriteAnimes: [],
+  latestCompletedAnimes: [],
 };
 
 export const animeHomeSlice = createSlice({
-  name: "animeHomeCatalog",
+  name: 'animeHomeCatalog',
   initialState,
   reducers: {
     getHomeCatalog: (state, { payload }) => {
