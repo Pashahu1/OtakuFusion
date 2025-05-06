@@ -1,9 +1,10 @@
-import { AnimeItem } from '../../../types/AnimeTypes';
-import { Card } from '../Card/Card';
-import './AnimeSection.scss';
+import { AnimeCard } from "../../../types/AnimeCard";
+import { Card } from "../Card/Card";
+import "./AnimeSection.scss";
+
 type Props = {
   title: string;
-  catalog: AnimeItem[];
+  catalog: AnimeCard[];
 };
 
 export const AnimeSection: React.FC<Props> = ({ title, catalog }) => {
@@ -12,7 +13,7 @@ export const AnimeSection: React.FC<Props> = ({ title, catalog }) => {
       <div className="anime-section__content">
         <h1 className="anime-section__title">{title}</h1>
         <div className="anime-section__container">
-          {catalog.map(anime => (
+          {catalog.map((anime) => (
             <Card key={anime.id} anime={anime} />
           ))}
         </div>
