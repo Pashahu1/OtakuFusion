@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import { getProducerAnime } from "../../../services/getProducerAnimes";
 import { ControlPanel } from "../../../components/ControlPanel/ControlPanel";
