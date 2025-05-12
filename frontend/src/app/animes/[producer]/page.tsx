@@ -9,8 +9,7 @@ export default function ProducersAnime() {
   const [anime, setAnime] = useState<any[]>([]);
   const searchParams = useSearchParams();
   const pageParam = Number(searchParams.get("page") || "1");
-  const [name, setName] = useState("toei-animation");
-  const [currentPage, setCurrentPage] = useState("1");
+  const [name] = useState("toei-animation");
   const [totalPage, setTotalPage] = useState(0);
 
   useEffect(() => {
@@ -20,7 +19,6 @@ export default function ProducersAnime() {
 
         setAnime(res.data.animes);
         setTotalPage(res.data.totalPages);
-        setCurrentPage(res.data.currentPage);
       } catch {
         console.error("Faild");
       }
