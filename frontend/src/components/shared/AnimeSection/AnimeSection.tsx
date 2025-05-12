@@ -1,10 +1,11 @@
+import { AnimeBase } from "@/types/GlobalTypes";
 import { AnimeCard } from "../../../types/AnimeCard";
 import { Card } from "../Card/Card";
 import "./AnimeSection.scss";
 
 type Props = {
   title: string;
-  catalog: AnimeCard[];
+  catalog: AnimeBase[];
 };
 
 export const AnimeSection: React.FC<Props> = ({ title, catalog }) => {

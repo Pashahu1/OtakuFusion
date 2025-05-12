@@ -37,11 +37,11 @@ export default function Home() {
           <div className="home-page__cards">
             <AnimeSection
               title="Latest Completed"
-              catalog={homeCatalog?.topUpcomingAnimes}
+              catalog={homeCatalog?.topUpcomingAnimes || []}
             />
             <AnimeSection
               title="Top Upcoming"
-              catalog={homeCatalog?.trendingAnimes}
+              catalog={homeCatalog?.trendingAnimes || []}
             />
           </div>
         </section>

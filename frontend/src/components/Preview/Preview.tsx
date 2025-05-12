@@ -121,7 +121,7 @@ export const Preview = () => {
         <h1 className="preview-card__title">Trending</h1>
 
         <div className="preview-card__container">
-          <SwiperCard catalog={homeCatalog.topAiringAnimes} />
+          <SwiperCard catalog={homeCatalog?.topAiringAnimes || []} />
         </div>
       </div>
     </div>
