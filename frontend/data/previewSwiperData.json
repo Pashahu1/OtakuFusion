@@ -1,0 +1,27 @@
+[
+  {
+    "id": "Fire Force Season 3",
+    "titlePage": "Logo/FireForce.png",
+    "poster": "Background/backdropfc_wide.jpg"
+  },
+  {
+    "id": "My Hero Academia: Vigilantes",
+    "titlePage": "Logo/MHAVigilantes.png",
+    "poster": "Background/Vigilantes.jpg"
+  },
+  {
+    "id": "One Piece",
+    "titlePage": "Logo/Egghead.png",
+    "poster": "Background/backdrop_wide.jpeg"
+  },
+  {
+    "id": "Wind Breaker Season 2",
+    "titlePage": "Logo/Wind_Breaker_Anime_Logo.png",
+    "poster": "Background/WindBreak.jpg"
+  },
+  {
+    "id": "To Be Hero X",
+    "titlePage": "Logo/toBeHeroXLogo.svg",
+    "poster": "Background/to-be-hero-x.jpg"
+  }
+]

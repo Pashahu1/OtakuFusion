@@ -1,0 +1,19 @@
+.episodes {
+  background: #1c1c1c;
+  padding: 25px;
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  // &__item {
+  //   width: calc(8.33% - 10px);
+  //   height: 32px;
+  //   text-align: center;
+  //   padding: 4px 6px;
+  //   background: #363636;
+  //   cursor: pointer;
+  // }
+}

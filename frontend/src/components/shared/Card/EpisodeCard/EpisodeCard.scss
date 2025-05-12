@@ -1,0 +1,19 @@
+.episode-card {
+  width: 250px;
+
+  &__content {
+    position: relative;
+  }
+
+  &--filler {
+    // position: absolute;
+    // top: 0;
+    // bottom: 0;
+    // left: 0;
+    // right: 0;
+  }
+
+  &__summary {
+    display: flex;
+  }
+}
