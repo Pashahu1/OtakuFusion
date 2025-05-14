@@ -6,7 +6,7 @@ export const NavbarList = () => {
     <ul className="navbar-list">
       <li className="navbar-list-item">
         <Link style={{ color: "white" }} href="/search">
-          <img style={{ width: "24px" }} src="./icon/search.svg" alt="search" />
+          <img style={{ width: "24px" }} src="!#" alt="search" />
         </Link>
       </li>
       <li className="navbar-list-item">
