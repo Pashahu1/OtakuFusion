@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { getAnimeDetails } from "../../../services/getAnimeDetails";
 import { AnimeDetailsType } from "../../../types/AnimeDetailsType";
 import { Card } from "../../../components/shared/Card/Card";
@@ -9,6 +9,7 @@ import { EpisodesList } from "../../../components/Episodes/EpisodesList";
 import "./animeDetails.scss";
 import { SwiperCard } from "@/components/SwiperCard/SwiperCard";
 import Link from "next/link";
+import VideoPlayer from "@/components/Player/Player";
 
 export default function WatchPage() {
   const [animeDetails, setAnimeDetails] = useState<AnimeDetailsType | null>(
@@ -18,10 +19,11 @@ export default function WatchPage() {
   const { id } = useParams() as { id: string };
   const animeDetailsInfo = animeDetails?.anime.info;
   const animeDetailsMoreInfo = animeDetails?.anime.moreInfo;
-  const recommendedAnimes = animeDetails?.recommendedAnimes;
-  const mostPopularAnimes = animeDetails?.mostPopularAnimes;
-  const relatedAnimes = animeDetails?.relatedAnimes;
+  const recommendedAnimes = animeDetails?.recommendedAnimes || [];
+  const mostPopularAnimes = animeDetails?.mostPopularAnimes || [];
+  const relatedAnimes = animeDetails?.relatedAnimes || [];
   const seasons = animeDetails?.seasons || [];
+  const pathname = usePathname();
 
   useEffect(() => {
     const details = async () => {
@@ -48,36 +50,39 @@ export default function WatchPage() {
               {animeDetailsInfo?.name}
             </h2>
 
-            {/* <p className="anime-details__watch-description">{animeDetailsInfo?.malId}</p> */}
             <div className="anime-details__watch-bio">
-              <img
-                className="anime-details__watch-bio-page"
-                src={animeDetailsInfo?.poster}
-                alt={animeDetailsInfo?.name}
-              />
-
+              <EpisodesList animeId={id} />
               <div>
-                <h2>{animeDetailsMoreInfo?.aired}</h2>
-                <p>{animeDetailsMoreInfo?.duration}</p>
-                <p>{animeDetailsMoreInfo?.genres}</p>
-                <p>{animeDetailsMoreInfo?.japanese}</p>
-                <p>{animeDetailsMoreInfo?.malscore}</p>
-                <p>{animeDetailsMoreInfo?.premiered}</p>
-                <p>{animeDetailsMoreInfo?.producers}</p>
-                <p>{animeDetailsMoreInfo?.status}</p>
-                <p>{animeDetailsMoreInfo?.studios}</p>
-                <p>{animeDetailsMoreInfo?.synonyms}</p>
-                <p className="anime-details__watch-bio-description">
-                  {animeDetailsInfo?.description}
-                </p>
+                <img
+                  className="anime-details__watch-bio-page"
+                  src={animeDetailsInfo?.poster}
+                  alt={animeDetailsInfo?.name}
+                />
+
+                <div>
+                  <h2>{animeDetailsMoreInfo?.aired}</h2>
+                  <p>{animeDetailsMoreInfo?.duration}</p>
+                  <p>{animeDetailsMoreInfo?.genres}</p>
+                  <p>{animeDetailsMoreInfo?.japanese}</p>
+                  <p>{animeDetailsMoreInfo?.malscore}</p>
+                  <p>{animeDetailsMoreInfo?.premiered}</p>
+                  <p>{animeDetailsMoreInfo?.producers}</p>
+                  <p>{animeDetailsMoreInfo?.status}</p>
+                  <p>{animeDetailsMoreInfo?.studios}</p>
+                  <p>{animeDetailsMoreInfo?.synonyms}</p>
+                  <p className="anime-details__watch-bio-description">
+                    {animeDetailsInfo?.description}
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="anime-details__watch-player">
-              <div className="Player">Player</div>
+              {/* <VideoPlayer
+                animeEpisodeId="steinsgate-0-92?ep=2055"
+                category="dub"
+              /> */}
             </div>
-
-            {/* <EpisodesList animeId={id} /> */}
           </div>
         </div>
 
@@ -89,7 +94,7 @@ export default function WatchPage() {
                 {seasons?.map((item) => (
                   <Link
                     href={`/watch/${item.id}`}
-                    className="seasons__item"
+                    className={`seasons__item rounded-md ${pathname.includes(item.id) && "border-2 border-pink-300 text-pink-300"}`}
                     key={item.id}
                   >
                     <div
@@ -103,7 +108,11 @@ export default function WatchPage() {
                         filter: `blur(3px)`,
                       }}
                     ></div>
-                    <h6 className="seasons__name">{item.name}</h6>
+                    <h6
+                      className={`seasons__name ${pathname.includes(item.id) && "text-pink-300"}`}
+                    >
+                      {item.name}
+                    </h6>
                   </Link>
                 ))}
               </div>
@@ -113,17 +122,17 @@ export default function WatchPage() {
 
         <div className="anime-details__relatedAnime">
           <h2>Related Anime</h2>
-          <SwiperCard catalog={relatedAnimes || []} />
+          <SwiperCard catalog={relatedAnimes} />
         </div>
 
         <div className="anime-details__recommendedAnimes">
           <h2>Recommended Animes</h2>
-          <SwiperCard catalog={recommendedAnimes || []} />
+          <SwiperCard catalog={recommendedAnimes} />
         </div>
 
         <div className="anime-details__mostPopularAnimes">
           <h2>Most Popular Animes</h2>
-          <SwiperCard catalog={mostPopularAnimes || []} />
+          <SwiperCard catalog={mostPopularAnimes} />
         </div>
       </div>
     </div>

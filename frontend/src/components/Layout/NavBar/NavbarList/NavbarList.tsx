@@ -15,11 +15,6 @@ export const NavbarList = () => {
         </Link>
       </li>
       <li className="navbar-list-item">
-        <Link href="/movies" title="Movies">
-          Movies
-        </Link>
-      </li>
-      <li className="navbar-list-item">
         <NavigationLink title="Series" />
       </li>
     </ul>

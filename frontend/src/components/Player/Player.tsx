@@ -5,11 +5,9 @@ import { getVideoSources } from "../../services/getVideoSources";
 
 const VideoPlayer = ({
   animeEpisodeId,
-  server,
   category,
 }: {
   animeEpisodeId: string;
-  server: string;
   category: string;
 }) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -21,6 +19,7 @@ const VideoPlayer = ({
       setIsLoading(true);
 
       try {
+        const server = "hd-2";
         const res = await getVideoSources(animeEpisodeId, server, category);
 
         if (res.success && res.data?.sources?.length) {
@@ -36,11 +35,13 @@ const VideoPlayer = ({
     };
 
     fetchVideoSources();
-  }, [animeEpisodeId, server, category]);
+  }, [animeEpisodeId, category]);
 
   useEffect(() => {
     if (videoUrl && Hls.isSupported()) {
       const video = document.getElementById("video-player") as HTMLVideoElement;
+      if (!video) return;
+
       const hls = new Hls();
 
       hls.loadSource(videoUrl);
@@ -62,13 +63,12 @@ const VideoPlayer = ({
         <p>Loading video...</p>
       ) : (
         <video id="video-player" controls>
-          {videoUrl && <source src={videoUrl} type="application/x-mpegURL" />}
           {subtitles.map((sub, index) => (
             <track
               key={index}
               kind="subtitles"
               src={sub.url}
-              srcLang="en"
+              srcLang={sub.lang}
               label={sub.lang}
             />
           ))}

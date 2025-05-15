@@ -52,14 +52,13 @@ h5,
 h6 {
   margin: 0;
   padding: 0;
-  color: white;
 }
 
 p,
 span {
   margin: 0;
   padding: 0;
-  color: white;
+  font-size: 14px;
 }
 
 input {
@@ -68,13 +67,11 @@ input {
   border: none;
   outline: none;
   background-color: transparent;
-  color: white;
 }
 
 button {
-  color: white;
   margin: 0;
-  padding: 0;
+  /* padding: 0; */
   border: 0;
   cursor: pointer;
 }
