@@ -6,12 +6,12 @@ import { getGenreAnime } from "../../services/getGenreAnime";
 import { Card } from "../../components/shared/Card/Card";
 import { Pagination } from "../../components/Pagination/Pagination";
 import "./animes.scss";
-import { error } from "console";
+import { AnimeBase } from "@/types/GlobalTypes";
 
 export default function Animes() {
   const searchParams = useSearchParams();
   const pageParam = Number(searchParams.get("page") || "1");
-  const [genre, setGenre] = useState<any[]>([]);
+  const [genre, setGenre] = useState<AnimeBase[]>([]);
   const [totalPage, setTotalPage] = useState(0);
 
   useEffect(() => {

@@ -26,7 +26,6 @@
     top: 0;
     left: 0;
     right: 0;
-    background-color: rgba($color: #000000, $alpha: 0.9);
   }
 
   &__img-container {
@@ -46,4 +45,17 @@
     object-fit: cover;
     object-position: center;
   }
+}
+
+.anime-card--hover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1;
+}
+
+.anime-card--hover > * {
+  position: relative;
+  z-index: 2;
 }

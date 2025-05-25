@@ -1,7 +1,9 @@
+import { EpisodesType } from "@/types/EpisodesListType";
+
 export const usePagination = (
   currentPage: number,
   episodesPerPage: number,
-  episodes: any[]
+  episodes: EpisodesType[]
 ) => {
   const indexOfLastEpisode = currentPage * episodesPerPage;
   const indexOfFirstEpisode = indexOfLastEpisode - episodesPerPage;

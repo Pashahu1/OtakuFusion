@@ -1,41 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getAnimeEpisodes } from "../../services/getAnimeEpisodes";
+import { useState } from "react";
 import "./EpisodesList.scss";
-import { EpisodesCard } from "../shared/Card/EpisodeCard/EpisodeCard";
-import { getEpisodesServer } from "../../services/getEpisodesServer";
+import { EpisodesButton } from "../EpisodeButton/EpisodesButton";
+import { EpisodesType } from "@/types/EpisodesListType";
 import { usePagination } from "@/hooks/usePagination";
 
 type props = {
-  animeId: string;
+  episodes: EpisodesType[];
+  totalEpisodes: number;
+  selected: string;
+  onSelected: (id: string) => void;
 };
 
-export const EpisodesList: React.FC<props> = ({ animeId }) => {
-  const [episodes, setEpisodes] = useState<any[]>([]);
-  const [totalEpisodes, setTotalEpisodes] = useState("");
+export const EpisodesList: React.FC<props> = ({
+  episodes,
+  totalEpisodes,
+  onSelected,
+  selected,
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const episodesPerPage = 100;
+
   const { currentEpisodes, totalPages } = usePagination(
     currentPage,
     episodesPerPage,
     episodes
   );
-
-  console.log(episodes);
-  useEffect(() => {
-    const fetchEpisodes = async () => {
-      try {
-        const res = await getAnimeEpisodes(animeId);
-        setEpisodes(res.data.episodes);
-        setTotalEpisodes(res.data.totalEpisodes);
-        console.log(res.data);
-      } catch {
-        console.error("can't get data");
-      }
-    };
-    fetchEpisodes();
-  }, []);
 
   return (
     <aside className="episodes">
@@ -49,7 +40,7 @@ export const EpisodesList: React.FC<props> = ({ animeId }) => {
           />
         </div>
         <div>
-          {totalPages > 1 && (
+          {totalEpisodes > 1 && (
             <div className="pagination">
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
@@ -67,7 +58,12 @@ export const EpisodesList: React.FC<props> = ({ animeId }) => {
         </div>
         <div className="episodes__list">
           {currentEpisodes.map((episode) => (
-            <EpisodesCard key={episode.episodeId} episode={episode} />
+            <EpisodesButton
+              onSelected={() => onSelected(episode.episodeId)}
+              key={episode.number}
+              episode={episode}
+              selected={selected}
+            />
           ))}
         </div>
       </div>

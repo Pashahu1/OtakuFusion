@@ -5,9 +5,10 @@ import { ControlPanel } from "../../../components/ControlPanel/ControlPanel";
 import { Pagination } from "../../../components/Pagination/Pagination";
 import { Card } from "../../../components/shared/Card/Card";
 import { useSearchParams } from "next/navigation";
+import { AnimeBase } from "@/types/GlobalTypes";
 
 export default function ProducersAnime() {
-  const [anime, setAnime] = useState<any[]>([]);
+  const [anime, setAnime] = useState<AnimeBase[]>([]);
   const searchParams = useSearchParams();
   const pageParam = Number(searchParams.get("page") || "1");
   const [name] = useState("toei-animation");
@@ -32,8 +33,8 @@ export default function ProducersAnime() {
     <div className="animes">
       <div className="animes__content">
         <ControlPanel />
-        {anime.map((an) => (
-          <Card key={an.id} anime={an} />
+        {anime.map((anim) => (
+          <Card key={anim.id} anime={anim} />
         ))}
         <Pagination page={String(pageParam)} total={totalPage} />
       </div>

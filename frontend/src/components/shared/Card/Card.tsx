@@ -10,7 +10,7 @@ type props = {
 
 export const Card: React.FC<props> = ({ anime }) => {
   return (
-    <Link href={`/watch/${anime.id}`}>
+    <Link href={`watch/${anime.id}`}>
       <article className="anime-card">
         <div className="anime-card__img-container">
           <Image
@@ -22,13 +22,18 @@ export const Card: React.FC<props> = ({ anime }) => {
         </div>
         <div className="anime-card__text">
           <h3 className="anime-card__title">{anime.name}</h3>
-          <span>sub | dub</span>
         </div>
-        <div className="anime-card--hover">
+        <div
+          className="anime-card--hover"
+          style={{
+            background: `url(${anime.poster})`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
           <h2>{anime.name}</h2>
           <p>{anime.jname}</p>
-          <span>dub: {anime.episodes?.dub}</span>
-          <span>sub: {anime.episodes?.sub}</span>
         </div>
       </article>
     </Link>

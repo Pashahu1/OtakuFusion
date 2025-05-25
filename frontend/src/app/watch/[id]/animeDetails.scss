@@ -4,14 +4,21 @@
     flex-direction: column;
     gap: 20px;
 
-    &-player {
-      position: relative;
-    }
-
     &-bio {
       display: flex;
+      flex-direction: column;
       gap: 20px;
     }
+  }
+}
+
+.video-player {
+  display: flex;
+  gap: 20px;
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 }
 
@@ -39,15 +46,4 @@
     bottom: 0;
     padding: 0 10px;
   }
-}
-
-.player {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 500px;
-  height: 500px;
-  background-color: grey;
 }

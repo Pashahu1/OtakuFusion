@@ -1,10 +1,10 @@
 "use client";
-import { NavigationLink } from "../../../shared/NavigationLink/NavigationLink";
+import Link from "next/link";
 
 export const NavbarControlPanel = () => {
   return (
     <ul className="navbar-list">
-      <NavigationLink title="Home" />
+      <Link href="/">Home</Link>
       <input type="text" />
     </ul>
   );

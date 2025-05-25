@@ -1,0 +1,13 @@
+.more-info {
+  display: flex;
+  flex-direction: column;
+
+  &__list {
+    width: auto;
+  }
+
+  &__item {
+    display: flex;
+    gap: 10px;
+  }
+}

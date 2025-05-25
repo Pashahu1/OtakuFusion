@@ -1,5 +1,4 @@
 import { AnimeBase } from "@/types/GlobalTypes";
-import { AnimeCard } from "../../../types/AnimeCard";
 import { Card } from "../Card/Card";
 import "./AnimeSection.scss";
 

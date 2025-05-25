@@ -12,57 +12,16 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/scrollbar";
 import "./Preview.scss";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
 import { SwiperCard } from "../SwiperCard/SwiperCard";
-// import myHeroesAcademLogo from "../../../public/MHAVigilantes.png";
-// import myHeroeBack from "../../../public/Vigilantes.jpg";
-
-// import fireForceLogo from "../../../public/FireForce.png";
-// import fireforceBack from "../../../public/backdropfc_wide.jpg";
-
-// import onePiceLogo from "../../../public/Egghead.png";
-// import onePieceBack from "../../../public/backdrop_wide.jpeg";
-
-// import windBreakerBack from "../../../public/WindBreak.jpg";
-// import windBreakerLogo from "../../../public/Wind_Breaker_Anime_Logo.png";
-
-// import toBeHeroBack from "../../../public/to-be-hero-x.jpg";
-// import toBeHeroXLogo from "../../../public/toBeHeroXLogo.svg";
 
 import previewSwiperData from "../../../data/previewSwiperData.json";
+import { HomePageType } from "@/types/HomePageTypes";
 
-// const previewSwiper = [
-//   {
-//     id: "Fire Force Season 3",
-//     titlePage: fireForceLogo,
-//     poster: fireforceBack,
-//   },
-//   {
-//     id: "My Hero Academia: Vigilantes",
-//     titlePage: myHeroesAcademLogo,
-//     poster: myHeroeBack,
-//   },
-//   {
-//     id: "One Piece",
-//     titlePage: onePiceLogo,
-//     poster: onePieceBack,
-//   },
-//   {
-//     id: "Wind Breaker Season 2",
-//     titlePage: windBreakerLogo,
-//     poster: windBreakerBack,
-//   },
-//   {
-//     id: "To Be Hero X",
-//     titlePage: toBeHeroXLogo,
-//     poster: toBeHeroBack,
-//   },
-// ];
+type props = {
+  homeCatalog: HomePageType | null;
+};
 
-export const Preview = () => {
-  const homeCatalog = useSelector((state: RootState) => state.animeHomeCatalog);
-  console.log(homeCatalog.trendingAnimes);
+export const Preview = ({ homeCatalog }: props) => {
   return (
     <div className="preview">
       <Swiper

@@ -1,10 +1,7 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { reducer as AnimeHomeReducer } from "./animeSlice/animeSlice";
+// import { configureStore } from "@reduxjs/toolkit";
 
-export const store = configureStore({
-  reducer: {
-    animeHomeCatalog: AnimeHomeReducer,
-  },
-});
+// export const store = configureStore({
+//   reducer: {},
+// });
 
-export type RootState = ReturnType<typeof store.getState>;
+// export type RootState = ReturnType<typeof store.getState>;

@@ -5,8 +5,6 @@ import { Footer } from "../components/Layout/Footer/Footer";
 import "./globals.css";
 import { Suspense } from "react";
 const inter = Inter({ subsets: ["latin"] });
-import { Provider } from "react-redux";
-import { store } from "../store/store";
 import { Loader } from "../components/shared/Loader/Loader";
 
 export default function RootLayout({
@@ -16,16 +14,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <Provider store={store}>
-        <body className={inter.className}>
-          <Suspense fallback={<Loader />}>
-            <Header />
-            <main className="main">{children}</main>
-
-            <Footer />
-          </Suspense>
-        </body>
-      </Provider>
+      <body className={inter.className}>
+        <Suspense fallback={<Loader />}>
+          <Header />
+          <main className="main">{children}</main>
+          <Footer />
+        </Suspense>
+      </body>
     </html>
   );
 }

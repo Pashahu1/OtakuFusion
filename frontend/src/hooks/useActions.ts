@@ -1,14 +1,13 @@
-import { useMemo } from "react";
-import { actions as AnimeHomeActions } from "../store/animeSlice/animeSlice";
-import { useDispatch } from "react-redux";
-import { bindActionCreators } from "redux";
+// import { useMemo } from "react";
+// import { useDispatch } from "react-redux";
+// import { bindActionCreators } from "redux";
 
-const rootActions = {
-  ...AnimeHomeActions,
-};
+// const rootActions = {
+//   'clear',
+// };
 
-export const useActions = () => {
-  const dispatch = useDispatch();
+// export const useActions = () => {
+//   const dispatch = useDispatch();
 
-  return useMemo(() => bindActionCreators(rootActions, dispatch), [dispatch]);
-};
+//   return useMemo(() => bindActionCreators(rootActions, dispatch), [dispatch]);
+// };

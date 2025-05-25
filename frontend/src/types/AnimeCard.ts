@@ -9,4 +9,5 @@ export interface AnimeCard {
   rank?: number;
   otherInfo?: string[];
   episodes?: Episodes;
+  episodeId?: string;
 }

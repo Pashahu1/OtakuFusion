@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getAZList } from "../../../services/getAZList";
 // import "./animes.scss";
 import { Card } from "../../../components/shared/Card/Card";
+import { AnimeBase } from "@/types/GlobalTypes";
 
 export default function AZListPage() {
   const search = useSearchParams();
@@ -11,7 +12,7 @@ export default function AZListPage() {
   const page = search.get("page") || "1";
   const sortOption = search.get("sortOption") || "0-9";
 
-  const [anime, setAnime] = useState<any[]>([]);
+  const [anime, setAnime] = useState<AnimeBase[]>([]);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function AZListPage() {
       }
     };
     fetchData();
-  }, [sortOption, page]);
+  }, [totalPages, sortOption, page]);
 
   const filteredAnimes = anime.filter((an) => {
     const title = an?.name.toUpperCase();
