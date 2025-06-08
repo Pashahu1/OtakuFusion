@@ -1,106 +1,104 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { EpisodesList } from "../VideoPlayer/EpisodesList/EpisodesList";
 import { EpisodeServer } from "../VideoPlayer/EpisodeServer/EpisodeServer";
 import Player from "../VideoPlayer/Player/Player";
-import Hls from "hls.js";
 import { getEpisodesServer } from "@/services/getEpisodesServer";
 import { getVideoSources } from "@/services/getVideoSources";
 import { AnimeServerType } from "@/types/AnimeServer";
 import { EpisodesType } from "@/types/EpisodesListType";
+import "./VideoPlayer.scss";
+import { AnimePlayerType } from "@/types/AnimePLayer";
+import { Loader } from "../../components/shared/Loader/Loader";
+import { useRouter } from "next/navigation";
+import throttle from "lodash.throttle";
 
 type Props = {
   episodes: EpisodesType[];
   totalEpisodes: number;
 };
 
-export const VideoPlayer: React.FC<Props> = ({ episodes, totalEpisodes }) => {
-  const [selectedEpisodeId, setSelectedEpisodeId] = useState("");
-  const [category, setCategory] = useState<"sub" | "dub">("dub");
-  const [server, setServer] = useState("hd-2");
-  const [servers, setServers] = useState<AnimeServerType | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+export const VideoPlayer: React.FC<Props> = React.memo(
+  ({ episodes, totalEpisodes }) => {
+    const [selectedEpisodeId, setSelectedEpisodeId] = useState("");
+    const [category, setCategory] = useState<"sub" | "dub">("sub");
+    const [server, setServer] = useState("hd-2");
+    const [servers, setServers] = useState<AnimeServerType | null>(null);
+    const [playerData, setPlayerData] = useState<AnimePlayerType | null>(null);
+    const [isLoadingPlayer, setIsLoadingPlayer] = useState(false);
+    const router = useRouter();
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
-
-  useEffect(() => {
-    if (episodes.length > 0 && !selectedEpisodeId) {
-      setSelectedEpisodeId(episodes[0].episodeId);
-    }
-  }, [episodes]);
-
-  useEffect(() => {
-    const loadVideoData = async () => {
-      if (!selectedEpisodeId) return;
-
-      try {
-        const serverRes = await getEpisodesServer(selectedEpisodeId);
-        setServers(serverRes.data);
-
-        const rawUrl = await getVideoSources(
-          selectedEpisodeId,
-          server,
-          category
-        );
-        const firstSource = rawUrl?.sources?.[0];
-
-        if (firstSource?.url) {
-          const proxy =
-            "https://gogoanime-and-hianime-proxy.vercel.app/m3u8-proxy?url=";
-          const finalUrl = proxy + encodeURIComponent(firstSource.url);
-          setVideoUrl(finalUrl);
-        } else {
-          setVideoUrl(null);
+    const loadVideoData = useCallback(
+      async (episodeId: string, serverName: string, cat: "sub" | "dub") => {
+        if (!episodeId) return;
+        setIsLoadingPlayer(true);
+        try {
+          const [serverRes, rawUrl] = await Promise.all([
+            getEpisodesServer(episodeId),
+            getVideoSources(episodeId, serverName, cat),
+          ]);
+          setServers(serverRes.data);
+          setPlayerData(rawUrl);
+          setIsLoadingPlayer(false);
+          router.push(
+            `/watch/${episodeId}?server=${serverName}&category=${cat}`
+          );
+        } catch (err) {
+          console.error("Error", err);
+          setIsLoadingPlayer(false);
+          router.push(`/watch`);
         }
-      } catch (err) {
-        console.error("Video load error:", err);
+      },
+      [router]
+    );
+
+    const throttledLoadRef = useRef(
+      throttle((episodeId: string, serverName: string, cat: "sub" | "dub") => {
+        loadVideoData(episodeId, serverName, cat);
+      }, 1000)
+    );
+
+    useEffect(() => {
+      throttledLoadRef.current(selectedEpisodeId, server, category);
+    }, [selectedEpisodeId, server, category]);
+
+    useEffect(() => {
+      if (episodes.length > 0 && !selectedEpisodeId) {
+        setSelectedEpisodeId(episodes[0].episodeId);
       }
-    };
+    }, [episodes, selectedEpisodeId]);
 
-    loadVideoData();
-  }, [selectedEpisodeId, server, category]);
+    return (
+      <div className="video-player">
+        <div className="video-player__content">
+          <div className="video-player__player">
+            {isLoadingPlayer ? (
+              <Loader />
+            ) : (
+              <Player playerData={playerData} selected={selectedEpisodeId} />
+            )}
+          </div>
 
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.removeAttribute("src");
-      videoRef.current.load();
-    }
+          <div className="video-player__info">
+            <EpisodeServer
+              servers={servers}
+              selectedServer={{ type: category, serverName: server }}
+              onServerSelect={({ type, serverName }) => {
+                setCategory(type);
+                setServer(serverName);
+              }}
+            />
 
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
-
-    if (videoUrl && videoRef.current && Hls.isSupported()) {
-      const hls = new Hls();
-      hlsRef.current = hls;
-      hls.loadSource(videoUrl);
-      hls.attachMedia(videoRef.current);
-    }
-  }, [videoUrl]);
-
-  return (
-    <div className="video-player">
-      <div className="video-player__content">
-        <Player videoRef={videoRef} selected={selectedEpisodeId} />
-        <EpisodeServer
-          servers={servers}
-          selectedServer={{ type: category, serverName: server }}
-          onServerSelect={({ type, serverName }) => {
-            setCategory(type);
-            setServer(serverName);
-          }}
-        />
+            <EpisodesList
+              episodes={episodes}
+              totalEpisodes={totalEpisodes}
+              selected={selectedEpisodeId}
+              onSelected={setSelectedEpisodeId}
+            />
+          </div>
+        </div>
       </div>
-      <EpisodesList
-        episodes={episodes}
-        totalEpisodes={totalEpisodes}
-        selected={selectedEpisodeId}
-        onSelected={setSelectedEpisodeId}
-      />
-    </div>
-  );
-};
+    );
+  }
+);

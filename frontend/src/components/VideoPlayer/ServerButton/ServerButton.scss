@@ -1,0 +1,10 @@
+.server-button {
+  position: relative;
+  width: 160px;
+  height: 40px;
+  background-color: #363636;
+
+  &--active {
+    background-color: purple;
+  }
+}

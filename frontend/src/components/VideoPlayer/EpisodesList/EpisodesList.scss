@@ -1,27 +1,14 @@
 .episodes {
-  background: #1c1c1c;
-  padding: 10px;
-
-  &__search-panel {
-    display: flex;
-    gap: 10px;
-  }
-
-  &__search-input {
-    width: 150px;
-  }
-
   &__content {
     display: flex;
     flex-direction: column;
-    width: 270px;
     gap: 10px;
   }
 
   &__list {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 20px;
   }
 }
 

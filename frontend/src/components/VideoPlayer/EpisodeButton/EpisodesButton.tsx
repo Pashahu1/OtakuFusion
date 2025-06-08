@@ -16,13 +16,16 @@ export const EpisodesButton = ({ episode, onSelected, selected }: Props) => {
   };
 
   return (
-    <button
-      onClick={handleClick}
-      data-episode-number={episode.number}
-      className={`episodes-button ${isActive ? "episodes-button--active" : ""}`}
-    >
-      {episode.isFiller && <span className="episodes-button__filler">F</span>}
-      {episode.number}
-    </button>
+    <div className="episodes-button-wrapper">
+      <button
+        onClick={handleClick}
+        data-episode-number={episode.number}
+        className={`episodes-button ${isActive ? "episodes-button--active" : ""}`}
+      >
+        {episode.isFiller && <span className="episodes-button__filler">F</span>}
+        {episode.number}
+      </button>
+      <span className="episodes-button--hover">{episode.title}</span>
+    </div>
   );
 };

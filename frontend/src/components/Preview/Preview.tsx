@@ -14,8 +14,9 @@ import "swiper/css/scrollbar";
 import "./Preview.scss";
 import { SwiperCard } from "../SwiperCard/SwiperCard";
 
-import previewSwiperData from "../../../data/previewSwiperData.json";
 import { HomePageType } from "@/types/HomePageTypes";
+import { Convertor } from "@/helper/Convertor";
+import Link from "next/link";
 
 type props = {
   homeCatalog: HomePageType | null;
@@ -39,36 +40,29 @@ export const Preview = ({ homeCatalog }: props) => {
         loop={true}
         navigation
       >
-        {previewSwiperData.map((anime) => (
+        {homeCatalog?.spotlightAnimes?.map((anime) => (
           <SwiperSlide key={anime.id}>
             <div
               className="preview-card"
               style={{
-                backgroundImage: `url(${anime.poster})`,
+                backgroundImage: `url(${Convertor(anime.poster)})`,
                 backgroundSize: "cover",
-                backgroundPosition: "center",
+                backgroundPosition: "start",
                 backgroundRepeat: "no-repeat",
                 objectFit: "cover",
-                width: "100%",
-                height: "100%",
               }}
             >
               <div className="preview-card__header">
                 <div className="preview-card__overlay">
-                  <img
-                    className="preview-card__overlay-title-page"
-                    src={anime.titlePage}
-                    alt={anime.id}
-                  />
+                  <h1>{anime.name}</h1>
                   <p className="preview-card__overlay-text">
-                    Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-                    Architecto placeat aliquid nisi minima libero adipisci sequi
-                    eligendi soluta ullam accusamus repudiandae in illo, facere
-                    blanditiis fugiat illum? Sunt, aut voluptates.
+                    {anime.description}
                   </p>
-                  <button className="preview-card__overlay-button">
-                    Watch Season 1 Ep 1
-                  </button>
+                  <Link href={`/watch/${anime.id}`}>
+                    <button className="preview-card__overlay-button">
+                      Watch
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -80,7 +74,7 @@ export const Preview = ({ homeCatalog }: props) => {
         <h1 className="preview-card__title">Trending</h1>
 
         <div className="preview-card__container">
-          <SwiperCard catalog={homeCatalog?.topAiringAnimes || []} />
+          <SwiperCard catalog={homeCatalog?.trendingAnimes || []} />
         </div>
       </div>
     </div>

@@ -1,0 +1,33 @@
+.search-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &__input {
+    display: flex;
+    background-color: #141519;
+    padding: 2rem;
+
+    input {
+      width: 100%;
+      max-width: 880px;
+      height: 44px;
+      padding: 10px;
+      margin: 0 auto;
+      color: white;
+      border-bottom: 1px solid gray;
+
+      &:focus {
+        outline: none;
+        border-color: rgb(183, 182, 182);
+      }
+    }
+  }
+
+  &__results {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+}

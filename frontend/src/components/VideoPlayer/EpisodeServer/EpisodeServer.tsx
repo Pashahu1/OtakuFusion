@@ -1,6 +1,7 @@
 import { AnimeServerType } from "@/types/AnimeServer";
 import "./EpisodeServer.scss";
 import { ServerButton } from "../ServerButton/ServerButton";
+import { EpisodesList } from "../EpisodesList/EpisodesList";
 type Props = {
   servers: AnimeServerType | null;
   onServerSelect: (server: { type: "sub" | "dub"; serverName: string }) => void;
@@ -16,30 +17,33 @@ export const EpisodeServer: React.FC<Props> = ({
   const dubHd2 = servers?.dub?.find((s) => s.serverName === "hd-2");
 
   return (
-    <div className="episode-server-grid">
-      <div className="episode-server-column">
-        <h3>SUB:</h3>
+    <div className="episode-server">
+      <div className="episode-server__content">
         {subHd2 && (
-          <ServerButton
-            className={`server-button ${
-              selectedServer.type === "sub" ? "server-button--active" : ""
-            }`}
-            onClick={() => onServerSelect({ type: "sub", serverName: "hd-2" })}
-            name="Vildstreaming"
-          />
-        )}
-      </div>
+          <div className="server">
+            <h3 style={{ width: "40px", height: "40px" }}>SUB:</h3>
 
-      <div className="episode-server-column">
-        <h3>DUB:</h3>
+            <ServerButton
+              selectedType={selectedServer.type === "sub"}
+              onClick={() =>
+                onServerSelect({ type: "sub", serverName: "hd-2" })
+              }
+              name="Vildstreaming"
+            />
+          </div>
+        )}
         {dubHd2 && (
-          <ServerButton
-            className={`server-button ${
-              selectedServer.type === "dub" ? "server-button--active" : ""
-            }`}
-            onClick={() => onServerSelect({ type: "dub", serverName: "hd-2" })}
-            name="Vildstreaming"
-          />
+          <div className="server">
+            <h3 style={{ width: "40px", height: "40px" }}>DUB:</h3>
+
+            <ServerButton
+              selectedType={selectedServer.type === "dub"}
+              onClick={() =>
+                onServerSelect({ type: "dub", serverName: "hd-2" })
+              }
+              name="Vildstreaming"
+            />
+          </div>
         )}
       </div>
     </div>

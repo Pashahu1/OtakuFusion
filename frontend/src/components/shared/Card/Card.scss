@@ -3,10 +3,10 @@
   flex-direction: column;
   justify-content: space-between;
   position: relative;
-  width: 100%;
-  max-width: 280px;
+  width: 250px;
   padding: 10px;
   gap: 10px;
+  max-height: 470px;
   height: 100%;
   border-radius: 8px;
   overflow: hidden;
@@ -47,15 +47,15 @@
   }
 }
 
+.anime-card--hover > * {
+  position: relative;
+  z-index: 2;
+}
+
 .anime-card--hover::before {
   content: "";
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.8);
   z-index: 1;
-}
-
-.anime-card--hover > * {
-  position: relative;
-  z-index: 2;
 }

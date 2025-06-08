@@ -1,6 +1,6 @@
 "use client";
 import "./Pagination.scss";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 type Props = {
   page: string;
@@ -13,14 +13,15 @@ export const Pagination: React.FC<Props> = ({ page, total }) => {
   const currentPage = searchParams.get("page") || "1";
   const letter = searchParams.get("letter") || "All";
   const current = Number(currentPage);
-
+  const path = usePathname();
+  console.log(path);
   const handleNextPage = () => {
-    router.push(`/animes?letter=${letter}&page=${current + 1}`);
+    router.push(`/category?letter=${letter}&page=${current + 1}`);
   };
 
   const handlePrevPage = () => {
     if (current > 1) {
-      router.push(`/animes?letter=${letter}&page=${current - 1}`);
+      router.push(`/category?letter=${letter}&page=${current - 1}`);
     }
   };
 

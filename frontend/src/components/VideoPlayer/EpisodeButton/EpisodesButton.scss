@@ -4,6 +4,26 @@
   height: 40px;
   background-color: #363636;
 
+  &-wrapper {
+    position: relative;
+    display: inline-block;
+
+    &:hover .episodes-button--hover {
+      display: block;
+    }
+  }
+
+  &--hover {
+    display: none;
+    position: absolute;
+    background-color: rgb(156, 4, 156);
+    color: white;
+    padding: 10px;
+    width: max-content;
+    top: -100%;
+    z-index: 10;
+  }
+
   &__filler {
     position: absolute;
     top: 0;

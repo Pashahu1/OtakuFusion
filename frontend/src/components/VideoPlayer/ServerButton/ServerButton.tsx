@@ -1,12 +1,20 @@
+import "./ServerButton.scss";
 type props = {
-  className: string;
+  selectedType: boolean;
   onClick: () => void;
   name: string;
 };
 
-export const ServerButton: React.FC<props> = ({ className, onClick, name }) => {
+export const ServerButton: React.FC<props> = ({
+  selectedType,
+  onClick,
+  name,
+}) => {
   return (
-    <button className={className} onClick={onClick}>
+    <button
+      className={`server-button ${selectedType ? "server-button--active" : ""}`}
+      onClick={onClick}
+    >
       {name}
     </button>
   );

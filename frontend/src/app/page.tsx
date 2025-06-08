@@ -34,7 +34,7 @@ export default function Home() {
           <section className="home-page__header">
             <Preview homeCatalog={homeCatalog} />
           </section>
-          <section className="home-page__main">
+          {/* <section className="home-page__main">
             <div className="home-page__cards">
               <AnimeSection
                 title="Latest Completed"
@@ -45,7 +45,7 @@ export default function Home() {
                 catalog={homeCatalog?.trendingAnimes || []}
               />
             </div>
-          </section>
+          </section> */}
         </div>
       )}
     </div>

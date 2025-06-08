@@ -3,18 +3,27 @@ import Link from "next/link";
 import { AnimeCard } from "../../../types/AnimeCard";
 import "./Card.scss";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { Convertor } from "@/helper/Convertor";
+import { TbPlayerPlay } from "react-icons/tb";
 
 type props = {
   anime: AnimeCard;
 };
 
 export const Card: React.FC<props> = ({ anime }) => {
+  const pathname = usePathname();
+
   return (
-    <Link href={`watch/${anime.id}`}>
+    <Link
+      href={`${
+        pathname.includes("watch") ? `${anime.id}` : `watch/${anime.id}`
+      }`}
+    >
       <article className="anime-card">
         <div className="anime-card__img-container">
           <Image
-            src={anime.poster || "/default-poster.jpg"}
+            src={anime.poster ? Convertor(anime.poster) : "/default-poster.jpg"}
             alt={anime.name || "Anime Poster"}
             fill
             sizes="auto"
@@ -26,14 +35,15 @@ export const Card: React.FC<props> = ({ anime }) => {
         <div
           className="anime-card--hover"
           style={{
-            background: `url(${anime.poster})`,
+            backgroundImage: `url(${Convertor(
+              anime.poster || "/default-poster.jpg"
+            )})`,
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          <h2>{anime.name}</h2>
-          <p>{anime.jname}</p>
+          <TbPlayerPlay />
         </div>
       </article>
     </Link>

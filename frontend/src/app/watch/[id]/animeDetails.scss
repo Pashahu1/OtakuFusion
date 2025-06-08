@@ -12,16 +12,6 @@
   }
 }
 
-.video-player {
-  display: flex;
-  gap: 20px;
-  &__content {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-}
-
 .seasons {
   display: flex;
   flex-wrap: wrap;

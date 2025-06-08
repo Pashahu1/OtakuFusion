@@ -1,8 +1,11 @@
-module.exports = {
-  darkMode: "class",
-  content: ["./src/**/*.{js,ts,jsx,tsx,html}"],
-  theme: {
-    extend: {},
+export const content = ["./src/**/*.{js,ts,jsx,tsx}"];
+export const theme = {
+  extend: {
+    fontFamily: {
+      crunchy: ['"Helvetica Neue"', "Helvetica", "Arial", "sans-serif"],
+      animejp: ['"M PLUS 1p"', "sans-serif"],
+      gothicjp: ['"Sawarabi Gothic"', "sans-serif"],
+    },
   },
-  plugins: [],
 };
+export const plugins = [];

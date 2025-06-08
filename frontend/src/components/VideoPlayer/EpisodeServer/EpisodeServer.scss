@@ -1,10 +1,21 @@
-.server-button {
-  position: relative;
-  width: 160px;
-  height: 40px;
-  background-color: #363636;
+.episode-server {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 
-  &--active {
-    background-color: purple;
+  &__header {
+    background-color: rgb(3, 8, 82);
+    width: 245px;
   }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.server {
+  display: flex;
+  gap: 10px;
 }

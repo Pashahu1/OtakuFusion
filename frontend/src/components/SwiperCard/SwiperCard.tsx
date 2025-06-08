@@ -14,23 +14,27 @@ export const SwiperCard: React.FC<Props> = ({ catalog }) => {
   return (
     <div className="swiper-card">
       <Swiper
-        breakpoints={{
-          0: {
-            slidesPerView: 2,
-          },
-          800: {
-            slidesPerView: 5,
-          },
-          1200: {
-            slidesPerView: 8,
-          },
-          1980: {
-            slidesPerView: 10,
-          },
-        }}
+        slidesPerView={"auto"}
+        // breakpoints={{
+        //   0: {
+        //     slidesPerView: 2,
+        //   },
+        //   600: {
+        //     slidesPerView: 4,
+        //   },
+        //   1200: {
+        //     slidesPerView: 6,
+        //   },
+        //   1980: {
+        //     slidesPerView: 10,
+        //   },
+        //   2560: {
+        //     slidesPerView: 12,
+        //   },
+        // }}
       >
         {catalog.map((anime: AnimeCard) => (
-          <SwiperSlide key={anime.rank}>
+          <SwiperSlide key={anime.rank} style={{ width: "260px" }}>
             <Card anime={anime} />
           </SwiperSlide>
         ))}

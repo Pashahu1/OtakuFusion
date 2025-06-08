@@ -29,18 +29,11 @@ export const EpisodesList: React.FC<props> = ({
   );
 
   return (
-    <aside className="episodes">
+    <section className="episodes">
       <div className="episodes__content">
-        <div className="episodes__search-panel">
-          <span>List of Episodes:</span>
-          <input
-            className="episodes__search-input"
-            type="text"
-            placeholder="Enter ep or name"
-          />
-        </div>
-        <div>
-          {totalEpisodes > 1 && (
+        <h3>List of Episodes</h3>
+        {totalEpisodes > 100 && (
+          <div>
             <div className="pagination">
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
@@ -54,8 +47,9 @@ export const EpisodesList: React.FC<props> = ({
                 </button>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
         <div className="episodes__list">
           {currentEpisodes.map((episode) => (
             <EpisodesButton
@@ -67,6 +61,6 @@ export const EpisodesList: React.FC<props> = ({
           ))}
         </div>
       </div>
-    </aside>
+    </section>
   );
 };

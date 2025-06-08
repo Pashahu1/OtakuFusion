@@ -1,0 +1,19 @@
+.video-player {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &__player {
+    height: 700px;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__info {
+    background: #1c1c1c;
+  }
+}
