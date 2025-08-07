@@ -21,6 +21,7 @@ import Image from "next/image";
 import type { SpotlightAnime, TrendingAnime } from "@/shared/types/GlobalTypes";
 import dynamic from "next/dynamic";
 import { HandleTextSliced } from "@/helper/TextSliced";
+import { useSetVh } from "@/hooks/useSetVh";
 
 const LazySwiperCard = dynamic(
   () => import("@/components/SwiperCard/SwiperCard"),
@@ -35,6 +36,7 @@ type Props = {
 };
 
 const Preview = ({ spotlights, trending }: Props) => {
+  useSetVh();
   return (
     <div className="preview">
       <div className="preview__slider">
