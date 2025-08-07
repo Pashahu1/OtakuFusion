@@ -64,7 +64,7 @@ export default function Player({
   const artRef = useRef(null);
   const proxy = 'https://cors-anywhere-9ycb.onrender.com/?url=';
   const m3u8proxy =
-    'm3u8proxy-seven-gamma.vercel.app/m3u8-proxy?url='.split(',') || [];
+    'https://m3u8proxy-seven-gamma.vercel.app/m3u8-proxy?url='.split(',') || [];
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
     episodes?.findIndex(
       (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
