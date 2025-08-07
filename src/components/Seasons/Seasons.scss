@@ -1,0 +1,57 @@
+@use '../../style/mixins' as *;
+
+.seasons {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  width: 100%;
+  // padding: 20px;
+  gap: 20px;
+  background-color: #11101a;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 300px;
+  }
+
+  &__category {
+    position: relative;
+    height: 78px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+
+    @include respond(desktop) {
+      width: 300px;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    &--current {
+      border: 1px solid #f47521;
+      color: #f47521;
+    }
+  }
+
+  &__name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 10px;
+    text-shadow: 1px 1px rgba(0, 0, 0, 0.7);
+  }
+}

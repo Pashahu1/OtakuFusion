@@ -1,0 +1,94 @@
+@use '../../../style/variables' as *;
+@use '../../../style/mixins' as *;
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 60px;
+  gap: 20px;
+  padding: 20px;
+  background: $color-bg linear-gradient(180deg, #0000, #213944);
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__navigation,
+  &__contacts,
+  &__rulles,
+  &__loggin {
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px grey solid;
+    padding: 0.625rem 0;
+
+    & h2 {
+      width: 130px;
+    }
+  }
+
+  &__information {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    color: #dadada;
+    gap: 5px;
+    width: 160px;
+    height: 48px;
+    padding: 1.125rem;
+  }
+
+  @include respond(tablet) {
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    &__content {
+      display: flex;
+      flex-direction: row;
+      gap: 60px;
+      border-bottom: 1px grey solid;
+      padding-block-end: 1.5rem;
+    }
+
+    &__navigation,
+    &__contacts,
+    &__rulles,
+    &__loggin {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-bottom: 0;
+
+      & h2 {
+        width: 100%;
+      }
+    }
+
+    &__link {
+      display: flex;
+      align-items: center;
+      color: #dadada;
+      height: 30px;
+      padding: 0;
+      gap: 5px;
+
+      &:hover {
+        color: white;
+        opacity: 0.3;
+      }
+    }
+
+    &__information {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+  }
+}

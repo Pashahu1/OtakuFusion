@@ -1,0 +1,21 @@
+@use './mixins' as *;
+@use './variables' as *;
+
+h2 {
+  @include h2;
+}
+
+// @mixin h3 {
+//   font-family: $font-headings;
+//   font-weight: $font-weight-medium;
+//   font-size: 1rem;
+//   line-height: 1.4;
+
+//   @include respond(tablet) {
+//     font-size: 1.125rem; // 18px
+//   }
+
+//   @include respond(desktop) {
+//     font-size: 1.25rem; // 20px
+//   }
+// }

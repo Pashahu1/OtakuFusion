@@ -1,0 +1,15 @@
+@use "../../../../style/mixins" as *;
+
+.navbar__desktop {
+  display: none;
+
+  @include respond(desktop) {
+    display: flex;
+    align-items: center;
+    height: 100%;
+
+    &-list {
+      height: 100%;
+    }
+  }
+}

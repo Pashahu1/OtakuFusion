@@ -1,0 +1,31 @@
+@import "../../style/mixins";
+@import "../../style/variables";
+
+.category-page {
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+
+  &__content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    width: 100%;
+    gap: 20px;
+
+    @include respond(desktop) {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }
+
+  @include respond(pc) {
+    width: 1200px;
+    margin: 0 auto;
+  }
+
+  &__title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+}

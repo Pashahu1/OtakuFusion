@@ -1,0 +1,126 @@
+@use '../../../style/mixins' as *;
+@use '../../../style/variables' as *;
+
+.skeleton-preview {
+  &__slide {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background-color: #1c1c1c;
+  }
+
+  &__overlay {
+    position: absolute;
+    top: 30%;
+    padding: 0 20px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 800px;
+    align-items: center;
+
+    @include respond(tablet) {
+      align-items: flex-start;
+      left: 5%;
+      padding: 0;
+    }
+
+    @include respond(desktop) {
+      top: 35%;
+    }
+
+    div {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+  }
+
+  &__title,
+  &__text,
+  &__button {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.1) 25%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.1) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+
+  &__title {
+    height: 40px;
+    width: 70%;
+  }
+
+  &__text {
+    height: 80px;
+    width: 100%;
+  }
+
+  &__button {
+    width: 160px;
+    height: 36px;
+    border-radius: 100px;
+  }
+
+  &__trending {
+    position: relative;
+    z-index: 3;
+    padding: 0 20px;
+    border-radius: 20px 20px 0 0;
+    margin-top: 30px;
+
+    @include respond(tablet) {
+      margin-top: -160px;
+
+      @media screen and (orientation: landscape) {
+        margin-top: 0;
+      }
+    }
+
+    @include respond(desktop) {
+      margin-top: -220px;
+    }
+  }
+
+  &__trending-title {
+    color: white;
+    margin: 1rem 0 1rem;
+  }
+
+  &__trending-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+
+    div {
+      background: #2b2b2b;
+      border-radius: 12px;
+      width: 270px;
+      height: 340px;
+      animation: shimmer 1.5s infinite;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 75%
+      );
+      background-size: 200% 100%;
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

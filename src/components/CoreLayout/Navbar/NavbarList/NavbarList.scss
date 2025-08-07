@@ -1,0 +1,7 @@
+@use "../../../../style/mixins" as *;
+
+.navbar-list {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
