@@ -4,7 +4,7 @@
 
 .preview {
   &__slider {
-    height: 100vh;
+    height: 100dvh;
     position: relative;
     overflow: hidden;
   }
@@ -52,11 +52,16 @@
   &__overlay {
     position: absolute;
     text-align: center;
-    top: 30%;
+    top: 10%;
     width: 100%;
 
     padding: 0 20px;
     z-index: 2;
+
+    @media screen and (orientation: landscape) {
+      top: 0;
+      margin-top: 0;
+    }
 
     @include respond(tablet) {
       text-align: start;
@@ -205,7 +210,8 @@
   left: 20%;
 
   @media screen and (orientation: landscape) {
-    bottom: 8%;
+    bottom: 15%;
+    left: 30%;
   }
 
   @include respond(tablet) {
@@ -216,7 +222,7 @@
   @include respond(desktop) {
     width: auto;
     left: 5%;
-    bottom: 30%;
+    bottom: 20%;
   }
 }
 
