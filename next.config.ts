@@ -1,4 +1,3 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
     return [
@@ -10,6 +9,7 @@ const nextConfig = {
   },
   images: {
     domains: ['cdn.noitatnemucod.net'],
+    unoptimized: true, // <-- сюда
   },
   eslint: {
     ignoreDuringBuilds: false,
