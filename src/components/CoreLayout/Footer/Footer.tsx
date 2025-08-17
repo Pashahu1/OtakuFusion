@@ -60,7 +60,7 @@ export const Footer = () => {
             <Link className="footer__link" href="/about">
               About
             </Link>
-            <Link className="footer__link" href="/policy">
+            <Link className="footer__link" href="/privacy-policy">
               Privacy Policy
             </Link>
           </div>
