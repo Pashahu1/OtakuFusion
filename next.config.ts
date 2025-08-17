@@ -9,7 +9,7 @@ const nextConfig = {
   },
   images: {
     domains: ['cdn.noitatnemucod.net'],
-    unoptimized: true, // <-- сюда
+    unoptimized: true,
   },
   eslint: {
     ignoreDuringBuilds: false,

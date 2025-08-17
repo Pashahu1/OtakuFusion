@@ -64,7 +64,7 @@ export default function Player({
   const artRef = useRef(null);
   const proxy = 'https://cors-anywhere-9ycb.onrender.com/?url=';
   const m3u8proxy =
-    'https://m3u8proxy-seven-gamma.vercel.app/m3u8-proxy?url='.split(',') || [];
+    'https://m3u8proxy-seven-gamma.vercel.app/m3u8-proxy?url=' || [];
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
     episodes?.findIndex(
       (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
@@ -226,7 +226,7 @@ export default function Player({
     }
 
     const fullURL =
-      m3u8proxy[Math.floor(Math.random() * m3u8proxy?.length)] +
+      m3u8proxy +
       encodeURIComponent(streamUrl) +
       '&headers=' +
       encodeURIComponent(JSON.stringify(headers));
@@ -496,6 +496,7 @@ export default function Player({
           }, 300);
         });
     });
+
     return () => {
       if (art && art.destroy) {
         art.destroy(false);

@@ -107,7 +107,7 @@ export default function Watch() {
     if (totalEpisodes !== null && totalEpisodes === 0) {
       router.push(`/${animeId}`);
     }
-  }, [streamInfo, episodeId, animeId, totalEpisodes, router]);
+  }, [streamInfo, episodeId, animeId, totalEpisodes, router, servers]);
 
   useEffect(() => {
     const adjustHeight = () => {
