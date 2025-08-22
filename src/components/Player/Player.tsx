@@ -514,7 +514,9 @@ export default function Player({
         title: animeInfo?.title,
         japanese_title: animeInfo?.japanese_title,
       };
+
       if (!newEntry.data_id) return;
+
       const existingIndex = continueWatching.findIndex(
         (item) => item.data_id === newEntry.data_id
       );

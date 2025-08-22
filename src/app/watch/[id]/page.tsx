@@ -134,8 +134,9 @@ export default function Watch() {
   function Tag({ bgColor, index, icon, text }) {
     return (
       <div
-        className={`flex space-x-1 justify-center items-center px-[4px] py-[1px] text-black font-semibold text-[13px] ${index === 0 ? 'rounded-l-[4px]' : 'rounded-none'
-          }`}
+        className={`flex space-x-1 justify-center items-center px-[4px] py-[1px] text-black font-semibold text-[13px] ${
+          index === 0 ? 'rounded-l-[4px]' : 'rounded-none'
+        }`}
         style={{ backgroundColor: bgColor }}
       >
         {icon && <FontAwesomeIcon icon={icon} className="text-[12px]" />}
@@ -221,6 +222,14 @@ export default function Watch() {
                     <BouncingLoader />
                   </div>
                 )}
+                {streamUrl === null && !buffering && (
+                  <div className="absolute inset-0 flex flex-col justify-center text-center items-center bg-black bg-opacity-50">
+                    <img src="/gojo-player.png" alt="gojo" className="w-[100px]"/>
+                    <span>Servers now is not Available</span>
+                    <span className="text-center">Please try again later</span>
+                  </div>
+                )}
+
                 <p className="text-center underline font-medium text-[15px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                   {!buffering && !streamInfo ? (
                     servers ? (
@@ -283,7 +292,7 @@ export default function Watch() {
                             new Date(
                               nextEpisodeSchedule.nextEpisodeSchedule
                             ).getTime() -
-                            new Date().getTimezoneOffset() * 60000
+                              new Date().getTimezoneOffset() * 60000
                           ).toLocaleDateString('en-GB', {
                             day: '2-digit',
                             month: '2-digit',
@@ -369,9 +378,9 @@ export default function Watch() {
                             {isFullOverview
                               ? animeInfo?.animeInfo?.Overview
                               : `${animeInfo?.animeInfo?.Overview.slice(
-                                0,
-                                270
-                              )}...`}
+                                  0,
+                                  270
+                                )}...`}
                             <span
                               className="text-[13px] font-bold hover:cursor-pointer"
                               onClick={() => setIsFullOverview(!isFullOverview)}

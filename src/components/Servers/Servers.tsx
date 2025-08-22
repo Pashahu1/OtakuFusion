@@ -47,8 +47,6 @@ function Servers({
     localStorage.setItem('server_type', server.type);
   };
 
-  // console.log('Current activeServerId:', activeServerId);
-  // console.log('Matching server in list:', servers?.find(s => s.data_id === activeServerId));
   return (
     <div className="relative bg-[#11101A] p-4 w-full min-h-[100px] flex justify-center items-center max-[1200px]:bg-[#14151A]">
       {serverLoading ? (
@@ -56,7 +54,7 @@ function Servers({
           <BouncingLoader></BouncingLoader>
         </div>
       ) : servers ? (
-        <div className="w-full h-full rounded-lg grid grid-cols-[minmax(0,30%),minmax(0,70%)] overflow-hidden max-[800px]:grid-cols-[minmax(0,40%),minmax(0,60%)] max-[600px]:flex max-[600px]:flex-col max-[600px]:rounded-none">
+        <div className="w-full h-full rounded-lg grid grid-cols-[minmax(0,30%), minmax(0,70%)] overflow-hidden max-[800px]:grid-cols-[minmax(0,40%),minmax(0,60%)] max-[600px]:flex max-[600px]:flex-col max-[600px]:rounded-none">
           <div className="h-full bg-[#23252b] p-4 text-white flex flex-col justify-center items-center gap-y-2 max-[600px]:bg-transparent max-[600px]:h-1/2 max-[600px]:text-white max-[600px]:mb-4">
             <p className="text-center leading-5 font-medium text-[14px]">
               You are watching <br />
@@ -65,8 +63,7 @@ function Servers({
               </span>
             </p>
             <p className="leading-5 text-[14px] font-medium text-center">
-              If the current server doesn&apos;t work, please try other servers
-              beside.
+              If the current server doesn&apos;t work, please try other servers HD-2 or others beside.
             </p>
           </div>
           <div className="bg-[#201F31] flex flex-col max-[600px]:h-full">
