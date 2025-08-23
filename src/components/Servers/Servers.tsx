@@ -9,7 +9,6 @@ import { useEffect } from 'react';
 import './Servers.scss';
 import type { AnimeServerType, Server } from '@/shared/types/AnimeServersType';
 
-
 function Servers({
   servers,
   activeEpisodeNum,
@@ -51,7 +50,7 @@ function Servers({
     <div className="relative bg-[#11101A] p-4 w-full min-h-[100px] flex justify-center items-center max-[1200px]:bg-[#14151A]">
       {serverLoading ? (
         <div className="w-full h-full rounded-lg flex justify-center items-center max-[600px]:rounded-none">
-          <BouncingLoader></BouncingLoader>
+          <BouncingLoader />
         </div>
       ) : servers ? (
         <div className="w-full h-full rounded-lg grid grid-cols-[minmax(0,30%), minmax(0,70%)] overflow-hidden max-[800px]:grid-cols-[minmax(0,40%),minmax(0,60%)] max-[600px]:flex max-[600px]:flex-col max-[600px]:rounded-none">
@@ -63,16 +62,18 @@ function Servers({
               </span>
             </p>
             <p className="leading-5 text-[14px] font-medium text-center">
-              If the current server doesn&apos;t work, please try other servers HD-2 or others beside.
+              If the current server doesn&apos;t work, please try other servers
+              HD-2 or others beside.
             </p>
           </div>
           <div className="bg-[#201F31] flex flex-col max-[600px]:h-full">
             {rawServers.length > 0 && (
               <div
-                className={`servers p-2 flex items-center flex-wrap ml-2 max-[600px]:py-2 ${dubServers.length === 0 || subServers.length === 0
-                  ? 'h-1/2'
-                  : 'h-full'
-                  }`}
+                className={`servers p-2 flex items-center flex-wrap ml-2 max-[600px]:py-2 ${
+                  dubServers.length === 0 || subServers.length === 0
+                    ? 'h-1/2'
+                    : 'h-full'
+                }`}
               >
                 <div className="flex items-center gap-x-2">
                   <FontAwesomeIcon
@@ -85,10 +86,11 @@ function Servers({
                   {rawServers.map((item, index) => (
                     <div
                       key={index}
-                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${activeServerId === item?.data_id
-                        ? 'bg-[#ff640a] text-black'
-                        : 'bg-[#373646] text-white'
-                        } max-[700px]:px-3`}
+                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${
+                        activeServerId === item?.data_id
+                          ? 'bg-[#ff640a] text-black'
+                          : 'bg-[#373646] text-white'
+                      } max-[700px]:px-3`}
                       onClick={() => handleServerSelect(item)}
                     >
                       <p className="text-[13px] font-semibold">
@@ -101,8 +103,9 @@ function Servers({
             )}
             {subServers.length > 0 && (
               <div
-                className={`servers p-2 flex items-center flex-wrap ml-2 max-[600px]:py-2 ${dubServers.length === 0 ? 'h-1/2' : 'h-full'
-                  }`}
+                className={`servers p-2 flex items-center flex-wrap ml-2 max-[600px]:py-2 ${
+                  dubServers.length === 0 ? 'h-1/2' : 'h-full'
+                }`}
               >
                 <div className="flex items-center gap-x-2">
                   <FontAwesomeIcon
@@ -115,10 +118,11 @@ function Servers({
                   {subServers.map((item, index) => (
                     <div
                       key={index}
-                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${activeServerId === item?.data_id
-                        ? 'bg-[#ff640a] text-black'
-                        : 'bg-[#373646] text-white'
-                        } max-[700px]:px-3`}
+                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${
+                        activeServerId === item?.data_id
+                          ? 'bg-[#ff640a] text-black'
+                          : 'bg-[#373646] text-white'
+                      } max-[700px]:px-3`}
                       onClick={() => handleServerSelect(item)}
                     >
                       <p className="text-[13px] font-semibold">
@@ -131,8 +135,9 @@ function Servers({
             )}
             {dubServers.length > 0 && (
               <div
-                className={`servers p-2 flex items-center flex-wrap ml-2 max-[600px]:py-2 ${subServers.length === 0 ? 'h-1/2 ' : 'h-full'
-                  }`}
+                className={`servers p-2 flex items-center flex-wrap ml-2 max-[600px]:py-2 ${
+                  subServers.length === 0 ? 'h-1/2 ' : 'h-full'
+                }`}
               >
                 <div className="flex items-center gap-x-3">
                   <FontAwesomeIcon
@@ -145,10 +150,11 @@ function Servers({
                   {dubServers.map((item, index) => (
                     <div
                       key={index}
-                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${activeServerId === item?.data_id
-                        ? 'bg-[#ff640a] text-black'
-                        : 'bg-[#373646] text-white'
-                        } max-[700px]:px-3`}
+                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${
+                        activeServerId === item?.data_id
+                          ? 'bg-[#ff640a] text-black'
+                          : 'bg-[#373646] text-white'
+                      } max-[700px]:px-3`}
                       onClick={() => handleServerSelect(item)}
                     >
                       <p className="text-[13px] font-semibold">

@@ -230,7 +230,7 @@ export default function Watch() {
                   </div>
                 )}
 
-                <p className="text-center underline font-medium text-[15px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                {/* <p className="text-center underline font-medium text-[15px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                   {!buffering && !streamInfo ? (
                     servers ? (
                       <>
@@ -246,7 +246,7 @@ export default function Watch() {
                       </>
                     )
                   ) : null}
-                </p>
+                </p> */}
               </div>
 
               {/* {!buffering && (

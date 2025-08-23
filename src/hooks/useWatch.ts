@@ -133,6 +133,8 @@ export default function useWatch(animeId, initialEpisodeId) {
               s.type === savedServerType &&
               ['HD-1', 'HD-2'].includes(s.serverName)
           ) ||
+          filteredServers[3] ||
+          filteredServers[1] ||
           filteredServers[0];
         setServers(filteredServers);
         setActiveServerId(initialServer?.data_id);
