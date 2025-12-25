@@ -4,7 +4,7 @@
 
 .preview {
   position: relative;
-  min-height: 80vh;
+  min-height: 100svh;
   overflow: hidden;
 
   .swiper,
@@ -21,12 +21,13 @@
 
   @include respond(desktop) {
     min-height: 100vh;
+    min-height: 100svh;
   }
 
   &__slide {
     position: relative;
     width: 100%;
-    height: 80vh;
+    height: 100svh;
 
     @include respond(desktop) {
       height: 100vh;
