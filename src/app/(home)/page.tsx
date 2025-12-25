@@ -47,7 +47,7 @@ export default function Home() {
 
   return (
     <div className="w-[100%]">
-      <div className="flex flex-col mt-[60px]">
+      <div className="flex flex-col">
         {error && <ErrorMessage message="Failed to load home page." />}
         <section>
           <LazyPreview
