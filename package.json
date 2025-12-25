@@ -57,6 +57,7 @@
     "start": "next start",
     "analyze": "cross-env ANALYZE=true next build",
     "postinstall": "prisma generate",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "predeploy": "npm run lint && npx tsc --noEmit && npx prisma validate && npm run build"
   }
 }

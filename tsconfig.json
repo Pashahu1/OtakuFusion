@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -12,7 +16,7 @@
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -20,7 +24,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
   "include": [
@@ -34,7 +40,10 @@
     "src/components/Player/pluginChapterStyle.ts",
     "src/config/logoTitle.ts",
     "src/config/website.ts",
-    "src/components/Episodelist/Episodelist.tsx"
+    "src/components/Episodelist/Episodelist.tsx",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
