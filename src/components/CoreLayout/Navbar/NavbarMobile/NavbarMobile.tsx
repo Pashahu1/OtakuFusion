@@ -1,8 +1,8 @@
 "use client";
 import { NavLink } from "@/components/NavLink/NavLink";
 import Image from "next/image";
-import burger from "/public/icon/burgerMenu.svg";
-import burgerOpen from "/public/icon/burgerMenuOpen.svg";
+import burger from "/icon/burgerMenu.svg";
+import burgerOpen from "/icon/burgerMenuOpen.svg";
 import "./NavbarMobile.scss";
 import { SidebarMenu } from "../SidebarMenu/SidebarMenu";
 import { useDropdown } from "@/hooks/useDropdown";
