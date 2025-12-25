@@ -1,0 +1,8 @@
+node_modules
+.next
+dist
+build
+tailwind.config.js
+postcss.config.js
+prisma
+eslint.config.js
