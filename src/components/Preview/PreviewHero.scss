@@ -4,7 +4,10 @@
 
 .preview {
   position: relative;
+  height: 100svh;
   min-height: 100svh;
+  max-height: 100svh;
+  overflow: hidden;
   overflow: hidden;
 
   .swiper,
@@ -96,7 +99,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-     
+
       gap: 12px;
 
       @include respond(tablet) {
