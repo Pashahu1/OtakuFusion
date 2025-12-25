@@ -74,10 +74,10 @@ const Preview = ({ spotlights, trending }: Props) => {
                   src={Convertor(anime.poster)}
                   alt={anime.title}
                   fill
+                  sizes="100vw"
                   className="preview__bg-image"
                   decoding="async"
                   loading="eager"
-                  sizes="100vw"
                   quality={80}
                 />
                 <div className="preview__shine" />
