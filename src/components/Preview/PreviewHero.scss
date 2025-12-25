@@ -4,9 +4,7 @@
 
 .preview {
   position: relative;
-  height: 100svh;
   min-height: 100svh;
-  max-height: 100svh;
   overflow: hidden;
 
   .swiper,
@@ -69,6 +67,10 @@
     object-position: top center;
     filter: brightness(0.75) contrast(1.05);
     z-index: 0;
+    height: 100%;
+    width: 100%;
+    max-height: 100%;
+    max-width: 100%;
   }
 
   &__overlay {
