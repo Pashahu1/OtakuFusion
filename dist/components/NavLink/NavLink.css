@@ -1,0 +1,21 @@
+.navigation-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.navigation-list__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 1.125rem;
+}
+@media (min-width: 1024px) {
+  .navigation-list__link {
+    justify-content: start;
+  }
+  .navigation-list__link:hover {
+    color: #fff;
+    background-color: #141519;
+  }
+}
