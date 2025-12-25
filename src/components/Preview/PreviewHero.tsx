@@ -1,30 +1,31 @@
+'use client';
 import {
   A11y,
   Navigation,
   Pagination,
   Scrollbar,
   Autoplay,
-} from "swiper/modules";
-import Link from "next/link";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Convertor } from "@/helper/Convertor";
-import "swiper/css/effect-fade";
-import { EffectFade } from "swiper/modules";
+} from 'swiper/modules';
+import Link from 'next/link';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Convertor } from '@/helper/Convertor';
+import 'swiper/css/effect-fade';
+import { EffectFade } from 'swiper/modules';
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/scrollbar";
-import "./PreviewHero.scss";
-import { Button } from "../Button/Button";
-import Image from "next/image";
-import type { SpotlightAnime, TrendingAnime } from "@/shared/types/GlobalTypes";
-import dynamic from "next/dynamic";
-import { HandleTextSliced } from "@/helper/TextSliced";
-import { useSetVh } from "@/hooks/useSetVh";
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/scrollbar';
+import './PreviewHero.scss';
+import { Button } from '../Button/Button';
+import Image from 'next/image';
+import type { SpotlightAnime, TrendingAnime } from '@/shared/types/GlobalTypes';
+import dynamic from 'next/dynamic';
+import { HandleTextSliced } from '@/helper/TextSliced';
+import { useState } from 'react';
 
 const LazySwiperCard = dynamic(
-  () => import("@/components/SwiperCard/SwiperCard"),
+  () => import('@/components/SwiperCard/SwiperCard'),
   {
     ssr: false,
   }
@@ -36,11 +37,15 @@ type Props = {
 };
 
 const Preview = ({ spotlights, trending }: Props) => {
-  useSetVh();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentAnime = spotlights[currentIndex];
   return (
     <div className="preview">
       <div className="preview__slider">
         <Swiper
+          onSlideChange={(swiper) => {
+            setCurrentIndex(swiper.realIndex);
+          }}
           modules={[
             Navigation,
             Pagination,
@@ -53,7 +58,7 @@ const Preview = ({ spotlights, trending }: Props) => {
           effect="fade"
           fadeEffect={{ crossFade: true }}
           pagination={{
-            el: ".preview__pagination",
+            el: '.preview__pagination',
             clickable: true,
           }}
           navigation
@@ -76,26 +81,23 @@ const Preview = ({ spotlights, trending }: Props) => {
                   quality={80}
                 />
                 <div className="preview__shine" />
-
-                <div className="preview__overlay">
-                  <div className="preview__overlay-inner">
-                    <h1 className="preview__title">{anime.title}</h1>
-                    <p className="preview__text">
-                      {HandleTextSliced(anime.description)}
-                    </p>
-                    <Link href={`/watch/${anime.id}`}>
-                      <Button className="preview__button">Watch Ep 1</Button>
-                    </Link>
-                  </div>
-                </div>
               </div>
             </SwiperSlide>
           ))}
-
-          <div className="preview__pagination"></div>
         </Swiper>
+        <div className="preview__overlay">
+          <div className="preview__overlay-inner">
+            <h1 className="preview__title">{currentAnime.title}</h1>
+            <p className="preview__text">
+              {HandleTextSliced(currentAnime.description)}
+            </p>
+            <Link href={`/watch/${currentAnime.id}`}>
+              <Button className="preview__button">Watch Ep 1</Button>
+            </Link>
+            <div className="preview__pagination" />
+          </div>
+        </div>
       </div>
-
       <div className="preview__trending">
         <h2>Trending</h2>
         <div className="preview__trending-container">

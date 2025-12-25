@@ -3,16 +3,34 @@
 @use '../../style/typography' as *;
 
 .preview {
+  position: relative;
+  min-height: 80vh;
+  overflow: hidden;
+
+  .swiper,
+  .swiper-wrapper,
+  .swiper-slide {
+    height: 100%;
+  }
+
   &__slider {
-    height: calc(var(--vh, 1vh) * 100);
+    height: 100%;
     position: relative;
     overflow: hidden;
+  }
+
+  @include respond(desktop) {
+    min-height: 100vh;
   }
 
   &__slide {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: 80vh;
+
+    @include respond(desktop) {
+      height: 100vh;
+    }
 
     &::before {
       content: '';
@@ -45,15 +63,16 @@
 
   &__bg-image {
     object-fit: cover;
-    filter: brightness(0.7) contrast(1.05);
+    object-position: top center;
+    filter: brightness(0.75) contrast(1.05);
     z-index: 0;
   }
 
   &__overlay {
     position: absolute;
     text-align: center;
-    top: 20%;
-    width: 100%;
+    max-width: 800px;
+    top: 10%;
     padding: 0 20px;
     z-index: 2;
 
@@ -64,9 +83,8 @@
 
     @include respond(tablet) {
       text-align: start;
-      top: 20%;
       left: 5%;
-      padding: 0;
+      padding: 15px;
     }
 
     @include respond(desktop) {
@@ -77,12 +95,41 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      max-width: 800px;
-      gap: 10px;
+     
+      gap: 12px;
 
       @include respond(tablet) {
         align-items: start;
       }
+    }
+  }
+
+  &__title {
+    font-family: $font-headings;
+    color: $color-text-primary;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.1;
+  }
+
+  &__text {
+    @include body-text;
+    color: $color-text-primary;
+  }
+
+  &__button {
+    padding: 0.75rem 2.25rem;
+    width: auto;
+    margin-top: 0.5rem;
+  }
+
+  &_inner {
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    gap: 10px;
+
+    @include respond(tablet) {
+      align-items: flex-start;
     }
   }
 
@@ -101,29 +148,11 @@
 
   &__button {
     width: 300px;
-
-    @include respond(tablet) {
-      width: 160px;
-    }
   }
 
   &__pagination {
-    position: absolute;
-    bottom: 15%;
-    left: 10%;
     display: flex;
     gap: 6px;
-    z-index: 2;
-
-    @include respond(tablet) {
-      bottom: 20%;
-      left: 15%;
-    }
-
-    @include respond(desktop) {
-      bottom: 18%;
-      left: 12%;
-    }
 
     .swiper-pagination-bullet {
       width: 24px;
@@ -196,34 +225,8 @@
   }
 }
 
-.swiper {
-  width: 100%;
-  height: 100%;
-}
-
-.swiper-pagination-fraction,
-.swiper-pagination-custom,
-.swiper-horizontal > .swiper-pagination-bullets,
 .swiper-pagination-bullets.swiper-pagination-horizontal {
-  width: 250px;
-  bottom: 20%;
-  left: 20%;
-
-  @media screen and (orientation: landscape) {
-    bottom: 15%;
-    left: 30%;
-  }
-
-  @include respond(tablet) {
-    width: auto;
-    bottom: 30%;
-    left: 5%;
-  }
-
-  // @include respond(desktop) {
-  //   width: auto;
-  //   left: 5%;
-  // }
+  width: auto;
 }
 
 .swiper-button-prev,
