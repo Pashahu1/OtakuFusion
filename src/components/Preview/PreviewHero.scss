@@ -25,14 +25,12 @@
   }
 
   &__slide {
-    position: absolute;
-    inset: 0;
-    height: 100%;
+    position: relative;
     width: 100%;
-    overflow: hidden;
+    height: 100svh;
 
     @include respond(desktop) {
-      height: 100vh;
+      height: 100svh;
     }
 
     &::before {
@@ -69,7 +67,7 @@
     object-position: top center;
     filter: brightness(0.75) contrast(1.05);
     z-index: 0;
-
+    
     transform: translateZ(0);
     will-change: transform;
   }
