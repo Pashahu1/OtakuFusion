@@ -3,65 +3,6 @@
 @use '../../style/typography' as *;
 
 .preview {
-  position: relative;
-  min-height: 100svh;
-  overflow: hidden;
-
-  .swiper,
-  .swiper-wrapper,
-  .swiper-slide {
-    height: 100%;
-  }
-
-  &__slider {
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-  }
-
-  @include respond(desktop) {
-    min-height: 100vh;
-    min-height: 100svh;
-  }
-
-  &__slide {
-    position: relative;
-    width: 100%;
-    height: 100svh;
-
-    @include respond(desktop) {
-      height: 100svh;
-    }
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 20%;
-      height: 100%;
-      background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0.07),
-        transparent
-      );
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 30%;
-      background: linear-gradient(to bottom, transparent, $color-bg);
-      pointer-events: none;
-      z-index: 2;
-    }
-  }
-
   &__bg-image {
     object-fit: cover;
     object-position: top center;
@@ -71,91 +12,10 @@
     transform: translateZ(0);
     will-change: transform;
   }
-
-  &__overlay {
-    position: absolute;
-    text-align: center;
-    max-width: 800px;
-    top: 10%;
-    padding: 0 20px;
-    z-index: 2;
-
-    @media screen and (orientation: landscape) {
-      top: 0;
-      margin-top: 0;
-    }
-
-    @include respond(tablet) {
-      text-align: start;
-      left: 5%;
-      padding: 15px;
-    }
-
-    @include respond(desktop) {
-      top: 25%;
-    }
-
-    &-inner {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      gap: 12px;
-
-      @include respond(tablet) {
-        align-items: start;
-      }
-    }
-  }
-
-  &__title {
-    font-family: $font-headings;
-    color: $color-text-primary;
-    font-size: clamp(1.8rem, 4vw, 2.6rem);
-    line-height: 1.1;
-  }
-
-  &__text {
-    @include body-text;
-    color: $color-text-primary;
-  }
-
-  &__button {
-    padding: 0.75rem 2.25rem;
-    width: auto;
-    margin-top: 0.5rem;
-  }
-
-  &_inner {
-    display: flex;
-    flex-direction: column;
-    max-width: 800px;
-    gap: 10px;
-
-    @include respond(tablet) {
-      align-items: flex-start;
-    }
-  }
-
-  &__title {
-    font-family: $font-headings;
-    color: $color-text-primary;
-    font-size: 2.4rem;
-  }
-
-  &__text {
-    display: block;
-    @include body-text;
-    font-family: $font-headings;
-    color: $color-text-primary;
-  }
-
-  &__button {
-    width: 300px;
-  }
-
+  
   &__pagination {
     display: flex;
+    z-index: 2;
     gap: 6px;
 
     .swiper-pagination-bullet {
@@ -189,34 +49,6 @@
         }
       }
     }
-  }
-
-  &__trending {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: relative;
-    z-index: 3;
-    padding: 0 20px;
-    border-radius: 20px 20px 0 0;
-    margin-top: 30px;
-
-    @include respond(tablet) {
-      margin-top: -160px;
-
-      @media screen and (orientation: landscape) {
-        margin-top: 0;
-      }
-    }
-
-    @include respond(desktop) {
-      margin-top: -220px;
-    }
-  }
-
-  &__trending-title {
-    color: white;
-    margin: 1rem 0 1rem;
   }
 }
 

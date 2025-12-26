@@ -1,21 +1,33 @@
 @use './mixins' as *;
 @use './variables' as *;
 
-h2 {
-  @include h2;
+/* === Typography Utility Classes === */
+
+/* Display (Hero titles) */
+.text-display {
+  font-size: var(--text-display);
+  line-height: var(--text-display--line-height);
+  font-weight: var(--font-weight-bold);
 }
 
-// @mixin h3 {
-//   font-family: $font-headings;
-//   font-weight: $font-weight-medium;
-//   font-size: 1rem;
-//   line-height: 1.4;
+/* Title (section headers) */
+.text-title {
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  font-weight: var(--font-weight-bold);
+}
 
-//   @include respond(tablet) {
-//     font-size: 1.125rem; // 18px
-//   }
+/* Body (regular text) */
+.text-body {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  font-weight: var(--font-weight-regular);
+}
 
-//   @include respond(desktop) {
-//     font-size: 1.25rem; // 20px
-//   }
-// }
+/* Small (secondary text) */
+.text-small {
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-brand-text-muted);
+}

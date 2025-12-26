@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html className="dark" lang="en" suppressHydrationWarning>
       <body className={`${montserrat.className} ${rubik.className}`}>
         <Suspense fallback={<InitialLoader />}>
           <div className="layout">
