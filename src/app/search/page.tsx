@@ -7,9 +7,9 @@ import { Card } from "@/components/Card/Card";
 import { useRouter } from "next/navigation";
 import { AnimeListLayout } from "@/components/Layout/AnimeListLayout";
 import { debounce } from "lodash";
-import ErrorMessage from "@/components/Error/ErrorMessage";
 import { InitialLoader } from "@/components/ui/InitialLoader/InitialLoader";
 import { SkeletonCard } from "@/components/Skeleton/SkeletonCard/SkeletonCard";
+import ErrorState from "@/components/ui/states/ErrorState";
 
 export default function Search() {
   const [search, setSearch] = useState("");
@@ -69,7 +69,7 @@ export default function Search() {
       </div>
 
       <AnimeListLayout>
-        {error && <ErrorMessage message="Failed to get results." />}
+        {error && <ErrorState message="Failed to get results." />}
         {!isLoading && !error && searchResults.length === 0 && (
           <p className="search-page__empty">Please enter Anime name.</p>
         )}
