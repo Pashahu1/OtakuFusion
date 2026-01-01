@@ -1,19 +1,18 @@
-"use client";
-import React, { useCallback, useEffect, useState } from "react";
-import { format } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
-import { getNextEpisodesAnime } from "@/services/getNextEpisodesAnime";
-import { InitialLoader } from "@/components/ui/InitialLoader/InitialLoader";
-import { WrapperLayout } from "@/components/Layout/WrapperLayout";
-import type { ScheduleAnime } from "@/shared/types/GlobalTypes";
-import ErrorMessage from "@/components/Error/ErrorMessage";
-import AnimeCalendar from "@/components/AnimeCalendar/AnimeCalendar";
+'use client';
+import { useCallback, useEffect, useState } from 'react';
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
+import { getNextEpisodesAnime } from '@/services/getNextEpisodesAnime';
+import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
+import type { ScheduleAnime } from '@/shared/types/GlobalTypes';
+import AnimeCalendar from '@/components/AnimeCalendar/AnimeCalendar';
+import ErrorState from '@/components/ui/states/ErrorState';
 
-const timeZone = "Europe/Kyiv";
+const timeZone = 'Europe/Kyiv';
 const now = new Date();
 
 const kyivTime = toZonedTime(now, timeZone);
-const formattedKyivTime = format(kyivTime, "yyyy-MM-dd");
+const formattedKyivTime = format(kyivTime, 'yyyy-MM-dd');
 
 export default function SchedulePage() {
   const [events, setEvents] = useState<ScheduleAnime[]>([]);
@@ -24,7 +23,7 @@ export default function SchedulePage() {
   const handleDateChange = useCallback(
     ({ year, month, day }: { year: number; month: number; day: number }) => {
       const date = new Date(year, month, day);
-      const formatted = format(toZonedTime(date, timeZone), "yyyy-MM-dd");
+      const formatted = format(toZonedTime(date, timeZone), 'yyyy-MM-dd');
       setSelectedDate(formatted);
     },
     []
@@ -53,23 +52,26 @@ export default function SchedulePage() {
         setIsLoading(false);
       } catch {
         setError(true);
-        console.error("failed data fetching");
+        console.error('failed data fetching');
       }
     };
     fetchSheduleAnime();
   }, [selectedDate]);
 
   return (
-    <div className="schedule-page">
-      {error && <ErrorMessage message="Failed to load shedule page." />}
+    <div className="flex flex-col min-h-screen">
+      {error && <ErrorState message="Failed to load shedule page." />}
       {isLoading && <InitialLoader />}
-      <WrapperLayout>
-        {!isLoading && (
-          <div className="py-4">
-            <AnimeCalendar events={event} onDateChange={handleDateChange} />
-          </div>
-        )}
-      </WrapperLayout>
+
+      {!isLoading && (
+        <div className="mt-[60px]">
+          <AnimeCalendar
+            events={event}
+            onDateChange={handleDateChange}
+            selectedDate={selectedDate}
+          />
+        </div>
+      )}
     </div>
   );
 }

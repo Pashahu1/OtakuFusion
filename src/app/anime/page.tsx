@@ -1,33 +1,31 @@
-"use client";
+'use client';
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Card } from "@/components/Card/Card";
-import { Pagination } from "@/components/Pagination/Pagination";
-import { getCategory } from "@/services/getCategory";
-import { categoryes } from "../../shared/data/category";
-import { AnimeListLayout } from "@/components/Layout/AnimeListLayout";
-import { InitialLoader } from "@/components/ui/InitialLoader/InitialLoader";
-import type { AnimeInfo } from "@/shared/types/GlobalTypes";
-import "./anime.scss";
-import { WrapperLayout } from "@/components/Layout/WrapperLayout";
-import ErrorMessage from "@/components/Error/ErrorMessage";
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Card } from '@/components/Card/Card';
+import { Pagination } from '@/components/Pagination/Pagination';
+import { getCategory } from '@/services/getCategory';
+import { categoryes } from '../../shared/data/category';
+import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
+import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
+import type { AnimeInfo } from '@/shared/types/GlobalTypes';
+import ErrorState from '@/components/ui/states/ErrorState';
 
 export default function Animes() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const pageParam = Number(searchParams.get("page") || "1");
+  const pageParam = Number(searchParams.get('page') || '1');
   const [category, setCategory] = useState<AnimeInfo[]>([]);
   const [totalPage, setTotalPage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] =
-    useState<string>("most-favorite");
+    useState<string>('most-favorite');
 
   let titleCategory = selectedCategory
-    .split(" ")
+    .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .join(' ');
 
   useEffect(() => {
     const fetchAnimesCategory = async () => {
@@ -38,7 +36,7 @@ export default function Animes() {
         setTotalPage(res.results.totalPages);
         setIsLoading(false);
       } catch {
-        console.error("Failed getting of data");
+        console.error('Failed getting of data');
         setError(true);
       }
     };
@@ -52,7 +50,7 @@ export default function Animes() {
     }
 
     const params = new URLSearchParams(searchParams.toString());
-    params.set("page", "1");
+    params.set('page', '1');
 
     router.push(`?${params.toString()}`, { scroll: false });
 
@@ -60,34 +58,32 @@ export default function Animes() {
   };
 
   return (
-    <div className="anime">
+    <>
       {isLoading && <InitialLoader />}
-      {error && <ErrorMessage message="Failed to load anime page." />}
+      {error && <ErrorState message="Failed to load anime page." />}
       {!isLoading && (
-        <WrapperLayout>
-          <div className="anime__content">
-            <div className="anime__control-panel">
-              {categoryes.map((cat, idx) => (
-                <button
-                  className={`anime__button ${cat === selectedCategory ? "anime__button--active" : ""}`}
-                  key={idx}
-                  onClick={() => handleCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            <AnimeListLayout title={titleCategory}>
-              {category.map((anime) => (
-                <Card key={anime.id} anime={anime} />
-              ))}
-            </AnimeListLayout>
-
-            <Pagination pageCount={totalPage} currentPage={pageParam} />
+        <div className="mt-[80px]">
+          <div className="grid grid-cols-2 gap-[20px] px-4 md:grid-cols-3 md:px-6 lg:grid-cols-4 lg:px-10 xl:grid-cols-6 xl:px-20">
+            {categoryes.map((cat, idx) => (
+              <button
+                className={`h-[50px] rounded-md ${cat === selectedCategory ? 'bg-brand-orange-dark text-black' : 'bg-brand-gray text-white'}`}
+                key={idx}
+                onClick={() => handleCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-        </WrapperLayout>
+
+          <AnimeListLayout title={titleCategory}>
+            {category.map((anime) => (
+              <Card key={anime.id} anime={anime} />
+            ))}
+          </AnimeListLayout>
+
+          <Pagination pageCount={totalPage} currentPage={pageParam} />
+        </div>
       )}
-    </div>
+    </>
   );
 }

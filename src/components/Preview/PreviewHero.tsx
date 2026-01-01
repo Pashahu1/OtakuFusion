@@ -22,6 +22,7 @@ import type { SpotlightAnime, TrendingAnime } from '@/shared/types/GlobalTypes';
 import dynamic from 'next/dynamic';
 // import { HandleTextSliced } from '@/helper/TextSliced';
 import { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const LazySwiperCard = dynamic(
   () => import('@/components/SwiperCard/SwiperCard'),
@@ -40,8 +41,20 @@ const Preview = ({ spotlights, trending }: Props) => {
   const currentAnime = spotlights[currentIndex];
   return (
     <>
-      <div className="relative w-full h-screen overflow-hidden bg-brand-gray-dark">
-        <div className="preview__slider">
+      <div className="relative w-full overflow-hidden hero">
+        <div className="hero__slider">
+          <button
+            className="hero-zone hero--right invisible md:visible"
+            aria-label="Next slide"
+          >
+            <ChevronRight width={46} height={46} />
+          </button>
+          <button
+            className="hero-zone hero--left invisible md:visible"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft width={46} height={46} />
+          </button>
           <Swiper
             onSlideChange={(swiper) => {
               setCurrentIndex(swiper.realIndex);
@@ -61,7 +74,10 @@ const Preview = ({ spotlights, trending }: Props) => {
               el: '.preview__pagination',
               clickable: true,
             }}
-            navigation
+            navigation={{
+              nextEl: '.hero--right',
+              prevEl: '.hero--left',
+            }}
             autoplay={{
               delay: 5000,
             }}
@@ -69,23 +85,24 @@ const Preview = ({ spotlights, trending }: Props) => {
           >
             {spotlights?.map((anime) => (
               <SwiperSlide key={anime.id}>
-                <div className="preview__slide relative w-full h-screen select-none">
+                <div className="relative w-full h-full">
                   <Image
                     src={Convertor(anime.poster)}
                     alt={anime.title}
                     fill
-                    className="object-cover object-center w-full h-full brightness-90 contrast-105"
+                    className="object-cover object-center w-full h-full brightness-75 contrast-110"
                     decoding="async"
                     loading="eager"
                     quality={80}
                   />
+                  <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                   <div className="preview__shine" />
                 </div>
               </SwiperSlide>
             ))}
           </Swiper>
-          <div className="absolute left-0 top-[10%] p-[20px] z-[2] md:top-[20%] left-[5%] lg:top-[15%] px-[20px]">
-            <div className="flex flex-col gap-3 lg:gap-6 max-w-[800px] pointer-events-auto">
+          <div className="hero__content">
+            <div className="hero__info">
               <h1 className="text-display text-brand-text-primary drop-shadow-lg">
                 {currentAnime.title}
               </h1>
@@ -93,19 +110,21 @@ const Preview = ({ spotlights, trending }: Props) => {
                 {currentAnime.description}
               </p>
               <Link
-                className="bg-brand-orange text-brand-gray-light px-4 py-2 rounded-md text-lg font-medium transition-colors w-full md:w-[300px] lg:hover:bg-brand-orange-light hover:text-brand-gray  text-center text-title"
+                className="bg-brand-orange text-brand-gray-light px-4 py-2 rounded-md text-lg font-medium transition-colors w-full md:w-[300px] lg:hover:bg-brand-orange-light hover:text-brand-gray text-center text-title"
                 href={`/watch/${currentAnime.id}`}
               >
                 Watch Ep 1
               </Link>
-              <div className="preview__pagination" />
+              <div className="preview__pagination justify-center md:justify-start" />
             </div>
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-[20px] relative px-[20px] mb-[40px] z-[3] mt-[0px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
-        <h2 className="text-title text-brand-text-primary">Trending</h2>
-        <div className="preview__trending-container">
+      <div className="flex flex-col gap-[20px] relative z-[3] mt-[40px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px] ">
+        <h2 className="text-title text-brand-text-primary pl-4 md:pl-6 lg:pl-10">
+          Trending
+        </h2>
+        <div>
           <LazySwiperCard catalog={trending || []} />
         </div>
       </div>

@@ -1,15 +1,15 @@
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
-import { Card } from "@/components/Card/Card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper/modules';
+import { Card } from '@/components/Card/Card';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import type { AnimeInfo } from "../../shared/types/GlobalTypes";
+import type { AnimeInfo } from '../../shared/types/GlobalTypes';
 
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/scrollbar";
-import "./SwiperCard.scss";
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import 'swiper/css/scrollbar';
+import './SwiperCard.scss';
 
 type Props = {
   catalog: AnimeInfo[];
@@ -17,35 +17,21 @@ type Props = {
 
 const SwiperCard = ({ catalog }: Props) => {
   return (
-    <div className="swiper-card">
-      <button className="custom-nav button-next" aria-label="Next slide">
+    <div className="relative overflow-hidden px-4 md:px-6 lg:px-10">
+      <button className="nav-zone nav-zone--right" aria-label="Next slide">
         <ChevronRight />
       </button>
-      <button className="custom-nav button-prev" aria-label="Previous slide">
+      <button className="nav-zone nav-zone--left" aria-label="Previous slide">
         <ChevronLeft />
       </button>
 
       <Swiper
         modules={[Navigation]}
-        slidesPerView={"auto"}
+        slidesPerView="auto"
         spaceBetween={20}
         navigation={{
-          nextEl: ".button-next",
-          prevEl: ".button-prev",
-        }}
-        breakpoints={{
-          0: {
-            slidesPerView: 2,
-          },
-          600: {
-            slidesPerView: 4,
-          },
-          1200: {
-            slidesPerView: 7,
-          },
-          1980: {
-            slidesPerView: 10,
-          },
+          nextEl: '.nav-zone--right',
+          prevEl: '.nav-zone--left',
         }}
       >
         {catalog.map((anime: AnimeInfo, idx) => (

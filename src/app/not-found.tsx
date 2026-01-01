@@ -1,10 +1,9 @@
 'use client';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function NotFoundPage() {
-  const handleClick = () => {
-    window.location.href = '/';
-  };
+  const router = useRouter();
 
   return (
     <div className="relative flex flex-col gap-[10px] items-center justify-center h-screen bg-black text-white text-center overflow-hidden">
@@ -33,7 +32,7 @@ export default function NotFoundPage() {
 
       <button
         className="w-[220px] h-[55px] mt-8 bg-red-600 text-lg font-semibold rounded-2xl shadow-lg shadow-red-500/40 transition-transform transform hover:scale-105 relative overflow-hidden"
-        onClick={handleClick}
+        onClick={() => router.push('/')}
         aria-label="Return to Home Page"
       >
         <span className="relative z-10">Return Home</span>

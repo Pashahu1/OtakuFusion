@@ -1,10 +1,12 @@
-import Link from "next/link";
-import type { AnimeInfo } from "../../shared/types/GlobalTypes";
-import "./Card.scss";
-import Image from "next/image";
-import { Convertor } from "@/helper/Convertor";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faClosedCaptioning, faMicrophone } from "@fortawesome/free-solid-svg-icons";
+import Link from 'next/link';
+import Image from 'next/image';
+import { Convertor } from '@/helper/Convertor';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faClosedCaptioning,
+  faMicrophone,
+} from '@fortawesome/free-solid-svg-icons';
+import type { AnimeInfo } from '../../shared/types/GlobalTypes';
 
 type Props = {
   anime: AnimeInfo;
@@ -13,46 +15,61 @@ type Props = {
 export const Card = ({ anime }: Props) => {
   return (
     <Link href={`/watch/${anime.id}`}>
-      <article className="anime-card flex flex-col gap-[10px] relative">
-        <div className="anime-card__img-container">
+      <article
+        className="
+          group 
+          relative 
+          flex 
+          flex-col
+          transition 
+          duration-300
+          gap-[10px]
+          hover:scale-[1.03] 
+          hover:shadow-lg
+        "
+      >
+        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md">
           <Image
-            className="anime-card__link"
-            src={anime.poster ? Convertor(anime.poster) : "/sukuna-error.jpg"}
-            alt={`Poster of ${anime.title}`}
+            src={anime.poster ? Convertor(anime.poster) : '/sukuna-error.jpg'}
+            alt={anime.title}
             fill
-            sizes="300px"
-            loading="lazy"
+            className="
+              w-full
+              object-cover 
+              object-center 
+              transition 
+              duration-300 
+              group-hover:brightness-110
+            "
           />
-        </div>
-        <div className="anime-card__text">
-          <h3 className="anime-card__title">{anime.title}</h3>
-        </div>
-        <div className="flex absolute top-0 left-0 right-0 ">
-          {anime.tvInfo?.sub && (
-            <div className="flex space-x-1 justify-center items-center bg-[#ff640a] rounded-[2px] px-[4px] text-black py-[2px]">
-              <FontAwesomeIcon
-                icon={faClosedCaptioning}
-                className="text-[12px]"
-              />
 
-              <p className="text-[12px] font-bold">
-                {anime.tvInfo.sub}
-              </p>
-            </div>
-          )}
-          {anime.tvInfo?.dub && (
-            <div className="flex space-x-1 justify-center items-center bg-[#B9E7FF] rounded-[2px] px-[4px] text-black py-[2px]">
-              <FontAwesomeIcon
-                icon={faMicrophone}
-                className="text-[12px]"
-              />
+          <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition duration-300" />
 
-              <p className="text-[12px] font-bold">
+          <div className="absolute top-2 left-2 flex gap-1 z-10">
+            {anime.tvInfo?.sub && (
+              <div className="flex items-center gap-1 bg-brand-orange text-black px-2 py-[2px] rounded-[2px] text-[12px] font-bold">
+                <FontAwesomeIcon
+                  icon={faClosedCaptioning}
+                  className="text-[12px]"
+                />
                 {anime.tvInfo.sub}
-              </p>
-            </div>
-          )}
+              </div>
+            )}
+
+            {anime.tvInfo?.dub && (
+              <div className="flex items-center gap-1 bg-[#B9E7FF] text-black px-2 py-[2px] rounded-[2px] text-[12px] font-bold">
+                <FontAwesomeIcon icon={faMicrophone} className="text-[12px]" />
+                {anime.tvInfo.dub}
+              </div>
+            )}
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 h-[40%]  bg-gradient-to-t from-black/80 to-transparent" />
         </div>
+
+        <h3 className="mt-2 text-sm font-medium text-brand-text-primary line-clamp-2">
+          {anime.title}
+        </h3>
       </article>
     </Link>
   );
