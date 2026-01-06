@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
+import { sendVerificationEmail } from '@/lib/mailer';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 
@@ -23,15 +24,25 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
+
+    const verificationToken = crypto.randomUUID();
+    const verificationTokenExpires = new Date(Date.now() + 1000 * 60 * 60 * 24);
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({
-      username,
+
+    const user = await User.create({
       email,
       password: hashedPassword,
+      role: 'user',
+      isVerified: false,
+      verificationToken,
+      verificationTokenExpires,
     });
 
+    await sendVerificationEmail(user.email, verificationToken);
+
     return NextResponse.json(
-      { message: 'User registered successfully.' },
+      { message: 'Registration successful. Please verify your email.' },
       { status: 201 }
     );
   } catch (err) {
