@@ -1,11 +1,14 @@
-// lib/prisma.ts
-import { PrismaClient } from "@/generated/prisma";
+import mongoose from 'mongoose';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+export const connectDB = async () => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      return;
+    }
 
-const prisma =
-  globalForPrisma.prisma || new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
-
-export const db = prisma;
+    await mongoose.connect(process.env.MONGODB_URI!);
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+  }
+};

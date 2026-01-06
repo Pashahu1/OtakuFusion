@@ -1,6 +1,6 @@
-import { NavLink } from "@/components/NavLink/NavLink";
-import "./NavbarList.scss";
-import Image from "next/image";
+import { NavLink } from '@/components/NavLink/NavLink';
+import './NavbarList.scss';
+import Image from 'next/image';
 
 export const NavbarList = () => {
   return (
@@ -13,7 +13,7 @@ export const NavbarList = () => {
           alt="search-icon"
         />
       </NavLink>
-      <NavLink className="navbar-list__link" href="/login">
+      <NavLink className="navbar-list__link" href="/auth/login">
         <Image width={24} height={24} src="/icon/user.svg" alt="user-icon" />
       </NavLink>
     </div>
