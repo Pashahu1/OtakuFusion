@@ -1,0 +1,46 @@
+@use '../../../../style/mixins' as *;
+
+.burger-menu {
+  cursor: pointer;
+}
+
+.mobile__wrapper-category {
+  position: relative;
+}
+
+.category__mobile {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-color: rgba(74, 78, 88, 0.502);
+
+  &__link {
+    height: 40px;
+  }
+}
+
+.navbar__mobile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+
+  &-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 60px;
+  }
+
+  @include respond(desktop) {
+    display: none;
+  }
+}
+
+.burger-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 1.125rem;
+}

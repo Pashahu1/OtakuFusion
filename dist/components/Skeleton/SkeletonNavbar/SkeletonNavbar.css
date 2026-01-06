@@ -1,0 +1,65 @@
+.skeleton-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100vw;
+  padding: 16px 24px;
+  background-color: #1a1a1a;
+}
+.skeleton-navbar__logo {
+  width: 60px;
+  height: 40px;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+}
+.skeleton-navbar__nav {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 16px;
+}
+.skeleton-navbar__nav-content, .skeleton-navbar__nav-list {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+@media (min-width: 768px) {
+  .skeleton-navbar__nav-content, .skeleton-navbar__nav-list {
+    gap: 20px;
+  }
+}
+.skeleton-navbar__link {
+  width: 80px;
+  height: 20px;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+}
+.skeleton-navbar__link:nth-child(n+3) {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .skeleton-navbar__link:nth-child(n) {
+    display: block;
+  }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 1.2s infinite linear;
+}
+
+@keyframes shimmer {
+  100% {
+    left: 100%;
+  }
+}

@@ -1,0 +1,49 @@
+.anime__content {
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  width: 100%;
+  gap: 20px;
+}
+.anime__control-panel {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 0 auto;
+  padding: 10px;
+  gap: 10px;
+}
+@media (min-width: 768px) {
+  .anime__control-panel {
+    grid-template-columns: repeat(4, 1fr);
+    padding: 15px;
+  }
+}
+@media (min-width: 1024px) {
+  .anime__control-panel {
+    grid-template-columns: repeat(5, 1fr);
+    padding: 20px;
+  }
+}
+.anime__button {
+  width: auto;
+  padding: 10px 20px;
+  background-color: transparent;
+  color: white;
+  border: 2px solid #f47521;
+  border-radius: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.anime__button:hover {
+  background-color: #ff833a;
+  box-shadow: 0 4px 10px rgba(244, 117, 33, 0.5);
+  transform: translateY(-2px);
+}
+.anime__button:active {
+  transform: scale(0.95);
+}
+.anime__button--active {
+  background-color: #f47521;
+  color: #222;
+}

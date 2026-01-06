@@ -1,0 +1,77 @@
+@use '../../../../style/mixins' as *;
+
+.aside-bar {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 20px 0;
+  background-color: #11101a;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ff640a transparent;
+  z-index: 99;
+
+  &--enter {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &--exit {
+    transform: translateY(-20px);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @include respond(tablet) {
+    max-width: 300px;
+    &--enter {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    &--exit {
+      transform: translateX(-20px);
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  @include respond(desktop) {
+    display: none;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: 40px;
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #ff640a;
+    border-radius: 10px;
+  }
+}
+
+.aside-bar__category-content {
+  overflow-y: auto;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+  background-color: rgba(74, 78, 88, 0.502);
+}
+
+.aside-bar__category-content--open {
+  max-height: 350px;
+}

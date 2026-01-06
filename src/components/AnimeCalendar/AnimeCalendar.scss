@@ -1,0 +1,293 @@
+/* ============================================================
+   OT AKUFUSION — DARK ANIME CALENDAR THEME
+   Clean, modern, minimalistic, red-accented UI
+   ============================================================ */
+
+/* ===========================
+   GLOBAL WRAPPER
+   =========================== */
+.calendar {
+  padding: 24px;
+  background: #0e0e0e;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  color: #e6e6e6;
+}
+
+/* ===========================
+   MAIN CALENDAR CONTAINER
+   =========================== */
+.rbc-calendar {
+  background: #141414;
+  border-radius: 12px;
+  border: 1px solid #1f1f1f;
+  overflow: hidden;
+}
+
+/* ===========================
+   TOOLBAR (TOP PANEL)
+   =========================== */
+.rbc-toolbar {
+  background: #161616;
+  padding: 12px 16px;
+  border-bottom: 1px solid #222;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rbc-toolbar-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f2f2f2;
+}
+
+.rbc-btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.rbc-button-link {
+  background: #1c1c1c;
+  color: #b5b5b5;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.rbc-button-link:hover {
+  background: #292929;
+  color: #fff;
+}
+
+/* ===========================
+   HEADER (DAYS OF WEEK)
+   =========================== */
+.rbc-header {
+  background: #181818;
+  padding: 10px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #bdbdbd;
+  text-align: center;
+  border-bottom: 1px solid #222;
+  transition: 0.2s ease;
+}
+
+/* Selected day */
+.rbc-header.active-day {
+  background: #ff3d00 !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(255, 61, 0, 0.4);
+}
+
+/* Today highlight */
+.rbc-header.rbc-today {
+  background: rgba(255, 61, 0, 0.25) !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+/* ===========================
+   DAY BACKGROUND CELLS
+   =========================== */
+.rbc-day-bg {
+  background: #141414;
+  transition: background 0.2s ease;
+}
+
+.rbc-day-bg:hover {
+  background: #1a1a1a;
+}
+
+/* Today column */
+.rbc-today {
+  background: rgba(255, 61, 0, 0.12) !important;
+}
+
+/* ===========================
+   TIME GUTTER (LEFT COLUMN)
+   =========================== */
+.rbc-time-gutter {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #161616;
+  color: #8a8a8a;
+  font-size: 12px;
+  border-right: 1px solid #222;
+}
+
+/* ===========================
+   TIME SLOTS (GRID LINES)
+   =========================== */
+.rbc-time-slot {
+  border-top: 1px solid #1a1a1a;
+}
+
+/* ===========================
+   EVENTS (EPISODE BLOCKS)
+   =========================== */
+.rbc-event {
+  background: #ff3d00;
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: 0.2s ease;
+  overflow: hidden;
+}
+
+.rbc-event:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(255, 61, 0, 0.4);
+}
+
+.rbc-event .event-time {
+  font-size: 11px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.rbc-event .event-title {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* ===========================
+   OFF-RANGE DAYS
+   =========================== */
+.rbc-off-range-bg {
+  background: #101010;
+}
+
+.rbc-off-range {
+  color: #555;
+}
+
+/* ===========================
+   BUTTON RESET
+   =========================== */
+.rbc-btn-group > button {
+  border: none;
+}
+
+/* ===========================
+   TIME CONTENT (MAIN GRID)
+   =========================== */
+.rbc-time-content {
+  background: #121212;
+  border-left: 1px solid #1f1f1f;
+  display: flex;
+
+  position: relative;
+}
+.rbc-day-slot,
+.rbc-time-column {
+  flex: 1;
+}
+
+/* Вертикальные колонки */
+.rbc-day-slot {
+  background: #141414;
+  border-left: 1px solid #1a1a1a;
+  transition: background 0.2s ease;
+}
+
+.rbc-day-slot:hover {
+  background: #1a1a1a;
+}
+
+/* ===========================
+   TIME SLOTS (HORIZONTAL LINES)
+   =========================== */
+.rbc-time-slot {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Каждые 30 минут — более мягкая линия */
+.rbc-timeslot-group {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ===========================
+   EVENTS INSIDE TIME CONTENT
+   =========================== */
+.rbc-event {
+  background: linear-gradient(135deg, #ff3d00, #ff5e1f);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(255, 61, 0, 0.35);
+  border: 1px solid rgba(255, 61, 0, 0.4);
+  transition: 0.2s ease;
+  overflow: hidden;
+}
+
+/* Hover эффект */
+.rbc-event:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 14px rgba(255, 61, 0, 0.5);
+}
+
+/* Время релиза */
+.rbc-event .event-time {
+  font-size: 11px;
+  opacity: 0.9;
+  margin-bottom: 2px;
+}
+
+/* Название */
+.rbc-event .event-title {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===========================
+   EVENTS CONTAINER
+   =========================== */
+.rbc-events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.rbc-event {
+  width: 100% !important;
+}
+
+.rbc-time-header-cell {
+  display: flex;
+  gap: 10px;
+}
+
+.rbc-day-selected {
+  background-color: rgba(255, 165, 0, 0.15);
+}
+
+.event-card {
+  background: #ff8a00;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+  &:hover {
+    background: #ff9f33;
+    transform: translateY(-2px);
+  }
+}

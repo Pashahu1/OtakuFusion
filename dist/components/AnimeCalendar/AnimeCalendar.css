@@ -1,0 +1,131 @@
+.rbc-calendar {
+  background-color: #111;
+  color: #f1f1f1;
+  border-radius: 16px;
+  font-family: "Segoe UI", sans-serif;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.rbc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #181818;
+  color: #f1f1f1;
+  border-bottom: 1px solid #222;
+}
+
+.rbc-toolbar-label {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.rbc-header {
+  background: #1a1a1a;
+  color: #ccc;
+  padding: 12px 10px;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  border-bottom: 1px solid #222;
+}
+
+.rbc-day-bg {
+  background-color: #111;
+  transition: background-color 0.3s ease;
+}
+
+.rbc-day-bg:hover {
+  background-color: #1c1c1c;
+}
+
+.rbc-event {
+  width: 120px;
+  background: linear-gradient(135deg, #ff3d00, #ff7200);
+  color: white;
+  font-weight: 500;
+  font-size: 13px;
+  border-radius: 8px;
+  padding: 4px 6px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 8px rgba(255, 61, 0, 0.2);
+}
+
+.rbc-event:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 10px rgba(255, 100, 0, 0.5);
+  cursor: pointer;
+}
+
+.rbc-off-range {
+  background-color: #0a0a0a;
+  color: #444;
+}
+
+.rbc-time-slot {
+  border-top: 1px solid #1c1c1c;
+}
+
+.rbc-time-view,
+.rbc-month-view {
+  border: none;
+}
+
+.rbc-events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 15px;
+}
+
+.rbc-button-link {
+  background-color: #222;
+  color: #bbb;
+  width: 160px;
+  height: 40px;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.rbc-header.active-day {
+  background-color: #ff3d00;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(255, 61, 0, 0.4);
+}
+
+.rbc-button-link:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.rbc-event,
+.rbc-day-bg,
+.rbc-button-link {
+  transition: all 0.2s ease-in-out;
+}
+
+.rbc-time-gutter,
+.rbc-btn-group {
+  display: none;
+}
+
+.rbc-row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.rbc-active {
+  transition: background-color 0.2s ease, color 0.2s ease;
+  background-color: #ff3d00 !important;
+  color: #fff !important;
+  font-weight: bold;
+  box-shadow: 0 0 5px rgba(255, 61, 0, 0.4);
+  border-radius: 8px;
+}

@@ -1,0 +1,71 @@
+@use './variables' as *;
+
+@mixin respond($breakpoint) {
+  @if $breakpoint == tablet {
+    @media (min-width: 768px) {
+      @content;
+    }
+  } @else if $breakpoint == desktop {
+    @media (min-width: 1024px) {
+      @content;
+    }
+  } @else if $breakpoint == pc {
+    @media (min-width: 1280px) {
+      @content;
+    }
+  }
+}
+
+@mixin onTablet {
+  @include respond(tablet) {
+    @content;
+  }
+}
+
+@mixin onDesktop {
+  @include respond(desktop) {
+    @content;
+  }
+}
+
+@mixin onPC {
+  @include respond(pc) {
+    @content;
+  }
+}
+
+@mixin body-text {
+  font-family: $font-primary;
+  font-weight: $font-weight-regular;
+  font-size: $font-size-phone;
+  line-height: $line-height-phone;
+  margin: 0;
+
+  @include respond(tablet) {
+    font-size: $font-size-tablet;
+    line-height: $line-height-tablet;
+  }
+
+  @include respond(desktop) {
+    font-size: $font-size-desktop;
+    line-height: $line-height-desktop;
+  }
+}
+
+@mixin h2 {
+  font-family: $font-headings;
+  font-weight: $font-weight-bold;
+  line-height: 1.75rem;
+  font-size: 1.375rem;
+  margin: 0;
+
+  @include respond(tablet) {
+    line-height: 2rem;
+    font-size: 1.5rem;
+  }
+
+  @include respond(desktop) {
+    line-height: 2.25rem;
+    font-size: 1.75rem;
+  }
+}

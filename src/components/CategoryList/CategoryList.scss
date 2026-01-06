@@ -1,0 +1,124 @@
+@use "../../style/mixins" as *;
+@use "../../style/variables" as *;
+
+.category {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  padding: 0 1.125rem;
+  color: #dadada;
+  cursor: pointer;
+
+  &:hover {
+    color: #fff;
+    background-color: #141519;
+  }
+
+  &--active {
+    background-color: #141519;
+  }
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 10px;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  &__link {
+    width: 220px;
+    height: 40px;
+
+    &:hover {
+      color: #fff;
+      background-color: #23252b;
+    }
+  }
+
+  &__primary {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__popup {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    padding: 0.625rem 0;
+    background-color: #141519;
+    z-index: 99;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    visibility: hidden;
+
+    &--active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      visibility: visible;
+    }
+  }
+
+  &-genres {
+    border-left: 2px solid #2c2f33;
+    padding-left: 10px;
+
+    &__title {
+      padding: 0.8125rem 1rem;
+      color: #a0a0a0;
+      text-transform: uppercase;
+    }
+
+    &__list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+
+      @include respond(pc) {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      gap: 0 20px;
+    }
+
+    &__link {
+      width: 200px;
+      height: 40px;
+      padding: 0.75rem 1rem;
+
+      &:hover {
+        color: #fff;
+        background-color: #23252b;
+      }
+    }
+
+    &-title {
+      display: flex;
+      padding: 0.75rem 1rem;
+    }
+  }
+}
+
+body.body--backdrop::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 98;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+body.body--backdrop.menu-open::before {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.body--hidden,
+html.body--hidden {
+  overflow: hidden;
+}

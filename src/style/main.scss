@@ -1,0 +1,45 @@
+@use './variables' as *;
+@use './mixins' as *;
+@use './typography' as *;
+
+@use './reset.scss' as *;
+
+@import 'tailwindcss';
+
+@theme {
+  /* === Typography Scale === */
+
+  /* Display — большие заголовки (Hero, секции) */
+  --text-display: 2.5rem; /* 40px */
+  --text-display--line-height: 1.1;
+
+  /* Title — заголовки секций, карточек */
+  --text-title: 1.5rem; /* 24px */
+  --text-title--line-height: 1.2;
+
+  /* Body — основной текст */
+  --text-body: 1rem; /* 16px */
+  --text-body--line-height: 1.6;
+
+  /* Small — подписи, вторичный текст */
+  --text-small: 0.875rem; /* 14px */
+  --text-small--line-height: 1.4;
+
+  /* === Font Weights === */
+  --font-weight-bold: 700;
+  --font-weight-medium: 500;
+  --font-weight-regular: 400;
+
+  /* === Colors (твои брендовые) === */
+  --color-brand-orange: #f47521;
+  --color-brand-orange-light: #ff8a3d;
+  --color-brand-orange-dark: #d45f16;
+
+  --color-brand-gray: #1a1a1a;
+  --color-brand-gray-light: #2a2a2a;
+  --color-brand-gray-softer: #3a3a3a;
+
+  --color-brand-text-primary: #ffffff;
+  --color-brand-text-secondary: #dadada;
+  --color-brand-text-muted: #9a9a9a;
+}

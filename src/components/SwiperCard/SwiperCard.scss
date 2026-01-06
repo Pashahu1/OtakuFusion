@@ -1,0 +1,67 @@
+@import '../../style/mixins';
+
+.swiper {
+  overflow: visible;
+}
+
+.swiper-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.swiper-card__slide {
+  width: 280px;
+}
+
+.nav-zone {
+  position: absolute;
+  top: 0;
+  width: 64px;
+  height: 100%;
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  border: none;
+  cursor: pointer;
+
+  background: transparent;
+}
+
+.nav-zone svg {
+  width: 32px;
+  height: 100%;
+
+  // background-color: rgba(0, 0, 0, 0.5);
+  // box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.nav-zone:hover {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+}
+
+.nav-zone--right:hover {
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+}
+
+.nav-zone.swiper-button-disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nav-zone--left {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+}
+
+.nav-zone--right {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+}
