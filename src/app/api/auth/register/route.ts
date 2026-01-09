@@ -24,28 +24,29 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
-
-    const verificationToken = crypto.randomUUID();
-    const verificationTokenExpires = new Date(Date.now() + 1000 * 60 * 60 * 24);
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+    const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
     const user = await User.create({
+      username,
       email,
       password: hashedPassword,
       role: 'user',
       isVerified: false,
-      verificationToken,
-      verificationTokenExpires,
+      verificationCode,
+      verificationCodeExpires,
     });
 
-    await sendVerificationEmail(user.email, verificationToken);
+    await sendVerificationEmail(user.email, verificationCode);
 
     return NextResponse.json(
-      { message: 'Registration successful. Please verify your email.' },
+      { message: 'Registration successful. Please verify your email.', email },
       { status: 201 }
     );
   } catch (err) {
+    console.error(err);
     console.error('Error during user registration:', err);
     return NextResponse.json(
       { message: 'Internal Server Error' },

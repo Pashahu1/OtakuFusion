@@ -1,51 +1,38 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 
-export async function POST(req: Request) {
-  try {
-    await connectDB();
-    const cookieHeader = req.headers.get('cookie') || '';
-    const cookies = Object.fromEntries(
-      cookieHeader.split(';').map((c) => {
-        const [key, ...req] = c.trim().split('=');
-        return [key, decodeURIComponent(req.join('='))];
-      })
-    );
+export const runtime = 'nodejs';
 
-    const refreshToken = cookies['refreshToken'];
+export async function POST() {
+  await connectDB();
 
-    if (refreshToken) {
-      await User.findOneAndUpdate({ refreshToken }, { refreshToken: null });
-    }
+  const cookieStore = await cookies();
 
-    const response = NextResponse.json(
-      { message: 'Logged out successfully.' },
-      { status: 200 }
-    );
+  const refreshToken = cookieStore.get('refreshToken')?.value;
 
-    response.cookies.set('refreshToken', '', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 0,
-      path: '/',
-    });
-
-    response.cookies.set('accessToken', '', {
-      httpOnly: false,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 0,
-      path: '/',
-    });
-
-    return response;
-  } catch (err) {
-    console.error('Logout error:', err);
-    return NextResponse.json(
-      { message: 'Internal server error.' },
-      { status: 500 }
-    );
+  if (refreshToken) {
+    await User.findOneAndUpdate({ refreshToken }, { refreshToken: null });
   }
+
+  const response = NextResponse.json({ message: 'Logged out' });
+
+  response.cookies.set('accessToken', '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 0,
+  });
+
+  response.cookies.set('refreshToken', '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 0,
+  });
+
+  return response;
 }

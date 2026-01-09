@@ -1,59 +1,60 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 
-export async function POST(req: Request) {
+export const runtime = 'nodejs';
+
+export async function POST() {
+  await connectDB();
+
+  const cookieStore = await cookies();
+  const refreshToken = cookieStore.get('refreshToken')?.value;
+
+  if (!refreshToken) {
+    return NextResponse.json({ message: 'No refresh token' }, { status: 401 });
+  }
+
+  let payload: any;
   try {
-    await connectDB();
-    const cookiesHeader = req.headers.get('cookie') || '';
-    const cookies = Object.fromEntries(
-      cookiesHeader.split(';').map((cookie) => {
-        const [key, ...rest] = cookie.split('=');
-        return [key, decodeURIComponent(rest.join('='))];
-      })
-    );
-    const refreshToken = cookies['refreshToken'];
-    if (!refreshToken) {
-      return NextResponse.json(
-        { message: 'Refresh token is missing.' },
-        { status: 401 }
-      );
-    }
-    const user = await User.findOne({ refreshToken });
-    if (!user) {
-      return NextResponse.json(
-        { message: 'Invalid refresh token.' },
-        { status: 401 }
-      );
-    }
-    let payLoad: any;
-
-    try {
-      payLoad = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as {
-        id: string;
-      };
-    } catch (err) {
-      return NextResponse.json(
-        { message: 'Invalid or expired refresh token.' },
-        { status: 401 }
-      );
-    }
-    const accessToken = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_ACCESS_SECRET!,
-      { expiresIn: '15m' }
-    );
-
+    payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
+  } catch {
     return NextResponse.json(
-      { message: 'Token refreshed successfully', accessToken },
-      { status: 200 }
-    );
-  } catch (err) {
-    console.error('Error during token refresh:', err);
-    return NextResponse.json(
-      { message: 'Internal Server Error' },
-      { status: 500 }
+      { message: 'Invalid refresh token' },
+      { status: 401 }
     );
   }
+
+  const user = await User.findById(payload.id);
+  if (!user || user.refreshToken !== refreshToken) {
+    return NextResponse.json(
+      { message: 'Invalid refresh token' },
+      { status: 401 }
+    );
+  }
+
+  const newAccessToken = jwt.sign(
+    {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+    },
+    process.env.JWT_ACCESS_SECRET!,
+    { expiresIn: '15m' }
+  );
+
+  const response = NextResponse.json({ message: 'Refreshed' });
+
+  response.cookies.set('accessToken', newAccessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 60 * 15,
+  });
+
+  return response;
 }

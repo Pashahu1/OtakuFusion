@@ -27,11 +27,11 @@ export async function POST(req: Request) {
 
     if (!user.isVerified) {
       return NextResponse.json(
-        { message: 'Please verify your email before logging in.' },
+        { message: 'Please verify your email before logging in.', needVerification: true },
         { status: 403 }
       );
     }
-    
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -41,7 +41,13 @@ export async function POST(req: Request) {
     }
 
     const accessToken = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
+      {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+      },
       process.env.JWT_ACCESS_SECRET!,
       { expiresIn: '15m' }
     );
@@ -59,8 +65,9 @@ export async function POST(req: Request) {
     );
 
     response.cookies.set('accessToken', accessToken, {
-      httpOnly: false,
+      httpOnly: true,
       secure: true,
+      path: '/',
       sameSite: 'strict',
       maxAge: 60 * 15,
     });
@@ -68,6 +75,7 @@ export async function POST(req: Request) {
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
+      path: '/',
       sameSite: 'strict',
       maxAge: 60 * 60 * 24 * 7,
     });

@@ -1,33 +1,36 @@
 import { NextResponse } from 'next/server';
-import User from '@/models/User';
 import { connectDB } from '@/lib/db';
-export async function GET(req: Request) {
+import User from '@/models/User';
+export async function POST(req: Request) {
   try {
     await connectDB();
-    const { searchParams } = new URL(req.url);
-    const token = searchParams.get('token');
-    if (!token) {
+    const { email, code } = await req.json();
+    if (!email || !code) {
       return NextResponse.json(
-        { message: 'Token is required.' },
+        { message: 'Email and code are required.' },
         { status: 400 }
       );
     }
     const user = await User.findOne({
-      verificationToken: token,
-      verificationTokenExpires: { $gt: new Date() },
+      email,
+      verificationCode: code,
+      verificationCodeExpires: { $gt: new Date() },
     });
     if (!user) {
       return NextResponse.json(
-        { message: 'Token is invalid or expired.' },
+        { message: 'Invalid or expired code.' },
         { status: 400 }
       );
     }
+
     user.isVerified = true;
-    user.verificationToken = null;
-    user.verificationTokenExpires = null;
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
+    
     await user.save();
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/verify-success`
+    return NextResponse.json(
+      { message: 'Email verified successfully.' },
+      { status: 200 }
     );
   } catch (err) {
     console.error('Verify email error:', err);

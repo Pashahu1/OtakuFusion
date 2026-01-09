@@ -1,17 +1,12 @@
 'use client';
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { useState } from 'react';
+import { useDropdown } from '@/hooks/useDropdown';
 
 export type User = {
+  username: string;
   email: string;
   role: string;
   avatar?: string | null;
@@ -22,40 +17,113 @@ type UserMenuProps = {
 };
 
 export function UserMenu({ user }: UserMenuProps) {
+  const { isOpen, toggle, close, triggerRef, menuRef } = useDropdown<
+    HTMLParagraphElement,
+    HTMLDivElement
+  >();
+  const [loading, setLoading] = useState(false);
+  const { logout } = useAuth();
   const router = useRouter();
 
-  const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/auth/login');
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await logout();
+      router.push('/auth/login');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="outline-none">
-        <Avatar className="cursor-pointer">
-          <AvatarImage src={user?.avatar || ''} />
-          <AvatarFallback>{user?.email?.[0]?.toUpperCase()}</AvatarFallback>
-        </Avatar>
-      </DropdownMenuTrigger>
+    <div
+      className="flex items-center px-5 lg:hover:bg-black h-full cursor-pointer transition-colors"
+      onClick={toggle}
+      ref={triggerRef}
+    >
+      <Avatar className="items-center justify-center">
+        <AvatarImage
+          className="w-[36px] h-[36px] object-cover rounded-full"
+          src={user?.avatar || ''}
+        />
+        <AvatarFallback>{user?.email?.[0]?.toUpperCase()}</AvatarFallback>
+      </Avatar>
 
-      <DropdownMenuContent className="w-56" align="end">
-        <DropdownMenuLabel>Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+      {isOpen && (
+        <div
+          ref={menuRef}
+          className="absolute top-0 right-0 translate-y-[60px] w-full bg-[#141519] md:max-w-[400px] bg-[#141519] border border-zinc-800"
+        >
+          <div
+            className="
+              flex items-center gap-4 px-5 py-4
+              border-b border-zinc-800
+              hover:bg-zinc-800/30 transition-colors
+            "
+            onClick={() => {
+              router.push('/profile/manage');
+              close;
+            }}
+          >
+            <Avatar>
+              <AvatarImage
+                className="w-full h-full object-cover rounded-full"
+                src={user?.avatar || ''}
+              />
+              <AvatarFallback>{user?.email?.[0]?.toUpperCase()}</AvatarFallback>
+            </Avatar>
 
-        <DropdownMenuItem onClick={() => router.push('/profile')}>
-          Profile
-        </DropdownMenuItem>
+            <div className="flex flex-col">
+              <span className="text-white font-medium">{user.username}</span>
+              <span className="text-zinc-400 text-sm">{user.email}</span>
+            </div>
+          </div>
 
-        <DropdownMenuItem onClick={() => router.push('/settings')}>
-          Settings
-        </DropdownMenuItem>
+          <div
+            className="
+              px-5 py-3 cursor-pointer
+              border-b border-zinc-800
+              hover:bg-zinc-800/30 transition-colors
+            "
+            onClick={() => {
+              router.push('/profile/preferences');
+              close;
+            }}
+          >
+            <span className="text-white">Settings</span>
+          </div>
 
-        <DropdownMenuSeparator />
+          <div
+            className="
+              px-5 py-3 cursor-pointer
+              border-b border-zinc-800
+              hover:bg-zinc-800/30 transition-colors
+            "
+            onClick={() => {
+              router.push('/profile/favorites');
+              close;
+            }}
+          >
+            <span className="text-white">Watch List</span>
+          </div>
 
-        <DropdownMenuItem onClick={logout} className="text-red-500">
-          Logout
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <div
+            className="
+              px-5 py-3 cursor-pointer
+              hover:bg-red-900/20 transition-colors
+            "
+            onClick={!loading ? handleLogout : undefined}
+          >
+            <span
+              className={`text-red-500 font-medium ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              Logout
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

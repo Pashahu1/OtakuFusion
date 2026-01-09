@@ -8,8 +8,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
 }
 const baseStyles =
-  'flex items-center justify-center w-full h-10 rounded-md text-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
-  
+  'flex items-center justify-center w-full h-10 rounded-md text-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-none';
+
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
     'bg-brand-orange text-brand-gray-light lg:hover:bg-brand-orange-light lg:hover:text-brand-gray',
