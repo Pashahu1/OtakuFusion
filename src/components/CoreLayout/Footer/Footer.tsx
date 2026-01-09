@@ -68,10 +68,10 @@ export const Footer = () => {
         <div className="footer__loggin">
           <h2>Account</h2>
           <div className="footer__information">
-            <Link className="footer__link" href="/сreate-account">
+            <Link className="footer__link" href="/auth/register">
               Create Account
             </Link>
-            <Link className="footer__link" href="/Loggin">
+            <Link className="footer__link" href="/auth/Login">
               Log In
             </Link>
           </div>

@@ -3,8 +3,8 @@
 @use '../../style/typography' as *;
 
 .hero {
-  height: 100svh;
-  min-height: 100svh;
+  height: 100dvh;
+  min-height: 100dvh;
   position: relative;
 
   &__content {
