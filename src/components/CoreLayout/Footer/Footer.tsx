@@ -1,7 +1,7 @@
-"use client";
-import Link from "next/link";
-import "./Footer.scss";
-import Image from "next/image";
+'use client';
+import Link from 'next/link';
+import './Footer.scss';
+import Image from 'next/image';
 
 export const Footer = () => {
   return (
@@ -21,7 +21,11 @@ export const Footer = () => {
         <div className="footer__contacts">
           <h2>Contact Me</h2>
           <div className="footer__information">
-            <Link className="footer__link" href="https://github.com/Pashahu1" target="_blank">
+            <Link
+              className="footer__link"
+              href="https://github.com/Pashahu1"
+              target="_blank"
+            >
               <Image
                 width={24}
                 height={24}
@@ -30,7 +34,11 @@ export const Footer = () => {
               />
               <span>Github</span>
             </Link>
-            <Link className="footer__link" href="https://t.me/PashaChudin" target="_blank">
+            <Link
+              className="footer__link"
+              href="https://t.me/PashaChudin"
+              target="_blank"
+            >
               <Image
                 width={24}
                 height={24}
@@ -71,7 +79,7 @@ export const Footer = () => {
             <Link className="footer__link" href="/auth/register">
               Create Account
             </Link>
-            <Link className="footer__link" href="/auth/Login">
+            <Link className="footer__link" href="/auth/login">
               Log In
             </Link>
           </div>
