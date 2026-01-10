@@ -3,18 +3,18 @@
 @use '../../style/typography' as *;
 
 .hero {
-  height: calc(var(--vh) * 100);
-  min-height: calc(var(--vh) * 100);
+  height: 100dvb;
+  min-height: 100dvb;
   position: relative;
   overscroll-behavior: none;
 
   &__content {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-
     display: flex;
     align-items: center;
+    position: absolute;
+    transform: translateY(-100px);
+    inset: 0;
+    z-index: 2;
   }
 
   &__info {

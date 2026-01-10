@@ -93,13 +93,11 @@ export default function Search() {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
-
+      {!debouncedQuery && <EmptyState message="Please enter Anime name." />}
       <AnimeListLayout>
         {!isLoading && !error && debouncedQuery && results.length === 0 && (
           <EmptyState message="No results found." />
         )}
-
-        {!debouncedQuery && <EmptyState message="Please enter Anime name." />}
 
         {isLoading && <SearchSkeleton />}
 

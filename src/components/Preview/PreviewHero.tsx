@@ -20,7 +20,7 @@ import './PreviewHero.scss';
 import Image from 'next/image';
 import type { SpotlightAnime, TrendingAnime } from '@/shared/types/GlobalTypes';
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import EmptyState from '../ui/states/EmptyState';
 
@@ -37,20 +37,6 @@ type Props = {
 };
 
 const Preview = ({ spotlights, trending }: Props) => {
-  useEffect(() => {
-    const setVH = () => {
-      document.documentElement.style.setProperty(
-        '--vh',
-        `${window.innerHeight * 0.01}px`
-      );
-    };
-
-    setVH();
-    window.addEventListener('resize', setVH);
-
-    return () => window.removeEventListener('resize', setVH);
-  }, []);
-
   if (!Array.isArray(spotlights)) {
     return (
       <EmptyState
@@ -123,7 +109,7 @@ const Preview = ({ spotlights, trending }: Props) => {
                     src={Convertor(anime.poster)}
                     alt={anime.title}
                     fill
-                    className="object-cover object-center w-full h-full brightness-75 contrast-110"
+                    className="object-cover object-center w-full h-[900px] brightness-75 contrast-110"
                     decoding="async"
                     loading="eager"
                     quality={80}
@@ -153,7 +139,7 @@ const Preview = ({ spotlights, trending }: Props) => {
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-[20px] relative z-[3] mt-[40px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px] ">
+      <div className="flex flex-col gap-[20px] relative z-[3] mt-[40px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
         <h2 className="text-title text-brand-text-primary pl-4 md:pl-6 lg:pl-10">
           Trending
         </h2>

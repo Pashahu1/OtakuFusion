@@ -86,7 +86,7 @@ export default function Animes() {
   return (
     <>
       <div className="mt-[80px]">
-        <div className="grid grid-cols-2 gap-[20px] px-4 md:grid-cols-3 md:px-6 lg:grid-cols-4 lg:px-10 xl:grid-cols-6 xl:px-20">
+        <div className="grid grid-cols-2 gap-[20px] md:grid-cols-3 lg:grid-cols-4 px-4 lg:px-10 xl:grid-cols-6">
           {categoryes.map((cat, idx) => (
             <button
               className={`h-[50px] rounded-md ${cat === selectedCategory ? 'bg-brand-orange-dark text-black' : 'bg-brand-gray text-white'}`}

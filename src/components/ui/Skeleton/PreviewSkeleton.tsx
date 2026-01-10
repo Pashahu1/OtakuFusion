@@ -7,7 +7,7 @@ export function PreviewSkeleton() {
       <div className="relative w-full h-[1300px] bg-neutral-900 rounded-xl overflow-hidden">
         <div className="absolute inset-0 bg-neutral-800 animate-pulse" />
 
-        <div className="absolute top-[30%] flex flex-col gap-4 w-[60%] w-full px-4 md:px-6 lg:px-10">
+        <div className="absolute translate-y-[300px] flex flex-col gap-4 w-[60%] w-full px-4 md:px-6 lg:px-10">
           <div className="h-8 w-full bg-neutral-700 rounded-md animate-pulse md:w-[400px]" />
           <div className="h-60 w-full bg-neutral-700 rounded-md animate-pulse md:w-[800px]" />
           <div className="h-10 w-full bg-neutral-700 rounded-md animate-pulse md:w-[300px]" />
@@ -15,8 +15,8 @@ export function PreviewSkeleton() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 mt-0 lg:mt-[-260px]">
-        <div className="flex gap-4 overflow-hidden px-4">
+      <div className="flex flex-col gap-[20px] relative z-[3] mt-[40px] md:mt-[-60px] lg:mt-[-300px]">
+        <div className="flex gap-4 overflow-hidden">
           <AnimeSectionSkeleton title="Treanding" />
         </div>
       </div>

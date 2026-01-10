@@ -9,18 +9,18 @@ export function GenderSkeleton() {
         <div className="flex alight-center justify-center h-[50px]">
           <span className="w-[400px] bg-neutral-800 rounded-md animate-pulse" />
         </div>
-        <div className="grid gap-5 w-full grid-cols-[repeat(auto-fit,minmax(280px,1fr))] md:gap-6 lg:gap-8 auto-rows-fr">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-[20px]">
           {!isMobile
             ? Array.from({ length: 20 }).map((_, i) => (
                 <AnimeCardSkeleton key={i} />
               ))
-            : Array.from({ length: 2 }).map((_, i) => (
+            : Array.from({ length: 10 }).map((_, i) => (
                 <AnimeCardSkeleton key={i} />
               ))}
         </div>
       </div>
 
-      <div className="flex justify-center mt-10">
+      <div className="flex justify-center mt-10 px-4 lg:px-10 xl:grid-cols-6">
         <div className="h-[50px] w-[500px] bg-neutral-800 rounded-md animate-pulse" />
       </div>
     </div>
