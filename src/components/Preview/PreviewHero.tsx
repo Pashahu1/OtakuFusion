@@ -20,7 +20,7 @@ import './PreviewHero.scss';
 import Image from 'next/image';
 import type { SpotlightAnime, TrendingAnime } from '@/shared/types/GlobalTypes';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import EmptyState from '../ui/states/EmptyState';
 
@@ -37,6 +37,20 @@ type Props = {
 };
 
 const Preview = ({ spotlights, trending }: Props) => {
+  useEffect(() => {
+    const setVH = () => {
+      document.documentElement.style.setProperty(
+        '--vh',
+        `${window.innerHeight * 0.01}px`
+      );
+    };
+
+    setVH();
+    window.addEventListener('resize', setVH);
+
+    return () => window.removeEventListener('resize', setVH);
+  }, []);
+
   if (!Array.isArray(spotlights)) {
     return (
       <EmptyState
