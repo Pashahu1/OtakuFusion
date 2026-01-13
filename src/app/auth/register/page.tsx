@@ -80,46 +80,43 @@ export default function RegisterPage() {
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="w-full py-[5px] bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 rounded-lg outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
+          className="w-full py-[5px] bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
         />
       </div>
       <div className="border-b-2 border-zinc-700 focus-within:border-[var(--color-brand-orange)] mb-3 py-[5px]">
         <input
-          autoComplete="new-password"
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full py-[5px] bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 rounded-lg outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
+          className="w-full py-[5px] bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
         />
       </div>
 
       <div className="border-b-2 border-zinc-700 focus-within:border-[var(--color-brand-orange)] mb-3 py-[5px]">
         <input
-          autoComplete="new-password"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full py-[5px] bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 rounded-lg outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
+          className="w-full py-[5px] bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
         />
       </div>
 
       <div className="border-b-2 border-zinc-700 focus-within:border-[var(--color-brand-orange)] mb-3 py-[5px]">
         <input
-          autoComplete="new-password"
           type="password"
           placeholder="Confirm Password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
-          className="w-full py-[5px] bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 rounded-lg outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
+          className="w-full py-[5px] bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="h-[40px] bg-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange-light)] transition text-[var(--color-brand-text-primary)] py-3 rounded-lg font-medium shadow-md shadow-[var(--color-brand-orange-light)]"
+        className="h-[40px] bg-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange-light)] transition text-[var(--color-brand-text-primary)] py-3 font-medium shadow-md shadow-[var(--color-brand-orange-light)] rounded-lg"
       >
         {loading ? 'Loading...' : 'Register'}
       </button>

@@ -32,6 +32,7 @@ export default function Watch() {
   const [tags, setTags] = useState([]);
   const isFirstSet = useRef(true);
   const [showNextEpisodeSchedule, setShowNextEpisodeSchedule] = useState(true);
+
   const {
     error,
     buffering,
@@ -57,7 +58,6 @@ export default function Watch() {
     servers,
     serverLoading,
   } = useWatch(animeId, initialEpisodeId);
-
   // const {
   //   autoPlay,
   //   setAutoPlay,
@@ -194,6 +194,7 @@ export default function Watch() {
                 <BouncingLoader />
               ) : (
                 <Episodelist
+                  animeId={animeId}
                   episodes={episodes}
                   currentEpisode={episodeId}
                   onEpisodeClick={(id) => setEpisodeId(id)}

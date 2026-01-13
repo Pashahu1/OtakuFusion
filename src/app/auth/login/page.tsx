@@ -1,4 +1,5 @@
 'use client';
+import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -25,7 +26,7 @@ export default function LoginPage() {
       setError('Invalid email or password.');
       return;
     }
-    
+
     if (result.needVerification) {
       router.push(`/auth/verify?email=${email}`);
       return;
@@ -37,6 +38,10 @@ export default function LoginPage() {
 
     router.push('/');
   };
+
+  {
+    loading && <InitialLoader />;
+  }
 
   return (
     <div className="flex flex-col gap-4 p-8">
@@ -53,7 +58,7 @@ export default function LoginPage() {
           type="email"
           placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 rounded-lg outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
+          className="w-full bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3  outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
         />
       </div>
 
@@ -62,7 +67,7 @@ export default function LoginPage() {
           type="password"
           placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 rounded-lg outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
+          className="w-full  text-[var(--color-brand-text-primary)] px-4 py-3 outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
         />
       </div>
 
@@ -70,7 +75,7 @@ export default function LoginPage() {
         onClick={handleLogin}
         className="h-[40px] bg-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange-light)] transition text-[var(--color-brand-text-primary)] py-3 rounded-lg font-medium shadow-md shadow-[var(--color-brand-orange-light)]"
       >
-        {loading ? 'Loading...' : 'Log In'}
+        Log In
       </button>
 
       <a
