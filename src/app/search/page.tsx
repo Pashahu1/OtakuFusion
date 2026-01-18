@@ -89,17 +89,17 @@ export default function Search() {
         <input
           type="text"
           placeholder="Search..."
+          autoFocus
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
       {!debouncedQuery && <EmptyState message="Please enter Anime name." />}
+      {isLoading && <SearchSkeleton />}
       <AnimeListLayout>
         {!isLoading && !error && debouncedQuery && results.length === 0 && (
           <EmptyState message="No results found." />
         )}
-
-        {isLoading && <SearchSkeleton />}
 
         {!isLoading && results.length > 0 && (
           <>

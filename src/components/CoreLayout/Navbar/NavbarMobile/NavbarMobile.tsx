@@ -38,7 +38,10 @@ export function NavbarMobile() {
         </div>
       </div>
 
-      <NavLink href="/">OtakuFusion</NavLink>
+      <NavLink href="/">
+        <span className="text-[var(--color-brand-orange)]">Otaku</span>
+        Fusion
+      </NavLink>
     </div>
   );
 }

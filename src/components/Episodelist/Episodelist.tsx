@@ -185,7 +185,7 @@ function Episodelist({
                   />
                 </div>
                 {showDropDown && (
-                  <div className="absolute flex flex-col top-full mt-[10px] left-0 z-30 bg-white w-[150px] max-h-[200px] overflow-y-auto rounded-l-[8px]">
+                  <div className="absolute flex flex-col top-full mt-[10px] left-0 z-30 bg-white w-[200px] max-h-[200px] overflow-y-auto">
                     {generateRangeOptions(totalEpisodes).map((item, index) => (
                       <div
                         key={index}
@@ -197,7 +197,7 @@ function Episodelist({
                           item === activeRange ? 'bg-[#EFF0F4]' : ''
                         }`}
                       >
-                        <p className="font-semibold text-[12px] p-3 flex justify-between items-center">
+                        <p className="font-semibold text-[10px] text-white p-3 flex justify-between items-center bg-[#23252b] hover:opacity-[0.8]">
                           EPS:&nbsp;{item}
                           {item === activeRange ? (
                             <FontAwesomeIcon icon={faCheck} />
@@ -224,7 +224,10 @@ function Episodelist({
           </div>
         )}
       </div>
-      <div ref={listContainerRef} className="w-full h-full overflow-y-auto">
+      <div
+        ref={listContainerRef}
+        className="w-full h-full overflow-y-auto bg-[#23252b]"
+      >
         <div
           className={`${
             totalEpisodes > 30
@@ -303,7 +306,7 @@ function Episodelist({
                     ref={isActive ? activeEpisodeRef : null}
                     className={`w-full pl-5 pr-2 py-2 flex items-center justify-start gap-x-8 cursor-pointer ${
                       (index + 1) % 2 && !isActive
-                        ? 'bg-[#201F2D] text-gray-400'
+                        ? 'text-gray-400'
                         : 'bg-none'
                     } group md:hover:bg-[#2B2A42] ${
                       isActive ? 'text-[#ff640a] bg-[#2B2A42]' : ''

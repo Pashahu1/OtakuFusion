@@ -6,7 +6,8 @@ export const NavbarDesktop = () => {
     <div className="navbar__desktop">
       <div className="navbar__desktop-list">
         <NavLink href="/">
-          OtakuFusion
+          <span className="text-[var(--color-brand-orange)]">Otaku</span>
+          Fusion
         </NavLink>
       </div>
       <div className="navbar__desktop-list">

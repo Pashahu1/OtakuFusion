@@ -104,11 +104,12 @@ const Preview = ({ spotlights, trending }: Props) => {
           >
             {spotlights?.map((anime) => (
               <SwiperSlide key={anime.id}>
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-[920px] lg:h-full">
                   <Image
                     src={Convertor(anime.poster)}
                     alt={anime.title}
                     fill
+                    sizes="100vw"
                     className="object-cover object-center w-full h-[900px] brightness-75 contrast-110"
                     decoding="async"
                     loading="eager"
