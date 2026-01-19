@@ -12,7 +12,8 @@ export const ProfileHeader = () => {
   const router = useRouter();
 
   if (!user) return null;
-  const isDisabled = isLoading || (username === user.username && !avatarFile);
+  const hasChanges = username !== user.username || avatarFile;
+  const isDisabled = isLoading || !hasChanges;
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -127,11 +128,7 @@ export const ProfileHeader = () => {
           <button
             type="submit"
             disabled={isDisabled}
-            className={`w-full h-[40px] rounded-lg bg-[var(--color-brand-orange)] text-black font-semibold hover:opacity-90 transition ${
-              isDisabled
-                ? 'bg-zinc-600 text-zinc-400 cursor-not-allowed opacity-50'
-                : 'bg-[var(--color-brand-orange)] text-black hover:opacity-90'
-            }`}
+            className={` w-full h-[40px] rounded-lg font-semibold transition ${isDisabled ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed opacity-50' : 'bg-[var(--color-brand-orange)] text-black hover:opacity-90'} `}
           >
             {isLoading ? 'Saving...' : 'Save'}
           </button>
