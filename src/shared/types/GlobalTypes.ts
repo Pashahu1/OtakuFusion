@@ -54,6 +54,7 @@ export interface AnimeInfo {
   japanese_title: string;
   description?: string;
   tvInfo?: TvInfo;
+  adultContent?: boolean;
 }
 
 export type ServerType = {

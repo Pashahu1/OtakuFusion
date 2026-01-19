@@ -250,7 +250,7 @@ export default function Player({
       fastForward: true,
       aspectRatio: true,
       subtitleOffset: true,
-      theme: '#23ade5',
+      theme: '#ff640a',
       plugins: [
         artplayerPluginHlsControl({
           quality: {
@@ -361,25 +361,66 @@ export default function Player({
           },
           disable: !Artplayer.utils.isMobile,
         },
-      ],
-      controls: [
         {
-          html: backward10Icon,
-          position: 'right',
-          tooltip: 'Backward 10s',
+          name: 'skipIntro',
+          html: '<div class="skip-intro-btn">Skip Intro</div>',
+          style: {
+            position: 'absolute',
+            bottom: '80px',
+            right: '20px',
+            padding: '8px 14px',
+            background: 'rgba(35, 37, 43, 0.6)',
+            color: '#fff',
+            cursor: 'pointer',
+            display: 'none',
+            zIndex: 9999,
+          },
           click: () => {
-            art.currentTime = Math.max(art.currentTime - 10, 0);
+            art.currentTime = intro.end;
           },
         },
         {
-          html: forward10Icon,
-          position: 'right',
-          tooltip: 'Forward 10s',
+          name: 'skipOutro',
+          html: '<div class="skip-outro-btn">Next Episode</div>',
+          style: {
+            position: 'absolute',
+            bottom: '80px',
+            right: '20px',
+            padding: '8px 14px',
+            background: 'rgba(35, 37, 43, 0.6)',
+            color: '#fff',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            display: 'none',
+            zIndex: 9999,
+            transition: 'background 0.2s ease',
+          },
           click: () => {
-            art.currentTime = Math.min(art.currentTime + 10, art.duration);
+            const next = episodes[currentEpisodeIndex + 1];
+            if (next) {
+              playNext(next.id.match(/ep=(\d+)/)?.[1]);
+            }
           },
         },
       ],
+      // controls: [
+      //   {
+      //     html: backward10Icon,
+      //     position: 'right',
+      //     tooltip: 'Backward 10s',
+      //     click: () => {
+      //       art.currentTime = Math.max(art.currentTime - 10, 0);
+      //     },
+      //   },
+      //   {
+      //     html: forward10Icon,
+      //     position: 'right',
+      //     tooltip: 'Forward 10s',
+      //     click: () => {
+      //       art.currentTime = Math.min(art.currentTime + 10, art.duration);
+      //     },
+      //   },
+      // ],
       icons: {
         play: playIcon,
         pause: pauseIcon,
@@ -404,6 +445,21 @@ export default function Player({
       });
     });
     art.on('ready', () => {
+      const skipIntroBtn = art.layers['skipIntro'];
+      const skipOutroBtn = art.layers['skipOutro'];
+
+      art.on('video:timeupdate', () => {
+        if (art.currentTime >= intro.start && art.currentTime <= intro.end) {
+          skipIntroBtn.style.display = 'block';
+        } else {
+          skipIntroBtn.style.display = 'none';
+        }
+        if (art.currentTime >= outro.start && art.currentTime <= outro.end) {
+          skipOutroBtn.style.display = 'block';
+        } else {
+          skipOutroBtn.style.display = 'none';
+        }
+      });
       setTimeout(() => {
         art.layers[website_name].style.opacity = 0;
       }, 2000);
@@ -534,5 +590,5 @@ export default function Player({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamUrl, subtitles, intro, outro]);
 
-  return <div ref={artRef} className="w-full h-full"></div>;
+  return <div ref={artRef} className="w-full h-full relative"></div>;
 }

@@ -22,7 +22,7 @@ export default function getChapterStyles(intro, outro) {
     ) {
       styles += `
                 .art-chapter:nth-child(2) {
-                    background-color: #fdd253;
+                    background-color: rgba(255, 0, 0, 0.4);
                     transform: scaleY(0.6);
                 }
             `;
@@ -34,7 +34,7 @@ export default function getChapterStyles(intro, outro) {
     ) {
       styles += `
                 .art-chapter:nth-child(1){
-                    background-color: #fdd253;
+                    background-color: rgba(255, 0, 0, 0.4);
                     transform: scaleY(0.6);
                 }
             `;
@@ -47,7 +47,7 @@ export default function getChapterStyles(intro, outro) {
       styles += `
                 .art-chapter:nth-child(1), 
                 .art-chapter:nth-child(3) {
-                    background-color: #fdd253;
+                    background-color: rgba(255, 0, 0, 0.4);
                     transform: scaleY(0.6);
                 }
             `;
@@ -59,7 +59,7 @@ export default function getChapterStyles(intro, outro) {
     ) {
       styles += `
                 .art-chapter:nth-child(2) {
-                    background-color: #fdd253;
+                    background-color: rgba(255, 0, 0, 0.4);
                     transform: scaleY(0.6);
                 }
             `;
@@ -72,7 +72,7 @@ export default function getChapterStyles(intro, outro) {
       styles += `
                 .art-chapter:nth-child(2),
                 .art-chapter:nth-child(4) {
-                    background-color: #fdd253;
+                    background-color:rgba(255, 0, 0, 0.4);
                     transform: scaleY(0.6);
                 }
             `;

@@ -178,9 +178,9 @@ export default function Watch() {
     <div className="w-full h-fit flex flex-col justify-center items-center relative">
       <div className="w-full relative max-[1400px]:px-[30px] max-[1200px]:px-[80px] max-[1024px]:px-0 px-4 lg:px-10">
         {/* <div className="absolute inset-0 bg-[#3a3948] bg-opacity-80 backdrop-blur-md z-[-800]"></div> */}
-        <div className="relative z-10 pb-[50px] grid grid-cols-[3fr_1fr] w-full h-full mt-[128px] max-[1400px]:flex max-[1400px]:flex-col max-[1200px]:grid-cols-[2fr_1fr] max-[1200px]:mt-[64px] max-[1024px]:px-0 max-md:mt-[50px]">
-          <div className="flex w-full min-h-fit max-[1200px]:flex-col-reverse min-h-[100px]">
-            <div className="w-[35%] bg-[#23252b] flex justify-center items-center max-[1400px]:w-[380px] max-[1200px]:w-full max-[1200px]:h-full max-[1200px]:min-h-[100px]">
+        <div className="relative z-10 pb-[50px] grid grid-cols-[3fr_1fr] gap-[20px] w-full h-full mt-[128px] max-[1400px]:flex max-[1400px]:flex-col max-[1200px]:grid-cols-[2fr_1fr] max-[1200px]:mt-[64px] max-[1024px]:px-0 max-md:mt-[50px]">
+          <div className="flex gap-[20px] w-full min-h-fit max-[1200px]:flex-col-reverse min-h-[100px]">
+            <div className="w-[35%] bg-[#23252b]/80 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-white/5 p-4  flex justify-center items-center max-[1400px]:w-[380px] max-[1200px]:w-full max-[1200px]:h-full max-[1200px]:min-h-[100px]">
               {!episodes ? (
                 <BouncingLoader />
               ) : (
@@ -193,8 +193,8 @@ export default function Watch() {
                 />
               )}
             </div>
-            <div className="w-full h-fit bg-black flex flex-col bg-[#23252b]">
-              <div className="w-full relative h-[480px] max-[1400px]:h-[40vw] max-[1200px]:h-[48vw] max-[1024px]:h-[58vw] max-[600px]:h-[65vw]">
+            <div className="w-full h-fit flex flex-col">
+              <div className="w-full relative h-[480px] rounded-xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.45)] border border-white/5 max-[1400px]:h-[40vw] max-[1200px]:h-[48vw] max-[1024px]:h-[58vw] max-[600px]:h-[65vw]">
                 {!buffering ? (
                   <Player
                     streamUrl={streamUrl}
@@ -262,15 +262,18 @@ export default function Watch() {
                   onButtonClick={(id) => setEpisodeId(id)}
                 />
               )} */}
-              <Servers
-                servers={servers}
-                activeEpisodeNum={activeEpisodeNum}
-                activeServerId={activeServerId}
-                setActiveServerId={setActiveServerId}
-                serverLoading={serverLoading}
-              />
+              <div className="bg-[#23252b]/80 backdrop-blur-md rounded-xl shadow-[0_6px_25px_rgba(0,0,0,0.3)] border border-white/5 p-4 mt-4">
+                <Servers
+                  servers={servers}
+                  activeEpisodeNum={activeEpisodeNum}
+                  activeServerId={activeServerId}
+                  setActiveServerId={setActiveServerId}
+                  serverLoading={serverLoading}
+                />
+              </div>
+
               {seasons?.length > 0 && (
-                <div className="flex flex-col gap-y-2 bg-[#23252b] p-4">
+                <div className="flex flex-col gap-y-2 bg-[#23252b]/80 backdrop-blur-md rounded-xl shadow-[0_6px_25px_rgba(0,0,0,0.3)] border border-white/5 p-4 mt-4">
                   <h1 className="w-fit text-lg max-[478px]:text-[18px] font-semibold">
                     Watch more seasons of this anime
                   </h1>
@@ -281,7 +284,7 @@ export default function Watch() {
               )}
               {nextEpisodeSchedule?.nextEpisodeSchedule &&
                 showNextEpisodeSchedule && (
-                  <div className="p-4 bg-[#23252b]">
+                  <div className="p-4 bg-[#23252b]/80 backdrop-blur-md rounded-xl shadow-[0_6px_25px_rgba(0,0,0,0.3)] border border-white/5 mt-4">
                     <div className="w-full px-4 rounded-md bg-[#ff640a] flex items-center justify-between gap-x-2">
                       <div className="w-full h-fit">
                         <span className="text-[18px]">🚀</span>
@@ -314,7 +317,7 @@ export default function Watch() {
                 )}
             </div>
           </div>
-          <div className="flex flex-col items-start gap-y-4 bg-[#23252b] max-[1400px]:ml-0 max-[1400px]:mt-10 max-[1400px]:flex-row max-[1400px]:gap-x-6 max-[1024px]:px-[30px] max-[1024px]:mt-8 max-[500px]:mt-4 max-[500px]:px-4 px-4 md:px-6 lg:px-10 py-8">
+          <div className="flex flex-col items-start gap-y-4 bg-[#23252b]/80 backdrop-blur-md rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] border border-white/5 px-4 md:px-6 lg:px-10 py-8 max-[1400px]:ml-0 max-[1400px]:mt-10 max-[1400px]:flex-row max-[1400px]:gap-x-6 max-[1024px]:px-[30px] max-[1024px]:mt-8 max-[500px]:mt-4 max-[500px]:px-4">
             {animeInfo && animeInfo?.poster ? (
               <img
                 src={`${animeInfo?.poster}`}
