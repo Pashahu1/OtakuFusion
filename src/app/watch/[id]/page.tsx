@@ -22,6 +22,7 @@ import Voiceactor from '@/components/Voiceactor/Voiceactor';
 import AnimeSection from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
 import WatchControls from '@/components/Watchcontrols/Watchcontrols';
+import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
 
 export default function Watch() {
   const pathname = usePathname();
@@ -104,12 +105,12 @@ export default function Watch() {
     };
   }, [animeId]);
 
-  // Redirect if no episodes
-  useEffect(() => {
-    if (totalEpisodes !== null && totalEpisodes === 0) {
-      router.push(`/${animeId}`);
-    }
-  }, [streamInfo, episodeId, animeId, totalEpisodes, router, servers]);
+  // // Redirect if no episodes
+  // useEffect(() => {
+  //   if (totalEpisodes !== null && totalEpisodes === 0) {
+  //     router.push(`/${animeId}`);
+  //   }
+  // }, [streamInfo, episodeId, animeId, totalEpisodes, router, servers]);
 
   useEffect(() => {
     const adjustHeight = () => {
@@ -153,6 +154,11 @@ export default function Watch() {
         condition: animeInfo?.animeInfo?.tvInfo?.rating,
         bgColor: '#ffffff',
         text: animeInfo?.animeInfo?.tvInfo?.rating,
+      },
+      {
+        condition: animeInfo?.adultContent,
+        bgColor: 'red',
+        text: '+18',
       },
       {
         condition: animeInfo?.animeInfo?.tvInfo?.quality,
@@ -325,8 +331,7 @@ export default function Watch() {
                 className="w-[100px] h-[150px] object-cover max-[500px]:w-[70px] max-[500px]:h-[90px]"
               />
             ) : (
-              <></>
-              // <Skeleton className="w-[100px] h-[150px] rounded-none" />
+              <Skeleton className="w-[100px] h-[150px] max-[500px]:w-[70px] max-[500px]:h-[90px]" />
             )}
             <div className="flex flex-col gap-y-4 justify-start">
               {animeInfo && animeInfo?.title ? (
@@ -334,8 +339,9 @@ export default function Watch() {
                   {animeInfo?.title}
                 </p>
               ) : (
-                <></>
+                <Skeleton className="w-[180px] h-[26px] max-[500px]:h-[20px]" />
               )}
+              
               <div className="flex flex-wrap w-fit gap-x-[2px] gap-y-[3px]">
                 {animeInfo ? (
                   tags.map(
@@ -351,7 +357,11 @@ export default function Watch() {
                       )
                   )
                 ) : (
-                  <></>
+                  <div className="flex ">
+                    <div className="flex gap-[3px]">
+                      <Skeleton className="w-[230px] h-[30px]" />
+                    </div>
+                  </div>
                 )}
                 <div className="flex w-fit items-center ml-1">
                   {[
@@ -362,7 +372,7 @@ export default function Watch() {
                       item && (
                         <div
                           key={index}
-                          className="px-1 h-fit flex items-center gap-x-2 w-fit"
+                          className="h-fit flex items-center gap-x-2"
                         >
                           <div className="dot mt-[2px]"></div>
                           <p className="text-[14px]">{item}</p>
@@ -371,43 +381,48 @@ export default function Watch() {
                   )}
                 </div>
               </div>
-              {animeInfo ? (
-                animeInfo?.animeInfo?.Overview && (
-                  <div className="max-h-[150px] overflow-hidden">
-                    <div className="max-h-[110px] mt-2 overflow-y-auto">
-                      <p className="text-[14px] font-[400]">
-                        {animeInfo?.animeInfo?.Overview.length > 270 ? (
-                          <>
-                            {isFullOverview
-                              ? animeInfo?.animeInfo?.Overview
-                              : `${animeInfo?.animeInfo?.Overview.slice(
-                                  0,
-                                  270
-                                )}...`}
-                            <span
-                              className="text-[13px] font-bold hover:cursor-pointer"
-                              onClick={() => setIsFullOverview(!isFullOverview)}
-                            >
-                              {isFullOverview ? '- Less' : '+ More'}
-                            </span>
-                          </>
-                        ) : (
-                          animeInfo?.animeInfo?.Overview
-                        )}
-                      </p>
-                    </div>
+              {animeInfo?.animeInfo?.Overview ? (
+                <div className="max-h-[150px] overflow-hidden">
+                  <div className="max-h-[110px] mt-2 overflow-y-auto no-scrollbar">
+                    <p className="text-[14px] font-[400]">
+                      {animeInfo?.animeInfo?.Overview.length > 270 ? (
+                        <>
+                          {isFullOverview
+                            ? animeInfo?.animeInfo?.Overview
+                            : `${animeInfo?.animeInfo?.Overview.slice(
+                                0,
+                                270
+                              )}...`}
+                          <span
+                            className="text-[13px] font-bold hover:cursor-pointer"
+                            onClick={() => setIsFullOverview(!isFullOverview)}
+                          >
+                            {isFullOverview ? '- Less' : '+ More'}
+                          </span>
+                        </>
+                      ) : (
+                        <Skeleton className="w-[510px] h-[86px] max-[575px]:hidden" />
+                      )}
+                    </p>
                   </div>
-                )
+                </div>
               ) : (
-                <div className="flex flex-col gap-y-2"></div>
+                <div className="flex flex-col gap-y-2 mt-2">
+                  <Skeleton className="w-[510px] h-[120px]" />
+                </div>
               )}
-              <p className="text-[14px] max-[575px]:hidden">
-                {`${website_name} is the best site to watch `}
-                <span className="font-bold">{animeInfo?.title}</span>
-                {` SUB online, or you can even watch `}
-                <span className="font-bold">{animeInfo?.title}</span>
-                {` DUB in HD quality.`}
-              </p>
+
+              {animeInfo ? (
+                <p className="text-[14px] max-[575px]:hidden">
+                  {`${website_name} is the best site to watch `}
+                  <span className="font-bold">{animeInfo.title}</span>
+                  {` SUB online, or you can even watch `}
+                  <span className="font-bold">{animeInfo.title}</span>
+                  {` DUB in HD quality.`}
+                </p>
+              ) : (
+                <Skeleton className="w-[510px] h-[144px] max-[575px]:hidden" />
+              )}
             </div>
           </div>
         </div>

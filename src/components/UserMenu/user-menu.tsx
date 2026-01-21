@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import { useDropdown } from '@/hooks/useDropdown';
+import Image from 'next/image';
 
 export type User = {
   username: string;
@@ -80,7 +81,7 @@ export function UserMenu({ user }: UserMenuProps) {
           </div>
 
           <div
-            className="
+            className="flex items-center gap-[10px]
               px-5 py-3 cursor-pointer
               border-b border-zinc-800
               hover:bg-zinc-800/30 transition-colors
@@ -90,11 +91,12 @@ export function UserMenu({ user }: UserMenuProps) {
               close;
             }}
           >
+            <Image width={16} height={16} src="/settings.png" alt="settings" />
             <span className="text-white">Settings</span>
           </div>
 
           <div
-            className="
+            className="flex items-center gap-[10px]
               px-5 py-3 cursor-pointer
               border-b border-zinc-800
               hover:bg-zinc-800/30 transition-colors
@@ -104,16 +106,18 @@ export function UserMenu({ user }: UserMenuProps) {
               close;
             }}
           >
-            <span className="text-white">Watch List</span>
+            <Image width={16} height={16} src="/wishlist.png" alt="wishlist" />
+            <span className="text-white">Wish List</span>
           </div>
 
           <div
-            className="
+            className="flex items-center gap-[10px]
               px-5 py-3 cursor-pointer
               hover:bg-red-900/20 transition-colors
             "
             onClick={!loading ? handleLogout : undefined}
           >
+            <Image width={16} height={16} src="/logout.png" alt="logout" />
             <span
               className={`text-red-500 font-medium ${
                 loading ? 'opacity-50 cursor-not-allowed' : ''

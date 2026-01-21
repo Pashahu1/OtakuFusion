@@ -43,3 +43,13 @@
   --color-brand-text-secondary: #dadada;
   --color-brand-text-muted: #9a9a9a;
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE */
+    scrollbar-width: none; /* Firefox */
+  }
+}

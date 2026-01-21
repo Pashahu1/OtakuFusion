@@ -46,6 +46,14 @@ function Servers({
     localStorage.setItem('server_type', server.type);
   };
 
+  const handleRenameServer = (server: Server) => {
+    if (server.serverName === 'HD-1') {
+      return 'AniVoice';
+    } else if (server.serverName === 'HD-2') {
+      return 'StreamCore';
+    }
+  };
+
   return (
     <div className="relative bg-[#23252b] p-4 w-full min-h-[330px] flex justify-center items-center max-[1200px]:bg-[#23252b]">
       {serverLoading ? (
@@ -55,15 +63,15 @@ function Servers({
       ) : servers ? (
         <div className="w-full h-full rounded-lg grid grid-cols-[minmax(0,30%), minmax(0,70%)] overflow-hidden max-[800px]:grid-cols-[minmax(0,40%),minmax(0,60%)] max-[600px]:flex max-[600px]:flex-col max-[600px]:rounded-none">
           <div className="h-full bg-[#23252b] p-4 text-white flex flex-col justify-center items-center gap-y-2 max-[600px]:bg-transparent max-[600px]:h-1/2 max-[600px]:text-white max-[600px]:mb-4">
-            <p className="text-center leading-5 font-medium text-[14px]">
+            <p className="text-center leading-5 font-medium text-[14px] text-[#cfcfcf]">
               You are watching <br />
-              <span className="font-semibold max-[600px]:text-[#ff640a]">
+              <span className="font-bold text-[#ff640a] drop-shadow-[0_0_4px_rgba(255,100,10,0.6)]">
                 Episode {activeEpisodeNum}
               </span>
             </p>
             <p className="leading-5 text-[14px] font-medium text-center">
               If the current server doesn&apos;t work, please try other servers
-              HD-2 or others beside.
+              StreamCore or others beside.
             </p>
           </div>
           <div className="flex flex-col max-[600px]:h-full">
@@ -80,21 +88,25 @@ function Servers({
                     icon={faFile}
                     className="text-[#ff640a] text-[13px]"
                   />
-                  <p className="font-bold text-[14px]">RAW:</p>
+                  <p className="font-semibold text-[13px] uppercase text-[#ff640a] opacity-90">
+                    RAW SERVERS:
+                  </p>
                 </div>
                 <div className="flex gap-x-[7px] ml-8 flex-wrap">
                   {rawServers.map((item, index) => (
                     <div
                       key={index}
-                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${
+                      className={`px-3 py-[6px] rounded-md cursor-pointer transition-all duration-150 ${
                         activeServerId === item?.data_id
-                          ? 'bg-[#ff640a] text-black'
-                          : 'bg-[#373646] text-white'
-                      } max-[700px]:px-3`}
+                          ? 'bg-[#ff640a] text-black shadow-[0_0_10px_rgba(255,100,10,0.4)] scale-[1.02]'
+                          : 'bg-[#2d2f36] text-[#e5e5e5] border border-[#3a3c45] hover:border-[#ff640a] hover:text-[#ff640a]'
+                      }
+                      max-[700px]:px-3
+                      `}
                       onClick={() => handleServerSelect(item)}
                     >
                       <p className="text-[13px] font-semibold">
-                        {item.serverName}
+                        {handleRenameServer(item)}
                       </p>
                     </div>
                   ))}
@@ -112,21 +124,25 @@ function Servers({
                     icon={faClosedCaptioning}
                     className="text-[#ff640a] text-[13px]"
                   />
-                  <p className="font-bold text-[14px]">SUB:</p>
+                  <p className="font-semibold text-[13px] uppercase text-[#ff640a] opacity-90">
+                    SUB SERVERS:
+                  </p>
                 </div>
                 <div className="flex gap-x-[7px] ml-8 flex-wrap">
                   {subServers.map((item, index) => (
                     <div
                       key={index}
-                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${
+                      className={`px-3 py-[6px] rounded-md cursor-pointer transition-all duration-150 ${
                         activeServerId === item?.data_id
-                          ? 'bg-[#ff640a] text-black'
-                          : 'bg-[#373646] text-white'
-                      } max-[700px]:px-3`}
+                          ? 'bg-[#ff640a] text-black shadow-[0_0_10px_rgba(255,100,10,0.4)] scale-[1.02]'
+                          : 'bg-[#2d2f36] text-[#e5e5e5] border border-[#3a3c45] hover:border-[#ff640a] hover:text-[#ff640a]'
+                      }
+                      max-[700px]:px-3
+                      `}
                       onClick={() => handleServerSelect(item)}
                     >
                       <p className="text-[13px] font-semibold">
-                        {item.serverName}
+                        {handleRenameServer(item)}
                       </p>
                     </div>
                   ))}
@@ -144,21 +160,25 @@ function Servers({
                     icon={faMicrophone}
                     className="text-[#ff640a] text-[13px]"
                   />
-                  <p className="font-bold text-[14px]">DUB:</p>
+                  <p className="font-semibold text-[13px] uppercase text-[#ff640a] opacity-90">
+                    DUB SERVERS:
+                  </p>
                 </div>
                 <div className="flex gap-x-[7px] ml-8 flex-wrap">
                   {dubServers.map((item, index) => (
                     <div
                       key={index}
-                      className={`px-6 py-[5px] rounded-lg cursor-pointer ${
+                      className={`px-3 py-[6px] rounded-md cursor-pointer transition-all duration-150 ${
                         activeServerId === item?.data_id
-                          ? 'bg-[#ff640a] text-black'
-                          : 'bg-[#373646] text-white'
-                      } max-[700px]:px-3`}
+                          ? 'bg-[#ff640a] text-black shadow-[0_0_10px_rgba(255,100,10,0.4)] scale-[1.02]'
+                          : 'bg-[#2d2f36] text-[#e5e5e5] border border-[#3a3c45] hover:border-[#ff640a] hover:text-[#ff640a]'
+                      }
+                      max-[700px]:px-3
+                      `}
                       onClick={() => handleServerSelect(item)}
                     >
                       <p className="text-[13px] font-semibold">
-                        {item.serverName}
+                        {handleRenameServer(item)}
                       </p>
                     </div>
                   ))}

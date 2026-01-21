@@ -17,7 +17,12 @@ export const NavbarList = () => {
         />
       </NavLink>
       {isAuth && user ? (
-        <UserMenu user={user} />
+        <>
+          <NavLink href="/profile/favorites">
+            <Image width={24} height={24} src="/wishlist.png" alt="wishlist" />
+          </NavLink>
+          <UserMenu user={user} />
+        </>
       ) : (
         <NavLink href="/auth/login">
           <Image width={24} height={24} src="/icon/user.svg" alt="user-icon" />

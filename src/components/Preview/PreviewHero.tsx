@@ -60,7 +60,7 @@ const Preview = ({ spotlights, trending }: Props) => {
 
   return (
     <>
-      <div className="relative w-full overflow-hidden hero">
+      <div className="relative w-full hero">
         <div className="hero__slider">
           <button
             className="hero-zone hero--right invisible md:visible"

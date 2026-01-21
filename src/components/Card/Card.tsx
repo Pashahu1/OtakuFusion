@@ -43,7 +43,7 @@ export const Card = ({ anime }: Props) => {
                 {anime.tvInfo.dub}
               </div>
             )}
-            {anime.adultContent && (
+            {anime?.adultContent && (
               <div className="flex items-center gap-1 bg-red-600 text-black px-2 py-[2px] rounded-[2px] text-[12px] font-bold">
                 +18
               </div>
