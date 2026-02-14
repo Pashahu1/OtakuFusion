@@ -201,7 +201,13 @@ export default function Watch() {
             </div>
             <div className="w-full h-fit flex flex-col">
               <div className="w-full relative h-[480px] rounded-xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.45)] border border-white/5 max-[1400px]:h-[40vw] max-[1200px]:h-[48vw] max-[1024px]:h-[58vw] max-[600px]:h-[65vw]">
-                {!buffering ? (
+                {buffering && (
+                  <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50">
+                    <BouncingLoader />
+                  </div>
+                )}
+
+                {!buffering && streamUrl && (
                   <Player
                     streamUrl={streamUrl}
                     subtitles={subtitles}
@@ -218,12 +224,9 @@ export default function Watch() {
                     episodeNum={activeEpisodeNum}
                     streamInfo={streamInfo}
                   />
-                ) : (
-                  <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50">
-                    <BouncingLoader />
-                  </div>
                 )}
-                {streamUrl === null && !buffering && (
+
+                {!buffering && !streamUrl && (
                   <div className="absolute inset-0 flex flex-col justify-center text-center items-center bg-black bg-opacity-50">
                     <img
                       src="/gojo-player.png"
@@ -231,7 +234,7 @@ export default function Watch() {
                       className="w-[100px]"
                     />
                     <span>Servers now is not Available</span>
-                    <span className="text-center">Please try again later</span>
+                    <span>Please try again later or change Server below</span>
                   </div>
                 )}
 
@@ -341,7 +344,7 @@ export default function Watch() {
               ) : (
                 <Skeleton className="w-[180px] h-[26px] max-[500px]:h-[20px]" />
               )}
-              
+
               <div className="flex flex-wrap w-fit gap-x-[2px] gap-y-[3px]">
                 {animeInfo ? (
                   tags.map(
@@ -401,7 +404,7 @@ export default function Watch() {
                           </span>
                         </>
                       ) : (
-                        <Skeleton className="w-[510px] h-[86px] max-[575px]:hidden" />
+                        <p>{animeInfo?.animeInfo?.Overview}</p>
                       )}
                     </p>
                   </div>

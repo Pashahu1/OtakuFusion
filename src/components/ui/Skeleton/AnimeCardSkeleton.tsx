@@ -1,4 +1,3 @@
-'use client';
 export function AnimeCardSkeleton() {
   return (
     <div className="animate-pulse flex flex-col gap-2">

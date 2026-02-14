@@ -1,6 +1,6 @@
 import { ApiError } from './errors/ApiError';
 
-const API_URL = 'https://anime-api-nu-ten.vercel.app/api';
+const API_URL = 'https://anime-api-8ckpoa.fly.dev/api';
 
 export const apiUrl = {
   get: async (endpoint: string) => {

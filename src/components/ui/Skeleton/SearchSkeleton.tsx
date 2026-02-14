@@ -1,5 +1,3 @@
-'use client';
-
 import { AnimeCardSkeleton } from '../Skeleton/AnimeCardSkeleton';
 
 export function SearchSkeleton() {

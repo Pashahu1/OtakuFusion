@@ -7,21 +7,30 @@ export function useLocalStorage<T>(
   initialValue: T
 ): UseLocalStorageReturn<T> {
   const [value, setValue] = useState<T>(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
+    if (typeof window === 'undefined') return initialValue;
 
-    let item = localStorage.getItem(key);
+    try {
+      const item = localStorage.getItem(key);
+      if (!item) return initialValue;
 
-    if (item) {
-      try {
-        return JSON.parse(item);
-      } catch {
+      const parsed = JSON.parse(item);
+
+      if (Array.isArray(initialValue) && !Array.isArray(parsed)) {
         return initialValue;
       }
-    }
 
-    return initialValue;
+      if (
+        typeof initialValue === 'object' &&
+        !Array.isArray(initialValue) &&
+        (typeof parsed !== 'object' || Array.isArray(parsed))
+      ) {
+        return initialValue;
+      }
+
+      return parsed;
+    } catch {
+      return initialValue;
+    }
   });
 
   const clear = () => {
@@ -31,9 +40,7 @@ export function useLocalStorage<T>(
   };
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
+    if (typeof window === 'undefined') return;
 
     try {
       localStorage.setItem(key, JSON.stringify(value));

@@ -1,4 +1,3 @@
-'use client';
 import { AnimeSectionSkeleton } from './AnimeSectionSkeleton';
 
 export function PreviewSkeleton() {

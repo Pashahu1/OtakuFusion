@@ -1,7 +1,8 @@
-'use client';
 import { AnimeCardSkeleton } from './AnimeCardSkeleton';
 export function AnimeSectionSkeleton({ title }: { title: string }) {
-  const isMobile = window.innerWidth < 768;
+  const isMobile =
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+
   return (
     <div className="flex flex-col gap-[20px] w-full px-4 lg:px-10 z-2">
       <h2 className="text-title text-brand-text-primary">{title}</h2>
