@@ -6,7 +6,6 @@ import Artplayer from 'artplayer';
 import artplayerPluginChapter from './artPlayerPluinChaper';
 import autoSkip from './autoSkip';
 import artplayerPluginVttThumbnail from './artPlayerPluginVttThumbnail';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 import {
   backward10Icon,
   backwardIcon,
@@ -30,8 +29,6 @@ import website_name from '@/config/website';
 import getChapterStyles from './getChapterStyle';
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
 import artplayerPluginUploadSubtitle from './artplayerPluginUploadSubtitle';
-import { CurrentTime } from '../CurrentTime/CurrentTime';
-import { time } from 'console';
 
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
@@ -54,6 +51,7 @@ export default function Player({
   thumbnail,
   intro,
   outro,
+  // autoSkipIntro,
   // autoPlay,
   // autoNext,
   episodeId,
@@ -64,38 +62,15 @@ export default function Player({
   streamInfo,
 }) {
   const artRef = useRef(null);
-  const lastSavedRef = useRef(0);
-  const hasMarkedRef = useRef(false);
   const proxy = 'https://cors-anywhere-9ycb.onrender.com/?url=';
-  const m3u8proxy = 'https://m3u8proxy.fly.dev/m3u8-proxy?url=';
+  const m3u8proxy =
+    'https://m3u8proxy.fly.dev/m3u8-proxy?url=' || [];
 
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
     episodes?.findIndex(
       (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
     )
   );
-
-  const [watchProgress, setWatchProgress] = useLocalStorage(
-    'watchProgress',
-    {}
-  );
-  const [watchedEpisodes, setWatchedEpisodes] = useLocalStorage(
-    `watched-${animeInfo.id}`,
-    {}
-  );
-
-  const markEpisodeAsWatched = () => {
-    setWatchedEpisodes((prev) => ({
-      ...prev,
-      [episodeId]: true,
-    }));
-
-    setWatchProgress((prev) => {
-      const copy = { ...prev };
-      delete copy[animeInfo.id];
-      return copy;
-    });
-  };
 
   useEffect(() => {
     if (episodes?.length > 0) {
@@ -154,10 +129,6 @@ export default function Player({
             }
           }
         }
-
-        // if(currentTime / duration >= 0.95) {
-
-        // }
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
@@ -488,50 +459,23 @@ export default function Player({
           (art.width > 500 ? art.width * 0.02 : art.width * 0.03) + 'px',
       });
     });
-
     art.on('ready', () => {
       const skipIntroBtn = art.layers['skipIntro'];
       const skipOutroBtn = art.layers['skipOutro'];
-      if (lastSavedRef.current > 0) {
-        art.currentTime = lastSavedRef.current;
-      }
 
       art.on('video:timeupdate', () => {
         if (art.currentTime >= intro.start && art.currentTime <= intro.end) {
           skipIntroBtn.style.display = 'block';
+          btn.classList.add('show');
         } else {
           skipIntroBtn.style.display = 'none';
         }
-
         if (art.currentTime >= outro.start && art.currentTime <= outro.end) {
           skipOutroBtn.style.display = 'block';
         } else {
           skipOutroBtn.style.display = 'none';
         }
-
-        if (art.currentTime - lastSavedRef.current >= 5) {
-          lastSavedRef.current = art.currentTime;
-          console.log('Saving progress:', art.currentTime);
-          setWatchProgress((prev) => ({
-            ...prev,
-            [animeInfo.id]: {
-              episodeId,
-              episodeNum,
-              time: art.currentTime,
-              duration: art.duration,
-            },
-          }));
-        }
-        if (art.duration > 0) {
-          const percent = art.currentTime / art.duration;
-
-          if (percent >= 0.95 && !hasMarkedRef.current) {
-            hasMarkedRef.current = true;
-            markEpisodeAsWatched();
-          }
-        }
       });
-
       setTimeout(() => {
         art.layers[website_name].style.opacity = 0;
       }, 2000);
@@ -629,21 +573,14 @@ export default function Player({
       if (art && art.destroy) {
         art.destroy(false);
       }
-
-      let continueWatching = JSON.parse(
-        localStorage.getItem('continueWatching')
-      );
-
-      if (!Array.isArray(continueWatching)) {
-        continueWatching = [];
-      }
+      const continueWatching =
+        JSON.parse(localStorage.getItem('continueWatching')) || [];
 
       const newEntry = {
         id: animeInfo?.id,
         data_id: animeInfo?.data_id,
         episodeId,
         episodeNum,
-        time: lastSavedRef.current,
         adultContent: animeInfo?.adultContent,
         poster: animeInfo?.poster,
         title: animeInfo?.title,
@@ -661,13 +598,11 @@ export default function Player({
       } else {
         continueWatching.push(newEntry);
       }
-
       localStorage.setItem(
         'continueWatching',
         JSON.stringify(continueWatching)
       );
     };
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamUrl, subtitles, intro, outro]);
 
