@@ -63,8 +63,7 @@ export default function Player({
 }) {
   const artRef = useRef(null);
   const proxy = 'https://cors-anywhere-9ycb.onrender.com/?url=';
-  const m3u8proxy =
-    'https://m3u8proxy.fly.dev/m3u8-proxy?url=' || [];
+  const m3u8proxy = 'https://m3u8proxy.fly.dev/m3u8-proxy?url=' || [];
 
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
     episodes?.findIndex(
@@ -279,15 +278,56 @@ export default function Player({
       },
       layers: [
         {
-          name: website_name,
-          html: logo,
-          tooltip: website_name,
+          name: 'siteLogo',
+          html: `
+    <div style="
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:4px;
+      padding:10px 16px;
+      border-radius:14px;
+      background:linear-gradient(135deg, rgba(20,20,20,0.75), rgba(40,40,40,0.55));
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 8px 30px rgba(0,0,0,0.45),
+        inset 0 0 15px rgba(255,255,255,0.03);
+    ">
+      
+      <div style="
+        font-size:20px;
+        font-weight:800;
+        letter-spacing:0.5px;
+        font-family:system-ui, -apple-system, sans-serif;
+      ">
+        <span style="
+          background:linear-gradient(90deg,#ff7a18,#ffb347);
+          -webkit-background-clip:text;
+          -webkit-text-fill-color:transparent;
+        ">Otaku</span>
+        <span style="color:#ffffff;">Fusion</span>
+      </div>
+
+      <div style="
+        font-size:12px;
+        font-weight:500;
+        color:rgba(255,255,255,0.75);
+        letter-spacing:0.4px;
+      ">
+        ✨ Enjoy watching with OtakuFushion
+      </div>
+
+    </div>
+  `,
           style: {
-            opacity: 1,
             position: 'absolute',
-            top: '5px',
-            right: '5px',
-            transition: 'opacity 0.5s ease-out',
+            top: '18px',
+            right: '20px',
+            opacity: 1,
+            transform: 'translateY(-10px) scale(0.95)',
+            transition: 'all 0.6s cubic-bezier(.22,.61,.36,1)',
+            pointerEvents: 'none',
           },
         },
         {
@@ -417,25 +457,6 @@ export default function Player({
           },
         },
       ],
-
-      // controls: [
-      //   {
-      //     html: backward10Icon,
-      //     position: 'right',
-      //     tooltip: 'Backward 10s',
-      //     click: () => {
-      //       art.currentTime = Math.max(art.currentTime - 10, 0);
-      //     },
-      //   },
-      //   {
-      //     html: forward10Icon,
-      //     position: 'right',
-      //     tooltip: 'Forward 10s',
-      //     click: () => {
-      //       art.currentTime = Math.min(art.currentTime + 10, art.duration);
-      //     },
-      //   },
-      // ],
       icons: {
         play: playIcon,
         pause: pauseIcon,
@@ -462,11 +483,21 @@ export default function Player({
     art.on('ready', () => {
       const skipIntroBtn = art.layers['skipIntro'];
       const skipOutroBtn = art.layers['skipOutro'];
+      const logoLayer = art.layers.siteLogo;
+
+      requestAnimationFrame(() => {
+        logoLayer.style.opacity = '1';
+        logoLayer.style.transform = 'translateY(0) scale(1)';
+      });
+
+      setTimeout(() => {
+        logoLayer.style.opacity = '0';
+        logoLayer.style.transform = 'translateY(-10px) scale(0.95)';
+      }, 3500);
 
       art.on('video:timeupdate', () => {
         if (art.currentTime >= intro.start && art.currentTime <= intro.end) {
           skipIntroBtn.style.display = 'block';
-          btn.classList.add('show');
         } else {
           skipIntroBtn.style.display = 'none';
         }
@@ -476,9 +507,11 @@ export default function Player({
           skipOutroBtn.style.display = 'none';
         }
       });
-      setTimeout(() => {
-        art.layers[website_name].style.opacity = 0;
-      }, 2000);
+
+      // setTimeout(() => {
+      //   art.layers[website_name].style.opacity = 0;
+      // }, 2000);
+
       const ranges = [
         ...(intro.start != null && intro.end != null
           ? [[intro.start + 1, intro.end - 1]]
@@ -567,6 +600,10 @@ export default function Player({
             art.layers['forwardIcon'].style.opacity = 0;
           }, 300);
         });
+
+      console.log('READY FIRED');
+      console.log('Layers:', art.layers);
+      console.log('Logo layer:', art.layers.siteLogo);
     });
 
     return () => {
