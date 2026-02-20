@@ -25,12 +25,33 @@ html {
 }
 
 h1,
+h2,
 h3 {
+  margin: 0;
+}
+
+h1 {
+  font-family: $font-headings;
+  font-weight: $font-weight-bold;
+}
+
+h2 {
+  @include h2;
+}
+
+h3 {
+  font-family: $font-headings;
+  font-weight: $font-weight-medium;
   margin: 0;
 }
 
 p {
   @include body-text;
+}
+
+span {
+  font-family: $font-primary;
+  font-weight: $font-weight-regular;
 }
 
 ul {
@@ -80,7 +101,6 @@ menu {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  // height: 100vh;
 }
 
 .main {

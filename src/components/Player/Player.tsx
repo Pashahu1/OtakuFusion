@@ -315,7 +315,7 @@ export default function Player({
         color:rgba(255,255,255,0.75);
         letter-spacing:0.4px;
       ">
-        ✨ Enjoy watching with OtakuFushion
+        ✨ Enjoy watching with Us
       </div>
 
     </div>

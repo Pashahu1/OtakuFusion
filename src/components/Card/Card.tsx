@@ -31,7 +31,7 @@ export const Card = ({ anime }: Props) => {
               <div className="flex items-center gap-1 bg-brand-orange text-black px-2 py-[2px] rounded-[2px] text-[12px] font-bold">
                 <FontAwesomeIcon
                   icon={faClosedCaptioning}
-                  className="text-[12px]"
+                  className="text-[12px] z-1 w-full max-w-[12px]"
                 />
                 {anime.tvInfo.sub}
               </div>
@@ -39,7 +39,7 @@ export const Card = ({ anime }: Props) => {
 
             {anime.tvInfo?.dub && (
               <div className="flex items-center gap-1 bg-[#B9E7FF] text-black px-2 py-[2px] rounded-[2px] text-[12px] font-bold">
-                <FontAwesomeIcon icon={faMicrophone} className="text-[12px]" />
+                <FontAwesomeIcon icon={faMicrophone} className="z-1 text-[12px] w-full max-w-[12px]" />
                 {anime.tvInfo.dub}
               </div>
             )}
@@ -50,7 +50,7 @@ export const Card = ({ anime }: Props) => {
             )}
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 h-[40%]  bg-gradient-to-t from-black/80 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
         </div>
 
         <h3 className="mt-2 text-sm font-medium text-brand-text-primary line-clamp-2">
