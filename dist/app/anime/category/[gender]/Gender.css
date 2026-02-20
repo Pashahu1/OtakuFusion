@@ -1,9 +1,0 @@
-.gender-page {
-  gap: 20px;
-  margin: 0 auto;
-}
-.gender-page__content {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 20px;
-}
