@@ -1,11 +1,9 @@
-import './Bouncingloader.scss';
-
 export const BouncingLoader = () => {
   return (
-    <div className="bouncing-loading flex gap-x-[5px]">
-      <div className="span1"></div>
-      <div className="span2"></div>
-      <div className="span3"></div>
+    <div className="flex gap-[5px]">
+      <div className="h-[18px] w-[18px] rounded-full bg-[#858490] animate-bounce [animation-delay:-0.32s]" />
+      <div className="h-[18px] w-[18px] rounded-full bg-[#858490] animate-bounce [animation-delay:-0.16s]" />
+      <div className="h-[18px] w-[18px] rounded-full bg-[#858490] animate-bounce" />
     </div>
   );
 };
