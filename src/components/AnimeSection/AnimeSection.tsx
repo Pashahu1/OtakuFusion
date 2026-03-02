@@ -1,4 +1,4 @@
-import type { AnimeInfo } from '@/shared/types/GlobalTypes';
+import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { Card } from '../Card/Card';
 import { isArray } from 'lodash';
 import EmptyState from '../ui/states/EmptyState';

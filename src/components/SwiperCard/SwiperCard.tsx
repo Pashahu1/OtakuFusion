@@ -3,7 +3,7 @@ import { Navigation } from 'swiper/modules';
 import { Card } from '@/components/Card/Card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import type { AnimeInfo } from '../../shared/types/GlobalTypes';
+import type { AnimeInfo } from '../../shared/types/GlobalAnimeTypes';
 
 import 'swiper/css';
 import 'swiper/css/navigation';

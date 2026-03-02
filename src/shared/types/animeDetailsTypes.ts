@@ -1,4 +1,4 @@
-import type { SeasonsType } from "./GlobalTypes";
+import type { AnimeInfo, SeasonsTypes } from "./GlobalAnimeTypes";
 
 export interface AnimeApiResponse {
   success: boolean;
@@ -7,7 +7,7 @@ export interface AnimeApiResponse {
 
 export interface AnimeResults {
   data: AnimeData;
-  seasons: SeasonsType[];
+  seasons: SeasonsTypes[];
 }
 
 export interface AnimeData {
@@ -18,12 +18,15 @@ export interface AnimeData {
   japanese_title: string;
   poster: string;
   showType: string;
-  animeInfo: AnimeInfo;
+  /** Детальна метадата (Overview, Genres, Studios...) — один об'єкт */
+  animeInfo: AnimeDetailsInfo;
+  /** Картки рекомендацій (id, poster, title...) */
   recommended_data: AnimeInfo[];
+  /** Картки пов’язаних аніме */
   related_data: AnimeInfo[];
 }
 
-export interface AnimeInfo {
+export interface AnimeDetailsInfo {
   Overview: string;
   Japanese: string;
   Synonyms: string;

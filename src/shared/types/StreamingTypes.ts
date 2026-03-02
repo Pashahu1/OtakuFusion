@@ -1,9 +1,11 @@
+import type { Segment } from "./VideoSegmentsTypes";
+
 export interface StreamingData {
   streamingLink: StreamingType[];
   servers: ServersType[];
 }
 
-export interface StreamingType {
+export type StreamingType = {
   id: number;
   type: "dub" | "sub";
   link: {
@@ -18,12 +20,12 @@ export interface StreamingType {
       default: boolean;
     }
   ];
-  intro: { end: number; start: number };
-  outro: { end: number; start: number };
+  intro: Segment;
+  outro: Segment;
   server: string;
 }
 
-export interface ServersType {
+export type ServersType ={
   type: string;
   data_id: number;
   server_id: number;

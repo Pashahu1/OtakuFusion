@@ -1,8 +1,8 @@
 // @ts-nocheck
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { usePathname, useParams, useRouter } from 'next/navigation';
-import useWatch from '@/hooks/useWatch.ts';
+import { useSearchParams, useParams, useRouter } from 'next/navigation';
+import useWatch from '@/hooks/useWatch';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
 import Player from '@/components/Player/Player';
 import Episodelist from '@/components/Episodelist/Episodelist';
@@ -24,15 +24,23 @@ import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkele
 import WatchControls from '@/components/Watchcontrols/Watchcontrols';
 import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
 
+type TagItem = {
+  condition?: unknown;
+  bgColor: string;
+  text?: string;
+  icon?: typeof faClosedCaptioning;
+};
+
 export default function Watch() {
-  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { id: animeId } = useParams();
-  const queryParams = new URLSearchParams(pathname.search);
-  let initialEpisodeId = queryParams.get('ep');
-  const [tags, setTags] = useState([]);
-  const isFirstSet = useRef(true);
+  // const initialEpisodeId = searchParams.get('ep') ?? undefined;
+  // const [tags, setTags] = useState<TagItem[]>([]);
+  const initialEpisodeId = searchParams.get('ep') ?? undefined;
   const [showNextEpisodeSchedule, setShowNextEpisodeSchedule] = useState(true);
+  const [tags, setTags] = useState<TagItem[]>([]);
+  const isFirstSet = useRef(true);
 
   const {
     error,
@@ -87,19 +95,18 @@ export default function Watch() {
 
     const newUrl = `/watch/${animeId}?ep=${episodeId}`;
     if (isFirstSet.current) {
-      router.push(newUrl, { replace: true });
+      router.replace(newUrl);
       isFirstSet.current = false;
     } else {
       router.push(newUrl);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [episodeId, animeId, router, episodes]);
 
-  // Update document title
   useEffect(() => {
     if (animeInfo) {
       document.title = `Watch ${animeInfo.title} English Sub/Dub online Free on ${website_name}`;
     }
+
     return () => {
       document.title = `${website_name} | Free anime streaming platform`;
     };
@@ -115,15 +122,15 @@ export default function Watch() {
   useEffect(() => {
     const adjustHeight = () => {
       if (window.innerWidth > 1200) {
-        const player = document.querySelector('.player');
-        const episodes = document.querySelector('.episodes');
-        if (player && episodes) {
-          episodes.style.height = `${player.clientHeight}px`;
+        const player = document.querySelector<HTMLElement>('.player');
+        const episodesEl = document.querySelector<HTMLElement>('.episodes');
+        if (player && episodesEl) {
+          episodesEl.style.height = `${player.clientHeight}px`;
         }
       } else {
-        const episodes = document.querySelector('.episodes');
-        if (episodes) {
-          episodes.style.height = 'auto';
+        const episodesEl = document.querySelector<HTMLElement>('.episodes');
+        if (episodesEl) {
+          episodesEl.style.height = 'auto';
         }
       }
     };
@@ -134,7 +141,17 @@ export default function Watch() {
     };
   });
 
-  function Tag({ bgColor, index, icon, text }) {
+  function Tag({
+    bgColor,
+    index,
+    icon,
+    text,
+  }: {
+    bgColor: string;
+    index: number;
+    icon?: TagItem['icon'];
+    text?: string;
+  }) {
     return (
       <div
         className={`flex space-x-1 justify-center items-center px-[4px] py-[1px] text-black font-semibold text-[13px] ${

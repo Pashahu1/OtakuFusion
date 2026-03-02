@@ -1,5 +1,5 @@
 "use client";
-import type { SeasonsType } from "../../shared/types/GlobalTypes";
+import type { SeasonsType } from "../../shared/types/GlobalAnimeTypes";
 import Link from "next/link";
 import "./Seasons.scss";
 import { usePathname } from "next/navigation";

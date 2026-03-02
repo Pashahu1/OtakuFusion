@@ -3,18 +3,21 @@ import type {
   SpotlightAnime,
   TrendingAnime,
   ScheduleAnime,
-} from "./GlobalTypes";
+} from "./GlobalAnimeTypes";
 
-export interface HomePageType {
-  genres: string[];
-  latestEpisode: AnimeInfo[];
-  spotlights: SpotlightAnime[];
-  trending: TrendingAnime[];
-  today: {
-    schedule: ScheduleAnime[];
+export interface HomePageResponse {
+  success: boolean;
+  results: {
+    spotlights: SpotlightAnime[];
+    trending: TrendingAnime[];
+    today: {
+      schedule: ScheduleAnime[];
+    };
+    topAiring: AnimeInfo[];
+    mostPopular: AnimeInfo[];
+    mostFavorite: AnimeInfo[];
+    latestCompleted: AnimeInfo[];
+    latestEpisode: AnimeInfo[];
+    genres: string[];
   };
-  topAiring: AnimeInfo[];
-  mostPopular: AnimeInfo[];
-  mostFavorite: AnimeInfo[];
-  latestCompleted: AnimeInfo[];
 }

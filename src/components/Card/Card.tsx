@@ -6,7 +6,7 @@ import {
   faClosedCaptioning,
   faMicrophone,
 } from '@fortawesome/free-solid-svg-icons';
-import type { AnimeInfo } from '../../shared/types/GlobalTypes';
+import type { AnimeInfo } from '../../shared/types/GlobalAnimeTypes';
 
 type Props = {
   anime: AnimeInfo;

@@ -3,7 +3,7 @@ import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { getGenreAnime } from '@/services/getGenreAnime';
-import type { AnimeInfo } from '@/shared/types/GlobalTypes';
+import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { Suspense } from 'react';
 import { Pagination } from '@/components/Pagination/Pagination';
 import ErrorState from '@/components/ui/states/ErrorState';

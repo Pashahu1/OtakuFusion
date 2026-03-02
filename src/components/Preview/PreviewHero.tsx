@@ -18,7 +18,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 import './PreviewHero.scss';
 import Image from 'next/image';
-import type { SpotlightAnime, TrendingAnime } from '@/shared/types/GlobalTypes';
+import type { SpotlightAnime, TrendingAnime } from '@/shared/types/GlobalAnimeTypes';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
