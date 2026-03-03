@@ -1,4 +1,10 @@
-export function Section({ title, text, items }: any) {
+interface SectionProps {
+  title: string;
+  text?: string;
+  items?: string[];
+}
+
+export function Section({ title, text, items }: SectionProps) {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-2xl font-bold text-[var(--color-brand-orange)] tracking-wide">

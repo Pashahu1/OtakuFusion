@@ -3,6 +3,7 @@ import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import { Pagination } from '@/components/Pagination/Pagination';
 import EmptyState from '@/components/ui/states/EmptyState';
+import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 interface Props {
   category: string;
@@ -28,7 +29,7 @@ export default async function AnimeData({ category, page }: Props) {
   return (
     <>
       <AnimeListLayout title={titleCategory}>
-        {data.map((anime: any) => (
+        {data.map((anime: AnimeInfo) => (
           <Card key={anime.id} anime={anime} />
         ))}
       </AnimeListLayout>

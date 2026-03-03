@@ -2,6 +2,7 @@ import { getAnimeSearch } from '@/services/getAnimeSearch';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import EmptyState from '@/components/ui/states/EmptyState';
+import type { AnimeSearchItem } from '@/shared/types/AnimeSearchTypes';
 
 export default async function SearchData({ keyword }: { keyword: string }) {
   if (!keyword.trim()) {
@@ -9,8 +10,7 @@ export default async function SearchData({ keyword }: { keyword: string }) {
   }
 
   try {
-    const response = await getAnimeSearch(keyword);
-    const results = response.data;
+    const results = await getAnimeSearch(keyword);
 
     if (!results || results.length === 0) {
       return (
@@ -22,7 +22,7 @@ export default async function SearchData({ keyword }: { keyword: string }) {
 
     return (
       <AnimeListLayout>
-        {results.map((anime: any, idx: number) => (
+        {results.map((anime: AnimeSearchItem, idx: number) => (
           <Card key={anime.id || idx} anime={anime} />
         ))}
       </AnimeListLayout>

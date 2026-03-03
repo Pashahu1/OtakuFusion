@@ -2,8 +2,16 @@ import { ApiError } from './errors/ApiError';
 
 const API_URL = 'https://anime-api-8ckpoa.fly.dev/api';
 
+/** Стандартна обгортка відповіді API: { results: T } */
+export interface ApiResponse<T> {
+  results: T;
+}
+
 export const apiUrl = {
-  get: async (endpoint: string, revalidate?: number) => {
+  get: async <T = unknown>(
+    endpoint: string,
+    revalidate?: number
+  ): Promise<T> => {
     const res = await fetch(`${API_URL}${endpoint}`, {
       next: revalidate ? { revalidate } : undefined,
     });
@@ -12,6 +20,6 @@ export const apiUrl = {
       throw new ApiError('API request failed', res.status);
     }
 
-    return res.json();
+    return res.json() as Promise<T>;
   },
 };

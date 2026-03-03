@@ -1,7 +1,11 @@
-import { apiUrl } from '@/lib/api';
-import axios from 'axios';
+import { apiUrl, type ApiResponse } from '@/lib/api';
+import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
 
-export default async function getEpisodes(id: string) {
-  const data = await apiUrl.get(`/episodes/${id}`);
+export default async function getEpisodes(
+  id: string
+): Promise<GetEpisodesResult> {
+  const data = await apiUrl.get<ApiResponse<GetEpisodesResult>>(
+    `/episodes/${id}`
+  );
   return data.results;
 }

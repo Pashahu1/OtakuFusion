@@ -1,7 +1,12 @@
-import { apiUrl } from '@/lib/api';
+import { apiUrl, type ApiResponse } from '@/lib/api';
 
-const getCategoryInfo = async (path: string, page: string) => {
-  const data = await apiUrl.get(`/${path}?page=${page}`);
+const getCategoryInfo = async (
+  path: string,
+  page: string
+): Promise<ApiResponse<unknown>> => {
+  const data = await apiUrl.get<ApiResponse<unknown>>(
+    `/${path}?page=${page}`
+  );
   return data;
 };
 

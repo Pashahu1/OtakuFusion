@@ -4,6 +4,7 @@ import { Card } from '@/components/Card/Card';
 import { Pagination } from '@/components/Pagination/Pagination';
 import EmptyState from '@/components/ui/states/EmptyState';
 import ErrorState from '@/components/ui/states/ErrorState';
+import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 interface Props {
   gender: string;
@@ -27,7 +28,7 @@ export default async function GenderData({ gender, page }: Props) {
     return (
       <div className='mt-[80px] px-4 lg:px-10'>
         <AnimeListLayout title={decodedTitle}>
-          {data.map((anime: any) => (
+          {data.map((anime: AnimeInfo) => (
             <Card key={anime.id} anime={anime} />
           ))}
         </AnimeListLayout>

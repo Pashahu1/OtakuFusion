@@ -1,4 +1,4 @@
-export interface EpisodesType {
+export interface EpisodesTypes {
   episode_no: number;
   id: string;
   data_id: number;
@@ -6,4 +6,9 @@ export interface EpisodesType {
   title: string;
   japanese_title: string;
   filler?: boolean;
+}
+
+export interface GetEpisodesResult {
+  episodes: EpisodesTypes[];
+  totalEpisodes: number;
 }
