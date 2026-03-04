@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import useWatch from '@/hooks/useWatch';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
@@ -39,7 +39,6 @@ export default function Watch() {
   const animeId = typeof animeIdRaw === 'string' ? animeIdRaw : Array.isArray(animeIdRaw) ? animeIdRaw[0] ?? '' : '';
   const initialEpisodeId = searchParams.get('ep') ?? undefined;
   const [showNextEpisodeSchedule, setShowNextEpisodeSchedule] = useState(true);
-  const [tags, setTags] = useState<TagItem[]>([]);
   const isFirstSet = useRef(true);
 
   const {
@@ -100,7 +99,7 @@ export default function Watch() {
     } else {
       router.push(newUrl);
     }
-  }, [episodeId, animeId, router, episodes]);
+  }, [episodeId, animeId, router, episodes, setEpisodeId]);
 
   useEffect(() => {
     if (animeInfo) {
@@ -110,7 +109,7 @@ export default function Watch() {
     return () => {
       document.title = `${website_name} | Free anime streaming platform`;
     };
-  }, [animeId]);
+  }, [animeId, animeInfo]);
 
   // // Redirect if no episodes
   // useEffect(() => {
@@ -165,8 +164,8 @@ export default function Watch() {
     );
   }
 
-  useEffect(() => {
-    setTags([
+  const tags = useMemo<TagItem[]>(
+    () => [
       {
         condition: animeInfo?.animeInfo?.tvInfo?.rating,
         bgColor: '#ffffff',
@@ -194,8 +193,9 @@ export default function Watch() {
         bgColor: '#B9E7FF',
         text: animeInfo?.animeInfo?.tvInfo?.dub,
       },
-    ]);
-  }, [animeId, animeInfo]);
+    ],
+    [animeInfo]
+  );
 
   return (
     <div className="w-full h-fit flex flex-col justify-center items-center relative">

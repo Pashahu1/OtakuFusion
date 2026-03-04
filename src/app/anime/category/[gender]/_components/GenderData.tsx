@@ -12,31 +12,39 @@ interface Props {
 }
 
 export default async function GenderData({ gender, page }: Props) {
+  const decodedTitle = decodeURIComponent(gender).replaceAll('-', ' ');
+
+  let data: AnimeInfo[] | null = null;
+  let totalPages: number | undefined;
+  let hasError = false;
+
   try {
-    const decodedTitle = decodeURIComponent(gender).replaceAll('-', ' ');
-
     const res = await getGenreAnime(gender, page);
-    const data = res.results.data;
-    const totalPages = res.results.totalPages;
+    data = res.results.data ?? null;
+    totalPages = res.results.totalPages;
+  } catch {
+    hasError = true;
+  }
 
-    if (!data || data.length === 0) {
-      return (
-        <EmptyState fullPage message={`No anime found for ${decodedTitle}.`} />
-      );
-    }
-
-    return (
-      <div className='mt-[80px] px-4 lg:px-10'>
-        <AnimeListLayout title={decodedTitle}>
-          {data.map((anime: AnimeInfo) => (
-            <Card key={anime.id} anime={anime} />
-          ))}
-        </AnimeListLayout>
-
-        <Pagination pageCount={totalPages ?? 1} currentPage={page} />
-      </div>
-    );
-  } catch (error) {
+  if (hasError) {
     return <ErrorState message="Failed to load genre data." />;
   }
+
+  if (!data || data.length === 0) {
+    return (
+      <EmptyState fullPage message={`No anime found for ${decodedTitle}.`} />
+    );
+  }
+
+  return (
+    <div className='mt-[80px] px-4 lg:px-10'>
+      <AnimeListLayout title={decodedTitle}>
+        {data.map((anime: AnimeInfo) => (
+          <Card key={anime.id} anime={anime} />
+        ))}
+      </AnimeListLayout>
+
+      <Pagination pageCount={totalPages ?? 1} currentPage={page} />
+    </div>
+  );
 }

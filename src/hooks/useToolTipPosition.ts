@@ -34,12 +34,11 @@ const useToolTipPosition = (hoveredItem, data) => {
   };
 
   useEffect(() => {
-    updateToolTipPosition();
-    const handleScroll = () => {
-      updateToolTipPosition();
-    };
+    const rafId = requestAnimationFrame(() => updateToolTipPosition());
+    const handleScroll = () => updateToolTipPosition();
     window.addEventListener('scroll', handleScroll);
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('scroll', handleScroll);
     };
   }, [hoveredItem, data]);

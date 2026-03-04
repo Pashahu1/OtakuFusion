@@ -28,7 +28,8 @@ export default function useWatch(
       return m && m[1] === episodeId;
     });
     return ep?.episode_no ?? null;
-  }, [anime.episodes, anime.episodeId]);
+    // Intentionally depend only on episodes and episodeId, not full anime object
+  }, [anime.episodes, anime.episodeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const error =
     anime.error ?? servers.error ?? stream.error ?? null;

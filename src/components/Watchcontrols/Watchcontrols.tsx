@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { faBackward, faForward } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 const ToggleButton = ({ label, isActive, onClick }) => (
   <button className="flex gap-x-2" onClick={onClick}>
@@ -26,19 +26,11 @@ export default function WatchControls({
   episodes = [],
   onButtonClick,
 }) {
-  const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
-    episodes?.findIndex(
+  const currentEpisodeIndex = useMemo(() => {
+    if (!episodes?.length) return -1;
+    return episodes.findIndex(
       (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
-    )
-  );
-
-  useEffect(() => {
-    if (episodes?.length > 0) {
-      const newIndex = episodes.findIndex(
-        (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
-      );
-      setCurrentEpisodeIndex(newIndex);
-    }
+    );
   }, [episodeId, episodes]);
 
   return (

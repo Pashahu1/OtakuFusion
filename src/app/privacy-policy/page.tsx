@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Section } from '@/components/Section/page';
 
 export default function PrivacyPolicyPage() {
@@ -67,12 +68,14 @@ export default function PrivacyPolicyPage() {
             <Section
               title="9. Contact Us"
               text={
-                <>
-                  If you have any questions, feel free to contact us at:
-                  <span className="font-semibold text-[var(--color-brand-orange)]">
-                    maks.chudin567@gmail.com
-                  </span>
-                </>
+                (
+                  <>
+                    If you have any questions, feel free to contact us at:{' '}
+                    <span className="font-semibold text-[var(--color-brand-orange)]">
+                      maks.chudin567@gmail.com
+                    </span>
+                  </>
+                ) as ReactNode
               }
             />
           </div>

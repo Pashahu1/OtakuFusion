@@ -1,5 +1,4 @@
 // @ts-nocheck
-/* eslint-disable react/prop-types */
 import Hls from 'hls.js';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';

@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react';
+
 interface SectionProps {
   title: string;
-  text?: string;
+  text?: string | ReactNode;
   items?: string[];
 }
 
@@ -10,7 +12,7 @@ export function Section({ title, text, items }: SectionProps) {
       <h2 className="text-2xl font-bold text-[var(--color-brand-orange)] tracking-wide">
         {title}
       </h2>
-      {text && (
+      {text != null && (
         <p className="text-[var(--color-brand-text-primary)] text-lg leading-relaxed">
           {text}
         </p>

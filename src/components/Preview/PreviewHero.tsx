@@ -37,6 +37,8 @@ type Props = {
 };
 
 const Preview = ({ spotlights, trending }: Props) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   if (!Array.isArray(spotlights)) {
     return (
       <EmptyState
@@ -54,8 +56,8 @@ const Preview = ({ spotlights, trending }: Props) => {
       />
     );
   }
+
   const safeTrending = Array.isArray(trending) ? trending : [];
-  const [currentIndex, setCurrentIndex] = useState(0);
   const currentAnime = spotlights[currentIndex];
 
   return (
