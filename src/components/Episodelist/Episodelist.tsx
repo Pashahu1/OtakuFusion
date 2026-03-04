@@ -8,12 +8,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect, useRef } from 'react';
 import './Episodelist.scss';
-import type { EpisodesType } from '@/shared/types/EpisodesListType';
+import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 type EpisodeType = {
   animeId: string;
-  episodes: EpisodesType[];
+  episodes: EpisodesTypes[];
   onEpisodeClick: (episodeId: string) => void;
   currentEpisode: string | null;
   totalEpisodes: number;

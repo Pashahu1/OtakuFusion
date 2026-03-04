@@ -1,4 +1,4 @@
-export interface SeasonsType {
+export interface SeasonsTypes {
   id: string;
   data_number: number;
   data_id: number;
@@ -58,6 +58,13 @@ export interface AnimeInfo {
 }
 
 export type ServerType = {
+  type: string;
+  data_id: number;
+  server_id: number;
+  serverName: string;
+};
+
+export type ServerInfo = {
   type: string;
   data_id: number;
   server_id: number;

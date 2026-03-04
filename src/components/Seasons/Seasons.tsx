@@ -1,10 +1,10 @@
 "use client";
-import type { SeasonsType } from "../../shared/types/GlobalAnimeTypes";
+import type { SeasonsTypes } from "../../shared/types/GlobalAnimeTypes";
 import Link from "next/link";
 import "./Seasons.scss";
 import { usePathname } from "next/navigation";
 type props = {
-  seasons: SeasonsType[];
+  seasons: SeasonsTypes[];
 };
 
 export const Seasons: React.FC<props> = ({ seasons }) => {

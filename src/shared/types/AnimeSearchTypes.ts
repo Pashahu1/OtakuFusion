@@ -1,6 +1,6 @@
 import type { TvInfo } from "./GlobalAnimeTypes";
 
-export interface AnimeSearchResponse {
+export interface AnimeSearchItems {
     id:string,
     data_id: number,
     poster: string,

@@ -1,8 +1,9 @@
 import type { Segment } from "./VideoSegmentsTypes";
+import type { VideoTrack } from "./VideoTrackTypes";
 
 export interface StreamingData {
   streamingLink: StreamingType[];
-  servers: ServersType[];
+  servers: StreamServer[];
 }
 
 export type StreamingType = {
@@ -12,22 +13,15 @@ export type StreamingType = {
     file: string;
     type: string;
   };
-  tracks: [
-    {
-      file: string;
-      label: string;
-      kind: string;
-      default: boolean;
-    }
-  ];
+  tracks: VideoTrack[];
   intro: Segment;
   outro: Segment;
   server: string;
-}
+};
 
-export type ServersType ={
+export type StreamServer = {
   type: string;
   data_id: number;
   server_id: number;
   server_name: string;
-}
+};
