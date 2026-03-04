@@ -7,7 +7,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
 import { useEffect } from 'react';
 import './Servers.scss';
-import type { AnimeServerType, Server } from '@/shared/types/AnimeServersType';
+import type { Season } from '@/shared/types/AnimeServersTypes';
+import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 
 function Servers({
   servers,
@@ -15,7 +16,7 @@ function Servers({
   activeServerId,
   setActiveServerId,
   serverLoading,
-}: AnimeServerType) {
+}: Season) {
   const subServers = servers?.filter((server) => server.type === 'sub') || [];
   const dubServers = servers?.filter((server) => server.type === 'dub') || [];
   const rawServers = servers?.filter((server) => server.type === 'raw') || [];
@@ -31,22 +32,22 @@ function Servers({
       );
 
       if (matchingServer) {
-        setActiveServerId(matchingServer.data_id);
+        setActiveServerId(String(matchingServer.data_id));
       } else if (servers && servers.length > 0) {
-        setActiveServerId(servers[0].data_id);
+        setActiveServerId(String(servers[0].data_id));
       }
     } else if (servers && servers.length > 0) {
-      setActiveServerId(servers[0].data_id);
+      setActiveServerId(String(servers[0].data_id));
     }
   }, [servers]);
 
-  const handleServerSelect = (server: Server) => {
-    setActiveServerId(server.data_id);
+  const handleServerSelect = (server: ServerInfo) => {
+    setActiveServerId(String(server.data_id));
     localStorage.setItem('server_name', server.serverName);
     localStorage.setItem('server_type', server.type);
   };
 
-  const handleRenameServer = (server: Server) => {
+  const handleRenameServer = (server: ServerInfo) => {
     if (server.serverName === 'HD-1') {
       return 'AniVoice';
     } else if (server.serverName === 'HD-2') {
@@ -97,7 +98,7 @@ function Servers({
                     <div
                       key={index}
                       className={`px-3 py-[6px] rounded-md cursor-pointer transition-all duration-150 ${
-                        activeServerId === item?.data_id
+                        activeServerId === String(item?.data_id)
                           ? 'bg-[#ff640a] text-black shadow-[0_0_10px_rgba(255,100,10,0.4)] scale-[1.02]'
                           : 'bg-[#2d2f36] text-[#e5e5e5] border border-[#3a3c45] hover:border-[#ff640a] hover:text-[#ff640a]'
                       }
@@ -133,7 +134,7 @@ function Servers({
                     <div
                       key={index}
                       className={`px-3 py-[6px] rounded-md cursor-pointer transition-all duration-150 ${
-                        activeServerId === item?.data_id
+                        activeServerId === String(item?.data_id)
                           ? 'bg-[#ff640a] text-black shadow-[0_0_10px_rgba(255,100,10,0.4)] scale-[1.02]'
                           : 'bg-[#2d2f36] text-[#e5e5e5] border border-[#3a3c45] hover:border-[#ff640a] hover:text-[#ff640a]'
                       }
@@ -169,7 +170,7 @@ function Servers({
                     <div
                       key={index}
                       className={`px-3 py-[6px] rounded-md cursor-pointer transition-all duration-150 ${
-                        activeServerId === item?.data_id
+                        activeServerId === String(item?.data_id)
                           ? 'bg-[#ff640a] text-black shadow-[0_0_10px_rgba(255,100,10,0.4)] scale-[1.02]'
                           : 'bg-[#2d2f36] text-[#e5e5e5] border border-[#3a3c45] hover:border-[#ff640a] hover:text-[#ff640a]'
                       }

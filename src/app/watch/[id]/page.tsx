@@ -34,9 +34,9 @@ type TagItem = {
 export default function Watch() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { id: animeId } = useParams();
-  // const initialEpisodeId = searchParams.get('ep') ?? undefined;
-  // const [tags, setTags] = useState<TagItem[]>([]);
+  const params = useParams();
+  const animeIdRaw = params?.id;
+  const animeId = typeof animeIdRaw === 'string' ? animeIdRaw : Array.isArray(animeIdRaw) ? animeIdRaw[0] ?? '' : '';
   const initialEpisodeId = searchParams.get('ep') ?? undefined;
   const [showNextEpisodeSchedule, setShowNextEpisodeSchedule] = useState(true);
   const [tags, setTags] = useState<TagItem[]>([]);
