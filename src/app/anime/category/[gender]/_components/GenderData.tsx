@@ -33,7 +33,7 @@ export default async function GenderData({ gender, page }: Props) {
           ))}
         </AnimeListLayout>
 
-        <Pagination pageCount={totalPages} currentPage={page} />
+        <Pagination pageCount={totalPages ?? 1} currentPage={page} />
       </div>
     );
   } catch (error) {
