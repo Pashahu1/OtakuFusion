@@ -34,7 +34,7 @@ export default async function AnimeData({ category, page }: Props) {
         ))}
       </AnimeListLayout>
 
-      <Pagination pageCount={totalPages} currentPage={page} />
+      <Pagination pageCount={totalPages ?? 1} currentPage={page} />
     </>
   );
 }
