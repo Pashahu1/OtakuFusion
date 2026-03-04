@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { EpisodesTypes } from "./EpisodesListTypes";
 import type { AnimeInfo, SeasonsTypes, ServerInfo } from "./GlobalAnimeTypes";
-import type { StreamingType } from "./StreamingTypes";
+import type { StreamingData } from "./StreamingTypes";
 import type { Segment } from "./VideoSegmentsTypes";
 import type { NextEpisodeScheduleResult } from "@/services/getNextEpisodeSchedule.services";
 
@@ -9,7 +9,7 @@ export interface UseWatchReturn {
     error: string | null;
     buffering: boolean;
     serverLoading: boolean;
-    streamInfo: StreamingType | null;
+    streamInfo: StreamingData | null;
     animeInfo: AnimeInfo | null;
     episodes: EpisodesTypes[] | null;
     nextEpisodeSchedule: NextEpisodeScheduleResult | null;

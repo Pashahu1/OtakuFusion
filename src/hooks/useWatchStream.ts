@@ -5,7 +5,7 @@ import type { StreamingType } from '@/shared/types/StreamingTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 
 export interface UseWatchStreamReturn {
-  streamInfo: StreamingType | null;
+  streamInfo: StreamingData | null;
   streamUrl: string | null;
   buffering: boolean;
   subtitles: Array<{ file: string; label: string }>;
@@ -19,9 +19,11 @@ function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : 'An error occurred.';
 }
 
+/** API can return streamingLink as single object or array — support both (same as original useWatch). */
 function getFirstStreamLink(data: StreamingData | null): StreamingType | null {
-  if (!data?.streamingLink?.length) return null;
-  return data.streamingLink[0] ?? null;
+  if (!data?.streamingLink) return null;
+  const sl = data.streamingLink;
+  return Array.isArray(sl) ? (sl[0] ?? null) : sl;
 }
 
 export function useWatchStream(
@@ -30,7 +32,7 @@ export function useWatchStream(
   activeServerId: string | null,
   servers: ServerInfo[] | null
 ): UseWatchStreamReturn {
-  const [streamInfo, setStreamInfo] = useState<StreamingType | null>(null);
+  const [streamInfo, setStreamInfo] = useState<StreamingData | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [buffering, setBuffering] = useState(true);
   const [subtitles, setSubtitles] = useState<Array<{ file: string; label: string }>>([]);
@@ -76,9 +78,9 @@ export function useWatchStream(
           server.serverName.toLowerCase(),
           server.type.toLowerCase()
         );
+        setStreamInfo(data);
         const first = getFirstStreamLink(data);
         if (first) {
-          setStreamInfo(first);
           setStreamUrl(first.link?.file ?? null);
           setIntro(first.intro ?? null);
           setOutro(first.outro ?? null);
@@ -91,6 +93,12 @@ export function useWatchStream(
             (t) => t.kind === 'thumbnails' && t.file
           );
           setThumbnail(thumb?.file ?? null);
+        } else {
+          setStreamUrl(null);
+          setSubtitles([]);
+          setThumbnail(null);
+          setIntro(null);
+          setOutro(null);
         }
       } catch (err) {
         console.error('Error fetching stream info:', err);
