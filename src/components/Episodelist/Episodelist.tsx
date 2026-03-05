@@ -9,7 +9,6 @@ import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect, useRef } from 'react';
 import './Episodelist.scss';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 type EpisodeType = {
   animeId: string;
@@ -17,6 +16,7 @@ type EpisodeType = {
   onEpisodeClick: (episodeId: string) => void;
   currentEpisode: string | null;
   totalEpisodes: number;
+  watchedEpisodes?: Record<string, boolean>;
 };
 
 function Episodelist({
@@ -25,6 +25,7 @@ function Episodelist({
   onEpisodeClick,
   currentEpisode,
   totalEpisodes,
+  watchedEpisodes = {},
 }: EpisodeType) {
   const [activeEpisodeId, setActiveEpisodeId] = useState(currentEpisode);
   const listContainerRef = useRef<HTMLDivElement>(null);
@@ -51,12 +52,17 @@ function Episodelist({
         activeEpisodeHeight / 2;
     }
   };
-  const [watched] = useLocalStorage(`watched-${animeId}`, {});
-  const isWatched = watched === true
 
   useEffect(() => {
     setActiveEpisodeId(episodeNum);
   }, [episodeNum]);
+
+  useEffect(() => {
+    if (currentEpisode != null) {
+      setActiveEpisodeId(currentEpisode);
+      setEpisodeNum(currentEpisode);
+    }
+  }, [currentEpisode]);
 
   useEffect(() => {
     scrollToActiveEpisode();
@@ -118,13 +124,12 @@ function Episodelist({
     return [start, end];
   }
 
-  function generateRangeOptions(totalEpisodes: number) {
-    const ranges = [];
+  function generateRangeOptions(total: number) {
     const step = 100;
-
-    for (let i = 0; i < totalEpisodes; i += step) {
+    const ranges: string[] = [];
+    for (let i = 0; i < total; i += step) {
       const start = i + 1;
-      const end = Math.min(i + step, totalEpisodes);
+      const end = Math.min(i + step, total);
       ranges.push(`${start}-${end}`);
     }
     return ranges;
@@ -160,7 +165,7 @@ function Episodelist({
   }, [activeEpisodeId, episodes]);
 
   return (
-    <div className="relative flex flex-col w-full h-full max-[1200px]:max-h-[500px]">
+    <div className="relative flex flex-col w-full h-full min-h-0 max-[1200px]:max-h-[500px]">
       <div className="sticky top-0 z-10 flex flex-col gap-y-[5px] justify-start px-3 py-4 bg-[#23252b]">
         <h1 className="text-[13px] font-bold">List of episodes:</h1>
         {totalEpisodes > 100 && (
@@ -243,13 +248,14 @@ function Episodelist({
                     activeEpisodeId === episodeNumber ||
                     currentEpisode === episodeNumber;
                   const isSearched = searchedEpisode === item?.id;
+                  const isWatched = episodeNumber ? watchedEpisodes[episodeNumber] === true : false;
 
                   return (
                     <div
                       key={item?.id}
                       ref={isActive ? activeEpisodeRef : null}
                       className={`relative flex items-center justify-center rounded-[3px] h-[30px] text-[13.5px] font-medium cursor-pointer group md:hover:bg-[#f47521] 
-                          md:hover:text-[#2a2a2a] ${isWatched ? 'bg-[#f47521]' : ''}
+                          md:hover:text-[#2a2a2a] ${isWatched ? 'opacity-60' : ''}
                        ${
                          isActive
                            ? 'bg-[#2a2a2a] border text-[#f47521]'
@@ -287,6 +293,7 @@ function Episodelist({
                   activeEpisodeId === episodeNumber ||
                   currentEpisode === episodeNumber;
                 const isSearched = searchedEpisode === item?.id;
+                const isWatched = episodeNumber ? watchedEpisodes[episodeNumber] === true : false;
 
                 return (
                   <div
@@ -296,7 +303,7 @@ function Episodelist({
                       (index + 1) % 2 && !isActive ? 'text-gray-400' : 'bg-none'
                     } group md:hover:bg-[#2B2A42] ${
                       isActive ? 'text-[#ff640a] bg-[#2B2A42]' : ''
-                    } ${isSearched ? 'glow-animation' : ''} ${isWatched ? 'bg-[#2B2A42]' : ''}`}
+                    } ${isSearched ? 'glow-animation' : ''} ${isWatched ? 'opacity-60' : ''}`}
                     onClick={() => {
                       if (episodeNumber) {
                         onEpisodeClick(episodeNumber);

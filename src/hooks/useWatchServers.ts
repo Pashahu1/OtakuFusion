@@ -21,8 +21,8 @@ function getInitialServer(
       (s) =>
         s.type === savedType && PREFERRED_SERVERS.includes(s.serverName as any)
     ) ??
-    servers[3] ??
-    servers[1] ??
+    servers.find((s) => s.type === 'sub') ??
+    servers.find((s) => s.type === 'dub') ??
     servers[0]
   );
 }
@@ -64,8 +64,11 @@ export function useWatchServers(
       try {
         const data = await getServers(animeId, episodeId);
         const filtered =
-          data?.filter((s) =>
-            PREFERRED_SERVERS.includes(s.serverName as any)
+          data?.filter(
+            (s) =>
+              PREFERRED_SERVERS.includes(s.serverName as any) ||
+              s.type === 'sub' ||
+              s.type === 'dub'
           ) ?? [];
         const savedName = localStorage.getItem(STORAGE_SERVER_NAME);
         const savedType = localStorage.getItem(STORAGE_SERVER_TYPE);

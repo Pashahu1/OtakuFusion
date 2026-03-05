@@ -18,11 +18,8 @@ export interface AnimeData {
   japanese_title: string;
   poster: string;
   showType: string;
-  /** Детальна метадата (Overview, Genres, Studios...) — один об'єкт */
-  animeInfo: AnimeDetailsInfo;
-  /** Картки рекомендацій (id, poster, title...) */
+  animeInfo: AnimeDetailsInfo; 
   recommended_data: AnimeInfo[];
-  /** Картки пов’язаних аніме */
   related_data: AnimeInfo[];
 }
 

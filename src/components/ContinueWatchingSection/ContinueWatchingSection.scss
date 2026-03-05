@@ -1,0 +1,38 @@
+.continue-watching-nav {
+  position: absolute;
+  top: 0;
+  width: 48px;
+  height: 100%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.85), transparent);
+  }
+
+  &.continue-watching-nav--right:hover {
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.85), transparent);
+  }
+
+  &.swiper-button-disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.continue-watching-nav--left {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.continue-watching-nav--right {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.6), transparent);
+}

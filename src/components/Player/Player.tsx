@@ -20,6 +20,7 @@ import {
   pipIcon,
   playIcon,
   playIconLg,
+  serverIcon,
   settingsIcon,
   volumeIcon,
 } from './PlayerIcons';
@@ -56,21 +57,45 @@ export default function Player({
   episodeId,
   episodes,
   playNext,
+  onEpisodeWatched,
   animeInfo,
   episodeNum,
   streamInfo,
+  servers = null,
+  activeServerId = null,
+  setActiveServerId = () => {},
 }) {
-  const artRef = useRef(null);
-  const proxy = 'https://cors-anywhere-9ycb.onrender.com/?url=';
-  const m3u8proxy = 'https://m3u8proxy.fly.dev/m3u8-proxy?url=' || [];
-
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
     episodes?.findIndex(
       (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
     )
   );
 
+  const artRef = useRef(null);
+  const artInstanceRef = useRef(null);
+  const serversRef = useRef(servers);
+  const activeServerIdRef = useRef(activeServerId);
+  const episodeIdRef = useRef(episodeId);
+  const episodesRef = useRef(episodes);
+  const currentEpisodeIndexRef = useRef(currentEpisodeIndex);
+  const playNextRef = useRef(playNext);
+  const onEpisodeWatchedRef = useRef(onEpisodeWatched);
+  const hasTriggeredNextRef = useRef(false);
+  const hasMarkedWatchedForOutroRef = useRef(false);
+  serversRef.current = servers;
+  activeServerIdRef.current = activeServerId;
+  episodeIdRef.current = episodeId;
+  episodesRef.current = episodes;
+  currentEpisodeIndexRef.current = currentEpisodeIndex;
+  playNextRef.current = playNext;
+  onEpisodeWatchedRef.current = onEpisodeWatched;
+
+  const proxy = 'https://cors-anywhere-9ycb.onrender.com/?url=';
+  const m3u8proxy = 'https://m3u8proxy.fly.dev/m3u8-proxy?url=' || [];
+
   useEffect(() => {
+    hasTriggeredNextRef.current = false;
+    hasMarkedWatchedForOutroRef.current = false;
     if (episodes?.length > 0) {
       const newIndex = episodes.findIndex(
         (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
@@ -114,36 +139,8 @@ export default function Player({
       // hls.on(Hls.Events.ERROR, (event, data) => {
       //   console.error("HLS.js error:", data);
       // });
-      video.addEventListener('timeupdate', () => {
-        const currentTime = Math.round(video.currentTime);
-        const duration = Math.round(video.duration);
-        if (duration > 0) {
-          if (currentTime >= duration) {
-            art.pause();
-            if (currentEpisodeIndex < episodes?.length - 1 && autoNext) {
-              playNext(
-                episodes[currentEpisodeIndex + 1].id.match(/ep=(\d+)/)?.[1]
-              );
-            }
-          }
-        }
-      });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
-      video.addEventListener('timeupdate', () => {
-        const currentTime = Math.round(video.currentTime);
-        const duration = Math.round(video.duration);
-        if (duration > 0) {
-          if (currentTime >= duration) {
-            art.pause();
-            if (currentEpisodeIndex < episodes?.length - 1 && autoNext) {
-              playNext(
-                episodes[currentEpisodeIndex + 1].id.match(/ep=(\d+)/)?.[1]
-              );
-            }
-          }
-        }
-      });
     } else {
       console.log('Unsupported playback format: m3u8');
     }
@@ -214,6 +211,23 @@ export default function Player({
 
   useEffect(() => {
     if (!streamUrl || !artRef.current) return;
+    const container = artRef.current;
+    if (artInstanceRef.current) {
+      const prev = artInstanceRef.current;
+      if (prev.hls) {
+        prev.hls.destroy();
+        prev.hls = null;
+      }
+      if (prev.video) {
+        prev.video.pause();
+        prev.video.removeAttribute('src');
+        prev.video.load();
+      }
+      prev.pause();
+      prev.destroy(false);
+      artInstanceRef.current = null;
+    }
+    container.innerHTML = '';
     const iframeUrl = streamInfo?.streamingLink?.iframe;
     const headers = {};
     if (iframeUrl) {
@@ -229,11 +243,13 @@ export default function Player({
       '&headers=' +
       encodeURIComponent(JSON.stringify(headers));
 
+    console.log('fullURL', fullURL);
+    
     const art = new Artplayer({
       url: fullURL,
-      container: artRef.current,
+      container,
       type: 'm3u8',
-      // autoplay: autoPlay,
+      autoplay: false,
       volume: 1,
       setting: true,
       playbackRate: true,
@@ -479,7 +495,68 @@ export default function Player({
           (art.width > 500 ? art.width * 0.02 : art.width * 0.03) + 'px',
       });
     });
+
+    art.on('video:ended', () => {
+      const id = episodeIdRef.current;
+      const list = episodesRef.current;
+      const idx = currentEpisodeIndexRef.current;
+      const epId = id != null ? String(id) : '';
+      if (epId) onEpisodeWatchedRef.current?.(epId);
+      const next = list?.[idx + 1];
+      if (next) {
+        const nextId = next.id.match(/ep=(\d+)/)?.[1];
+        if (nextId) playNextRef.current?.(nextId);
+      }
+    });
+
     art.on('ready', () => {
+      const goToNextEpisode = () => {
+        const id = episodeIdRef.current;
+        const list = episodesRef.current;
+        const idx = currentEpisodeIndexRef.current;
+        const epId = id != null ? String(id) : '';
+        if (epId) onEpisodeWatchedRef.current?.(epId);
+        const next = list?.[idx + 1];
+        if (next) {
+          const nextId = next.id.match(/ep=(\d+)/)?.[1];
+          if (nextId) playNextRef.current?.(nextId);
+        }
+      };
+      if (art.video) {
+        art.video.addEventListener('ended', goToNextEpisode);
+        art.on('destroy', () => art.video?.removeEventListener('ended', goToNextEpisode));
+      }
+
+      const tryPlay = () => {
+        if (document.visibilityState === 'visible') art.play().catch(() => {});
+      };
+      if (document.visibilityState === 'visible') tryPlay();
+      art.once('video:canplay', tryPlay);
+
+      const onVisibilityChange = () => {
+        if (document.hidden) {
+          art.pause();
+          if (art.video) art.video.pause();
+          if (art.hls) art.hls.stopLoad?.();
+          artRef.current?.querySelectorAll('video, audio').forEach((el) => (el as HTMLMediaElement).pause());
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      art.on('destroy', () => document.removeEventListener('visibilitychange', onVisibilityChange));
+
+      art.on('pause', () => {
+        if (art.video) {
+          art.video.pause();
+          art.video.currentTime = art.currentTime;
+        }
+        if (art.hls) art.hls.stopLoad?.();
+        if (artRef.current) {
+          artRef.current.querySelectorAll('video, audio').forEach((el) => {
+            (el as HTMLMediaElement).pause();
+          });
+        }
+      });
+
       const skipIntroBtn = art.layers['skipIntro'];
       const skipOutroBtn = art.layers['skipOutro'];
       const logoLayer = art.layers.siteLogo;
@@ -500,16 +577,33 @@ export default function Player({
         } else {
           skipIntroBtn.style.display = 'none';
         }
-        if (art.currentTime >= outro.start && art.currentTime <= outro.end) {
+        if (
+          outro.start != null &&
+          outro.end != null &&
+          art.currentTime >= outro.start &&
+          art.currentTime <= outro.end
+        ) {
           skipOutroBtn.style.display = 'block';
+          if (!hasMarkedWatchedForOutroRef.current) {
+            hasMarkedWatchedForOutroRef.current = true;
+            const id = episodeIdRef.current;
+            const epId = id != null ? String(id) : '';
+            if (epId) onEpisodeWatchedRef.current?.(epId);
+          }
         } else {
           skipOutroBtn.style.display = 'none';
         }
+        const duration = art.video?.duration ?? art.duration;
+        if (
+          Number.isFinite(duration) &&
+          duration > 0 &&
+          art.currentTime >= Math.max(0, duration - 2) &&
+          !hasTriggeredNextRef.current
+        ) {
+          hasTriggeredNextRef.current = true;
+          goToNextEpisode();
+        }
       });
-
-      // setTimeout(() => {
-      //   art.layers[website_name].style.opacity = 0;
-      // }, 2000);
 
       const ranges = [
         ...(intro.start != null && intro.end != null
@@ -532,10 +626,9 @@ export default function Player({
             vtt: `${proxy}${thumbnail}`,
           })
         );
-      const defaultEnglishSub =
-        subtitles.find(
-          (sub) => sub.label.toLowerCase() === 'english' && sub.default
-        ) || subtitles.find((sub) => sub.label.toLowerCase() === 'english');
+      const defaultEnglishSub = subtitles?.find(
+        (sub) => sub.label.toLowerCase() === 'english' && sub.default
+      ) || subtitles?.find((sub) => sub.label.toLowerCase() === 'english');
       subtitles &&
         subtitles.length > 0 &&
         art.setting.add({
@@ -569,9 +662,6 @@ export default function Player({
             return item.html;
           },
         });
-      // {
-      //   autoSkipIntro && art.plugins.add(autoSkip(ranges));
-      // }
       const defaultSubtitle = subtitles?.find(
         (sub) => sub.label.toLowerCase() === 'english'
       );
@@ -581,6 +671,70 @@ export default function Player({
           default: true,
         });
       }
+
+      const langServers = serversRef.current ?? null;
+      const langActiveId = activeServerIdRef.current ?? null;
+      const getPreferredServer = (list) =>
+        list?.find((s) => s.serverName === 'HD-2') ||
+        list?.find((s) => s.serverName === 'HD-1') ||
+        list?.[0];
+      const subList = langServers?.filter((s) => s.type === 'sub') ?? [];
+      const dubList = langServers?.filter((s) => s.type === 'dub') ?? [];
+      const jp = getPreferredServer(subList);
+      const en = getPreferredServer(dubList);
+      const languageSelectorRaw = [
+        jp && {
+          html: 'Japanese',
+          default: String(jp.data_id) === String(langActiveId),
+          data_id: jp.data_id,
+          serverName: jp.serverName,
+          type: jp.type,
+        },
+        en && {
+          html: 'English',
+          default: String(en.data_id) === String(langActiveId),
+          data_id: en.data_id,
+          serverName: en.serverName,
+          type: en.type,
+        },
+      ].filter(Boolean);
+      const languageSelector =
+        languageSelectorRaw.length <= 1
+          ? languageSelectorRaw
+          : [...languageSelectorRaw].sort((a, b) =>
+              String(a.data_id) === String(langActiveId)
+                ? -1
+                : String(b.data_id) === String(langActiveId)
+                  ? 1
+                  : 0
+            );
+      if (languageSelector.length > 0) {
+        const currentLang =
+          langServers?.find((s) => String(s.data_id) === String(langActiveId));
+        art.setting.add({
+          name: 'language',
+          icon: serverIcon,
+          html: 'Language',
+          tooltip: currentLang
+            ? currentLang.type === 'sub'
+              ? 'Japanese'
+              : 'English'
+            : 'Language',
+          position: 'right',
+          selector: languageSelector.map((item) => ({
+            ...item,
+            default: String(item.data_id) === String(langActiveId),
+          })),
+          onSelect: function (item) {
+            setActiveServerId(String(item.data_id));
+            if (item.serverName)
+              localStorage.setItem('server_name', item.serverName);
+            if (item.type) localStorage.setItem('server_type', item.type);
+            return item.html;
+          },
+        });
+      }
+
       const $rewind = art.layers['rewind'];
       const $forward = art.layers['forward'];
       Artplayer.utils.isMobile &&
@@ -599,15 +753,25 @@ export default function Player({
             art.layers['forwardIcon'].style.opacity = 0;
           }, 300);
         });
-
-      console.log('READY FIRED');
-      console.log('Layers:', art.layers);
-      console.log('Logo layer:', art.layers.siteLogo);
     });
 
+    artInstanceRef.current = art;
+
     return () => {
-      if (art && art.destroy) {
+      if (artInstanceRef.current === art) {
+        if (art.hls) {
+          art.hls.destroy();
+          art.hls = null;
+        }
+        if (art.video) {
+          art.video.pause();
+          art.video.removeAttribute('src');
+          art.video.load();
+        }
+        art.pause();
         art.destroy(false);
+        artInstanceRef.current = null;
+        if (artRef.current) artRef.current.innerHTML = '';
       }
       const continueWatching =
         JSON.parse(localStorage.getItem('continueWatching')) || [];

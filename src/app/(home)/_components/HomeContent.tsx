@@ -2,6 +2,7 @@ import { getHomePage } from "@/services/getHomePage";
 import ErrorState from "../../../components/ui/states/ErrorState";
 import Preview from "../../../components/Preview/PreviewHero";
 import AnimeSection from "../../../components/AnimeSection/AnimeSection";
+import { ContinueWatchingSection } from "@/components/ContinueWatchingSection/ContinueWatchingSection";
 
 export async function HomeContent() {
   const homeCatalog = await getHomePage();
@@ -14,6 +15,7 @@ export async function HomeContent() {
         spotlights={homeCatalog.spotlights || []} 
         trending={homeCatalog.trending || []} 
       />
+      <ContinueWatchingSection />
       <div className="flex flex-col gap-[40px]">
         <AnimeSection title="Top Airing" catalog={homeCatalog.topAiring || []} />
         <AnimeSection title="Most Favorite" catalog={homeCatalog.mostFavorite || []} />

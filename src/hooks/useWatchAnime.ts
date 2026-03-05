@@ -37,7 +37,6 @@ export function useWatchAnime(
     useState<NextEpisodeScheduleResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset when anime changes
   useEffect(() => {
     setEpisodes(null);
     setEpisodeId(null);
@@ -49,7 +48,6 @@ export function useWatchAnime(
     setNextEpisodeSchedule(null);
   }, [animeId]);
 
-  // Fetch anime + episodes
   useEffect(() => {
     const fetchInitial = async () => {
       try {
@@ -77,7 +75,6 @@ export function useWatchAnime(
     fetchInitial();
   }, [animeId, initialEpisodeId]);
 
-  // Fetch next episode schedule
   useEffect(() => {
     const fetchSchedule = async () => {
       try {

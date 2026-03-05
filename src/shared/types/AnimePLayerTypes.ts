@@ -1,9 +1,11 @@
+import type { Segment } from './VideoSegmentsTypes';
+import type { VideoTrack } from './VideoTrackTypes';
+
 export interface AnimePlayerType {
-  [x: string]: any;
   headers: {
     Referer: string;
   };
-  tracks: Track[];
+  tracks: VideoTrack[];
   intro?: Segment;
   outro?: Segment;
   sources: Source[];
@@ -11,17 +13,7 @@ export interface AnimePlayerType {
   malID: number;
 }
 
-export type Track = {
-  file: string;
-  kind: "thumbnails" | string;
-};
-
-export type Segment = {
-  start: number;
-  end: number;
-};
-
 export type Source = {
   url: string;
-  type: "hls" | "mp4" | string;
+  type: 'hls' | 'mp4' | string;
 };

@@ -17,6 +17,15 @@ export interface TvInfo {
   dub: string;
 }
 
+export interface HomeTvInfo {
+  showType: string;
+  duration: string;
+  releaseDate: string;
+  quality: string;
+  episodeInfo: TvInfo;
+}
+
+
 export interface SpotlightAnime {
   id: string;
   data_id: number;
@@ -56,13 +65,6 @@ export interface AnimeInfo {
   tvInfo?: TvInfo;
   adultContent?: boolean;
 }
-
-export type ServerType = {
-  type: string;
-  data_id: number;
-  server_id: number;
-  serverName: string;
-};
 
 export type ServerInfo = {
   type: string;

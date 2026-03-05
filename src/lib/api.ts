@@ -2,7 +2,6 @@ import { ApiError } from './errors/ApiError';
 
 const API_URL = 'https://anime-api-8ckpoa.fly.dev/api';
 
-/** Стандартна обгортка відповіді API: { results: T } */
 export interface ApiResponse<T> {
   results: T;
 }

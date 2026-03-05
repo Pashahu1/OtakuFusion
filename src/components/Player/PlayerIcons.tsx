@@ -59,6 +59,8 @@ const uploadIcon = `
   <path fill-rule="evenodd" d="M8 0a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 4.095 0 5.555 0 7.318 0 9.366 1.708 11 3.781 11H7.5V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11h4.188C14.502 11 16 9.57 16 7.773c0-1.636-1.242-2.969-2.834-3.194C12.923 1.999 10.69 0 8 0m-.5 14.5V11h1v3.5a.5.5 0 0 1-1 0"/>
 </svg>`;
 
+const serverIcon = `<img src="/language.png" alt="Language" width="20" height="20" style="vertical-align: middle; object-fit: contain; filter: brightness(0) invert(1);" />`;
+
 const settingsIcon = `
 <svg 
   xmlns="http://www.w3.org/2000/svg" 
@@ -73,14 +75,46 @@ const fullScreenOnIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2
 
 const fullScreenOffIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"width="24" height="24" style="margin-bottom: 5px; vertical-align: middle;"><path d="M109.2,134.9l-8.4,50.1c-0.4,2.7-2.4,3.3-4.4,1.4L82,172l-27.9,27.9l-14.2-14.2l27.9-27.9l-14.4-14.4c-1.9-1.9-1.3-3.9,1.4-4.4l50.1-8.4c1.8-0.5,3.6,0.6,4.1,2.4C109.4,133.7,109.4,134.3,109.2,134.9L109.2,134.9z M172.1,82.1L200,54.2L185.8,40l-27.9,27.9l-14.4-14.4c-1.9-1.9-3.9-1.3-4.4,1.4l-8.4,50.1c-0.5,1.8,0.6,3.6,2.4,4.1c0.5,0.2,1.2,0.2,1.7,0l50.1-8.4c2.7-0.4,3.3-2.4,1.4-4.4L172.1,82.1z"/></svg>`;
 
-// const logo = `<p style="display: flex; gap: 7px; align-items: center; background-color:#1F2020; padding:5px;padding-inline:7px; border-radius:5px">
-//     <b style="color: #ffbade;">Powered by</b>
-//     <span style="font-size: 14px;">
-//         Zen<span style="color: #ffbade;">!</span>me
-//     </span>
-// </p>
-// `;
-const logo = '';
+const logo = `<div style="
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:4px;
+      padding:10px 16px;
+      border-radius:14px;
+      background:linear-gradient(135deg, rgba(20,20,20,0.75), rgba(40,40,40,0.55));
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 8px 30px rgba(0,0,0,0.45),
+        inset 0 0 15px rgba(255,255,255,0.03);
+    ">
+      
+      <div style="
+        font-size:20px;
+        font-weight:800;
+        letter-spacing:0.5px;
+        font-family:system-ui, -apple-system, sans-serif;
+      ">
+        <span style="
+          background:linear-gradient(90deg,#ff7a18,#ffb347);
+          -webkit-background-clip:text;
+          -webkit-text-fill-color:transparent;
+        ">Otaku</span>
+        <span style="color:#ffffff;">Fusion</span>
+      </div>
+
+      <div style="
+        font-size:12px;
+        font-weight:500;
+        color:rgba(255,255,255,0.75);
+        letter-spacing:0.4px;
+      ">
+        ✨ Enjoy watching with Us
+      </div>
+
+    </div>
+`;
 
 export {
   backward10Icon,
@@ -92,6 +126,7 @@ export {
   pauseIcon,
   loadingIcon,
   uploadIcon,
+  serverIcon,
   settingsIcon,
   pipIcon,
   pipOffIcon,

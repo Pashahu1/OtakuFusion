@@ -1,8 +1,13 @@
 // @ts-nocheck
 import getVttArray from './getVttArray';
 
+/**
+ * VTT thumbnail plugin: sync factory, async load.
+ * art.plugins.add() expects a sync (art) => result, so we register the control
+ * after thumbnails load instead of returning async (art) => ... .
+ */
 export default function artplayerPluginVttThumbnail(option) {
-  return async (art) => {
+  return (art) => {
     const {
       constructor: {
         utils: { setStyle, isMobile, addClass },
@@ -11,7 +16,7 @@ export default function artplayerPluginVttThumbnail(option) {
     } = art;
 
     let timer = null;
-    const thumbnails = await getVttArray(option.vtt);
+    let thumbnails = [];
 
     function showThumbnails($control, find, width) {
       setStyle($control, 'backgroundImage', `url(${find.url})`);
@@ -34,7 +39,9 @@ export default function artplayerPluginVttThumbnail(option) {
       style: option.style || {},
       mounted($control) {
         addClass($control, 'art-control-thumbnails');
-        art.on('setBar', async (type, percentage, event) => {
+        setStyle($control, 'display', 'none');
+
+        art.on('setBar', (type, percentage, event) => {
           const isMobileDroging = type === 'played' && event && isMobile;
 
           if (type === 'hover' || isMobileDroging) {
@@ -64,6 +71,10 @@ export default function artplayerPluginVttThumbnail(option) {
           }
         });
       },
+    });
+
+    getVttArray(option.vtt).then((arr) => {
+      thumbnails = arr || [];
     });
 
     return {

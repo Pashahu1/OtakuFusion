@@ -133,7 +133,7 @@ const Preview = ({ spotlights, trending }: Props) => {
               </p>
               <Link
                 className="bg-brand-orange text-brand-gray-light px-4 py-2 rounded-md text-lg font-medium transition-colors w-full md:w-[300px] lg:hover:bg-brand-orange-light hover:text-brand-gray text-center text-title"
-                href={`/watch/${currentAnime.id}`}
+                href={`/watch/${currentAnime.id}?ep=1`}
               >
                 Watch Ep 1
               </Link>

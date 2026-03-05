@@ -9,8 +9,10 @@ type PaginationProps = {
   currentPage: number;
 };
 
-export const Pagination = ({ pageCount, currentPage }: PaginationProps) => {
+export const Pagination = ({ pageCount = 0, currentPage = 1 }: PaginationProps) => {
   const router = useRouter();
+  
+  if (pageCount === 0) return null;
 
   const handlePageChange = (selectedItem: { selected: number }) => {
     if (selectedItem) {
@@ -20,7 +22,7 @@ export const Pagination = ({ pageCount, currentPage }: PaginationProps) => {
 
     return;
   };
-
+  
   return (
     <menu role="navigation">
       <ReactPaginate

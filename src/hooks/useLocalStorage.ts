@@ -40,14 +40,15 @@ export function useLocalStorage<T>(
   };
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
+    if (typeof window === 'undefined' || !key) return;
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (err) {
-      console.log(err);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[useLocalStorage]', key, err);
+      }
     }
-  }, [value]);
+  }, [key, value]);
 
   return [value, setValue, clear];
 }

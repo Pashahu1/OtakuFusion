@@ -19,7 +19,6 @@ function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : 'An error occurred.';
 }
 
-/** API can return streamingLink as single object or array — support both (same as original useWatch). */
 function getFirstStreamLink(data: StreamingData | null): StreamingType | null {
   if (!data?.streamingLink) return null;
   const sl = data.streamingLink;
