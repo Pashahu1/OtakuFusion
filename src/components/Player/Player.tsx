@@ -82,6 +82,7 @@ export default function Player({
   const onEpisodeWatchedRef = useRef(onEpisodeWatched);
   const hasTriggeredNextRef = useRef(false);
   const hasMarkedWatchedForOutroRef = useRef(false);
+  const userPausedRef = useRef(false);
   serversRef.current = servers;
   activeServerIdRef.current = activeServerId;
   episodeIdRef.current = episodeId;
@@ -96,6 +97,7 @@ export default function Player({
   useEffect(() => {
     hasTriggeredNextRef.current = false;
     hasMarkedWatchedForOutroRef.current = false;
+    userPausedRef.current = false;
     if (episodes?.length > 0) {
       const newIndex = episodes.findIndex(
         (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
@@ -357,7 +359,33 @@ export default function Player({
           },
           disable: !Artplayer.utils.isMobile,
           click: function () {
-            art.toggle();
+            if (art.playing) {
+              userPausedRef.current = true;
+              art.pause();
+            } else {
+              userPausedRef.current = false;
+              art.play();
+            }
+          },
+        },
+        {
+          name: 'videoToggle',
+          html: '',
+          style: {
+            position: 'absolute',
+            inset: 0,
+            zIndex: 100,
+            cursor: 'pointer',
+          },
+          disable: Artplayer.utils.isMobile,
+          click: () => {
+            if (art.playing) {
+              userPausedRef.current = true;
+              art.pause();
+            } else {
+              userPausedRef.current = false;
+              art.play();
+            }
           },
         },
         {
@@ -528,6 +556,7 @@ export default function Player({
       }
 
       const tryPlay = () => {
+        if (userPausedRef.current) return;
         if (document.visibilityState === 'visible') art.play().catch(() => {});
       };
       if (document.visibilityState === 'visible') tryPlay();
