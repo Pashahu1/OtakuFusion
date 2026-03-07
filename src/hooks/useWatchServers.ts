@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import getServers from '@/services/getServers.services';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 
@@ -47,22 +47,26 @@ export function useWatchServers(
   const [activeServerId, setActiveServerId] = useState<string | null>(null);
   const [serverLoading, setServerLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isFetchInProgress = useRef(false);
 
   useEffect(() => {
     if (!episodeId) {
       setServers(null);
       setActiveServerId(null);
       setServerLoading(true);
+      setError(null);
       return;
     }
-    if (isFetchInProgress.current) return;
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    setError(null);
+    setServerLoading(true);
 
     const fetchServers = async () => {
-      isFetchInProgress.current = true;
-      setServerLoading(true);
       try {
-        const data = await getServers(animeId, episodeId);
+        const data = await getServers(animeId, episodeId, signal);
+        if (signal.aborted) return;
+
         const filtered =
           data?.filter(
             (s) =>
@@ -78,14 +82,17 @@ export function useWatchServers(
           initial?.data_id != null ? String(initial.data_id) : null
         );
       } catch (err) {
+        if (signal.aborted) return;
+        if (err instanceof Error && err.name === 'AbortError') return;
         console.error('Error fetching servers:', err);
         setError(getErrorMessage(err));
       } finally {
-        setServerLoading(false);
-        isFetchInProgress.current = false;
+        if (!signal.aborted) setServerLoading(false);
       }
     };
     fetchServers();
+
+    return () => controller.abort();
   }, [animeId, episodeId]);
 
   return {

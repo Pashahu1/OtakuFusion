@@ -9,10 +9,12 @@ export interface ApiResponse<T> {
 export const apiUrl = {
   get: async <T = unknown>(
     endpoint: string,
-    revalidate?: number
+    revalidate?: number,
+    signal?: AbortSignal
   ): Promise<T> => {
     const res = await fetch(`${API_URL}${endpoint}`, {
       next: revalidate ? { revalidate } : undefined,
+      signal,
     });
 
     if (!res.ok) {

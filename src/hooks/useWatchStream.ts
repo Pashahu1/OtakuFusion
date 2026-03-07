@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import getStreamInfo from '@/services/getStreamInfo.services';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
@@ -39,15 +39,9 @@ export function useWatchStream(
   const [intro, setIntro] = useState<{ start: number; end: number } | null>(null);
   const [outro, setOutro] = useState<{ start: number; end: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const isFetchInProgress = useRef(false);
 
   useEffect(() => {
-    if (
-      !episodeId ||
-      !activeServerId ||
-      !servers?.length ||
-      isFetchInProgress.current
-    ) {
+    if (!episodeId || !activeServerId || !servers?.length) {
       if (!episodeId || !activeServerId) {
         setStreamInfo(null);
         setStreamUrl(null);
@@ -56,6 +50,7 @@ export function useWatchStream(
         setIntro(null);
         setOutro(null);
         setBuffering(false);
+        setError(null);
       }
       return;
     }
@@ -67,16 +62,22 @@ export function useWatchStream(
       return;
     }
 
+    const controller = new AbortController();
+    const { signal } = controller;
+    setError(null);
+    setBuffering(true);
+
     const fetchStream = async () => {
-      isFetchInProgress.current = true;
-      setBuffering(true);
       try {
         const data = await getStreamInfo(
           animeId,
           episodeId,
           server.serverName.toLowerCase(),
-          server.type.toLowerCase()
+          server.type.toLowerCase(),
+          signal
         );
+        if (signal.aborted) return;
+
         setStreamInfo(data);
         const first = getFirstStreamLink(data);
         if (first) {
@@ -100,14 +101,17 @@ export function useWatchStream(
           setOutro(null);
         }
       } catch (err) {
+        if (signal.aborted) return;
+        if (err instanceof Error && err.name === 'AbortError') return;
         console.error('Error fetching stream info:', err);
         setError(getErrorMessage(err));
       } finally {
-        setBuffering(false);
-        isFetchInProgress.current = false;
+        if (!signal.aborted) setBuffering(false);
       }
     };
     fetchStream();
+
+    return () => controller.abort();
   }, [animeId, episodeId, activeServerId, servers]);
 
   return {
