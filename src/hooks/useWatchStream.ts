@@ -3,15 +3,17 @@ import getStreamInfo from '@/services/getStreamInfo.services';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import type { SubtitleItem } from '@/shared/types/PlayerTypes';
+import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 
 export interface UseWatchStreamReturn {
   streamInfo: StreamingData | null;
   streamUrl: string | null;
   buffering: boolean;
-  subtitles: Array<{ file: string; label: string }>;
+  subtitles: SubtitleItem[];
   thumbnail: string | null;
-  intro: { start: number; end: number } | null;
-  outro: { start: number; end: number } | null;
+  intro: Segment | null;
+  outro: Segment | null;
   error: string | null;
 }
 
@@ -34,10 +36,10 @@ export function useWatchStream(
   const [streamInfo, setStreamInfo] = useState<StreamingData | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [buffering, setBuffering] = useState(true);
-  const [subtitles, setSubtitles] = useState<Array<{ file: string; label: string }>>([]);
+  const [subtitles, setSubtitles] = useState<SubtitleItem[]>([]);
   const [thumbnail, setThumbnail] = useState<string | null>(null);
-  const [intro, setIntro] = useState<{ start: number; end: number } | null>(null);
-  const [outro, setOutro] = useState<{ start: number; end: number } | null>(null);
+  const [intro, setIntro] = useState<Segment | null>(null);
+  const [outro, setOutro] = useState<Segment | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -84,10 +86,14 @@ export function useWatchStream(
           setStreamUrl(first.link?.file ?? null);
           setIntro(first.intro ?? null);
           setOutro(first.outro ?? null);
-          const subs =
+          const subs: SubtitleItem[] =
             first.tracks
               ?.filter((t) => t.kind === 'captions')
-              .map((t) => ({ file: t.file, label: t.label })) ?? [];
+              .map((t) => ({
+                file: t.file,
+                label: t.label,
+                ...(t.default !== undefined && { default: t.default }),
+              })) ?? [];
           setSubtitles(subs);
           const thumb = first.tracks?.find(
             (t) => t.kind === 'thumbnails' && t.file

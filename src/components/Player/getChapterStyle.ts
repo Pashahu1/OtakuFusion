@@ -1,5 +1,9 @@
-// @ts-nocheck
-export default function getChapterStyles(intro, outro) {
+import type { Segment } from '@/shared/types/VideoSegmentsTypes';
+
+export default function getChapterStyles(
+  intro: Segment | null,
+  outro: Segment | null
+): string {
   let styles = `
         .art-chapters {
             gap: 0px !important;

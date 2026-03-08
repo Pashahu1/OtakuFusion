@@ -1,20 +1,16 @@
-// @ts-nocheck
 import Hls from 'hls.js';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
 import artplayerPluginChapter from './artPlayerPluinChaper';
-import autoSkip from './autoSkip';
 import artplayerPluginVttThumbnail from './artPlayerPluginVttThumbnail';
 import {
-  backward10Icon,
   backwardIcon,
   captionIcon,
-  forward10Icon,
   forwardIcon,
+  forward10Icon,
   fullScreenOffIcon,
   fullScreenOnIcon,
   loadingIcon,
-  logo,
   muteIcon,
   pauseIcon,
   pipIcon,
@@ -25,25 +21,24 @@ import {
   volumeIcon,
 } from './PlayerIcons';
 import './Player.scss';
-import website_name from '@/config/website';
 import getChapterStyles from './getChapterStyle';
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
 import artplayerPluginUploadSubtitle from './artplayerPluginUploadSubtitle';
+import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import type { PlayerProps } from '@/shared/types/PlayerTypes';
+import {
+  M3U8_PROXY_URL,
+  PROXY_URL,
+  DEFAULT_REFERER,
+  PLAYER_THEME_COLOR,
+  SUBTITLE_DEFAULT_STYLE,
+  LOGO_HIDE_DELAY_MS,
+} from './playerConstants';
+import { createChapters } from './playerChapters';
+import { handlePlayerKeydown } from './playerKeydown';
 
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
-
-const KEY_CODES = {
-  M: 'm',
-  I: 'i',
-  F: 'f',
-  V: 'v',
-  SPACE: ' ',
-  ARROW_UP: 'arrowup',
-  ARROW_DOWN: 'arrowdown',
-  ARROW_RIGHT: 'arrowright',
-  ARROW_LEFT: 'arrowleft',
-};
 
 export default function Player({
   streamUrl,
@@ -51,9 +46,6 @@ export default function Player({
   thumbnail,
   intro,
   outro,
-  // autoSkipIntro,
-  // autoPlay,
-  // autoNext,
   episodeId,
   episodes,
   playNext,
@@ -64,15 +56,15 @@ export default function Player({
   servers = null,
   activeServerId = null,
   setActiveServerId = () => {},
-}) {
+}: PlayerProps) {
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
     episodes?.findIndex(
       (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
     )
   );
 
-  const artRef = useRef(null);
-  const artInstanceRef = useRef(null);
+  const artRef = useRef<HTMLDivElement>(null);
+  const artInstanceRef = useRef<Artplayer | null>(null);
   const serversRef = useRef(servers);
   const activeServerIdRef = useRef(activeServerId);
   const episodeIdRef = useRef(episodeId);
@@ -91,14 +83,12 @@ export default function Player({
   playNextRef.current = playNext;
   onEpisodeWatchedRef.current = onEpisodeWatched;
 
-  const proxy = 'https://cors-anywhere-9ycb.onrender.com/?url=';
-  const m3u8proxy = 'https://m3u8proxy.fly.dev/m3u8-proxy?url=' || [];
 
   useEffect(() => {
     hasTriggeredNextRef.current = false;
     hasMarkedWatchedForOutroRef.current = false;
     userPausedRef.current = false;
-    if (episodes?.length > 0) {
+    if (episodes && episodes.length > 0) {
       const newIndex = episodes.findIndex(
         (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
       );
@@ -128,86 +118,25 @@ export default function Player({
     }
   }, [streamUrl, intro, outro]);
 
-  const playM3u8 = (video, url, art) => {
+  const playM3u8 = (
+    video: HTMLVideoElement,
+    url: string,
+    art: Artplayer
+  ): void => {
     if (Hls.isSupported()) {
       if (art.hls) art.hls.destroy();
       const hls = new Hls();
       hls.loadSource(url);
       hls.attachMedia(video);
       art.hls = hls;
-
       art.on('destroy', () => hls.destroy());
-
-      // hls.on(Hls.Events.ERROR, (event, data) => {
-      //   console.error("HLS.js error:", data);
-      // });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
-    } else {
-      console.log('Unsupported playback format: m3u8');
-    }
-  };
-
-  const createChapters = () => {
-    const chapters = [];
-    if (intro?.start !== 0 || intro?.end !== 0) {
-      chapters.push({ start: intro.start, end: intro.end, title: 'intro' });
-    }
-    if (outro?.start !== 0 || outro?.end !== 0) {
-      chapters.push({ start: outro.start, end: outro.end, title: 'outro' });
-    }
-    return chapters;
-  };
-
-  const handleKeydown = (event, art) => {
-    const tagName = event.target.tagName.toLowerCase();
-
-    if (tagName === 'input' || tagName === 'textarea') return;
-
-    switch (event.key.toLowerCase()) {
-      case KEY_CODES.M:
-        art.muted = !art.muted;
-        break;
-      case KEY_CODES.I:
-        art.pip = !art.pip;
-        break;
-      case KEY_CODES.F:
-        event.preventDefault();
-        event.stopPropagation();
-        art.fullscreen = !art.fullscreen;
-        break;
-      case KEY_CODES.V:
-        event.preventDefault();
-        event.stopPropagation();
-        art.subtitle.show = !art.subtitle.show;
-        break;
-      case KEY_CODES.SPACE:
-        event.preventDefault();
-        event.stopPropagation();
-        art.playing ? art.pause() : art.play();
-        break;
-      case KEY_CODES.ARROW_UP:
-        event.preventDefault();
-        event.stopPropagation();
-        art.volume = Math.min(art.volume + 0.1, 1);
-        break;
-      case KEY_CODES.ARROW_DOWN:
-        event.preventDefault();
-        event.stopPropagation();
-        art.volume = Math.max(art.volume - 0.1, 0);
-        break;
-      case KEY_CODES.ARROW_RIGHT:
-        event.preventDefault();
-        event.stopPropagation();
-        art.currentTime = Math.min(art.currentTime + 10, art.duration);
-        break;
-      case KEY_CODES.ARROW_LEFT:
-        event.preventDefault();
-        event.stopPropagation();
-        art.currentTime = Math.max(art.currentTime - 10, 0);
-        break;
-      default:
-        break;
+    } else if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV === 'development'
+    ) {
+      console.warn('Unsupported playback format: m3u8');
     }
   };
 
@@ -230,23 +159,31 @@ export default function Player({
       artInstanceRef.current = null;
     }
     container.innerHTML = '';
-    const iframeUrl = streamInfo?.streamingLink?.iframe;
-    const headers = {};
+    const streamLinkRaw = streamInfo?.streamingLink as
+      | { iframe?: string }
+      | undefined;
+    const iframeUrl =
+      streamLinkRaw && !Array.isArray(streamLinkRaw)
+        ? streamLinkRaw.iframe
+        : undefined;
+    const headers: Record<string, string> = {};
     if (iframeUrl) {
-      const url = new URL(iframeUrl);
-      headers.Referer = url.origin + '/';
+      try {
+        const url = new URL(iframeUrl);
+        headers.Referer = url.origin + '/';
+      } catch {
+        headers.Referer = DEFAULT_REFERER;
+      }
     } else {
-      headers.Referer = 'https://megacloud.club/';
+      headers.Referer = DEFAULT_REFERER;
     }
 
     const fullURL =
-      m3u8proxy +
+      M3U8_PROXY_URL +
       encodeURIComponent(streamUrl) +
       '&headers=' +
       encodeURIComponent(JSON.stringify(headers));
 
-    console.log('fullURL', fullURL);
-    
     const art = new Artplayer({
       url: fullURL,
       container,
@@ -266,31 +203,24 @@ export default function Player({
       fastForward: true,
       aspectRatio: true,
       subtitleOffset: true,
-      theme: '#ff640a',
+      theme: PLAYER_THEME_COLOR,
       plugins: [
         artplayerPluginHlsControl({
           quality: {
             setting: true,
-            getName: (level) => level.height + 'P',
+            getName: (level: { height?: number }) =>
+              String(level?.height ?? '') + 'P',
             title: 'Quality',
             auto: 'Auto',
           },
         }),
         artplayerPluginUploadSubtitle(),
-        artplayerPluginChapter({ chapters: createChapters() }),
+        artplayerPluginChapter({
+          chapters: createChapters(intro, outro),
+        }),
       ],
       subtitle: {
-        style: {
-          'font-weight': '400',
-          height: 'fit-content',
-          minWidth: 'fit-content',
-          marginInline: 'auto',
-          'margin-top': 'auto',
-          'margin-bottom': '2rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          color: '#fff',
-        },
+        style: SUBTITLE_DEFAULT_STYLE,
         escape: false,
       },
       layers: [
@@ -341,7 +271,7 @@ export default function Player({
             position: 'absolute',
             top: '18px',
             right: '20px',
-            opacity: 1,
+            opacity: '1',
             transform: 'translateY(-10px) scale(0.95)',
             transition: 'all 0.6s cubic-bezier(.22,.61,.36,1)',
             pointerEvents: 'none',
@@ -352,7 +282,7 @@ export default function Player({
           style: {
             position: 'absolute',
             left: '50%',
-            top: 0,
+            top: '0',
             width: '20%',
             height: '100%',
             transform: 'translateX(-50%)',
@@ -373,8 +303,8 @@ export default function Player({
           html: '',
           style: {
             position: 'absolute',
-            inset: 0,
-            zIndex: 100,
+            inset: '0',
+            zIndex: '100',
             cursor: 'pointer',
           },
           disable: Artplayer.utils.isMobile,
@@ -393,8 +323,8 @@ export default function Player({
           html: '',
           style: {
             position: 'absolute',
-            left: 0,
-            top: 0,
+            left: '0',
+            top: '0',
             width: '40%',
             height: '100%',
           },
@@ -408,8 +338,8 @@ export default function Player({
           html: '',
           style: {
             position: 'absolute',
-            right: 0,
-            top: 0,
+            right: '0',
+            top: '0',
             width: '40%',
             height: '100%',
           },
@@ -426,7 +356,7 @@ export default function Player({
             left: '25%',
             top: '50%',
             transform: 'translate(50%,-50%)',
-            opacity: 0,
+            opacity: '0',
             transition: 'opacity 0.5s ease-in-out',
           },
           disable: !Artplayer.utils.isMobile,
@@ -439,7 +369,7 @@ export default function Player({
             right: '25%',
             top: '50%',
             transform: 'translate(50%, -50%)',
-            opacity: 0,
+            opacity: '0',
             transition: 'opacity 0.5s ease-in-out',
           },
           disable: !Artplayer.utils.isMobile,
@@ -460,13 +390,13 @@ export default function Player({
             borderRadius: '8px',
             cursor: 'pointer',
             display: 'none',
-            zIndex: 9999,
+            zIndex: '9999',
             transition: 'all 0.25s ease',
             boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
             border: '1px solid rgba(255,255,255,0.1)',
           },
           click: () => {
-            art.currentTime = intro.end;
+            if (intro) art.currentTime = intro.end;
           },
         },
         {
@@ -485,16 +415,18 @@ export default function Player({
             borderRadius: '8px',
             cursor: 'pointer',
             display: 'none',
-            zIndex: 9999,
+            zIndex: '9999',
             transition: 'all 0.25s ease',
             boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
             border: '1px solid rgba(255,255,255,0.1)',
           },
           click: () => {
-            const next = episodes[currentEpisodeIndex + 1];
+            const idx = currentEpisodeIndex ?? -1;
+            const next = episodes?.[idx + 1];
             if (next) {
-              playNext(next.id.match(/ep=(\d+)/)?.[1]);
-            } else {
+              const nextId = next.id.match(/ep=(\d+)/)?.[1];
+              if (nextId) playNext(nextId);
+            } else if (outro) {
               art.currentTime = outro.end;
             }
           },
@@ -527,7 +459,7 @@ export default function Player({
     art.on('video:ended', () => {
       const id = episodeIdRef.current;
       const list = episodesRef.current;
-      const idx = currentEpisodeIndexRef.current;
+      const idx = currentEpisodeIndexRef.current ?? -1;
       const epId = id != null ? String(id) : '';
       if (epId) onEpisodeWatchedRef.current?.(epId);
       const next = list?.[idx + 1];
@@ -541,7 +473,7 @@ export default function Player({
       const goToNextEpisode = () => {
         const id = episodeIdRef.current;
         const list = episodesRef.current;
-        const idx = currentEpisodeIndexRef.current;
+        const idx = currentEpisodeIndexRef.current ?? -1;
         const epId = id != null ? String(id) : '';
         if (epId) onEpisodeWatchedRef.current?.(epId);
         const next = list?.[idx + 1];
@@ -561,17 +493,6 @@ export default function Player({
       };
       if (document.visibilityState === 'visible') tryPlay();
       art.once('video:canplay', tryPlay);
-
-      const onVisibilityChange = () => {
-        if (document.hidden) {
-          art.pause();
-          if (art.video) art.video.pause();
-          if (art.hls) art.hls.stopLoad?.();
-          artRef.current?.querySelectorAll('video, audio').forEach((el) => (el as HTMLMediaElement).pause());
-        }
-      };
-      document.addEventListener('visibilitychange', onVisibilityChange);
-      art.on('destroy', () => document.removeEventListener('visibilitychange', onVisibilityChange));
 
       art.on('pause', () => {
         if (art.video) {
@@ -598,15 +519,20 @@ export default function Player({
       setTimeout(() => {
         logoLayer.style.opacity = '0';
         logoLayer.style.transform = 'translateY(-10px) scale(0.95)';
-      }, 3500);
+      }, LOGO_HIDE_DELAY_MS);
 
       art.on('video:timeupdate', () => {
-        if (art.currentTime >= intro.start && art.currentTime <= intro.end) {
+        if (
+          intro &&
+          art.currentTime >= intro.start &&
+          art.currentTime <= intro.end
+        ) {
           skipIntroBtn.style.display = 'block';
         } else {
           skipIntroBtn.style.display = 'none';
         }
         if (
+          outro &&
           outro.start != null &&
           outro.end != null &&
           art.currentTime >= outro.start &&
@@ -623,7 +549,11 @@ export default function Player({
           skipOutroBtn.style.display = 'none';
         }
         const duration = art.video?.duration ?? art.duration;
+        const list = episodesRef.current;
+        const idx = currentEpisodeIndexRef.current ?? -1;
+        const hasNextEpisode = list != null && list[idx + 1] != null;
         if (
+          hasNextEpisode &&
           Number.isFinite(duration) &&
           duration > 0 &&
           art.currentTime >= Math.max(0, duration - 2) &&
@@ -635,15 +565,15 @@ export default function Player({
       });
 
       const ranges = [
-        ...(intro.start != null && intro.end != null
+        ...(intro && intro.start != null && intro.end != null
           ? [[intro.start + 1, intro.end - 1]]
           : []),
-        ...(outro.start != null && outro.end != null
+        ...(outro && outro.start != null && outro.end != null
           ? [[outro.start + 1, outro.end]]
           : []),
       ];
       document.addEventListener('keydown', (event) =>
-        handleKeydown(event, art)
+        handlePlayerKeydown(event, art)
       );
       art.subtitle.style({
         fontSize:
@@ -652,7 +582,7 @@ export default function Player({
       thumbnail &&
         art.plugins.add(
           artplayerPluginVttThumbnail({
-            vtt: `${proxy}${thumbnail}`,
+            vtt: `${PROXY_URL}${thumbnail}`,
           })
         );
       const defaultEnglishSub = subtitles?.find(
@@ -698,20 +628,27 @@ export default function Player({
         art.subtitle.switch(defaultSubtitle.file, {
           name: defaultSubtitle.label,
           default: true,
-        });
+        } as { name: string; default?: boolean });
       }
 
       const langServers = serversRef.current ?? null;
       const langActiveId = activeServerIdRef.current ?? null;
-      const getPreferredServer = (list) =>
-        list?.find((s) => s.serverName === 'HD-2') ||
-        list?.find((s) => s.serverName === 'HD-1') ||
+      const getPreferredServer = (list: ServerInfo[] | null | undefined) =>
+        list?.find((s: ServerInfo) => s.serverName === 'HD-2') ||
+        list?.find((s: ServerInfo) => s.serverName === 'HD-1') ||
         list?.[0];
       const subList = langServers?.filter((s) => s.type === 'sub') ?? [];
       const dubList = langServers?.filter((s) => s.type === 'dub') ?? [];
       const jp = getPreferredServer(subList);
       const en = getPreferredServer(dubList);
-      const languageSelectorRaw = [
+      type LangOption = {
+        html: string;
+        default: boolean;
+        data_id: number;
+        serverName: string;
+        type: string;
+      };
+      const languageSelectorRaw: LangOption[] = [
         jp && {
           html: 'Japanese',
           default: String(jp.data_id) === String(langActiveId),
@@ -726,7 +663,7 @@ export default function Player({
           serverName: en.serverName,
           type: en.type,
         },
-      ].filter(Boolean);
+      ].filter((x): x is LangOption => Boolean(x));
       const languageSelector =
         languageSelectorRaw.length <= 1
           ? languageSelectorRaw
@@ -751,35 +688,42 @@ export default function Player({
             : 'Language',
           position: 'right',
           selector: languageSelector.map((item) => ({
-            ...item,
+            html: item.html,
             default: String(item.data_id) === String(langActiveId),
+            data_id: item.data_id,
+            serverName: item.serverName,
+            type: item.type,
           })),
-          onSelect: function (item) {
-            setActiveServerId(String(item.data_id));
-            if (item.serverName)
+          onSelect: function (item: Record<string, unknown>) {
+            const dataId = item.data_id != null ? String(item.data_id) : null;
+            if (dataId) setActiveServerId(dataId);
+            if (typeof item.serverName === 'string')
               localStorage.setItem('server_name', item.serverName);
-            if (item.type) localStorage.setItem('server_type', item.type);
-            return item.html;
+            if (typeof item.type === 'string')
+              localStorage.setItem('server_type', item.type);
+            return typeof item.html === 'string' ? item.html : '';
           },
         });
       }
 
-      const $rewind = art.layers['rewind'];
-      const $forward = art.layers['forward'];
+      const $rewind = art.layers['rewind'] as HTMLDivElement | undefined;
+      const $forward = art.layers['forward'] as HTMLDivElement | undefined;
       Artplayer.utils.isMobile &&
+        $rewind &&
         art.proxy($rewind, 'dblclick', () => {
           art.currentTime = Math.max(0, art.currentTime - 10);
-          art.layers['backwardIcon'].style.opacity = 1;
+          art.layers['backwardIcon'].style.opacity = '1';
           setTimeout(() => {
-            art.layers['backwardIcon'].style.opacity = 0;
+            art.layers['backwardIcon'].style.opacity = '0';
           }, 300);
         });
       Artplayer.utils.isMobile &&
+        $forward &&
         art.proxy($forward, 'dblclick', () => {
           art.currentTime = Math.max(0, art.currentTime + 10);
-          art.layers['forwardIcon'].style.opacity = 1;
+          art.layers['forwardIcon'].style.opacity = '1';
           setTimeout(() => {
-            art.layers['forwardIcon'].style.opacity = 0;
+            art.layers['forwardIcon'].style.opacity = '0';
           }, 300);
         });
     });
@@ -787,23 +731,32 @@ export default function Player({
     artInstanceRef.current = art;
 
     return () => {
-      if (artInstanceRef.current === art) {
-        if (art.hls) {
-          art.hls.destroy();
-          art.hls = null;
-        }
-        if (art.video) {
-          art.video.pause();
-          art.video.removeAttribute('src');
-          art.video.load();
-        }
-        art.pause();
-        art.destroy(false);
+      const instanceToDestroy = artInstanceRef.current === art ? art : null;
+      if (instanceToDestroy) {
         artInstanceRef.current = null;
-        if (artRef.current) artRef.current.innerHTML = '';
+        try {
+          if (instanceToDestroy.hls) {
+            instanceToDestroy.hls.destroy();
+            instanceToDestroy.hls = null;
+          }
+          if (instanceToDestroy.video) {
+            instanceToDestroy.video.pause();
+            instanceToDestroy.video.removeAttribute('src');
+            instanceToDestroy.video.load();
+          }
+          instanceToDestroy.pause();
+          instanceToDestroy.destroy(false);
+        } catch (e) {
+          if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+            console.warn('Player cleanup:', e);
+          }
+        }
+        const container = artRef.current;
+        if (container && typeof container.innerHTML !== 'undefined') container.innerHTML = '';
       }
-      const continueWatching =
-        JSON.parse(localStorage.getItem('continueWatching')) || [];
+      const continueWatching = (JSON.parse(
+        localStorage.getItem('continueWatching') || '[]'
+      ) || []) as Array<{ data_id?: number }>;
 
       const newEntry = {
         id: animeInfo?.id,
@@ -819,7 +772,7 @@ export default function Player({
       if (!newEntry.data_id) return;
 
       const existingIndex = continueWatching.findIndex(
-        (item) => item.data_id === newEntry.data_id
+        (item: { data_id?: number }) => item.data_id === newEntry.data_id
       );
 
       if (existingIndex !== -1) {
@@ -832,7 +785,6 @@ export default function Player({
         JSON.stringify(continueWatching)
       );
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamUrl, subtitles, intro, outro]);
 
   return <div ref={artRef} className="w-full h-full relative"></div>;

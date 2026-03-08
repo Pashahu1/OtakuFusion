@@ -3,6 +3,7 @@ import type { EpisodesTypes } from "./EpisodesListTypes";
 import type { AnimeInfo, SeasonsTypes, ServerInfo } from "./GlobalAnimeTypes";
 import type { StreamingData } from "./StreamingTypes";
 import type { Segment } from "./VideoSegmentsTypes";
+import type { SubtitleItem } from "./PlayerTypes";
 import type { NextEpisodeScheduleResult } from "@/services/getNextEpisodeSchedule.services";
 
 export interface UseWatchReturn {
@@ -20,7 +21,7 @@ export interface UseWatchReturn {
     streamUrl: string | null;
     isFullOverview: boolean;
     setIsFullOverview: (isFullOverview: boolean) => void;
-    subtitles: Array<{ file: string; label: string }> | null;
+    subtitles: SubtitleItem[] | null;
     thumbnail: string | null;
     intro: Segment | null;
     outro: Segment | null;

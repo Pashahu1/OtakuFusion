@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useParams, useRouter } from 'next/navigation';
 import useWatch from '@/hooks/useWatch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -81,6 +81,8 @@ export default function Watch() {
     serverLoading,
   } = useWatch(animeId, initialEpisodeId);
 
+  // Унікальний ключ при кожному заході на сторінку — плеєр завжди ремонтується після навігації назад
+  const playerMountKey = useId();
   const hasAppliedSavedEpisodeRef = useRef(false);
   useEffect(() => {
     hasAppliedSavedEpisodeRef.current = false;
@@ -293,6 +295,7 @@ export default function Watch() {
 
                 {!serverLoading && !buffering && streamUrl && (
                   <Player
+                    key={playerMountKey}
                     streamUrl={streamUrl}
                     subtitles={subtitles}
                     intro={intro}
