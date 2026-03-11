@@ -51,7 +51,6 @@ export default function SchedulePage() {
       try {
         const res = await getNextEpisodesAnime(selectedDate);
         setEvents(res);
-        console.log(res);
       } catch (err) {
         const normalizedError = normalizeError(err);
         setEvents([]);
@@ -64,9 +63,7 @@ export default function SchedulePage() {
     fetchSheduleAnime();
   }, [selectedDate]);
 
-  {
-    isLoading && <InitialLoader />;
-  }
+  if (isLoading) return <InitialLoader />;
 
   if (error) {
     return <ErrorState fullPage message="Failed to load schedule." />;
@@ -75,7 +72,7 @@ export default function SchedulePage() {
     return <EmptyState fullPage message="No releases today" />;
   }
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <div className="mt-[60px]">
         <AnimeCalendar
           selectedDate={selectedDate}

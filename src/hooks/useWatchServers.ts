@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import getServers from '@/services/getServers.services';
+import { getServers } from '@/services/getServers';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 
 const PREFERRED_SERVERS = ['HD-1', 'HD-2'] as const;
@@ -13,13 +13,14 @@ function getInitialServer(
 ): ServerInfo | undefined {
   if (!servers?.length) return undefined;
   return (
-    servers.find(
-      (s) => s.serverName === savedName && s.type === savedType
-    ) ??
+    servers.find((s) => s.serverName === savedName && s.type === savedType) ??
     servers.find((s) => s.serverName === savedName) ??
     servers.find(
       (s) =>
-        s.type === savedType && PREFERRED_SERVERS.includes(s.serverName as any)
+        s.type === savedType &&
+        PREFERRED_SERVERS.includes(
+          s.serverName as (typeof PREFERRED_SERVERS)[number]
+        )
     ) ??
     servers.find((s) => s.type === 'sub') ??
     servers.find((s) => s.type === 'dub') ??
@@ -70,7 +71,9 @@ export function useWatchServers(
         const filtered =
           data?.filter(
             (s) =>
-              PREFERRED_SERVERS.includes(s.serverName as any) ||
+              PREFERRED_SERVERS.includes(
+                s.serverName as (typeof PREFERRED_SERVERS)[number]
+              ) ||
               s.type === 'sub' ||
               s.type === 'dub'
           ) ?? [];

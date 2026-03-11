@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import getStreamInfo from '@/services/getStreamInfo.services';
+import { getStreamInfo } from '@/services/getStreamInfo';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
@@ -57,7 +57,9 @@ export function useWatchStream(
       return;
     }
 
-    const server = servers.find((s) => String(s.data_id) === String(activeServerId));
+    const server = servers.find(
+      (s) => String(s.data_id) === String(activeServerId)
+    );
     if (!server) {
       setError('No server found with the activeServerId.');
       setBuffering(false);

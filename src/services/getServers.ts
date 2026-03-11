@@ -1,7 +1,7 @@
 import { apiUrl, type ApiResponse } from '@/lib/api';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 
-export default async function getServers(
+export async function getServers(
   animeId: string,
   episodeId: string,
   signal?: AbortSignal

@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-
+import { useRouter } from 'next/navigation';
 type ErrorStateProps = {
   title?: string;
   message?: string;
@@ -19,22 +19,30 @@ export default function ErrorState({
   onRetry,
   fullPage = false,
 }: ErrorStateProps) {
+  const router = useRouter();
+
+  const handleRetry = () => {
+    if (onRetry) onRetry();
+    else router.refresh();
+  };
+
   return (
     <div
-      className={`flex flex-col items-center justify-center text-center gap-[10px] ${
+      className={`flex flex-col items-center justify-center gap-[10px] text-center ${
         fullPage ? 'h-screen' : 'py-10'
       }`}
     >
       {icon && <div className="mb-4 text-5xl opacity-80">{icon}</div>}
 
-      <h2 className="text-2xl font-bold mb-2 text-red-500">{title}</h2>
+      <h2 className="mb-2 text-2xl font-bold text-red-500">{title}</h2>
 
-      <p className="text-gray-400 max-w-[320px]">{message}</p>
+      <p className="max-w-[320px] text-gray-400">{message}</p>
 
       {showRetry && (
         <button
-          onClick={onRetry}
-          className="w-[250px] h-[40px] mt-6 px-6 py-2 bg-red-600 rounded-xl hover:bg-red-700 transition"
+          type="button"
+          onClick={handleRetry}
+          className="mt-6 h-[40px] w-[250px] rounded-xl bg-red-600 px-6 py-2 transition hover:bg-red-700"
         >
           Repeat
         </button>

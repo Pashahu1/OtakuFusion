@@ -20,8 +20,8 @@ html {
   background-color: $color-bg;
   color: $color-text-primary;
   margin: 0;
-  @include body-text;
   box-sizing: border-box;
+  @include body-text;
 }
 
 h1,

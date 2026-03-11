@@ -1,7 +1,7 @@
 import { apiUrl, type ApiResponse } from '@/lib/api';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 
-export default async function getStreamInfo(
+export async function getStreamInfo(
   animeId: string,
   episodeId: string,
   serverName: string,

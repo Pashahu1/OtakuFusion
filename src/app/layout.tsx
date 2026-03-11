@@ -6,9 +6,45 @@ import { Suspense } from 'react';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { AuthProvider } from '@/context/AuthContext';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://otakufusion.com';
+
 export const metadata = {
-  title: 'OtakuFusion',
-  description: 'A clone of the Crunchyroll website built with Next.js',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'OtakuFusion — Watch Anime Online Free | Sub & Dub HD',
+    template: '%s | OtakuFusion',
+  },
+  description:
+    'Watch anime online free in HD. Stream sub and dub anime, track your progress, discover new series. Your place for anime streaming.',
+  keywords: [
+    'anime',
+    'watch anime online',
+    'anime streaming',
+    'anime sub',
+    'anime dub',
+    'free anime',
+    'anime episodes',
+    'OtakuFusion',
+  ],
+  openGraph: {
+    type: 'website',
+    locale: 'en',
+    url: siteUrl,
+    siteName: 'OtakuFusion',
+    title: 'OtakuFusion — Watch Anime Online Free | Sub & Dub HD',
+    description:
+      'Watch anime online free in HD. Stream sub and dub anime, track your progress, discover new series.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'OtakuFusion — Watch Anime Online Free',
+    description:
+      'Watch anime online free in HD. Stream sub and dub anime, track your progress.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 const montserrat = Montserrat({
@@ -28,7 +64,10 @@ export default function RootLayout({
 }) {
   return (
     <html className="dark" lang="en" suppressHydrationWarning>
-      <body className={`${montserrat.className} ${rubik.className}`}>
+      <body
+        className={`${montserrat.className} ${rubik.className}`}
+        suppressHydrationWarning
+      >
         <Suspense fallback={<InitialLoader />}>
           <AuthProvider>
             <div className="layout">

@@ -75,8 +75,8 @@ export default function RegisterPage() {
       )}
       <div className="border-b-2 border-zinc-700 focus-within:border-[var(--color-brand-orange)] mb-3 py-[5px]">
         <input
-          autoComplete="new-password"
-          type="username"
+          type="text"
+          autoComplete="username"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}

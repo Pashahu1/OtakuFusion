@@ -8,11 +8,15 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: ['cdn.noitatnemucod.net'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.noitatnemucod.net',
+        pathname: '/**',
+      },
+    ],
+    qualities: [75, 80],
     unoptimized: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
   },
 };
 

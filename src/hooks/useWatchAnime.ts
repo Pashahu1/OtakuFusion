@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import getAnimeInfo from '@/services/getAnimeInfo.services';
-import getEpisodes from '@/services/getEpisodes.services';
-import getNextEpisodeSchedule from '@/services/getNextEpisodeSchedule.services';
+import { getAnimeInfo } from '@/services/getAnimeInfo';
+import { getEpisodes } from '@/services/getEpisodes';
+import { getNextEpisodeSchedule } from '@/services/getNextEpisodeSchedule';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { SeasonsTypes } from '@/shared/types/GlobalAnimeTypes';
-import type { NextEpisodeScheduleResult } from '@/services/getNextEpisodeSchedule.services';
+import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
 
 export interface UseWatchAnimeReturn {
   animeInfo: AnimeData | null;
@@ -62,7 +62,7 @@ export function useWatchAnime(
         const newEpisodeId =
           initialEpisodeId ??
           (episodesData?.episodes?.length
-            ? episodesData.episodes[0].id.match(/ep=(\d+)/)?.[1] ?? null
+            ? (episodesData.episodes[0].id.match(/ep=(\d+)/)?.[1] ?? null)
             : null);
         setEpisodeId(newEpisodeId ?? null);
       } catch (err) {

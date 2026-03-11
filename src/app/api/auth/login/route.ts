@@ -27,7 +27,10 @@ export async function POST(req: Request) {
 
     if (!user.isVerified) {
       return NextResponse.json(
-        { message: 'Please verify your email before logging in.', needVerification: true },
+        {
+          message: 'Please verify your email before logging in.',
+          needVerification: true,
+        },
         { status: 403 }
       );
     }
@@ -48,19 +51,28 @@ export async function POST(req: Request) {
         role: user.role,
         isVerified: user.isVerified,
       },
-      process.env.JWT_ACCESS_SECRET!,
+      process.env.NEXT_JWT_ACCESS_SECRET!,
       { expiresIn: '15m' }
     );
     const refreshToken = jwt.sign(
       { id: user._id },
-      process.env.JWT_REFRESH_SECRET!,
+      process.env.NEXT_JWT_REFRESH_SECRET!,
       { expiresIn: '7d' }
     );
     user.refreshToken = refreshToken;
     await user.save();
 
+    const userPayload = {
+      id: user._id.toString(),
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar ?? '',
+      role: user.role,
+      isVerified: user.isVerified,
+    };
+
     const response = NextResponse.json(
-      { message: 'Login successful', accessToken },
+      { message: 'Login successful', accessToken, user: userPayload },
       { status: 200 }
     );
 
@@ -82,8 +94,6 @@ export async function POST(req: Request) {
 
     return response;
   } catch (err) {
-    console.log('ACCESS:', process.env.JWT_ACCESS_SECRET);
-    console.log('REFRESH:', process.env.JWT_REFRESH_SECRET);
     console.error('Login error:', err);
     return NextResponse.json(
       { message: 'Internal server error.' },

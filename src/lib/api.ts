@@ -1,7 +1,5 @@
 import { ApiError } from './errors/ApiError';
 
-const API_URL = 'https://anime-api-8ckpoa.fly.dev/api';
-
 export interface ApiResponse<T> {
   results: T;
 }
@@ -12,7 +10,10 @@ export const apiUrl = {
     revalidate?: number,
     signal?: AbortSignal
   ): Promise<T> => {
-    const res = await fetch(`${API_URL}${endpoint}`, {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+      throw new Error('url is not set');
+    }
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
       next: revalidate ? { revalidate } : undefined,
       signal,
     });

@@ -1,7 +1,7 @@
 import { apiUrl, type ApiResponse } from '@/lib/api';
 import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
 
-export default async function getEpisodes(
+export async function getEpisodes(
   id: string
 ): Promise<GetEpisodesResult> {
   const data = await apiUrl.get<ApiResponse<GetEpisodesResult>>(

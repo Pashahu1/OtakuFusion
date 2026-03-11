@@ -15,7 +15,10 @@ export async function GET() {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as {
+    const payload = jwt.verify(
+      token,
+      process.env.NEXT_JWT_ACCESS_SECRET!
+    ) as {
       id: string;
     };
 

@@ -12,7 +12,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
 
     if (!email || !password) {
@@ -39,51 +40,51 @@ export default function LoginPage() {
     router.push('/');
   };
 
-  {
-    loading && <InitialLoader />;
-  }
+  if (loading) return <InitialLoader />;
 
   return (
-    <div className="flex flex-col gap-4 p-8">
-      <h2 className="text-xl text-center font-semibold text-white mb-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-8">
+      <h2 className="mb-2 text-center text-xl font-semibold text-white">
         Log In
       </h2>
       {error && (
-        <p className="text-red-400 text-sm bg-red-900/20 px-3 py-2 rounded">
+        <p className="rounded bg-red-900/20 px-3 py-2 text-sm text-red-400">
           {error}
         </p>
       )}
-      <div className="border-b-2 border-zinc-700 focus-within:border-[var(--color-brand-orange)] mb-3 py-[5px]">
+      <div className="mb-3 border-b-2 border-zinc-700 py-[5px] focus-within:border-[var(--color-brand-orange)]">
         <input
           type="email"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full bg-[var(--color-brand-gray-light)] text-[var(--color-brand-text-primary)] px-4 py-3 outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
+          className="w-full border border-transparent bg-[var(--color-brand-gray-light)] px-4 py-3 text-[var(--color-brand-text-primary)] placeholder-[var(--color-brand-text-muted)] outline-none focus:border-[var(--color-brand-orange)]"
         />
       </div>
 
-      <div className="border-b-2 border-zinc-700 focus-within:border-[var(--color-brand-orange)] mb-3 py-[5px]">
+      <div className="mb-3 border-b-2 border-zinc-700 py-[5px] focus-within:border-[var(--color-brand-orange)]">
         <input
           type="password"
           placeholder="Password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full text-[var(--color-brand-text-primary)] px-4 py-3 outline-none border border-transparent focus:border-[var(--color-brand-orange)] placeholder-[var(--color-brand-text-muted)]"
+          className="w-full border border-transparent px-4 py-3 text-[var(--color-brand-text-primary)] placeholder-[var(--color-brand-text-muted)] outline-none focus:border-[var(--color-brand-orange)]"
         />
       </div>
 
       <button
-        onClick={handleLogin}
-        className="h-[40px] bg-[var(--color-brand-orange)] hover:bg-[var(--color-brand-orange-light)] transition text-[var(--color-brand-text-primary)] py-3 font-medium shadow-md shadow-[var(--color-brand-orange-light)]"
+        type="submit"
+        className="h-[40px] bg-[var(--color-brand-orange)] py-3 font-medium text-[var(--color-brand-text-primary)] shadow-[var(--color-brand-orange-light)] shadow-md transition hover:bg-[var(--color-brand-orange-light)]"
       >
         Log In
       </button>
 
       <a
         href="/auth/register"
-        className="text-[#6d4aff] text-sm text-center mt-2"
+        className="mt-2 text-center text-sm text-[#6d4aff]"
       >
         Create Account
       </a>
-    </div>
+    </form>
   );
 }

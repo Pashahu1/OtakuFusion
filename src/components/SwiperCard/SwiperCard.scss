@@ -1,4 +1,4 @@
-@import '../../style/mixins';
+@use '../../style/mixins' as *;
 
 .swiper {
   overflow: visible;

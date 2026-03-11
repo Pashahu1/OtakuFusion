@@ -3,8 +3,6 @@ import { PreviewSkeleton } from '@/components/ui/Skeleton/PreviewSkeleton';
 import { Suspense } from 'react';
 import { HomeContent } from '@/app/(home)/_components/HomeContent';
 
-export const revalidate = 3600;
-
 export default function Home() {
   return (
     <Suspense

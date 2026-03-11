@@ -1,7 +1,7 @@
 // @ts-nocheck
 import style from './pluginChapterStyle.ts';
 
-export default function artplayerPluginChapter(option = {}) {
+export function artplayerPluginChapter(option = {}) {
   return (art) => {
     const { $player } = art.template;
     const { setStyle, append, clamp, query, isMobile, addClass, removeClass } =
@@ -210,3 +210,5 @@ if (typeof document !== 'undefined') {
 if (typeof window !== 'undefined') {
   window['artplayerPluginChapter'] = artplayerPluginChapter;
 }
+
+export default artplayerPluginChapter;
