@@ -25,7 +25,6 @@ export interface HomeTvInfo {
   episodeInfo: TvInfo;
 }
 
-
 export interface SpotlightAnime {
   id: string;
   data_id: number;
@@ -72,3 +71,7 @@ export type ServerInfo = {
   server_id: number;
   serverName: string;
 };
+
+export interface NextEpisodeScheduleResult {
+  nextEpisodeSchedule: string;
+}
