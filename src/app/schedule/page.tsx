@@ -5,7 +5,7 @@ import { toZonedTime } from 'date-fns-tz';
 import { getNextEpisodesAnime } from '@/services/getNextEpisodesAnime';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import type { ScheduleAnime } from '@/shared/types/GlobalAnimeTypes';
-import AnimeCalendar from '@/components/AnimeCalendar/AnimeCalendar';
+import { AnimeCalendarComponent as AnimeCalendar } from '@/components/AnimeCalendar/AnimeCalendar';
 import ErrorState from '@/components/ui/states/ErrorState';
 import { normalizeError } from '@/lib/errors/normalizeError';
 import EmptyState from '@/components/ui/states/EmptyState';

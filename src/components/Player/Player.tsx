@@ -4,16 +4,13 @@ import Artplayer from 'artplayer';
 
 import './Player.scss';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
-import {
-  PROXY_URL,
-  PLAYER_THEME_COLOR,
-  LOGO_HIDE_DELAY_MS,
-} from './playerConstants';
+import { PLAYER_THEME_COLOR } from './playerConstants';
 
 import { getStreamFullUrl, getStreamHeaders } from './playerStream';
 import { useChapterStyles } from '@/hooks/useChapterStyles';
 import { getArtplayerOptions } from './getArtplayerOptions';
 import { setupPlayerReady } from './setupPlayerReady';
+import { updateContinueWatching } from './updateContinueWatching';
 
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
@@ -201,36 +198,8 @@ export function Player({
         if (container && typeof container.innerHTML !== 'undefined')
           container.innerHTML = '';
       }
-      const continueWatching = (JSON.parse(
-        localStorage.getItem('continueWatching') || '[]'
-      ) || []) as Array<{ data_id?: number }>;
 
-      const newEntry = {
-        id: animeInfo?.id,
-        data_id: animeInfo?.data_id,
-        episodeId,
-        episodeNum,
-        adultContent: animeInfo?.adultContent,
-        poster: animeInfo?.poster,
-        title: animeInfo?.title,
-        japanese_title: animeInfo?.japanese_title,
-      };
-
-      if (!newEntry.data_id) return;
-
-      const existingIndex = continueWatching.findIndex(
-        (item: { data_id?: number }) => item.data_id === newEntry.data_id
-      );
-
-      if (existingIndex !== -1) {
-        continueWatching[existingIndex] = newEntry;
-      } else {
-        continueWatching.push(newEntry);
-      }
-      localStorage.setItem(
-        'continueWatching',
-        JSON.stringify(continueWatching)
-      );
+      updateContinueWatching(animeInfo, episodeId, episodeNum);
     };
   }, [streamUrl, subtitles, intro, outro]);
 
