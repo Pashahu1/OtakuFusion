@@ -1,5 +1,5 @@
-import ChangePasswordForm from '@/components/SettingsPage/ChangePasswordForm';
-import DeleteAccount from '@/components/SettingsPage/DeleteAccount';
+import { ChangePasswordForm } from '@/components/SettingsPage/ChangePasswordForm';
+import { DeleteAccount } from '@/components/SettingsPage/DeleteAccount';
 
 export default function SettingsProfile() {
   return (
