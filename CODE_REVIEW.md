@@ -31,9 +31,9 @@
 Порядок: P1 → P2 → … → P7. Після кожної частини — перевірка збірки й плеєра, потім коміт.
 
 - [+] P1 useChapterStyles
-- [ ] P2 Stream URL + HLS
-- [ ] P3 Опції Artplayer
-- [ ] P4 Layers
+- [+] P2 Stream URL + HLS
+- [+] P3 Опції Artplayer
+- [+] P4 Layers
 - [ ] P5 Ready callback
 - [ ] P6 Cleanup + continueWatching
 - [ ] P7 Типи та @ts-nocheck
