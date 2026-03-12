@@ -30,7 +30,7 @@
 
 Порядок: P1 → P2 → … → P7. Після кожної частини — перевірка збірки й плеєра, потім коміт.
 
-- [ ] P1 useChapterStyles
+- [+] P1 useChapterStyles
 - [ ] P2 Stream URL + HLS
 - [ ] P3 Опції Artplayer
 - [ ] P4 Layers

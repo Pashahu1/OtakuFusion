@@ -1,4 +1,3 @@
-import Hls from 'hls.js';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
 import { artplayerPluginChapter } from './artPlayerPluinChaper';
@@ -21,21 +20,23 @@ import {
   volumeIcon,
 } from './PlayerIcons';
 import './Player.scss';
-import { getChapterStyles } from './getChapterStyle';
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
 import { artplayerPluginUploadSubtitle } from './artplayerPluginUploadSubtitle';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
 import {
-  M3U8_PROXY_URL,
   PROXY_URL,
-  DEFAULT_REFERER,
   PLAYER_THEME_COLOR,
   SUBTITLE_DEFAULT_STYLE,
   LOGO_HIDE_DELAY_MS,
 } from './playerConstants';
 import { createChapters } from './playerChapters';
 import { handlePlayerKeydown } from './playerKeydown';
+import {
+  getStreamFullUrl,
+  getStreamHeaders,
+  playM3u8,
+} from './playerStream';
 import { useChapterStyles } from '@/hooks/useChapterStyles';
 
 Artplayer.LOG_VERSION = false;
@@ -98,28 +99,6 @@ export function Player({
 
   useChapterStyles(streamUrl, intro, outro);
 
-  const playM3u8 = (
-    video: HTMLVideoElement,
-    url: string,
-    art: Artplayer
-  ): void => {
-    if (Hls.isSupported()) {
-      if (art.hls) art.hls.destroy();
-      const hls = new Hls();
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      art.hls = hls;
-      art.on('destroy', () => hls.destroy());
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
-    } else if (
-      typeof process !== 'undefined' &&
-      process.env.NODE_ENV === 'development'
-    ) {
-      console.warn('Unsupported playback format: m3u8');
-    }
-  };
-
   useEffect(() => {
     if (!streamUrl || !artRef.current) return;
     const container = artRef.current;
@@ -138,31 +117,11 @@ export function Player({
       prev.destroy(false);
       artInstanceRef.current = null;
     }
+    
     container.innerHTML = '';
-    const streamLinkRaw = streamInfo?.streamingLink as
-      | { iframe?: string }
-      | undefined;
-    const iframeUrl =
-      streamLinkRaw && !Array.isArray(streamLinkRaw)
-        ? streamLinkRaw.iframe
-        : undefined;
-    const headers: Record<string, string> = {};
-    if (iframeUrl) {
-      try {
-        const url = new URL(iframeUrl);
-        headers.Referer = url.origin + '/';
-      } catch {
-        headers.Referer = DEFAULT_REFERER;
-      }
-    } else {
-      headers.Referer = DEFAULT_REFERER;
-    }
 
-    const fullURL =
-      M3U8_PROXY_URL +
-      encodeURIComponent(streamUrl) +
-      '&headers=' +
-      encodeURIComponent(JSON.stringify(headers));
+    const headers = getStreamHeaders(streamInfo);
+    const fullURL = getStreamFullUrl(streamUrl, headers);
 
     const art = new Artplayer({
       url: fullURL,
