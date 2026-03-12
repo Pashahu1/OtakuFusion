@@ -1,6 +1,6 @@
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 
-export default function getChapterStyles(
+export function getChapterStyles(
   intro: Segment | null,
   outro: Segment | null
 ): string {

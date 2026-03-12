@@ -18,7 +18,10 @@ import 'swiper/css/pagination';
 import 'swiper/css/scrollbar';
 import './PreviewHero.scss';
 import Image from 'next/image';
-import type { SpotlightAnime, TrendingAnime } from '@/shared/types/GlobalAnimeTypes';
+import type {
+  SpotlightAnime,
+  TrendingAnime,
+} from '@/shared/types/GlobalAnimeTypes';
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -36,7 +39,7 @@ type Props = {
   trending: TrendingAnime[];
 };
 
-const Preview = ({ spotlights, trending }: Props) => {
+export const Preview = ({ spotlights, trending }: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (!Array.isArray(spotlights)) {
@@ -62,7 +65,7 @@ const Preview = ({ spotlights, trending }: Props) => {
 
   return (
     <>
-      <div className="relative w-full hero">
+      <div className="hero relative w-full">
         <div className="hero__slider">
           <button
             className="hero-zone hero--right invisible md:visible"
@@ -106,18 +109,18 @@ const Preview = ({ spotlights, trending }: Props) => {
           >
             {spotlights?.map((anime) => (
               <SwiperSlide key={anime.id}>
-                <div className="relative w-full h-[920px] lg:h-full">
+                <div className="relative h-[920px] w-full lg:h-full">
                   <Image
                     src={Convertor(anime.poster)}
                     alt={anime.title}
                     fill
                     sizes="100vw"
-                    className="object-cover object-center w-full h-[900px] brightness-75 contrast-110"
+                    className="h-[900px] w-full object-cover object-center brightness-75 contrast-110"
                     decoding="async"
                     loading="eager"
                     quality={80}
                   />
-                  <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+                  <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="preview__shine" />
                 </div>
               </SwiperSlide>
@@ -128,11 +131,11 @@ const Preview = ({ spotlights, trending }: Props) => {
               <h1 className="text-display text-brand-text-primary drop-shadow-lg">
                 {currentAnime.title}
               </h1>
-              <p className="text-sm md:text-base lg:text-body text-brand-text-secondary landscape:md:hidden landscape:lg:block">
+              <p className="lg:text-body text-brand-text-secondary text-sm md:text-base landscape:md:hidden landscape:lg:block">
                 {currentAnime.description}
               </p>
               <Link
-                className="bg-brand-orange text-brand-gray-light px-4 py-2 rounded-md text-lg font-medium transition-colors w-full md:w-[300px] lg:hover:bg-brand-orange-light hover:text-brand-gray text-center text-title"
+                className="bg-brand-orange text-brand-gray-light lg:hover:bg-brand-orange-light hover:text-brand-gray text-title w-full rounded-md px-4 py-2 text-center text-lg font-medium transition-colors md:w-[300px]"
                 href={`/watch/${currentAnime.id}?ep=1`}
               >
                 Watch Ep 1
@@ -142,7 +145,7 @@ const Preview = ({ spotlights, trending }: Props) => {
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-[20px] relative z-[3] mt-[40px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
+      <div className="relative z-[3] mt-[40px] flex flex-col gap-[20px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
         <h2 className="text-title text-brand-text-primary pl-4 md:pl-6 lg:pl-10">
           Trending
         </h2>
@@ -158,4 +161,3 @@ const Preview = ({ spotlights, trending }: Props) => {
     </>
   );
 };
-export default Preview;

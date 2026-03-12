@@ -10,7 +10,7 @@ export function middleware(req: NextRequest) {
   }
 
   try {
-    jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET!);
+    jwt.verify(accessToken, process.env.NEXT_JWT_ACCESS_SECRET!);
     return NextResponse.next();
   } catch {
     return NextResponse.redirect(new URL('/auth/login', req.url));

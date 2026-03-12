@@ -3,7 +3,6 @@ export type Segment = {
   end: number;
 };
 
-/** Глава для плеєра (сегмент + назва, напр. intro/outro) */
 export type Chapter = Segment & {
   title: string;
 };

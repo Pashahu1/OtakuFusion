@@ -16,7 +16,7 @@ export async function getUserFromRequest() {
   if (!token) return null;
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as TokenPayload;
+    const payload = jwt.verify(token, process.env.NEXT_JWT_ACCESS_SECRET!) as TokenPayload;
     const user = await User.findById(payload.id).lean();
     return user;
   } catch {

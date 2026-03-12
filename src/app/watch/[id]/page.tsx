@@ -3,11 +3,11 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useParams, useRouter } from 'next/navigation';
-import useWatch from '@/hooks/useWatch';
+import { useWatch } from '@/hooks/useWatch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
-import Player from '@/components/Player/Player';
-import Episodelist from '@/components/Episodelist/Episodelist';
+import { Player } from '@/components/Player/Player';
+import { Episodelist } from '@/components/Episodelist/Episodelist';
 import website_name from '@/config/website';
 import { Seasons } from '@/components/Seasons/Seasons';
 import {
@@ -15,7 +15,7 @@ import {
   faMicrophone,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import AnimeSection from '@/components/AnimeSection/AnimeSection';
+import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
 import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
 import WatchControls from '@/components/Watchcontrols/Watchcontrols';

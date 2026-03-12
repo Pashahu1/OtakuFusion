@@ -5,7 +5,7 @@ import { useWatchAnime } from './useWatchAnime';
 import { useWatchServers } from './useWatchServers';
 import { useWatchStream } from './useWatchStream';
 
-export default function useWatch(
+export function useWatch(
   animeId: string,
   initialEpisodeId: string | undefined
 ): UseWatchReturn {

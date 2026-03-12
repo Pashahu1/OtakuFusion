@@ -1,15 +1,8 @@
 import type Artplayer from 'artplayer';
 import { KEY_CODES } from './playerConstants';
 
-/**
- * Тип однієї "обробки" клавіші: функція (подія, плеєр) → нічого.
- */
 type KeyHandler = (event: KeyboardEvent, art: Artplayer) => void;
 
-/**
- * Обгортає handler так, що перед ним завжди викликаються preventDefault + stopPropagation.
- * Патерн: Higher-Order Function (функція приймає функцію і повертає нову).
- */
 function withPreventDefault(handler: KeyHandler): KeyHandler {
   return (event, art) => {
     event.preventDefault();
@@ -18,10 +11,6 @@ function withPreventDefault(handler: KeyHandler): KeyHandler {
   };
 }
 
-/**
- * Таблиця "клавіша → що робити".
- * Патерн: Lookup Table / Strategy — замість switch один об'єкт і виклик по ключу.
- */
 const KEY_HANDLERS: Record<string, KeyHandler> = {
   [KEY_CODES.M]: (_, art) => {
     art.muted = !art.muted;
@@ -52,9 +41,7 @@ const KEY_HANDLERS: Record<string, KeyHandler> = {
   }),
 };
 
-/**
- * Головна функція: "на яку клавішу натиснули?" → знайти handler у таблиці → викликати.
- */
+
 export function handlePlayerKeydown(
   event: KeyboardEvent,
   art: Artplayer

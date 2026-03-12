@@ -23,7 +23,7 @@ function t2d(time) {
   return h + m + s + ms;
 }
 
-export default async function getVttArray(vttUrl = '') {
+export async function getVttArray(vttUrl = '') {
   const vttString = await (await fetch(vttUrl)).text();
   let lines = vttString.split(/\r?\n/).filter((item) => item.trim());
   const vttArray = [];

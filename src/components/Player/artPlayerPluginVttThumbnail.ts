@@ -1,11 +1,6 @@
 // @ts-nocheck
-import getVttArray from './getVttArray';
+import { getVttArray } from './getVttArray';
 
-/**
- * VTT thumbnail plugin: sync factory, async load.
- * art.plugins.add() expects a sync (art) => result, so we register the control
- * after thumbnails load instead of returning async (art) => ... .
- */
 export default function artplayerPluginVttThumbnail(option) {
   return (art) => {
     const {

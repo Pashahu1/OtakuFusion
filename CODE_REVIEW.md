@@ -15,9 +15,28 @@
 ## Що маю зробити (чекліст)
 
 ### Гілка: розбиття Player.tsx
-- [ ] Винести логіку/підблоки в окремі компоненти або хуки (наприклад, контроли, субтитри, плагіни).
-- [ ] Прибрати `@ts-nocheck` у `Player.tsx` і пов’язаних файлах Player (getVttArray, PlayerIcons, pluginChapterStyle, artPlayerPluginVttThumbnail, artplayerPluginUploadSubtitle, artPlayerPluinChaper).
-- [ ] Допрацювати типи, щоб не покладатися на any.
+
+Розбиття на частини (кожна = один коміт, збірка зелена після кожного):
+
+| # | Частина | Що зробити | Коміт (приклад) |
+|---|--------|-------------|------------------|
+| P1 | **useChapterStyles** | Винести useEffect із застосуванням chapter styles у хук `useChapterStyles(intro, outro)`. У Player лише виклик хука. | `refactor(Player): extract useChapterStyles hook` |
+| P2 | **Stream URL + HLS** | Винести побудову `headers`, `fullURL` і функцію `playM3u8` у модуль (наприклад `playerStream.ts` або хук). Player викликає готову функцію/хук. | `refactor(Player): extract stream URL and HLS setup` |
+| P3 | **Опції Artplayer** | Винести об’єкт опцій (plugins, subtitle, icons, customType) у фабрику `getArtplayerOptions(...)` у окремому файлі. У Player: `new Artplayer({ ...getArtplayerOptions(...), url, container })`. Layers поки залишити в опціях. | `refactor(Player): extract Artplayer options factory` |
+| P4 | **Layers** | Винести масив `layers` (лого, tap-зони, skip intro/outro, іконки) у `getPlayerLayers(...)` або окремий модуль. Підключити в опціях. | `refactor(Player): extract layers config` |
+| P5 | **Ready callback** | Винести тіло `art.on('ready', ...)` у функцію `setupPlayerReady(art, refs, callbacks, options)` (окремий файл). У Player лише `art.on('ready', () => setupPlayerReady(...))`. | `refactor(Player): extract ready callback setup` |
+| P6 | **Cleanup + continueWatching** | Винести оновлення `continueWatching` (localStorage) у хелпер `updateContinueWatching(animeInfo, episodeId, ...)`. У cleanup лише destroy + виклик хелпера. | `refactor(Player): extract continueWatching update` |
+| P7 | **Типи та @ts-nocheck** | Допрацювати типи в нових модулях, прибрати `@ts-nocheck` з Player та пов’язаних файлів (getVttArray, PlayerIcons, pluginChapterStyle, плагіни). | `refactor(Player): add types, remove @ts-nocheck` |
+
+Порядок: P1 → P2 → … → P7. Після кожної частини — перевірка збірки й плеєра, потім коміт.
+
+- [ ] P1 useChapterStyles
+- [ ] P2 Stream URL + HLS
+- [ ] P3 Опції Artplayer
+- [ ] P4 Layers
+- [ ] P5 Ready callback
+- [ ] P6 Cleanup + continueWatching
+- [ ] P7 Типи та @ts-nocheck
 
 ### Гілка: розбиття watch/[id]/page.tsx
 - [ ] Розбити сторінку на контейнер + презентаційні компоненти (теги, плеєр, епізоди, «next episode», секції).

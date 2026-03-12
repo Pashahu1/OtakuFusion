@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { uploadIcon } from './PlayerIcons.tsx';
 
-export default function artplayerPluginUploadSubtitle() {
+export function artplayerPluginUploadSubtitle() {
   return (art) => {
     const { getExt } = art.constructor.utils;
 
@@ -39,7 +39,6 @@ export default function artplayerPluginUploadSubtitle() {
 
           event.target.value = null;
 
-          // Update UI
           $label.textContent = file.name;
           art.notice.show = `Upload Subtitle ：${file.name}`;
           setting.tooltip = file.name;

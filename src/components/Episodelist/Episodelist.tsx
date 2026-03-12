@@ -11,7 +11,6 @@ import './Episodelist.scss';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 
 type EpisodeType = {
-  animeId: string;
   episodes: EpisodesTypes[];
   onEpisodeClick: (episodeId: string) => void;
   currentEpisode: string | null;
@@ -19,8 +18,7 @@ type EpisodeType = {
   watchedEpisodes?: Record<string, boolean>;
 };
 
-function Episodelist({
-  animeId,
+export function Episodelist({
   episodes,
   onEpisodeClick,
   currentEpisode,
@@ -332,5 +330,3 @@ function Episodelist({
     </div>
   );
 }
-
-export default Episodelist;

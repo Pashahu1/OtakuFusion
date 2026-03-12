@@ -4,14 +4,12 @@ import type { ServerInfo } from './GlobalAnimeTypes';
 import type { StreamingData } from './StreamingTypes';
 import type { Segment } from './VideoSegmentsTypes';
 
-/** Опція субтитрів для плеєра (файл, лейбл, опційно default) */
 export interface SubtitleItem {
   file: string;
   label: string;
   default?: boolean;
 }
 
-/** Пропси головного компонента Player */
 export interface PlayerProps {
   streamUrl: string;
   subtitles: SubtitleItem[] | null;

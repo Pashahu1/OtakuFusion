@@ -8,7 +8,7 @@ type Props = {
   catalog: AnimeInfo[];
 };
 
-const AnimeSection = ({ title, catalog }: Props) => {
+export const AnimeSection = ({ title, catalog }: Props) => {
   if (!isArray(catalog)) {
     return null;
   }
@@ -18,11 +18,11 @@ const AnimeSection = ({ title, catalog }: Props) => {
   }
 
   return (
-    <section className="w-full px-4 md:px-6 lg:px-10 py-8 space-y-6">
-      <div className="flex items-center justify-between mb-4">
+    <section className="w-full space-y-6 px-4 py-8 md:px-6 lg:px-10">
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="text-title text-brand-text-primary">{title}</h2>
       </div>
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8">
         {catalog.map((anime) => (
           <Card key={anime.id} anime={anime} />
         ))}
@@ -30,5 +30,3 @@ const AnimeSection = ({ title, catalog }: Props) => {
     </section>
   );
 };
-
-export default AnimeSection;

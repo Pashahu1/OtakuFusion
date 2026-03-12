@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function DeleteAccount() {
+export function DeleteAccount() {
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();

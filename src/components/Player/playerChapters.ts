@@ -1,9 +1,5 @@
 import type { Chapter, Segment } from '@/shared/types/VideoSegmentsTypes';
 
-/**
- * Будує масив глав для плагіна (intro/outro).
- * Не додає інтро, якщо start === 0 і end === 0; аналогічно для аутро.
- */
 export function createChapters(
   intro: Segment | null,
   outro: Segment | null

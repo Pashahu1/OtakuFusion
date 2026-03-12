@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 
-export default function ChangePasswordForm() {
+export function ChangePasswordForm() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);

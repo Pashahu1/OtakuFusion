@@ -1,7 +1,7 @@
 import Hls from 'hls.js';
 import { useEffect, useRef, useState } from 'react';
 import Artplayer from 'artplayer';
-import artplayerPluginChapter from './artPlayerPluinChaper';
+import { artplayerPluginChapter } from './artPlayerPluinChaper';
 import artplayerPluginVttThumbnail from './artPlayerPluginVttThumbnail';
 import {
   backwardIcon,
@@ -21,9 +21,9 @@ import {
   volumeIcon,
 } from './PlayerIcons';
 import './Player.scss';
-import getChapterStyles from './getChapterStyle';
+import { getChapterStyles } from './getChapterStyle';
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
-import artplayerPluginUploadSubtitle from './artplayerPluginUploadSubtitle';
+import { artplayerPluginUploadSubtitle } from './artplayerPluginUploadSubtitle';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
 import {
@@ -36,11 +36,12 @@ import {
 } from './playerConstants';
 import { createChapters } from './playerChapters';
 import { handlePlayerKeydown } from './playerKeydown';
+import { useChapterStyles } from '@/hooks/useChapterStyles';
 
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
 
-export default function Player({
+export function Player({
   streamUrl,
   subtitles,
   thumbnail,
@@ -83,7 +84,6 @@ export default function Player({
   playNextRef.current = playNext;
   onEpisodeWatchedRef.current = onEpisodeWatched;
 
-
   useEffect(() => {
     hasTriggeredNextRef.current = false;
     hasMarkedWatchedForOutroRef.current = false;
@@ -96,27 +96,7 @@ export default function Player({
     }
   }, [episodeId, episodes]);
 
-  useEffect(() => {
-    const applyChapterStyles = () => {
-      const existingStyles = document.querySelectorAll(
-        'style[data-chapter-styles]'
-      );
-      existingStyles.forEach((style) => style.remove());
-      const styleElement = document.createElement('style');
-      styleElement.setAttribute('data-chapter-styles', 'true');
-      const styles = getChapterStyles(intro, outro);
-      styleElement.textContent = styles;
-      document.head.appendChild(styleElement);
-      return () => {
-        styleElement.remove();
-      };
-    };
-
-    if (streamUrl || intro || outro) {
-      const cleanup = applyChapterStyles();
-      return cleanup;
-    }
-  }, [streamUrl, intro, outro]);
+  useChapterStyles(streamUrl, intro, outro);
 
   const playM3u8 = (
     video: HTMLVideoElement,
@@ -484,7 +464,9 @@ export default function Player({
       };
       if (art.video) {
         art.video.addEventListener('ended', goToNextEpisode);
-        art.on('destroy', () => art.video?.removeEventListener('ended', goToNextEpisode));
+        art.on('destroy', () =>
+          art.video?.removeEventListener('ended', goToNextEpisode)
+        );
       }
 
       const tryPlay = () => {
@@ -585,9 +567,10 @@ export default function Player({
             vtt: `${PROXY_URL}${thumbnail}`,
           })
         );
-      const defaultEnglishSub = subtitles?.find(
-        (sub) => sub.label.toLowerCase() === 'english' && sub.default
-      ) || subtitles?.find((sub) => sub.label.toLowerCase() === 'english');
+      const defaultEnglishSub =
+        subtitles?.find(
+          (sub) => sub.label.toLowerCase() === 'english' && sub.default
+        ) || subtitles?.find((sub) => sub.label.toLowerCase() === 'english');
       subtitles &&
         subtitles.length > 0 &&
         art.setting.add({
@@ -675,8 +658,9 @@ export default function Player({
                   : 0
             );
       if (languageSelector.length > 0) {
-        const currentLang =
-          langServers?.find((s) => String(s.data_id) === String(langActiveId));
+        const currentLang = langServers?.find(
+          (s) => String(s.data_id) === String(langActiveId)
+        );
         art.setting.add({
           name: 'language',
           icon: serverIcon,
@@ -747,12 +731,16 @@ export default function Player({
           instanceToDestroy.pause();
           instanceToDestroy.destroy(false);
         } catch (e) {
-          if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+          if (
+            typeof process !== 'undefined' &&
+            process.env.NODE_ENV === 'development'
+          ) {
             console.warn('Player cleanup:', e);
           }
         }
         const container = artRef.current;
-        if (container && typeof container.innerHTML !== 'undefined') container.innerHTML = '';
+        if (container && typeof container.innerHTML !== 'undefined')
+          container.innerHTML = '';
       }
       const continueWatching = (JSON.parse(
         localStorage.getItem('continueWatching') || '[]'
@@ -787,5 +775,5 @@ export default function Player({
     };
   }, [streamUrl, subtitles, intro, outro]);
 
-  return <div ref={artRef} className="w-full h-full relative"></div>;
+  return <div ref={artRef} className="relative h-full w-full"></div>;
 }

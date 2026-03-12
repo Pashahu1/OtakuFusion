@@ -45,8 +45,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (data.user) setUser(data.user);
         else setUser(null);
       })
+      .catch(() => {
+        setUser(null);
+        setIsLoading(false);
+      })
       .finally(() => setIsLoading(false));
-  }, [isLoading]);
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
@@ -63,11 +67,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (!res.ok) {
         return { ok: false, message: data.message || 'Login failed' };
       }
-      const me = await fetchWithRefresh('/api/auth/me', {
-        credentials: 'include',
-      }).then((r) => r.json());
-      if (me.user) {
-        setUser(me.user);
+      if (data.user) {
+        setUser(data.user);
         return { ok: true };
       }
       return { ok: false, message: 'User not found after login' };
@@ -75,6 +76,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return { ok: false, message: 'Something went wrong' };
     }
   };
+
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     setUser(null);

@@ -18,7 +18,7 @@ export async function POST() {
 
   let payload: any;
   try {
-    payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
+    payload = jwt.verify(refreshToken, process.env.NEXT_JWT_REFRESH_SECRET!);
   } catch {
     return NextResponse.json(
       { message: 'Invalid refresh token' },

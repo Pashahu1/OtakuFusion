@@ -1,5 +1,4 @@
-// @ts-nocheck
-const pluginChapterStyle = `
+export const pluginChapterStyle = `
 .artplayer-plugin-chapter .art-control-progress-inner {
     height: 100% !important;
     background-color: transparent !important;
@@ -54,5 +53,3 @@ const pluginChapterStyle = `
     background-color: var(--art-tip-background);
 }
 `;
-
-export default pluginChapterStyle;

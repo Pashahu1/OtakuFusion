@@ -9,7 +9,11 @@ type Props = {
   selectedDate: string;
 };
 
-function AnimeCalendarComponent({ events, onDateChange, selectedDate }: Props) {
+export function AnimeCalendarComponent({
+  events,
+  onDateChange,
+  selectedDate,
+}: Props) {
   return (
     <div className="calendar">
       <AnimeSchedule
@@ -24,5 +28,3 @@ function AnimeCalendarComponent({ events, onDateChange, selectedDate }: Props) {
 AnimeCalendarComponent.displayName = 'AnimeCalendar';
 
 const AnimeCalendar = React.memo(AnimeCalendarComponent);
-
-export default AnimeCalendar;

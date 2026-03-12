@@ -1,5 +1,5 @@
 // @ts-nocheck
-import style from './pluginChapterStyle.ts';
+import { pluginChapterStyle as style } from './pluginChapterStyle.ts';
 
 export function artplayerPluginChapter(option = {}) {
   return (art) => {
