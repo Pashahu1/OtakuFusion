@@ -35,8 +35,8 @@
 - [+] P3 Опції Artplayer
 - [+] P4 Layers
 - [+] P5 Ready callback
-- [ ] P6 Cleanup + continueWatching
-- [ ] P7 Типи та @ts-nocheck
+- [+] P6 Cleanup + continueWatching
+- [+] P7 Типи та @ts-nocheck
 
 ### Гілка: розбиття watch/[id]/page.tsx
 - [ ] Розбити сторінку на контейнер + презентаційні компоненти (теги, плеєр, епізоди, «next episode», секції).
