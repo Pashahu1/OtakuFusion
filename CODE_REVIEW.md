@@ -34,7 +34,7 @@
 - [+] P2 Stream URL + HLS
 - [+] P3 Опції Artplayer
 - [+] P4 Layers
-- [ ] P5 Ready callback
+- [+] P5 Ready callback
 - [ ] P6 Cleanup + continueWatching
 - [ ] P7 Типи та @ts-nocheck
 
