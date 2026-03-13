@@ -1,7 +1,8 @@
 export const Skeleton = ({ className }: { className?: string }) => {
   return (
     <div
-      className={`animate-pulse bg-[#3a3c45]/50 rounded-md ${className}`}
-    ></div>
+      className={`min-h-[0.75rem] animate-pulse rounded-md bg-white/15 ${className ?? ''}`}
+      aria-hidden
+    />
   );
 };

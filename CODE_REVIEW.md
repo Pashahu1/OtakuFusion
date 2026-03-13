@@ -58,10 +58,28 @@
 
 Порядок: W1 → W2 → W3 → W4 → W5 → W6 → [W7 за бажанням] → W8 → W9. Після кожної підзадачі — перевірка збірки й сторінки, потім коміт.
 
+**Розпис W4 (WatchInfoPanel і підкомпоненти)**  
+Права колонка (watch-info) — один контейнер **WatchInfoPanel** і всередині нього можна розбити на дрібні презентаційні компоненти:
+
+| Компонент | Відповідальність | Пропси | Файл (приклад) |
+|-----------|------------------|--------|-----------------|
+| **WatchInfoPanel** | Обгортка правої колонки: класи, layout (постер зліва/зверху, блок деталей справа/знизу). Рендерить усі підкомпоненти. | `animeInfo`, `isFullOverview`, `setIsFullOverview`, `posterImageLoaded`, `setPosterImageLoaded`, `posterImgRef` | `WatchInfoPanel.tsx` |
+| **WatchInfoPoster** | Постер + скелетон під час завантаження. | `posterUrl`, `posterImgRef`, `loaded`, `onLoad` | `WatchInfoPoster.tsx` або в одному файлі з панеллю |
+| **WatchInfoTitle** | Назва аніме або скелетон. | `title` (string \| null/undefined) | `WatchInfoTitle.tsx` або inline у панелі |
+| **WatchTags** | Вже є (W3): теги + showType/duration. | `animeInfo` | імпорт з `@/components/WatchTags` |
+| **DetailsInformation** або **OverviewSection** | Блок з описом (Overview): текст до 270 символів + «+ More» / «- Less», скрол при довгому тексті. Скелетон, якщо немає overview. | `overview` (string \| undefined), `isExpanded`, `onToggleExpand` | `DetailsInformation.tsx` або `OverviewSection.tsx` |
+| **WatchInfoSeoText** | SEO-абзац («…best site to watch X SUB online… DUB in HD quality») або скелетон. Прихований на малих екранах (max-[575px]:hidden). | `title`, `websiteName` (або передати вже сформований текст) | `WatchInfoSeoText.tsx` або inline |
+
+**Що робити по кроках:**  
+1. Один файл **WatchInfoPanel.tsx**: приймає всі пропси з page, рендерить поточну розмітку правої колонки (постер, назва, \<WatchTags />, overview, SEO), без розбиття на підкомпоненти — переконатися, що все працює.  
+2. Винести **DetailsInformation** (Overview): окремий компонент з пропсами `overview`, `isExpanded`, `onToggleExpand`; у панелі лишити тільки \<DetailsInformation overview={...} isExpanded={...} onToggleExpand={...} />.  
+3. За бажанням винести **WatchInfoPoster**, **WatchInfoTitle**, **WatchInfoSeoText** — щоб панель була короткою і лише збирала пропси та композицію.  
+4. На page замінити весь блок \<div className="watch-info">…\</div> на \<WatchInfoPanel … />, передати ref та стани (poster loaded, isFullOverview) з page.
+
 - [x] W1 useWatchPageEffects
 - [x] W2 Типи watch-сторінки
 - [x] W3 WatchTags
-- [ ] W4 WatchInfoPanel
+- [x] W4 WatchInfoPanel (див. розпис нижче)
 - [ ] W5 WatchPlayerArea
 - [ ] W6 WatchSeasonsAndSchedule
 - [ ] W7 WatchEpisodesColumn (опційно)

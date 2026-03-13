@@ -1,27 +1,22 @@
 // @ts-nocheck
 'use client';
 
-import { useId, useMemo, useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useWatch } from '@/hooks/useWatch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
 import { Player } from '@/components/Player/Player';
 import { Episodelist } from '@/components/Episodelist/Episodelist';
-import website_name from '@/config/website';
 import { Seasons } from '@/components/Seasons/Seasons';
-import {
-  faClosedCaptioning,
-  faMicrophone,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
 import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
-import WatchControls from '@/components/Watchcontrols/Watchcontrols';
 import { useWatchPageEffects } from '@/hooks/useWatchPageEffects';
-import type { TagItem } from '@/shared/types/WatchPageTypes';
 import { WatchTags } from '@/components/WatchTags/WatchTags';
+import { WatchInfoTitle } from '@/components/DetailsInformation/WatchInfoTitle';
+import { WatchInfoOverview } from '@/components/DetailsInformation/WatchInfoOverview';
+import { WatchInfoSeoInformation } from '@/components/DetailsInformation/WatchInfoSeoInformation';
 
 export default function Watch() {
   const searchParams = useSearchParams();
@@ -110,7 +105,7 @@ export default function Watch() {
   );
 
   const isErrorState = !serverLoading && !buffering && !streamUrl;
-  
+
   return (
     <div className="relative flex h-fit w-full flex-col items-center justify-center">
       <div className="relative w-full px-4 max-[1400px]:px-[30px] max-[1200px]:px-[80px] max-[1024px]:px-0 lg:px-10">
@@ -288,57 +283,14 @@ export default function Watch() {
               )}
             </div>
             <div className="flex min-w-0 flex-col justify-start gap-y-4 overflow-hidden">
-              {animeInfo && animeInfo?.title ? (
-                <p className="shrink-0 text-[26px] leading-6 font-medium max-[500px]:text-[18px]">
-                  {animeInfo?.title}
-                </p>
-              ) : (
-                <Skeleton className="h-[26px] max-w-[180px] shrink-0 rounded max-[500px]:h-[20px]" />
-              )}
-
+              <WatchInfoTitle title={animeInfo?.title} />
               <WatchTags animeInfo={animeInfo} />
-              {animeInfo?.animeInfo?.Overview ? (
-                <div className="mt-0 max-h-[200px] min-w-0 overflow-hidden">
-                  <div className="no-scrollbar mt-2 max-h-[160px] overflow-y-auto">
-                    <p className="text-[14px] font-[400]">
-                      {animeInfo?.animeInfo?.Overview.length > 270 ? (
-                        <>
-                          {isFullOverview
-                            ? animeInfo?.animeInfo?.Overview
-                            : `${animeInfo?.animeInfo?.Overview.slice(
-                                0,
-                                270
-                              )}...`}
-                          <span
-                            className="text-[13px] font-bold hover:cursor-pointer"
-                            onClick={() => setIsFullOverview(!isFullOverview)}
-                          >
-                            {isFullOverview ? '- Less' : '+ More'}
-                          </span>
-                        </>
-                      ) : (
-                        <span>{animeInfo?.animeInfo?.Overview}</span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-2 flex flex-col gap-y-2">
-                  <Skeleton className="h-[120px] w-full max-w-[510px] shrink-0 rounded" />
-                </div>
-              )}
-
-              {animeInfo ? (
-                <p className="shrink-0 text-[14px] max-[575px]:hidden">
-                  {`${website_name} is the best site to watch `}
-                  <span className="font-bold">{animeInfo.title}</span>
-                  {` SUB online, or you can even watch `}
-                  <span className="font-bold">{animeInfo.title}</span>
-                  {` DUB in HD quality.`}
-                </p>
-              ) : (
-                <Skeleton className="h-[144px] w-full max-w-[510px] shrink-0 rounded max-[575px]:hidden" />
-              )}
+              <WatchInfoOverview
+                overview={animeInfo?.animeInfo?.Overview}
+                isFullOverview={isFullOverview}
+                setIsFullOverview={setIsFullOverview}
+              />
+              <WatchInfoSeoInformation title={animeInfo?.title} />
             </div>
           </div>
         </div>
