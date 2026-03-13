@@ -1,8 +1,8 @@
 // @ts-nocheck
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useSearchParams, useParams, useRouter } from 'next/navigation';
+import { useId, useMemo, useRef, useState } from 'react';
+import { useSearchParams, useParams } from 'next/navigation';
 import { useWatch } from '@/hooks/useWatch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
@@ -19,6 +19,7 @@ import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
 import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
 import WatchControls from '@/components/Watchcontrols/Watchcontrols';
+import { useWatchPageEffects } from '@/hooks/useWatchPageEffects';
 
 type TagItem = {
   condition?: unknown;
@@ -29,7 +30,6 @@ type TagItem = {
 
 export default function Watch() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const params = useParams();
   const animeIdRaw = params?.id;
   const animeId =
@@ -48,11 +48,15 @@ export default function Watch() {
   }
   const initialEpisodeId = initialEpRef.current.ep;
   const [showNextEpisodeSchedule, setShowNextEpisodeSchedule] = useState(true);
-  const isFirstSet = useRef(true);
+
   const [showErrorBlock, setShowErrorBlock] = useState(false);
-  const errorBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const posterImgRef = useRef<HTMLImageElement | null>(null);
   const [posterImageLoaded, setPosterImageLoaded] = useState(false);
+  const playerColumnRef = useRef<HTMLDivElement>(null);
+  const [episodesColumnHeight, setEpisodesColumnHeight] = useState<
+    number | null
+  >(null);
   const [watchedEpisodes, setWatchedEpisodes] = useLocalStorage<
     Record<string, boolean>
   >(`watched-${animeId}`, {});
@@ -81,131 +85,37 @@ export default function Watch() {
     servers,
     serverLoading,
   } = useWatch(animeId, initialEpisodeId);
+
   const playerMountKey = useId();
   const hasAppliedSavedEpisodeRef = useRef(false);
-  useEffect(() => {
-    hasAppliedSavedEpisodeRef.current = false;
-  }, [animeId]);
+  const isFirstSet = useRef(true);
+  const errorBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (urlEp || !episodes?.length || hasAppliedSavedEpisodeRef.current) return;
-    if (typeof window === 'undefined') return;
-    hasAppliedSavedEpisodeRef.current = true;
-    try {
-      const cw = JSON.parse(localStorage.getItem('continueWatching') || '[]');
-      const found = cw.find((x: { id: string }) => x.id === animeId);
-      const savedId = found?.episodeId;
-      if (
-        savedId &&
-        episodes.some((ep) => ep.id.match(/ep=(\d+)/)?.[1] === savedId)
-      ) {
-        setEpisodeId(savedId);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [animeId, episodes, setEpisodeId, urlEp]);
-
-  useEffect(() => {
-    if (!episodes || episodes.length === 0) return;
-
-    const isValidEpisode = episodes.some((ep) => {
-      const epNumber = ep.id.split('ep=')[1];
-      return epNumber === episodeId;
-    });
-
-    if (!episodeId || !isValidEpisode) {
-      const fallbackId = episodes[0].id.match(/ep=(\d+)/)?.[1];
-      if (fallbackId && fallbackId !== episodeId) {
-        setEpisodeId(fallbackId);
-      }
-      return;
-    }
-
-    const newUrl = `/watch/${animeId}?ep=${episodeId}`;
-    if (isFirstSet.current) {
-      router.replace(newUrl);
-      isFirstSet.current = false;
-    } else {
-      router.push(newUrl);
-    }
-  }, [episodeId, animeId, router, episodes, setEpisodeId]);
-
-  useEffect(() => {
-    if (animeInfo) {
-      document.title = `Watch ${animeInfo.title} English Sub/Dub online Free on ${website_name}`;
-    }
-
-    return () => {
-      document.title = `${website_name} | Free anime streaming platform`;
-    };
-  }, [animeId, animeInfo]);
-
-  const isErrorState = !serverLoading && !buffering && !streamUrl;
-  useEffect(() => {
-    if (isErrorState) {
-      errorBlockTimerRef.current = setTimeout(
-        () => setShowErrorBlock(true),
-        400
-      );
-    } else {
-      if (errorBlockTimerRef.current) {
-        clearTimeout(errorBlockTimerRef.current);
-        errorBlockTimerRef.current = null;
-      }
-      setShowErrorBlock(false);
-    }
-    return () => {
-      if (errorBlockTimerRef.current) {
-        clearTimeout(errorBlockTimerRef.current);
-        errorBlockTimerRef.current = null;
-      }
-    };
-  }, [isErrorState]);
-
-  useEffect(() => {
-    setPosterImageLoaded(false);
-    if (!animeInfo?.poster) return;
-    const checkCached = () => {
-      if (posterImgRef.current?.complete) setPosterImageLoaded(true);
-    };
-    const t = setTimeout(checkCached, 0);
-    return () => clearTimeout(t);
-  }, [animeInfo?.poster]);
-
-  useEffect(() => {
-    const centerColumn = document.querySelector<HTMLElement>('.watch-player');
-    const episodesEl = document.querySelector<HTMLElement>('.episodes');
-    if (!episodesEl) return;
-
-    const setEpisodesHeight = () => {
-      if (window.innerWidth > 1200 && centerColumn) {
-        const h = centerColumn.clientHeight;
-        if (h > 0) episodesEl.style.height = `${h}px`;
-      } else {
-        episodesEl.style.height = '';
-      }
-    };
-
-    setEpisodesHeight();
-    window.addEventListener('resize', setEpisodesHeight);
-    if (centerColumn && typeof ResizeObserver !== 'undefined') {
-      const ro = new ResizeObserver(() => setEpisodesHeight());
-      ro.observe(centerColumn);
-      return () => {
-        ro.disconnect();
-        window.removeEventListener('resize', setEpisodesHeight);
-      };
-    }
-    return () => window.removeEventListener('resize', setEpisodesHeight);
-  }, [
-    streamUrl,
+  useWatchPageEffects(
+    hasAppliedSavedEpisodeRef,
+    animeId,
+    setEpisodeId,
+    episodeId,
+    episodes,
+    urlEp,
+    isFirstSet,
     serverLoading,
     buffering,
-    seasons?.length,
-    nextEpisodeSchedule?.nextEpisodeSchedule,
+    streamUrl,
+    animeInfo,
+    seasons,
+    nextEpisodeSchedule,
     showNextEpisodeSchedule,
-  ]);
+    errorBlockTimerRef,
+    setShowErrorBlock,
+    posterImgRef,
+    setPosterImageLoaded,
+    playerColumnRef,
+    setEpisodesColumnHeight
+  );
+
+  const isErrorState =
+    !serverLoading && !buffering && !streamUrl;
 
   function Tag({
     bgColor,
@@ -268,7 +178,14 @@ export default function Watch() {
     <div className="relative flex h-fit w-full flex-col items-center justify-center">
       <div className="relative w-full px-4 max-[1400px]:px-[30px] max-[1200px]:px-[80px] max-[1024px]:px-0 lg:px-10">
         <div className="watch-layout relative z-10 mt-[128px] grid w-full grid-cols-[minmax(280px,28%)_1fr_minmax(240px,22%)] gap-4 pb-[50px] max-[1200px]:mt-[64px] max-[1200px]:grid-cols-1 max-[1200px]:grid-rows-[auto_auto_auto] max-[1024px]:px-0 max-md:mt-[50px]">
-          <div className="watch-episodes episodes flex min-h-[480px] min-w-0 flex-col overflow-hidden rounded-xl border border-white/5 bg-[#23252b]/80 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1200px]:order-2 max-[1200px]:min-h-[280px]">
+          <div
+            className="watch-episodes episodes flex min-h-[480px] min-w-0 flex-col overflow-hidden rounded-xl border border-white/5 bg-[#23252b]/80 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1200px]:order-2 max-[1200px]:min-h-[280px]"
+            style={
+              episodesColumnHeight != null
+                ? { height: `${episodesColumnHeight}px` }
+                : undefined
+            }
+          >
             {!episodes ? (
               <div className="h-full min-h-[280px] w-full animate-pulse rounded-lg bg-white/5" />
             ) : (
@@ -282,7 +199,10 @@ export default function Watch() {
               />
             )}
           </div>
-          <div className="watch-player flex w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1200px]:order-1">
+          <div
+            ref={playerColumnRef}
+            className="watch-player flex w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1200px]:order-1"
+          >
             <div className="player relative h-[480px] w-full shrink-0 overflow-hidden rounded-xl border border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] max-[1400px]:h-[40vw] max-[1200px]:h-[48vw] max-[1024px]:h-[58vw] max-[600px]:h-[65vw]">
               {(serverLoading || buffering) && (
                 <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center bg-black">

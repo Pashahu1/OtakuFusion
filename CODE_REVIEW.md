@@ -39,9 +39,34 @@
 - [+] P7 Типи та @ts-nocheck
 
 ### Гілка: розбиття watch/[id]/page.tsx
-- [ ] Розбити сторінку на контейнер + презентаційні компоненти (теги, плеєр, епізоди, «next episode», секції).
-- [ ] Прибрати `@ts-nocheck` з watch page.
-- [ ] Допрацювати типи для watch-сторінки.
+
+Розбиття на підзадачі (best practice + патерни). Кожна підзадача = один коміт, збірка зелена після кожного.
+
+**Патерни:** Container/Presentational (page = контейнер, решта = презентаційні компоненти), Custom hooks (логіка ефектів у хуках), винесення типів (один модуль типів для watch-сторінки).
+
+| # | Підзадача | Що зробити | Патерн / практика | Коміт (приклад) |
+|---|-----------|------------|-------------------|------------------|
+| W1 | **useWatchPageEffects** | Винести всі `useEffect` з page в хук `useWatchPageEffects`: continue watching (localStorage), sync URL з `episodeId`, document title, error block timer, poster load, episodes column height (ResizeObserver). Page лише викликає хук і передає потрібні залежності. | Custom hooks, separation of concerns | `refactor(watch): extract useWatchPageEffects` |
+| W2 | **Типи watch-сторінки** | Винести `TagItem` та інші типи, пов’язані з watch page, в окремий файл (наприклад `watch/[id]/types.ts` або `types/watch-page.ts`). Використати їх у page і в майбутніх компонентах. | Shared types, single source of truth | `refactor(watch): extract watch page types` |
+| W3 | **WatchTags (AnimeTags)** | Винести компонент `Tag` і `useMemo` для масиву `tags` в презентаційний компонент (наприклад `WatchTags` або `AnimeTags`). Пропси: `animeInfo`. Повертає тільки розмітку тегів (рейтинг, +18, quality, sub, dub тощо). | Presentational component | `refactor(watch): extract WatchTags component` |
+| W4 | **WatchInfoPanel (sidebar)** | Винести праву колонку в компонент: постер, назва, теги (використати W3), showType/duration, overview (expand/collapse), SEO-текст. Пропси: `animeInfo`, `isFullOverview`, `setIsFullOverview`, стан poster loaded. | Presentational component | `refactor(watch): extract WatchInfoPanel` |
+| W5 | **WatchPlayerArea** | Винести блок плеєра в компонент: умовний loader (BouncingLoader), умовний рендер `Player`, умовний error block («Servers not available»). Пропси: стан завантаження, streamUrl, error state, колбеки для Player. | Presentational component | `refactor(watch): extract WatchPlayerArea` |
+| W6 | **WatchSeasonsAndSchedule** | Винести блок «Watch more seasons» + «next episode schedule» в один компонент. Пропси: `seasons`, `animeInfoLoading`, `nextEpisodeSchedule`, `showNextEpisodeSchedule`, `setShowNextEpisodeSchedule`. | Presentational component | `refactor(watch): extract WatchSeasonsAndSchedule` |
+| W7 | **WatchEpisodesColumn** | Опційно: обгортка над лівою колонкою (Episodelist + skeleton). Якщо логіка мінімальна — можна лишити inline у page або об’єднати з layout. | Presentational / layout | `refactor(watch): extract WatchEpisodesColumn` (або пропустити) |
+| W8 | **Контейнер page** | Звести `page.tsx` до контейнера: виклик `useWatch`, `useWatchPageEffects`, `useLocalStorage`; збірка пропсів; рендер сітки з винесеними компонентами (EpisodesColumn, PlayerArea, SeasonsAndSchedule, InfoPanel) + Recommended. Без бізнес-логіки в JSX. | Container/Presentational | `refactor(watch): page as container only` |
+| W9 | **@ts-nocheck та типи** | Прибрати `@ts-nocheck` з watch page. Переконатися, що всі імпорти та пропси типізовані (у т.ч. у нових компонентах і в `useWatchPageEffects`). | Type safety, clean-up | `refactor(watch): remove @ts-nocheck, fix types` |
+
+Порядок: W1 → W2 → W3 → W4 → W5 → W6 → [W7 за бажанням] → W8 → W9. Після кожної підзадачі — перевірка збірки й сторінки, потім коміт.
+
+- [x] W1 useWatchPageEffects
+- [ ] W2 Типи watch-сторінки
+- [ ] W3 WatchTags
+- [ ] W4 WatchInfoPanel
+- [ ] W5 WatchPlayerArea
+- [ ] W6 WatchSeasonsAndSchedule
+- [ ] W7 WatchEpisodesColumn (опційно)
+- [ ] W8 Контейнер page
+- [ ] W9 @ts-nocheck та типи
 
 ### Гілка: Zod + UI під валідацію
 - [ ] ContinueWatching: після `JSON.parse` валідувати через Zod, показувати помилки в UI.
