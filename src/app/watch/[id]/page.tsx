@@ -20,13 +20,8 @@ import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkele
 import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
 import WatchControls from '@/components/Watchcontrols/Watchcontrols';
 import { useWatchPageEffects } from '@/hooks/useWatchPageEffects';
-
-type TagItem = {
-  condition?: unknown;
-  bgColor: string;
-  text?: string;
-  icon?: typeof faClosedCaptioning;
-};
+import type { TagItem } from '@/shared/types/WatchPageTypes';
+import { WatchTags } from '@/components/WatchTags/WatchTags';
 
 export default function Watch() {
   const searchParams = useSearchParams();
@@ -114,66 +109,8 @@ export default function Watch() {
     setEpisodesColumnHeight
   );
 
-  const isErrorState =
-    !serverLoading && !buffering && !streamUrl;
-
-  function Tag({
-    bgColor,
-    index,
-    icon,
-    text,
-  }: {
-    bgColor: string;
-    index: number;
-    icon?: TagItem['icon'];
-    text?: string;
-  }) {
-    return (
-      <div
-        className={`flex items-center justify-center space-x-1 px-[4px] py-[1px] text-[13px] font-semibold text-black ${
-          index === 0 ? 'rounded-l-[4px]' : 'rounded-none'
-        }`}
-        style={{ backgroundColor: bgColor }}
-      >
-        {icon && <FontAwesomeIcon icon={icon} className="text-[12px]" />}
-        <p className="text-[12px]">{text}</p>
-      </div>
-    );
-  }
-
-  const tags = useMemo<TagItem[]>(
-    () => [
-      {
-        condition: animeInfo?.animeInfo?.tvInfo?.rating,
-        bgColor: '#ffffff',
-        text: animeInfo?.animeInfo?.tvInfo?.rating,
-      },
-      {
-        condition: animeInfo?.adultContent,
-        bgColor: 'red',
-        text: '+18',
-      },
-      {
-        condition: animeInfo?.animeInfo?.tvInfo?.quality,
-        bgColor: '#FFBADE',
-        text: animeInfo?.animeInfo?.tvInfo?.quality,
-      },
-      {
-        condition: animeInfo?.animeInfo?.tvInfo?.sub,
-        icon: faClosedCaptioning,
-        bgColor: '#B0E3AF',
-        text: animeInfo?.animeInfo?.tvInfo?.sub,
-      },
-      {
-        condition: animeInfo?.animeInfo?.tvInfo?.dub,
-        icon: faMicrophone,
-        bgColor: '#B9E7FF',
-        text: animeInfo?.animeInfo?.tvInfo?.dub,
-      },
-    ],
-    [animeInfo]
-  );
-
+  const isErrorState = !serverLoading && !buffering && !streamUrl;
+  
   return (
     <div className="relative flex h-fit w-full flex-col items-center justify-center">
       <div className="relative w-full px-4 max-[1400px]:px-[30px] max-[1200px]:px-[80px] max-[1024px]:px-0 lg:px-10">
@@ -359,43 +296,7 @@ export default function Watch() {
                 <Skeleton className="h-[26px] max-w-[180px] shrink-0 rounded max-[500px]:h-[20px]" />
               )}
 
-              <div className="flex min-w-0 shrink-0 flex-wrap gap-x-[2px] gap-y-[3px]">
-                {animeInfo ? (
-                  tags.map(
-                    ({ condition, icon, bgColor, text }, index) =>
-                      condition && (
-                        <Tag
-                          key={index}
-                          index={index}
-                          bgColor={bgColor}
-                          icon={icon}
-                          text={text}
-                        />
-                      )
-                  )
-                ) : (
-                  <div className="flex min-w-0 shrink-0">
-                    <Skeleton className="h-[30px] max-w-full shrink-0 rounded sm:w-[230px]" />
-                  </div>
-                )}
-                <div className="ml-1 flex w-fit items-center">
-                  {[
-                    animeInfo?.animeInfo?.tvInfo?.showType,
-                    animeInfo?.animeInfo?.tvInfo?.duration,
-                  ].map(
-                    (item, index) =>
-                      item && (
-                        <div
-                          key={index}
-                          className="flex h-fit items-center gap-x-2"
-                        >
-                          <div className="dot mt-[2px]"></div>
-                          <p className="text-[14px]">{item}</p>
-                        </div>
-                      )
-                  )}
-                </div>
-              </div>
+              <WatchTags animeInfo={animeInfo} />
               {animeInfo?.animeInfo?.Overview ? (
                 <div className="mt-0 max-h-[200px] min-w-0 overflow-hidden">
                   <div className="no-scrollbar mt-2 max-h-[160px] overflow-y-auto">

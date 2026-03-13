@@ -59,8 +59,8 @@
 Порядок: W1 → W2 → W3 → W4 → W5 → W6 → [W7 за бажанням] → W8 → W9. Після кожної підзадачі — перевірка збірки й сторінки, потім коміт.
 
 - [x] W1 useWatchPageEffects
-- [ ] W2 Типи watch-сторінки
-- [ ] W3 WatchTags
+- [x] W2 Типи watch-сторінки
+- [x] W3 WatchTags
 - [ ] W4 WatchInfoPanel
 - [ ] W5 WatchPlayerArea
 - [ ] W6 WatchSeasonsAndSchedule

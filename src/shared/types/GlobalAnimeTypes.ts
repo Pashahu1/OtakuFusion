@@ -15,6 +15,7 @@ export interface TvInfo {
   quality: string;
   sub: string;
   dub: string;
+  rating?: string;
 }
 
 export interface HomeTvInfo {

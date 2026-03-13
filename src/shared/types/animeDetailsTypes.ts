@@ -1,4 +1,4 @@
-import type { AnimeInfo, SeasonsTypes } from "./GlobalAnimeTypes";
+import type { AnimeInfo, SeasonsTypes, TvInfo } from "./GlobalAnimeTypes";
 
 export interface AnimeApiResponse {
   success: boolean;
@@ -34,7 +34,8 @@ export interface AnimeDetailsInfo {
   "MAL Score": string;
   Genres: string[];
   Studios: string[];
-  Producers: string[];
+  Producers: string[]
+  tvInfo: TvInfo;
 }
 
 export interface AnimeSeason {
