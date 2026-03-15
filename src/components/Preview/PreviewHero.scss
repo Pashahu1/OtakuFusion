@@ -5,6 +5,7 @@
   height: 100dvb;
   min-height: 100dvb;
   position: relative;
+  z-index: 1;
   overscroll-behavior: none;
 
   &__content {
@@ -126,9 +127,10 @@
   width: auto;
 }
 
-.swiper,
-.swiper-wrapper,
-.swiper-slide {
+/* Тільки слайдер героя — не чіпати Swiper у Trending */
+.hero__slider .swiper,
+.hero__slider .swiper-wrapper,
+.hero__slider .swiper-slide {
   height: 100%;
   min-height: 100%;
 }

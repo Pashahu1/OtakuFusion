@@ -10,7 +10,15 @@
 }
 
 .swiper-card__slide {
-  width: 280px;
+  width: clamp(140px, 22vw, 310px);
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+
+  &:hover,
+  &:has(a:hover) {
+    z-index: 20;
+  }
 }
 
 .nav-zone {

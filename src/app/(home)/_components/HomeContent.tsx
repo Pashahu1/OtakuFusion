@@ -1,8 +1,8 @@
 import { getHomePage } from '@/services/getHomePage';
 import ErrorState from '@/components/ui/states/ErrorState';
 import { Preview } from '@/components/Preview/PreviewHero';
-import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { ContinueWatchingSection } from '@/components/ContinueWatchingSection/ContinueWatchingSection';
+import SwiperCard from '@/components/SwiperCard/SwiperCard';
 
 export async function HomeContent() {
   const homeCatalog = await getHomePage();
@@ -18,22 +18,10 @@ export async function HomeContent() {
       />
       <ContinueWatchingSection />
       <div className="flex flex-col gap-[40px]">
-        <AnimeSection
-          title="Top Airing"
-          catalog={homeCatalog.topAiring || []}
-        />
-        <AnimeSection
-          title="Most Favorite"
-          catalog={homeCatalog.mostFavorite || []}
-        />
-        <AnimeSection
-          title="Latest Episode"
-          catalog={homeCatalog.latestEpisode || []}
-        />
-        <AnimeSection
-          title="Latest Completed"
-          catalog={homeCatalog.latestCompleted || []}
-        />
+        <SwiperCard catalog={homeCatalog.topAiring || []} />
+        <SwiperCard catalog={homeCatalog.mostFavorite || []} />
+        <SwiperCard catalog={homeCatalog.latestEpisode || []} />
+        <SwiperCard catalog={homeCatalog.latestCompleted || []} />
       </div>
     </div>
   );

@@ -145,7 +145,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
           </div>
         </div>
       </div>
-      <div className="relative z-[3] mt-[40px] flex flex-col gap-[20px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
+      <div className="relative z-10 isolate mt-[40px] flex flex-col gap-[20px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
         <h2 className="text-title text-brand-text-primary pl-4 md:pl-6 lg:pl-10">
           Trending
         </h2>
@@ -155,7 +155,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
             message="Please check back later."
           />
         ) : (
-          <LazySwiperCard catalog={safeTrending} />
+          <LazySwiperCard catalog={safeTrending} sectionId="trending" />
         )}
       </div>
     </>
