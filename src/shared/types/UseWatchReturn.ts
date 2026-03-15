@@ -16,7 +16,6 @@ export interface UseWatchReturn {
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   animeInfoLoading: boolean;
   totalEpisodes: number | null;
-  seasons: SeasonsTypes[] | null;
   servers: ServerInfo[] | null;
   streamUrl: string | null;
   isFullOverview: boolean;

@@ -76,11 +76,25 @@
 3. За бажанням винести **WatchInfoPoster**, **WatchInfoTitle**, **WatchInfoSeoText** — щоб панель була короткою і лише збирала пропси та композицію.  
 4. На page замінити весь блок \<div className="watch-info">…\</div> на \<WatchInfoPanel … />, передати ref та стани (poster loaded, isFullOverview) з page.
 
+**Розпис W5 (WatchPlayerArea)**  
+Блок плеєра — одна обгортка (контейнер з класами плеєра), всередині три стани: loader, сам Player, error block.
+
+| Що винести | Опис |
+|-------------|------|
+| **Обгортка** | Один `<div>` з класами `player relative h-[480px] w-full shrink-0 overflow-hidden rounded-xl border ...` (як зараз). Всередині — умовний рендер трьох станів. |
+| **Стан 1 — завантаження** | `(serverLoading \|\| buffering)` → напівпрозорий overlay + `<BouncingLoader />`. |
+| **Стан 2 — плеєр** | `!serverLoading && !buffering && streamUrl` → `<Player key={playerMountKey} ... />` з усіма пропсами з `PlayerProps` (streamUrl, subtitles, intro, outro, episodes, playNext, onEpisodeWatched, animeInfo, тощо). |
+| **Стан 3 — помилка** | `showErrorBlock && isErrorState` → overlay з картинкою gojo і текстом «Servers now is not Available» / «Please try again later or change Server below». |
+
+**Пропси WatchPlayerArea (приклад):**  
+`playerMountKey: string` (для key), `serverLoading: boolean`, `buffering: boolean`, `streamUrl: string | null`, `showErrorBlock: boolean`, `isErrorState: boolean`, і всі пропси для `<Player>` (або один об’єкт `playerProps: PlayerProps` + `onEpisodeWatched` з логікою setWatchedEpisodes — останній можна залишити на page і передати вже готовий колбек).  
+На page замінити блок `<div className="player">…</div>` на `<WatchPlayerArea … />`.
+
 - [x] W1 useWatchPageEffects
 - [x] W2 Типи watch-сторінки
 - [x] W3 WatchTags
 - [x] W4 WatchInfoPanel (див. розпис нижче)
-- [ ] W5 WatchPlayerArea
+- [ ] W5 WatchPlayerArea (див. розпис нижче)
 - [ ] W6 WatchSeasonsAndSchedule
 - [ ] W7 WatchEpisodesColumn (опційно)
 - [ ] W8 Контейнер page
@@ -218,6 +232,79 @@ config/website.ts, config/logoTitle.ts, shared/data/servers.ts, models/User — 
 - **Коли краще `function`:** оголошення функцій верхнього рівня (компоненти, хуки, async-функції).
 - **Коли краще стрілка:** колбеки (onClick, .map), невеликі допоміжні функції поруч з кодом.
 - **Практика:** у межах одного модуля краще однаковий підхід (наприклад, компоненти — `function`, обробники — стрілки).
+
+---
+
+## Перевірка проєкту за правилами розробки (без watch/[id])
+
+Нижче — що варто виправити по всьому проєкту згідно з правилами (Clean Code, React, архітектура, TypeScript, i18n). Сторінка `watch/[id]` виключена (рефакториться окремо).
+
+### Критично / баги (виправлено або зробити першим)
+
+| Що | Де | Дія |
+|----|-----|-----|
+| **Меню не закривалось при кліку** | `UserMenu/user-menu.tsx` | ✅ Виправлено: `close` → `close()` у трьох `onClick`. |
+| **handleSave без catch** | `ProfileHeader.tsx` | Додати `catch`, показувати помилку користувачу, скидати loading. |
+| **AuthContext logout** | Після `setUser(null)` стоїть `setIsLoading(true)` — перевірити: має бути `false`? |
+| **Опечатка** | `schedule/page.tsx` | `fetchSheduleAnime` → `fetchScheduleAnime`. |
+
+### Архітектура та структура
+
+- **Папки:** багато PascalCase замість lowercase-dash (`CoreLayout`, `DetailsInformation`, `Episodelist`, `PreviewHero`, `SidebarMenu`, `UserMenu`, `AnimeSection`, `AnimeCalendar`, `SettingsPage`, тощо). Поступово перейменувати.
+- **Feature-based:** компоненти зібрані за типом (Player, ui), а не за фічами; для масштабування можна ввести `features/*`.
+- **Великі компоненти:** `Episodelist.tsx` (~333 рядки) — розбити на підкомпоненти + хук `useEpisodeList`; логіку (findRangeForEpisode, generateRangeOptions, handleChange) винести в хук.
+- **useWatchPageEffects.ts** (167 рядків, 6 useEffect) — розділити на кілька маленьких хуків (useContinueWatchingSync, useEpisodeUrlSync, useDocumentTitle, useErrorBlockTimer, usePosterLoaded, useEpisodesColumnHeight).
+- **ProfileHeader:** `handleSave` (API + стейт) винести в хук `useProfileUpdate` або сервіс.
+- **AuthContext:** логіку логіну/логауту можна винести в auth-сервіс або хук для кращої тестованості.
+
+### React
+
+- **Inline-функції в JSX:** у багатьох місцях (`AnimeSchedule`, `Episodelist`, `ProfileHeader`, `ChangePasswordForm`, `SearchInput`, `DeleteAccount`, `SidebarMenu`, `AnimeFilters`, `WatchInfoOverview`, `not-found`) — для колбеків у списках/дочірніх компонентах використовувати `useCallback` або іменовані обробники.
+- **Бізнес-логіка в компонентах:** Episodelist, SchedulePage (fetch у useEffect), ProfileHeader — виносити в кастомні хуки.
+- **Player.tsx:** ініціалізацію Artplayer винести в хук `useArtplayer` або окремий модуль.
+
+### TypeScript
+
+- **any:** `api/auth/refresh/route.ts` (payload після jwt.verify), `api/user/avatar/route.ts` (uploadResult), `AnimeCalendar.tsx` (events). Замінити на інтерфейси або типи з бібліотек.
+- **Interfaces:** для об’єктних форм переважати мають `interface` (за правилом проєкту).
+
+### Чистий код
+
+- **Магічні числа:** винести в константи: `useWatchPageEffects` (400 ms), `useDebounce`/SearchInput (400), Episodelist (100, 30, 1200, 500), schedule (30*60*1000), setupPlayerReady (500, 0.02, 0.03), artPlayerPluinChaper (500), API auth (maxAge).
+- **Дубльована логіка:** парсинг номера епізоду `item?.id.match(/ep=(\d+)/)?.[1]` повторюється в useWatchPageEffects, Player, Episodelist, useWatchAnime, getPlayerLayers, setupPlayerReady, useWatch — одна утиліта `getEpisodeNumberFromId(id)` у shared/utils.
+- **Глибоке вкладення:** Episodelist (grid/list рендер) — винести `EpisodeItem` в окремий компонент.
+- **Незрозумілі назви:** ProfileHeader `handlerDisabled` — або реалізувати, або видалити; schedule — змінна `event` для масиву подій краще назвати `events` або `calendarEvents`.
+
+### Стейт і дані
+
+- **Zustand:** не використовується; глобальний стейт через Context. Для складнішого клієнтського стейту можна ввести Zustand.
+- **TanStack React Query:** не використовується; фетч через useEffect + fetch. Для розкладу, пошуку, профілю Query дасть кеш і менше ручного стейту.
+- **useEffect:** Episodelist (6 ефектів), useWatchAnime (3), useWatchStream/useWatchServers — частину об’єднати або замінити одним джерелом правди / Query.
+
+### Обробка помилок
+
+- **Error boundaries:** є лише глобальний `error.tsx`. Додати локальні для плеєра, списку епізодів, профілю.
+- **Логування:** SearchData catch не логує; AuthContext login не логує; додати лог або моніторинг.
+- **API:** lib/api — `res.json()` обгорнути в try/catch на випадок не-JSON відповіді.
+
+### i18n
+
+- **react-i18next / i18next не підключено.** Усі тексти захардкодені (error.tsx, HomeContent, PreviewHero, AnimeSection, SearchData, auth, ProfileHeader, user-menu, about, schedule тощо). Згідно з правилами — винести в переклади.
+
+### Продуктивність
+
+- **React.memo / useCallback:** використовуються рідко; у Episodelist, AnimeFilters, SidebarMenu, UserMenu колбеки варто обгорнути в `useCallback` там, де передаються в списки або мемоїзовані діти.
+- **Code splitting:** dynamic лише для SwiperCard; плеєр і календар — кандидати на lazy/dynamic.
+- **Важкі модулі:** Player (Artplayer, HLS) — підгружати через dynamic на сторінці перегляду.
+
+### Zod
+
+- **Не використовується.** Валідація API (auth, change-password, verify-email) вручну. Ввести схеми для request body та inference типів (згідно з правилами проєкту).
+
+### Конвенції
+
+- **Named exports:** багато default export (сторінки app/, SearchInput, AnimeFilters, GenderData, AnimeData, SearchData, EmptyState, ErrorState, services, SwiperCard, плагіни). Поступово переходити на named exports.
+- **Папки:** lowercase-dash; файл `user-menu.tsx` у папці `UserMenu` — узгодити ім’я папки з конвенцією.
 
 ---
 

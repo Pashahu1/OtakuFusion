@@ -4,12 +4,10 @@ import { getEpisodes } from '@/services/getEpisodes';
 import { getNextEpisodeSchedule } from '@/services/getNextEpisodeSchedule';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type { SeasonsTypes } from '@/shared/types/GlobalAnimeTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
 
 export interface UseWatchAnimeReturn {
   animeInfo: AnimeData | null;
-  seasons: SeasonsTypes[] | null;
   episodes: EpisodesTypes[] | null;
   totalEpisodes: number | null;
   episodeId: string | null;
@@ -28,7 +26,6 @@ export function useWatchAnime(
   initialEpisodeId: string | undefined
 ): UseWatchAnimeReturn {
   const [animeInfo, setAnimeInfo] = useState<AnimeData | null>(null);
-  const [seasons, setSeasons] = useState<SeasonsTypes[] | null>(null);
   const [episodes, setEpisodes] = useState<EpisodesTypes[] | null>(null);
   const [totalEpisodes, setTotalEpisodes] = useState<number | null>(null);
   const [episodeId, setEpisodeId] = useState<string | null>(null);
@@ -41,7 +38,6 @@ export function useWatchAnime(
     setEpisodes(null);
     setEpisodeId(null);
     setAnimeInfo(null);
-    setSeasons(null);
     setTotalEpisodes(null);
     setAnimeInfoLoading(true);
     setError(null);
@@ -56,7 +52,6 @@ export function useWatchAnime(
           getEpisodes(animeId),
         ]);
         setAnimeInfo(animeData?.data ?? null);
-        setSeasons(animeData?.seasons ?? null);
         setEpisodes(episodesData?.episodes ?? null);
         setTotalEpisodes(episodesData?.totalEpisodes ?? null);
         const newEpisodeId =
@@ -89,7 +84,6 @@ export function useWatchAnime(
 
   return {
     animeInfo,
-    seasons,
     episodes,
     totalEpisodes,
     episodeId,

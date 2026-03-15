@@ -4,7 +4,6 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type {
   AnimeInfo,
   NextEpisodeScheduleResult,
-  SeasonsTypes,
 } from '@/shared/types/GlobalAnimeTypes';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -21,13 +20,10 @@ export const useWatchPageEffects = (
   buffering: boolean,
   streamUrl: string,
   animeInfo: AnimeInfo,
-  seasons: SeasonsTypes[],
   nextEpisodeSchedule: NextEpisodeScheduleResult,
   showNextEpisodeSchedule: boolean,
   errorBlockTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>,
   setShowErrorBlock: (item: boolean) => void,
-  posterImgRef: React.RefObject<HTMLImageElement | null>,
-  setPosterImageLoaded: (item: boolean) => void,
   playerColumnRef: React.RefObject<HTMLDivElement | null>,
   setEpisodesColumnHeight: (height: number | null) => void
 ) => {
@@ -114,16 +110,6 @@ export const useWatchPageEffects = (
   }, [isErrorState]);
 
   useEffect(() => {
-    setPosterImageLoaded(false);
-    if (!animeInfo?.poster) return;
-    const checkCached = () => {
-      if (posterImgRef.current?.complete) setPosterImageLoaded(true);
-    };
-    const t = setTimeout(checkCached, 0);
-    return () => clearTimeout(t);
-  }, [animeInfo?.poster]);
-
-  useEffect(() => {
     const centerColumn = playerColumnRef.current;
     if (!centerColumn) return;
 
@@ -153,7 +139,6 @@ export const useWatchPageEffects = (
     streamUrl,
     serverLoading,
     buffering,
-    seasons?.length,
     nextEpisodeSchedule?.nextEpisodeSchedule,
     showNextEpisodeSchedule,
   ]);

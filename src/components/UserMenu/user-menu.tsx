@@ -63,7 +63,7 @@ export function UserMenu({ user }: UserMenuProps) {
             "
             onClick={() => {
               router.push('/profile/manage');
-              close;
+              close();
             }}
           >
             <Avatar>
@@ -88,7 +88,7 @@ export function UserMenu({ user }: UserMenuProps) {
             "
             onClick={() => {
               router.push('/profile/preferences');
-              close;
+              close();
             }}
           >
             <Image width={16} height={16} src="/settings.png" alt="settings" />
@@ -103,7 +103,7 @@ export function UserMenu({ user }: UserMenuProps) {
             "
             onClick={() => {
               router.push('/profile/favorites');
-              close;
+              close();
             }}
           >
             <Image width={16} height={16} src="/wishlist.png" alt="wishlist" />

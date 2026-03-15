@@ -18,7 +18,9 @@ export function setupPlayerReady(
   currentEpisodeIndexRef: React.RefObject<number | null | undefined>,
   hasMarkedWatchedForOutroRef: React.RefObject<boolean>,
   hasTriggeredNextRef: React.RefObject<boolean>,
-  onEpisodeWatchedRef: React.RefObject<((episodeId: string) => void) | null | undefined>,
+  onEpisodeWatchedRef: React.RefObject<
+    ((episodeId: string) => void) | null | undefined
+  >,
   setActiveServerId: (id: string | null) => void,
   userPausedRef: React.RefObject<boolean>,
   artRef: React.RefObject<HTMLDivElement | null>,
@@ -55,6 +57,7 @@ export function setupPlayerReady(
   art.once('video:canplay', tryPlay);
 
   art.on('pause', () => {
+    userPausedRef.current = true;
     if (art.video) {
       art.video.pause();
       art.video.currentTime = art.currentTime;
@@ -65,6 +68,10 @@ export function setupPlayerReady(
         (el as HTMLMediaElement).pause();
       });
     }
+  });
+
+  art.on('play', () => {
+    userPausedRef.current = false;
   });
 
   const skipIntroBtn = art.layers['skipIntro'];

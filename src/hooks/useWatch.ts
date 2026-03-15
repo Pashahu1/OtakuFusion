@@ -43,7 +43,6 @@ export function useWatch(
     nextEpisodeSchedule: anime.nextEpisodeSchedule,
     animeInfoLoading: anime.animeInfoLoading,
     totalEpisodes: anime.totalEpisodes,
-    seasons: anime.seasons,
     servers: servers.servers,
     streamUrl: stream.streamUrl,
     isFullOverview,
