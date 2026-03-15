@@ -3,6 +3,9 @@ import { PreviewSkeleton } from '@/components/ui/Skeleton/PreviewSkeleton';
 import { Suspense } from 'react';
 import { HomeContent } from '@/app/(home)/_components/HomeContent';
 
+/** ISR: сторінка кешується, оновлення даних раз на годину (узгоджено з getHomePage). */
+export const revalidate = 3600;
+
 export default function Home() {
   return (
     <Suspense

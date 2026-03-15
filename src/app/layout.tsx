@@ -1,6 +1,6 @@
 import { Header } from '../components/CoreLayout/Header/Header';
 import { Footer } from '../components/CoreLayout/Footer/Footer';
-import { Montserrat, Rubik } from 'next/font/google';
+import { Montserrat, Playfair_Display, Rubik } from 'next/font/google';
 import '../style/main.scss';
 import { Suspense } from 'react';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
@@ -57,6 +57,12 @@ const rubik = Rubik({
   subsets: ['latin', 'cyrillic'],
 });
 
+const playfair = Playfair_Display({
+  weight: ['600', '700'],
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-hero-display',
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -65,7 +71,7 @@ export default function RootLayout({
   return (
     <html className="dark" lang="en" suppressHydrationWarning>
       <body
-        className={`${montserrat.className} ${rubik.className}`}
+        className={`${montserrat.className} ${rubik.className} ${playfair.variable}`}
         suppressHydrationWarning
       >
         <Suspense fallback={<InitialLoader />}>

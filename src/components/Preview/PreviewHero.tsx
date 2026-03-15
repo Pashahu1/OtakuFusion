@@ -23,8 +23,8 @@ import type {
   TrendingAnime,
 } from '@/shared/types/GlobalAnimeTypes';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import EmptyState from '../ui/states/EmptyState';
 
 const LazySwiperCard = dynamic(
@@ -41,6 +41,10 @@ type Props = {
 
 export const Preview = ({ spotlights, trending }: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [paginationEl, setPaginationEl] = useState<HTMLDivElement | null>(null);
+  const paginationRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) setPaginationEl(node);
+  }, []);
 
   if (!Array.isArray(spotlights)) {
     return (
@@ -63,6 +67,16 @@ export const Preview = ({ spotlights, trending }: Props) => {
   const safeTrending = Array.isArray(trending) ? trending : [];
   const currentAnime = spotlights[currentIndex];
 
+  const tv = currentAnime.tvInfo;
+  const metaParts: string[] = [];
+  if (tv?.sub && tv?.dub) metaParts.push('Sub | Dub');
+  else if (tv?.sub) metaParts.push('Sub');
+  else if (tv?.dub) metaParts.push('Dub');
+  if (tv?.showType || tv?.duration) {
+    metaParts.push([tv?.showType, tv?.duration].filter(Boolean).join(' • '));
+  }
+  const metaLine = metaParts.join(' • ');
+
   return (
     <>
       <div className="hero relative w-full">
@@ -80,6 +94,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
             <ChevronLeft width={46} height={46} />
           </button>
           <Swiper
+            key={paginationEl ? 'hero-pagination-ready' : 'hero-pagination-wait'}
             onSlideChange={(swiper) => {
               setCurrentIndex(swiper.realIndex);
             }}
@@ -94,10 +109,11 @@ export const Preview = ({ spotlights, trending }: Props) => {
             slidesPerView={1}
             effect="fade"
             fadeEffect={{ crossFade: true }}
-            pagination={{
-              el: '.preview__pagination',
-              clickable: true,
-            }}
+            pagination={
+              paginationEl
+                ? { el: paginationEl, clickable: true }
+                : false
+            }
             navigation={{
               nextEl: '.hero--right',
               prevEl: '.hero--left',
@@ -128,19 +144,27 @@ export const Preview = ({ spotlights, trending }: Props) => {
           </Swiper>
           <div className="hero__content">
             <div className="hero__info">
-              <h1 className="text-display text-brand-text-primary drop-shadow-lg">
-                {currentAnime.title}
-              </h1>
-              <p className="lg:text-body text-brand-text-secondary text-sm md:text-base landscape:md:hidden landscape:lg:block">
-                {currentAnime.description}
-              </p>
+              <h1 className="hero__title">{currentAnime.title}</h1>
+              {metaLine && (
+                <p className="hero__meta" aria-hidden>
+                  {metaLine}
+                </p>
+              )}
+              {currentAnime.description && (
+                <p className="hero__description">{currentAnime.description}</p>
+              )}
               <Link
-                className="bg-brand-orange text-brand-gray-light lg:hover:bg-brand-orange-light hover:text-brand-gray text-title w-full rounded-md px-4 py-2 text-center text-lg font-medium transition-colors md:w-[300px]"
+                className="hero__cta bg-brand-orange text-brand-gray-light hover:bg-brand-orange-light hover:text-brand-gray w-full max-w-[300px] rounded-md px-4 py-3 text-center text-base font-medium transition-colors md:py-2.5"
                 href={`/watch/${currentAnime.id}?ep=1`}
               >
+                <Play className="h-5 w-5 shrink-0 fill-current" />
                 Watch Ep 1
               </Link>
-              <div className="preview__pagination justify-center md:justify-start" />
+              <div
+                ref={paginationRef}
+                className="hero__pagination-container"
+                aria-hidden
+              />
             </div>
           </div>
         </div>
