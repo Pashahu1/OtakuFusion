@@ -15,7 +15,7 @@
     transform: translateY(-100px);
     inset: 0;
     z-index: 2;
-    // Градієнт за текстом (як Crunchyroll): темний зліва → прозорий до центру
+
     &::before {
       content: '';
       position: absolute;
@@ -112,7 +112,6 @@
   right: 0;
 }
 
-/* Під блоком hero__info (тайтл, опис, кнопка) — у потоці */
 .hero__pagination-container {
   margin-top: 12px;
   z-index: 5;

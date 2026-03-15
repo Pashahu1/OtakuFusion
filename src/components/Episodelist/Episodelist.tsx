@@ -165,7 +165,7 @@ export function Episodelist({
   return (
     <div className="relative flex flex-col w-full h-full min-h-0 max-[1200px]:max-h-[500px]">
       <div className="sticky top-0 z-10 flex flex-col gap-y-[5px] justify-start px-3 py-4 bg-[#23252b]">
-        <h1 className="text-[13px] font-bold">List of episodes:</h1>
+        <h1 className="text-[15px] font-bold text-white">List of episodes:</h1>
         {totalEpisodes > 100 && (
           <div className="w-full flex gap-x-4 items-center max-[1200px]:justify-between">
             <div className="min-w-fit flex text-[13px]">
@@ -226,7 +226,7 @@ export function Episodelist({
       </div>
       <div
         ref={listContainerRef}
-        className="w-full h-full overflow-y-auto bg-[#23252b]"
+        className="episode-list__scroll w-full h-full overflow-y-auto bg-[#23252b]"
       >
         <div
           className={`${
@@ -252,13 +252,13 @@ export function Episodelist({
                     <div
                       key={item?.id}
                       ref={isActive ? activeEpisodeRef : null}
-                      className={`relative flex items-center justify-center rounded-[3px] h-[30px] text-[13.5px] font-medium cursor-pointer group md:hover:bg-[#f47521] 
-                          md:hover:text-[#2a2a2a] ${isWatched ? 'opacity-60' : ''}
-                       ${
-                         isActive
-                           ? 'bg-[#2a2a2a] border text-[#f47521]'
-                           : 'bg-[#35373D] text-gray-400'
-                       } ${isSearched ? 'glow-animation' : ''} `}
+                      className={`relative flex items-center justify-center rounded-[3px] h-[30px] text-[13.5px] font-medium cursor-pointer group ${
+                        isWatched ? 'opacity-60' : ''
+                      } ${
+                        isActive
+                          ? 'bg-[#35373D] text-[#f47521] ring-2 ring-[#f47521] ring-inset'
+                          : 'bg-[#35373D] text-white md:hover:bg-[#f47521] md:hover:text-[#2a2a2a]'
+                      } ${isSearched ? 'glow-animation' : ''}`}
                       onClick={() => {
                         if (episodeNumber) {
                           onEpisodeClick(episodeNumber);
@@ -268,17 +268,18 @@ export function Episodelist({
                       }}
                     >
                       {item?.filler && (
-                        <span className="absolute top-0 right-0 px-[2px]">
+                        <span className="absolute top-0 right-0 px-[2px] text-[10px] text-white/80">
                           F
                         </span>
                       )}
-
                       <span
-                        className={`reletive ${
-                          item?.filler
-                            ? 'text-white md:group-hover:text-[#2a2a2a]'
-                            : ''
-                        }`}
+                        className={
+                          isActive
+                            ? 'text-[#f47521]'
+                            : item?.filler
+                              ? 'text-white md:group-hover:text-[#2a2a2a]'
+                              : 'text-white md:group-hover:text-[#2a2a2a]'
+                        }
                       >
                         {index + selectedRange[0]}
                       </span>
@@ -297,11 +298,9 @@ export function Episodelist({
                   <div
                     key={item?.id}
                     ref={isActive ? activeEpisodeRef : null}
-                    className={`w-full pl-5 pr-2 py-2 flex items-center justify-start gap-x-8 cursor-pointer ${
-                      (index + 1) % 2 && !isActive ? 'text-gray-400' : 'bg-none'
-                    } group md:hover:bg-[#2B2A42] ${
-                      isActive ? 'text-[#ff640a] bg-[#2B2A42]' : ''
-                    } ${isSearched ? 'glow-animation' : ''} ${isWatched ? 'opacity-60' : ''}`}
+                    className={`w-full pl-5 pr-2 py-2 flex items-center justify-start gap-x-8 cursor-pointer group ${
+                      isSearched ? 'glow-animation' : ''
+                    } ${isWatched ? 'opacity-60' : ''}`}
                     onClick={() => {
                       if (episodeNumber) {
                         onEpisodeClick(episodeNumber);
@@ -310,9 +309,21 @@ export function Episodelist({
                       }
                     }}
                   >
-                    <p className="text-[14px] font-medium">{index + 1}</p>
+                    <p
+                      className={`text-[14px] font-medium ${
+                        isActive ? 'text-[#ff640a]' : 'text-white'
+                      }`}
+                    >
+                      {index + 1}
+                    </p>
                     <div className="w-full flex items-center justify-between gap-x-[5px]">
-                      <h1 className="line-clamp-1 text-[15px] font-light group-hover:text-[#ff640a]">
+                      <h1
+                        className={`line-clamp-1 text-[15px] font-light ${
+                          isActive
+                            ? 'text-[#ff640a]'
+                            : 'text-white group-hover:text-[#ff640a]'
+                        }`}
+                      >
                         {item?.title}
                       </h1>
                       {isActive && (
