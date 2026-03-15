@@ -62,7 +62,6 @@ export function setupPlayerReady(
       art.video.pause();
       art.video.currentTime = art.currentTime;
     }
-    if (art.hls) art.hls.stopLoad?.();
     if (artRef.current) {
       artRef.current.querySelectorAll('video, audio').forEach((el) => {
         (el as HTMLMediaElement).pause();

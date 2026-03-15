@@ -5,13 +5,12 @@ import { useCallback, useId, useRef, useState } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useWatch } from '@/hooks/useWatch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
-import { Player } from '@/components/Player/Player';
 import { Episodelist } from '@/components/Episodelist/Episodelist';
 import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
 import { useWatchPageEffects } from '@/hooks/useWatchPageEffects';
 import { WatchInfoPanel } from '@/components/WatchInfoPanel/WatchInfoPanel';
+import { WatchPlayerContent } from '@/components/WatchPlayerContent/WatchPlayerContent';
 
 export default function Watch() {
   const searchParams = useSearchParams();
@@ -68,7 +67,6 @@ export default function Watch() {
     serverLoading,
   } = useWatch(animeId, initialEpisodeId);
 
-  const playerMountKey = useId();
   const hasAppliedSavedEpisodeRef = useRef(false);
   const isFirstSet = useRef(true);
   const errorBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -116,8 +114,6 @@ export default function Watch() {
     [setWatchedEpisodes]
   );
 
-  const isErrorState = !serverLoading && !buffering && !streamUrl;
-
   return (
     <div className="relative flex h-fit w-full flex-col items-center justify-center">
       <div className="relative w-full px-4 max-[1400px]:px-[30px] max-[1200px]:px-[80px] max-[1024px]:px-0 lg:px-10">
@@ -143,50 +139,26 @@ export default function Watch() {
               />
             )}
           </div>
-          <div
-            ref={playerColumnRef}
-            className="watch-player flex h-full w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1200px]:order-1"
-          >
-            <div className="player relative h-[480px] h-full w-full shrink-0 overflow-hidden rounded-xl border border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] max-[1400px]:h-[40vw] max-[1200px]:h-[48vw] max-[1024px]:h-[58vw] max-[600px]:h-[65vw]">
-              {(serverLoading || buffering) && (
-                <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center bg-black">
-                  <BouncingLoader />
-                </div>
-              )}
-
-              {!serverLoading && !buffering && streamUrl && (
-                <Player
-                  key={playerMountKey}
-                  streamUrl={streamUrl}
-                  subtitles={subtitles}
-                  intro={intro}
-                  outro={outro}
-                  thumbnail={thumbnail}
-                  episodeId={episodeId}
-                  episodes={episodes}
-                  playNext={onEpisodeWatched}
-                  animeInfo={animeInfo}
-                  episodeNum={activeEpisodeNum}
-                  streamInfo={streamInfo}
-                  servers={servers}
-                  activeServerId={activeServerId}
-                  setActiveServerId={setActiveServerId}
-                />
-              )}
-
-              {showErrorBlock && isErrorState && (
-                <div className="bg-opacity-50 absolute inset-0 flex flex-col items-center justify-center bg-black text-center">
-                  <img
-                    src="/gojo-player.png"
-                    alt="gojo"
-                    className="w-[100px]"
-                  />
-                  <span>Servers now is not Available</span>
-                  <span>Please try again later or change Server below</span>
-                </div>
-              )}
-            </div>
-          </div>
+          <WatchPlayerContent
+            playerColumnRef={playerColumnRef}
+            serverLoading={serverLoading}
+            buffering={buffering}
+            streamUrl={streamUrl}
+            subtitles={subtitles}
+            intro={intro}
+            outro={outro}
+            thumbnail={thumbnail}
+            episodeId={episodeId}
+            episodes={episodes}
+            onEpisodeWatched={onEpisodeWatched}
+            animeInfo={animeInfo}
+            episodeNum={activeEpisodeNum}
+            streamInfo={streamInfo}
+            servers={servers}
+            activeServerId={activeServerId}
+            setActiveServerId={setActiveServerId}
+            showErrorBlock={showErrorBlock}
+          />
           <WatchInfoPanel
             animeInfo={animeInfo}
             nextEpisodeSchedule={nextEpisodeSchedule}
