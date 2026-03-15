@@ -185,7 +185,7 @@ export function Episodelist({
                   />
                 </div>
                 {showDropDown && (
-                  <div className="absolute flex flex-col top-full mt-[10px] left-0 z-30 bg-white w-[200px] max-h-[200px] overflow-y-auto">
+                  <div className="episode-list__scroll absolute flex flex-col top-full mt-[10px] left-0 z-30 w-[200px] max-h-[200px] overflow-y-auto rounded-md border border-white/20 bg-[#23252b]">
                     {generateRangeOptions(totalEpisodes).map((item, index) => (
                       <div
                         key={index}
