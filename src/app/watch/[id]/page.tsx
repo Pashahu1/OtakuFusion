@@ -10,6 +10,7 @@ import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkele
 import { useWatchPageEffects } from '@/hooks/useWatchPageEffects';
 import { WatchInfoPanel } from '@/components/WatchInfoPanel/WatchInfoPanel';
 import { WatchPlayerContent } from '@/components/WatchPlayerContent/WatchPlayerContent';
+import { onEpisodeWatched as markWatchedInStorage } from '@/helper/WatchedEpisodes';
 
 export default function Watch() {
   const searchParams = useSearchParams();
@@ -30,7 +31,6 @@ export default function Watch() {
     initialEpRef.current = { animeId, ep: urlEp };
   }
   const initialEpisodeId = initialEpRef.current.ep;
-  const [showNextEpisodeSchedule, setShowNextEpisodeSchedule] = useState(true);
   const [showErrorBlock, setShowErrorBlock] = useState(false);
 
   const posterImgRef = useRef<HTMLImageElement | null>(null);
@@ -42,13 +42,11 @@ export default function Watch() {
     Record<string, boolean>
   >(`watched-${animeId}`, {});
   const {
-    error,
     buffering,
     streamInfo,
     animeInfo,
     episodes,
     nextEpisodeSchedule,
-    animeInfoLoading,
     totalEpisodes,
     isFullOverview,
     setIsFullOverview,
@@ -83,7 +81,6 @@ export default function Watch() {
     streamUrl,
     animeInfo,
     nextEpisodeSchedule,
-    showNextEpisodeSchedule,
     errorBlockTimerRef,
     setShowErrorBlock,
     playerColumnRef,
@@ -91,25 +88,7 @@ export default function Watch() {
   );
 
   const onEpisodeWatched = useCallback(
-    (id: string) => {
-      const epId = id != null ? String(id) : '';
-      if (!epId) return;
-      try {
-        setWatchedEpisodes((prev: Record<string, boolean>) => ({
-          ...(typeof prev === 'object' && prev && !Array.isArray(prev)
-            ? prev
-            : {}),
-          [epId]: true,
-        }));
-      } catch (e) {
-        if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'development'
-        ) {
-          console.warn('Failed to save watched episode:', e);
-        }
-      }
-    },
+    (id: string) => markWatchedInStorage(id, setWatchedEpisodes),
     [setWatchedEpisodes]
   );
 
@@ -137,6 +116,7 @@ export default function Watch() {
               />
             )}
           </div>
+          
           <WatchPlayerContent
             playerColumnRef={playerColumnRef}
             serverLoading={serverLoading}
@@ -148,6 +128,7 @@ export default function Watch() {
             thumbnail={thumbnail}
             episodeId={episodeId}
             episodes={episodes}
+            setEpisodeId={setEpisodeId}
             onEpisodeWatched={onEpisodeWatched}
             animeInfo={animeInfo}
             episodeNum={activeEpisodeNum}
@@ -157,6 +138,7 @@ export default function Watch() {
             setActiveServerId={setActiveServerId}
             showErrorBlock={showErrorBlock}
           />
+
           <WatchInfoPanel
             animeInfo={animeInfo}
             nextEpisodeSchedule={nextEpisodeSchedule}

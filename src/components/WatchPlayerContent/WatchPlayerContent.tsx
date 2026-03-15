@@ -19,6 +19,7 @@ type WatchPlayerContentProps = {
   thumbnail: string | null;
   episodeId: string | null;
   episodes: EpisodesTypes[] | null;
+  setEpisodeId: (episodeId: string | null) => void;
   onEpisodeWatched: (episodeId: string) => void;
   animeInfo: AnimeData | null;
   episodeNum: number | null;
@@ -40,6 +41,7 @@ export const WatchPlayerContent = ({
   thumbnail,
   episodeId,
   episodes,
+  setEpisodeId,
   onEpisodeWatched,
   animeInfo,
   streamInfo,
@@ -73,7 +75,8 @@ export const WatchPlayerContent = ({
             thumbnail={thumbnail}
             episodeId={episodeId}
             episodes={episodes}
-            playNext={onEpisodeWatched}
+            playNext={(id) => setEpisodeId(id)}
+            onEpisodeWatched={onEpisodeWatched}
             animeInfo={animeInfo}
             episodeNum={episodeNum}
             streamInfo={streamInfo}

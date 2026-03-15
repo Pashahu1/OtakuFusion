@@ -19,7 +19,6 @@ export const useWatchPageEffects = (
   streamUrl: string | null,
   animeInfo: AnimeData | null,
   nextEpisodeSchedule: NextEpisodeScheduleResult | null,
-  showNextEpisodeSchedule: boolean,
   errorBlockTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>,
   setShowErrorBlock: (item: boolean) => void,
   playerColumnRef: React.RefObject<HTMLDivElement | null>,
@@ -138,6 +137,5 @@ export const useWatchPageEffects = (
     serverLoading,
     buffering,
     nextEpisodeSchedule?.nextEpisodeSchedule,
-    showNextEpisodeSchedule,
   ]);
 };

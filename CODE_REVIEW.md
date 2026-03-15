@@ -94,11 +94,11 @@
 - [x] W2 Типи watch-сторінки
 - [x] W3 WatchTags
 - [x] W4 WatchInfoPanel (див. розпис нижче)
-- [ ] W5 WatchPlayerArea (див. розпис нижче)
-- [ ] W6 WatchSeasonsAndSchedule
-- [ ] W7 WatchEpisodesColumn (опційно)
-- [ ] W8 Контейнер page
-- [ ] W9 @ts-nocheck та типи
+- [+] W5 WatchPlayerArea (див. розпис нижче)
+- [+] W6 WatchSeasonsAndSchedule
+- [+] W7 WatchEpisodesColumn (опційно)
+- [+] W8 Контейнер page
+- [+] W9 @ts-nocheck та типи
 
 ### Гілка: Zod + UI під валідацію
 - [ ] ContinueWatching: після `JSON.parse` валідувати через Zod, показувати помилки в UI.
