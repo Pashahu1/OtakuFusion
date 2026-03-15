@@ -3,8 +3,15 @@ import { getServers } from '@/services/getServers';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 
 const PREFERRED_SERVERS = ['HD-1', 'HD-2'] as const;
+
+const SERVER_PRIORITY_ORDER = ['HD-2', 'HD-1', 'MegaCloud', 'VidSrc'] as const;
+
 const STORAGE_SERVER_NAME = 'server_name';
 const STORAGE_SERVER_TYPE = 'server_type';
+
+function serverNameMatches(name: string, preferred: string): boolean {
+  return name.trim().toLowerCase() === preferred.toLowerCase();
+}
 
 function getInitialServer(
   servers: ServerInfo[],
@@ -12,16 +19,39 @@ function getInitialServer(
   savedType: string | null
 ): ServerInfo | undefined {
   if (!servers?.length) return undefined;
-  return (
-    servers.find((s) => s.serverName === savedName && s.type === savedType) ??
-    servers.find((s) => s.serverName === savedName) ??
-    servers.find(
-      (s) =>
-        s.type === savedType &&
-        PREFERRED_SERVERS.includes(
-          s.serverName as (typeof PREFERRED_SERVERS)[number]
+
+  const bySaved =
+    savedName != null && savedType != null
+      ? servers.find(
+          (s) =>
+            serverNameMatches(s.serverName, savedName) &&
+            s.type.toLowerCase() === savedType.toLowerCase()
         )
-    ) ??
+      : undefined;
+  if (bySaved) return bySaved;
+
+  const bySavedNameOnly =
+    savedName != null
+      ? servers.find((s) => serverNameMatches(s.serverName, savedName))
+      : undefined;
+  if (bySavedNameOnly) return bySavedNameOnly;
+
+  const bySavedTypeAndPreferred =
+    savedType != null
+      ? servers.find(
+          (s) =>
+            s.type.toLowerCase() === savedType.toLowerCase() &&
+            PREFERRED_SERVERS.some((p) => serverNameMatches(s.serverName, p))
+        )
+      : undefined;
+  if (bySavedTypeAndPreferred) return bySavedTypeAndPreferred;
+
+  for (const preferred of SERVER_PRIORITY_ORDER) {
+    const found = servers.find((s) => serverNameMatches(s.serverName, preferred));
+    if (found) return found;
+  }
+
+  return (
     servers.find((s) => s.type === 'sub') ??
     servers.find((s) => s.type === 'dub') ??
     servers[0]

@@ -1,6 +1,7 @@
 @use '../../style/mixins' as *;
 
-.swiper {
+.swiper-card .swiper {
+  width: 100%;
   overflow: visible;
 }
 
@@ -11,9 +12,12 @@
 
 .swiper-card__slide {
   width: clamp(140px, 22vw, 310px);
+  min-width: 140px;
+  flex-shrink: 0;
   overflow: visible;
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
 
   &:hover,
   &:has(a:hover) {

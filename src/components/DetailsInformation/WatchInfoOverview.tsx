@@ -14,7 +14,7 @@ export function WatchInfoOverview({
   if (overview === null) {
     return (
       <div className="mt-2 flex min-w-0 flex-col gap-2">
-        <Skeleton className="h-[350px] w-full max-w-[510px] shrink-0" />
+        <Skeleton className="h-[650px] w-full max-w-[560px] shrink-0" />
       </div>
     );
   }
