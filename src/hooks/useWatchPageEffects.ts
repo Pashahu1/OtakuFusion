@@ -1,10 +1,8 @@
 'use client';
 import website_name from '@/config/website';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type {
-  AnimeInfo,
-  NextEpisodeScheduleResult,
-} from '@/shared/types/GlobalAnimeTypes';
+import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
+import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -12,15 +10,15 @@ export const useWatchPageEffects = (
   hasAppliedSavedEpisodeRef: React.RefObject<boolean>,
   animeId: string,
   setEpisodeId: (item: string) => void,
-  episodeId: string,
-  episodes: EpisodesTypes[],
+  episodeId: string | null,
+  episodes: EpisodesTypes[] | null,
   urlEp: string | undefined,
   isFirstSet: React.RefObject<boolean>,
   serverLoading: boolean,
   buffering: boolean,
-  streamUrl: string,
-  animeInfo: AnimeInfo,
-  nextEpisodeSchedule: NextEpisodeScheduleResult,
+  streamUrl: string | null,
+  animeInfo: AnimeData | null,
+  nextEpisodeSchedule: NextEpisodeScheduleResult | null,
   showNextEpisodeSchedule: boolean,
   errorBlockTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>,
   setShowErrorBlock: (item: boolean) => void,

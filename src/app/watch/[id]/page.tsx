@@ -1,7 +1,6 @@
-// @ts-nocheck
 'use client';
 
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useWatch } from '@/hooks/useWatch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -65,7 +64,7 @@ export default function Watch() {
     setActiveServerId,
     servers,
     serverLoading,
-  } = useWatch(animeId, initialEpisodeId);
+  } = useWatch(animeId || '', initialEpisodeId ?? undefined);
 
   const hasAppliedSavedEpisodeRef = useRef(false);
   const isFirstSet = useRef(true);
@@ -96,7 +95,7 @@ export default function Watch() {
       const epId = id != null ? String(id) : '';
       if (!epId) return;
       try {
-        setWatchedEpisodes((prev) => ({
+        setWatchedEpisodes((prev: Record<string, boolean>) => ({
           ...(typeof prev === 'object' && prev && !Array.isArray(prev)
             ? prev
             : {}),
@@ -130,11 +129,10 @@ export default function Watch() {
               <div className="h-full min-h-[280px] w-full animate-pulse rounded-lg bg-white/5" />
             ) : (
               <Episodelist
-                animeId={animeId}
                 episodes={episodes}
                 currentEpisode={episodeId}
                 onEpisodeClick={(id) => setEpisodeId(id)}
-                totalEpisodes={totalEpisodes}
+                totalEpisodes={totalEpisodes ?? 0}
                 watchedEpisodes={watchedEpisodes}
               />
             )}
@@ -174,7 +172,7 @@ export default function Watch() {
           {(animeInfo?.recommended_data?.length ?? 0) > 0 ? (
             <AnimeSection
               title="Recommended for you"
-              catalog={animeInfo?.recommended_data}
+              catalog={animeInfo?.recommended_data ?? []}
             />
           ) : (
             <AnimeSectionSkeleton title="Recommended for you" />

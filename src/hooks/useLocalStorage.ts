@@ -1,6 +1,7 @@
+import type { Dispatch, SetStateAction } from 'react';
 import { useEffect, useState } from 'react';
 
-type UseLocalStorageReturn<T> = [T, (value: T) => void, () => void];
+type UseLocalStorageReturn<T> = [T, Dispatch<SetStateAction<T>>, () => void];
 
 export function useLocalStorage<T>(
   key: string,

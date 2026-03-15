@@ -1,17 +1,18 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { EpisodesTypes } from './EpisodesListTypes';
-import type { AnimeInfo, SeasonsTypes, ServerInfo } from './GlobalAnimeTypes';
+import type { ServerInfo } from './GlobalAnimeTypes';
 import type { StreamingData } from './StreamingTypes';
 import type { Segment } from './VideoSegmentsTypes';
 import type { SubtitleItem } from './PlayerTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
+import type { AnimeData } from './animeDetailsTypes';
 
 export interface UseWatchReturn {
   error: string | null;
   buffering: boolean;
   serverLoading: boolean;
   streamInfo: StreamingData | null;
-  animeInfo: AnimeInfo | null;
+  animeInfo: AnimeData | null;
   episodes: EpisodesTypes[] | null;
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   animeInfoLoading: boolean;
