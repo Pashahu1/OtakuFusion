@@ -46,7 +46,7 @@ export default function SchedulePage() {
   });
 
   useEffect(() => {
-    const fetchSheduleAnime = async () => {
+    const fetchScheduleAnime = async () => {
       setIsLoading(true);
       try {
         const res = await getNextEpisodesAnime(selectedDate);
@@ -60,7 +60,7 @@ export default function SchedulePage() {
         setIsLoading(false);
       }
     };
-    fetchSheduleAnime();
+    fetchScheduleAnime();
   }, [selectedDate]);
 
   if (isLoading) return <InitialLoader />;

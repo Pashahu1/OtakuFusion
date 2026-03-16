@@ -56,6 +56,9 @@ export const ProfileHeader = () => {
         }
       }
       setUser(updatedUser);
+    } catch (err) {
+      alert(err);
+      console.error('failed data fetching schedule anime', err);
     } finally {
       setIsLoading(false);
     }
@@ -67,42 +70,36 @@ export const ProfileHeader = () => {
     router.push('/');
   };
 
-  const handlerDisabled = () => {
-    if (!username || !avatarFile) {
-      return;
-    }
-  };
-
   return (
-    <div className="flex flex-col items-center gap-6 py-20 mt-[60px] w-full lg:max-w-[500px]">
+    <div className="mt-[60px] flex w-full flex-col items-center gap-6 py-20 lg:max-w-[500px]">
       <h1 className="text-3xl font-semibold text-white">Edit Profile</h1>
       <form
         onSubmit={handleSave}
-        className="flex flex-col gap-6 w-full rounded-[30px]"
+        className="flex w-full flex-col gap-6 rounded-[30px]"
       >
-        <div className="flex flex-col gap-6 bg-[#141519] px-[40px] py-[30px] rounded-[20px] border border-zinc-800 shadow-lg">
-          <div className="relative flex flex-col items-center justify-center text-center gap-2">
-            <Avatar className="flex items-center justify-center relative w-[80px] h-[80px] overflow-hidden rounded-full bg-black border border-zinc-700">
+        <div className="flex flex-col gap-6 rounded-[20px] border border-zinc-800 bg-[#141519] px-[40px] py-[30px] shadow-lg">
+          <div className="relative flex flex-col items-center justify-center gap-2 text-center">
+            <Avatar className="relative flex h-[80px] w-[80px] items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-black">
               <AvatarImage
-                className="w-full h-full object-cover cursor-pointer"
+                className="h-full w-full cursor-pointer object-cover"
                 src={preview || user.avatar}
               />
-              <AvatarFallback className="text-white text-xl">
+              <AvatarFallback className="text-xl text-white">
                 {user?.email?.[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <input
-              className="absolute opacity-0 w-[80px] h-[80px] cursor-pointer"
+              className="absolute h-[80px] w-[80px] cursor-pointer opacity-0"
               type="file"
               accept="image/*"
               onChange={handleAvatarChange}
             />
           </div>
-          <label className="flex flex-col text-left gap-2">
+          <label className="flex flex-col gap-2 text-left">
             <span className="text-sm text-zinc-400">Profile Name</span>
-            <div className="border-b-2 border-zinc-700 focus-within:border-[var(--color-brand-orange)] transition-colors">
+            <div className="border-b-2 border-zinc-700 transition-colors focus-within:border-[var(--color-brand-orange)]">
               <input
-                className="w-full bg-transparent text-white px-2 py-2 outline-none"
+                className="w-full bg-transparent px-2 py-2 text-white outline-none"
                 value={username}
                 placeholder={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -115,7 +112,7 @@ export const ProfileHeader = () => {
 
           <div className="flex flex-col gap-2">
             <span className="text-sm text-zinc-400">Role (Optional)</span>
-            <div className="border-b-2 border-zinc-800 pb-1 text-zinc-500 opacity-60 cursor-not-allowed select-none">
+            <div className="cursor-not-allowed border-b-2 border-zinc-800 pb-1 text-zinc-500 opacity-60 select-none">
               Role: {user.role}
             </div>
             <span className="text-sm text-zinc-500">
@@ -128,14 +125,14 @@ export const ProfileHeader = () => {
           <button
             type="submit"
             disabled={isDisabled}
-            className={` w-full h-[40px] rounded-lg font-semibold transition ${isDisabled ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed opacity-50' : 'bg-[var(--color-brand-orange)] text-black hover:opacity-90'} `}
+            className={`h-[40px] w-full rounded-lg font-semibold transition ${isDisabled ? 'cursor-not-allowed bg-zinc-700 text-zinc-400 opacity-50' : 'bg-[var(--color-brand-orange)] text-black hover:opacity-90'} `}
           >
             {isLoading ? 'Saving...' : 'Save'}
           </button>
           <button
             type="button"
             onClick={handleCancel}
-            className="w-full h-[40px] rounded-lg bg-zinc-700 text-white hover:bg-zinc-600 transition"
+            className="h-[40px] w-full rounded-lg bg-zinc-700 text-white transition hover:bg-zinc-600"
           >
             Cancel
           </button>

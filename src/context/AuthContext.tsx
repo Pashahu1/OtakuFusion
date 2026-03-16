@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     setUser(null);
-    setIsLoading(true);
+    setIsLoading(false);
   };
 
   return (
