@@ -14,7 +14,7 @@ export const useWatchPageEffects = (
   episodeId: string | null,
   episodes: EpisodesTypes[] | null,
   urlEp: string | undefined,
-  isFirstSet: React.RefObject<boolean>,
+  isFirstSetRef: React.RefObject<boolean>,
   serverLoading: boolean,
   buffering: boolean,
   streamUrl: string | null,
@@ -66,9 +66,9 @@ export const useWatchPageEffects = (
     }
 
     const newUrl = `/watch/${animeId}?ep=${episodeId}`;
-    if (isFirstSet.current) {
+    if (isFirstSetRef.current) {
       router.replace(newUrl);
-      isFirstSet.current = false;
+      isFirstSetRef.current = false;
     } else {
       router.push(newUrl);
     }

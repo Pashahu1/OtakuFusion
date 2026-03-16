@@ -33,11 +33,10 @@ export function Player({
   activeServerId = null,
   setActiveServerId = () => {},
 }: PlayerProps) {
-  const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
+  const currentEpisodeIndex =
     episodes?.findIndex(
       (episode) => getEpisodeNumberFromId(episode.id) === episodeId
-    )
-  );
+    ) ?? -1;
 
   const artRef = useRef<HTMLDivElement>(null);
   const artInstanceRef = useRef<Artplayer | null>(null);
@@ -51,24 +50,21 @@ export function Player({
   const hasTriggeredNextRef = useRef(false);
   const hasMarkedWatchedForOutroRef = useRef(false);
   const userPausedRef = useRef(false);
-  serversRef.current = servers;
-  activeServerIdRef.current = activeServerId;
-  episodeIdRef.current = episodeId;
-  episodesRef.current = episodes;
-  currentEpisodeIndexRef.current = currentEpisodeIndex;
-  playNextRef.current = playNext;
-  onEpisodeWatchedRef.current = onEpisodeWatched;
+
+  useEffect(() => {
+    serversRef.current = servers;
+    activeServerIdRef.current = activeServerId;
+    episodeIdRef.current = episodeId;
+    episodesRef.current = episodes;
+    currentEpisodeIndexRef.current = currentEpisodeIndex;
+    playNextRef.current = playNext;
+    onEpisodeWatchedRef.current = onEpisodeWatched;
+  });
 
   useEffect(() => {
     hasTriggeredNextRef.current = false;
     hasMarkedWatchedForOutroRef.current = false;
     userPausedRef.current = false;
-    if (episodes && episodes.length > 0) {
-      const newIndex = episodes.findIndex(
-        (episode) => getEpisodeNumberFromId(episode.id) === episodeId
-      );
-      setCurrentEpisodeIndex(newIndex);
-    }
   }, [episodeId, episodes]);
 
   useChapterStyles(streamUrl, intro, outro);

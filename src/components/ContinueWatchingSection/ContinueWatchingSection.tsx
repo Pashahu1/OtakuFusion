@@ -71,6 +71,8 @@ export function ContinueWatchingSection() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Читання localStorage тільки на клієнті після mount — потрібно для гідратації (SSR не має window).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- оновлення з зовнішнього джерела після монту.
     setList(parseContinueWatchingList(localStorage.getItem(STORAGE_KEY)));
   }, []);
 

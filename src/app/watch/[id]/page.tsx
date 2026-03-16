@@ -23,14 +23,6 @@ export default function Watch() {
         ? (animeIdRaw[0] ?? '')
         : '';
   const urlEp = searchParams.get('ep') ?? undefined;
-  const initialEpRef = useRef<{ animeId: string; ep: string | undefined }>({
-    animeId: '',
-    ep: undefined,
-  });
-  if (initialEpRef.current.animeId !== animeId) {
-    initialEpRef.current = { animeId, ep: urlEp };
-  }
-  const initialEpisodeId = initialEpRef.current.ep;
   const [showErrorBlock, setShowErrorBlock] = useState(false);
 
   const posterImgRef = useRef<HTMLImageElement | null>(null);
@@ -62,7 +54,7 @@ export default function Watch() {
     setActiveServerId,
     servers,
     serverLoading,
-  } = useWatch(animeId || '', initialEpisodeId ?? undefined);
+  } = useWatch(animeId || '', urlEp ?? undefined);
 
   const hasAppliedSavedEpisodeRef = useRef(false);
   const isFirstSet = useRef(true);
