@@ -2,9 +2,10 @@
 import React from 'react';
 import './AnimeCalendar.scss';
 import { AnimeSchedule } from './AnimeSchedule';
+import type { CalendarEvent } from './AnimeSchedule';
 
 type Props = {
-  events: any;
+  events: CalendarEvent[];
   onDateChange: (data: { year: number; month: number; day: number }) => void;
   selectedDate: string;
 };

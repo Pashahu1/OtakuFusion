@@ -41,6 +41,7 @@
   cursor: pointer;
 
   background: transparent;
+  transition: background 0.2s ease;
 }
 
 .nav-zone svg {
@@ -55,12 +56,22 @@
     transform 0.2s ease;
 }
 
+.nav-zone--left {
+  left: 0;
+  background: transparent;
+}
+
+.nav-zone--right {
+  right: 0;
+  background: transparent;
+}
+
 .nav-zone:hover {
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.45), transparent);
 }
 
 .nav-zone--right:hover {
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.45), transparent);
 }
 
 .nav-zone.swiper-button-disabled {
@@ -68,12 +79,3 @@
   pointer-events: none;
 }
 
-.nav-zone--left {
-  left: 0;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
-}
-
-.nav-zone--right {
-  right: 0;
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
-}

@@ -44,7 +44,10 @@ export const WatchInfoPanel = ({
       </div>
       <div className="flex min-w-0 flex-col justify-start gap-y-4 overflow-hidden">
         <WatchInfoTitle title={animeInfo?.title} />
-        <NextEpisodeSchedule nextEpisodeSchedule={nextEpisodeSchedule} />
+        <NextEpisodeSchedule
+          nextEpisodeSchedule={nextEpisodeSchedule}
+          isLoading={!animeInfo}
+        />
         <WatchTags animeInfo={animeInfo} />
         <WatchInfoOverview
           overview={animeInfo?.animeInfo?.Overview}

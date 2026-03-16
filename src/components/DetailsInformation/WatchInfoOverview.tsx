@@ -11,10 +11,15 @@ export function WatchInfoOverview({
   isFullOverview,
   setIsFullOverview,
 }: WatchInfoOverviewProps) {
-  if (overview === null) {
+  if (overview == null) {
     return (
-      <div className="mt-2 flex min-w-0 flex-col gap-2">
-        <Skeleton className="h-[650px] w-full max-w-[560px] shrink-0" />
+      <div className="mt-0 min-w-0 max-w-[560px]">
+        <div className="mt-2 flex flex-col gap-2">
+          <Skeleton className="h-3 w-full max-w-full" />
+          <Skeleton className="h-3 w-[95%]" />
+          <Skeleton className="h-3 w-[88%]" />
+          <Skeleton className="h-3 w-[70%]" />
+        </div>
       </div>
     );
   }

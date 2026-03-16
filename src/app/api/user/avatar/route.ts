@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import fs from 'fs/promises';
-// import path from 'path';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { getUserFromRequest } from '@/lib/auth';
@@ -35,7 +33,22 @@ export async function POST(req: NextRequest) {
     if (buffer.length > MAX_SIZE) {
       return NextResponse.json({ message: 'File too large' }, { status: 400 });
     }
-    const uploadResult: any = await new Promise((resolve, reject) => {
+
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const type = file.type?.toLowerCase();
+    if (!type || !ALLOWED_TYPES.includes(type)) {
+      return NextResponse.json(
+        { message: 'Invalid file type. Use JPEG, PNG, WebP or GIF.' },
+        { status: 400 }
+      );
+    }
+
+    interface CloudinaryUploadResult {
+      secure_url: string;
+    }
+
+    const uploadResult = await new Promise<CloudinaryUploadResult>(
+      (resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
           {
@@ -45,18 +58,13 @@ export async function POST(req: NextRequest) {
           },
           (error, result) => {
             if (error) reject(error);
-            else resolve(result);
+            else if (result?.secure_url) resolve(result as CloudinaryUploadResult);
+            else reject(new Error('Upload failed'));
           }
         )
         .end(buffer);
-    });
-    // const ext = file.name.split('.').pop() || 'png';
-    // const fileName = `avatar_${currentUser._id}_${Date.now()}.${ext}`;
-
-    // const uploadDir = path.join(process.cwd(), 'public', 'avatars');
-    // await fs.mkdir(uploadDir, { recursive: true });
-    // const filePath = path.join(uploadDir, fileName);
-    // await fs.writeFile(filePath, buffer);
+      }
+    );
     const avatarUrl = uploadResult.secure_url;
     const updateUser = await User.findByIdAndUpdate(
       currentUser._id,

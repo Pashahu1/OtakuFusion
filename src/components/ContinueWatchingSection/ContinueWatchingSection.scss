@@ -11,14 +11,24 @@
   border: none;
   cursor: pointer;
   background: transparent;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, background 0.2s ease;
+
+  &.continue-watching-nav--left {
+    left: 0;
+    background: transparent;
+  }
+
+  &.continue-watching-nav--right {
+    right: 0;
+    background: transparent;
+  }
 
   &:hover {
-    background: linear-gradient(to right, rgba(0, 0, 0, 0.85), transparent);
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.45), transparent);
   }
 
   &.continue-watching-nav--right:hover {
-    background: linear-gradient(to left, rgba(0, 0, 0, 0.85), transparent);
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.45), transparent);
   }
 
   &.swiper-button-disabled {
@@ -27,12 +37,3 @@
   }
 }
 
-.continue-watching-nav--left {
-  left: 0;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.6), transparent);
-}
-
-.continue-watching-nav--right {
-  right: 0;
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.6), transparent);
-}

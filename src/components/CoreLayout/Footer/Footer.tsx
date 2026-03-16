@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import './Footer.scss';
 import Image from 'next/image';
+import { WEBSITE_NAME } from '@/config/website';
 
 export const Footer = () => {
   return (
@@ -14,7 +15,7 @@ export const Footer = () => {
               Anime
             </Link>
             <Link className="footer__link" href="/schedule">
-              Shedule
+              Schedule
             </Link>
           </div>
         </div>
@@ -25,6 +26,7 @@ export const Footer = () => {
               className="footer__link"
               href="https://github.com/Pashahu1"
               target="_blank"
+              rel="noopener noreferrer"
             >
               <Image
                 width={24}
@@ -38,6 +40,7 @@ export const Footer = () => {
               className="footer__link"
               href="https://t.me/PashaChudin"
               target="_blank"
+              rel="noopener noreferrer"
             >
               <Image
                 width={24}
@@ -51,6 +54,7 @@ export const Footer = () => {
               className="footer__link"
               href="https://www.instagram.com/_chudin.pasha_/"
               target="_blank"
+              rel="noopener noreferrer"
             >
               <Image
                 width={24}
@@ -62,8 +66,8 @@ export const Footer = () => {
             </Link>
           </div>
         </div>
-        <div className="footer__rulles">
-          <h2>OtakuFushin</h2>
+        <div className="footer__rules">
+          <h2>{WEBSITE_NAME}</h2>
           <div className="footer__information">
             <Link className="footer__link" href="/about">
               About
@@ -87,7 +91,7 @@ export const Footer = () => {
       </div>
 
       <p className="text-center">
-        &copy; 2025 OtakuFushion All rights reserved.
+        &copy; 2025 {WEBSITE_NAME} All rights reserved.
       </p>
     </footer>
   );

@@ -57,8 +57,9 @@ export const ProfileHeader = () => {
       }
       setUser(updatedUser);
     } catch (err) {
-      alert(err);
-      console.error('failed data fetching schedule anime', err);
+      const message = err instanceof Error ? err.message : 'Не вдалося зберегти профіль';
+      alert(message);
+      console.error('Profile save error:', err);
     } finally {
       setIsLoading(false);
     }

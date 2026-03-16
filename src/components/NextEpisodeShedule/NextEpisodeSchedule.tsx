@@ -1,4 +1,5 @@
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
+import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
 
 function formatScheduleDate(isoString: string): string {
   return new Date(
@@ -15,11 +16,24 @@ function formatScheduleDate(isoString: string): string {
 
 export const NextEpisodeSchedule = ({
   nextEpisodeSchedule,
+  isLoading,
 }: {
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
+  isLoading?: boolean;
 }) => {
   const schedule = nextEpisodeSchedule?.nextEpisodeSchedule;
-  if (!schedule) return null;
+
+  if (!schedule) {
+    if (isLoading) {
+      return (
+        <Skeleton
+          className="h-[14px] w-[200px] shrink-0 max-[500px]:w-[160px]"
+          aria-hidden
+        />
+      );
+    }
+    return null;
+  }
 
   return (
     <p className="flex flex-wrap items-center gap-x-1 text-xs text-white/55">

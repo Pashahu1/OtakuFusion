@@ -65,13 +65,13 @@ export const useWatchPageEffects = (
       return;
     }
 
+    // Оновлюємо URL лише один раз при першому завантаженні сторінки,
+    // щоб уникнути циклів навколо autoplay / next-епізодів.
+    if (!isFirstSetRef.current) return;
+
     const newUrl = `/watch/${animeId}?ep=${episodeId}`;
-    if (isFirstSetRef.current) {
-      router.replace(newUrl);
-      isFirstSetRef.current = false;
-    } else {
-      router.push(newUrl);
-    }
+    router.replace(newUrl);
+    isFirstSetRef.current = false;
   }, [episodeId, animeId, router, episodes, setEpisodeId]);
 
   useEffect(() => {

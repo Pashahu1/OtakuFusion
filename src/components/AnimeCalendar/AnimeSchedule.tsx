@@ -4,7 +4,7 @@ import { format, isSameDay } from 'date-fns';
 import './AnimeCalendar.scss';
 import { useRouter } from 'next/navigation';
 
-type Event = {
+export type CalendarEvent = {
   id: string;
   title: string;
   start: Date;
@@ -12,7 +12,7 @@ type Event = {
 };
 
 type Props = {
-  events: Event[];
+  events: CalendarEvent[];
   selectedDate: string;
   onDateChange: (data: { year: number; month: number; day: number }) => void;
 };

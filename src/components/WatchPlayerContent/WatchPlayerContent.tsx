@@ -56,9 +56,9 @@ export const WatchPlayerContent = ({
   return (
     <div
       ref={playerColumnRef}
-      className="watch-player flex h-full w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1200px]:order-1"
+      className="watch-player flex h-[675px] w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1200px]:order-1"
     >
-      <div className="player relative h-[685px] w-full shrink-0 overflow-hidden rounded-xl border border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] max-[1400px]:h-[40vw] max-[1200px]:h-[48vw] max-[1024px]:h-[58vw] max-[600px]:h-[65vw]">
+      <div className="player relative h-full w-full shrink-0 overflow-hidden rounded-xl border border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] max-[1400px]:h-[40vw] max-[1200px]:h-[48vw] max-[1024px]:h-[58vw] max-[600px]:h-[65vw]">
         {(serverLoading || buffering) && (
           <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center bg-black">
             <BouncingLoader />

@@ -22,18 +22,10 @@ import type {
   SpotlightAnime,
   TrendingAnime,
 } from '@/shared/types/GlobalAnimeTypes';
-import dynamic from 'next/dynamic';
 import { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { EmptyState } from '../ui/states/EmptyState';
-
-const LazySwiperCard = dynamic(
-  () =>
-    import('@/components/SwiperCard/SwiperCard').then((mod) => ({
-      default: mod.SwiperCard,
-    })),
-  { ssr: false }
-);
+import { SwiperCard } from '../SwiperCard/SwiperCard';
 
 type Props = {
   spotlights: SpotlightAnime[];
@@ -171,16 +163,17 @@ export const Preview = ({ spotlights, trending }: Props) => {
         </div>
       </div>
       <div className="relative isolate z-10 mt-[40px] flex flex-col gap-[20px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
-        <h2 className="text-title text-brand-text-primary pl-4 md:pl-6 lg:pl-10">
-          Trending
-        </h2>
         {safeTrending.length === 0 ? (
           <EmptyState
             title="No trending anime"
             message="Please check back later."
           />
         ) : (
-          <LazySwiperCard catalog={safeTrending} sectionId="trending" />
+          <SwiperCard
+            title="Trending"
+            catalog={safeTrending}
+            sectionId="trending"
+          />
         )}
       </div>
     </>

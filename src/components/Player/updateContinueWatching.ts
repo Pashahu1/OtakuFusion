@@ -1,29 +1,41 @@
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
+type StoredEntry = {
+  id: string;
+  data_id: number;
+  episodeId: string;
+  episodeNum?: number | null;
+  adultContent?: boolean;
+  poster?: string;
+  title?: string;
+  japanese_title?: string;
+};
+
 export function updateContinueWatching(
   animeInfo: AnimeInfo | null,
   episodeId: string | null,
   episodeNum: number | null
 ) {
-  const continueWatching = (JSON.parse(
-    localStorage.getItem('continueWatching') || '[]'
-  ) || []) as Array<{ data_id?: number }>;
+  if (!animeInfo || !animeInfo.id || !animeInfo.data_id) return;
+  if (!episodeId) return;
 
-  const newEntry = {
-    id: animeInfo?.id,
-    data_id: animeInfo?.data_id,
+  const raw = localStorage.getItem('continueWatching') || '[]';
+  const continueWatching = (JSON.parse(raw) || []) as StoredEntry[];
+
+  const newEntry: StoredEntry = {
+    id: animeInfo.id,
+    data_id: animeInfo.data_id,
     episodeId,
     episodeNum,
-    adultContent: animeInfo?.adultContent,
-    poster: animeInfo?.poster,
-    title: animeInfo?.title,
-    japanese_title: animeInfo?.japanese_title,
+    adultContent: animeInfo.adultContent,
+    poster: animeInfo.poster,
+    title: animeInfo.title,
+    japanese_title: animeInfo.japanese_title,
   };
 
-  if (!newEntry.data_id) return;
-
   const existingIndex = continueWatching.findIndex(
-    (item: { data_id?: number }) => item.data_id === newEntry.data_id
+    (item) =>
+      item.data_id === newEntry.data_id || item.id === newEntry.id
   );
 
   if (existingIndex !== -1) {

@@ -143,7 +143,7 @@ export function Player({
       }
     });
 
-    art.on('ready', () =>
+    art.on('ready', () => {
       setupPlayerReady(
         art,
         playNextRef,
@@ -162,8 +162,9 @@ export function Player({
         subtitles,
         serversRef,
         activeServerIdRef
-      )
-    );
+      );
+      updateContinueWatching(animeInfo, episodeId, episodeNum);
+    });
 
     artInstanceRef.current = art;
 

@@ -23,11 +23,12 @@ function slugify(s: string): string {
 }
 
 type Props = {
+  title?: string;
   catalog: AnimeInfo[];
   sectionId?: string;
 };
 
-export function SwiperCard({ catalog, sectionId }: Props) {
+export function SwiperCard({ title, catalog, sectionId }: Props) {
   const reactId = useId().replace(/:/g, '');
   const id = sectionId ? slugify(sectionId) : reactId;
   const prevId = `swiper-prev-${id}`;
@@ -35,6 +36,11 @@ export function SwiperCard({ catalog, sectionId }: Props) {
 
   return (
     <div className="relative overflow-hidden px-4 md:px-6 lg:px-10">
+      <div className="mb-4 flex items-center justify-between">
+        {title && (
+          <h2 className="text-title text-brand-text-primary">{title}</h2>
+        )}
+      </div>
       <button
         id={nextId}
         className="nav-zone nav-zone--right"

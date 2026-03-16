@@ -69,7 +69,15 @@ export function useWatchAnime(
       }
     };
     fetchInitial();
-  }, [animeId, initialEpisodeId]);
+  }, [animeId]);
+
+  useEffect(() => {
+    if (!initialEpisodeId || !episodes?.length) return;
+    const valid = episodes.some(
+      (ep) => getEpisodeNumberFromId(ep.id) === initialEpisodeId
+    );
+    if (valid) setEpisodeId(initialEpisodeId);
+  }, [initialEpisodeId, episodes]);
 
   useEffect(() => {
     const fetchSchedule = async () => {

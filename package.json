@@ -65,6 +65,6 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "predeploy": "npm run lint && npx tsc --noEmit && npx prisma validate && npm run build"
+    "predeploy": "npm run lint && npx tsc --noEmit && npm run build"
   }
 }

@@ -18,10 +18,19 @@ export async function HomeContent() {
       />
       <ContinueWatchingSection />
       <div className="flex flex-col gap-[40px]">
-        <SwiperCard catalog={homeCatalog.topAiring || []} />
-        <SwiperCard catalog={homeCatalog.mostFavorite || []} />
-        <SwiperCard catalog={homeCatalog.latestEpisode || []} />
-        <SwiperCard catalog={homeCatalog.latestCompleted || []} />
+        <SwiperCard title="Top Airing" catalog={homeCatalog.topAiring || []} />
+        <SwiperCard
+          title="Most Favorite"
+          catalog={homeCatalog.mostFavorite || []}
+        />
+        <SwiperCard
+          title="Latest Episode"
+          catalog={homeCatalog.latestEpisode || []}
+        />
+        <SwiperCard
+          title="Latest Completed"
+          catalog={homeCatalog.latestCompleted || []}
+        />
       </div>
     </div>
   );

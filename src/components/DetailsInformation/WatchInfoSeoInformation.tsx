@@ -10,8 +10,9 @@ export function WatchInfoSeoInformation({
 }: WatchInfoSeoInformationProps) {
   if (!title) {
     return (
-      <div className="flex min-w-0 flex-col gap-2 max-[575px]:hidden">
-        <Skeleton className="h-[145px] w-full max-w-[510px] shrink-0" />
+      <div className="flex min-w-0 max-w-[510px] flex-col gap-2 max-[575px]:hidden">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-[85%]" />
       </div>
     );
   }

@@ -6,6 +6,10 @@ import User from '@/models/User';
 
 export const runtime = 'nodejs';
 
+interface RefreshTokenPayload {
+  id: string;
+}
+
 export async function POST() {
   await connectDB();
 
@@ -16,9 +20,12 @@ export async function POST() {
     return NextResponse.json({ message: 'No refresh token' }, { status: 401 });
   }
 
-  let payload: any;
+  let payload: RefreshTokenPayload;
   try {
-    payload = jwt.verify(refreshToken, process.env.NEXT_JWT_REFRESH_SECRET!);
+    payload = jwt.verify(
+      refreshToken,
+      process.env.NEXT_JWT_REFRESH_SECRET!
+    ) as RefreshTokenPayload;
   } catch {
     return NextResponse.json(
       { message: 'Invalid refresh token' },
@@ -42,7 +49,7 @@ export async function POST() {
       role: user.role,
       isVerified: user.isVerified,
     },
-    process.env.JWT_ACCESS_SECRET!,
+    process.env.NEXT_JWT_ACCESS_SECRET!,
     { expiresIn: '15m' }
   );
 
