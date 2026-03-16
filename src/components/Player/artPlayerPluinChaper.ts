@@ -42,7 +42,10 @@ type ArtInstance = Artplayer & {
 
 export function artplayerPluginChapter(
   option: ArtplayerPluginChapterOption = {}
-): (art: Artplayer) => { name: string; update: (arg: { chapters?: ChapterItem[] }) => void } {
+): (art: Artplayer) => {
+  name: string;
+  update: (arg: { chapters?: ChapterItem[] }) => void;
+} {
   return (art: Artplayer) => {
     const a = art as ArtInstance;
     const { $player } = a.template;
@@ -64,8 +67,14 @@ export function artplayerPluginChapter(
 
     const $progress = a.query('.art-control-progress');
     const $inner = a.query('.art-control-progress-inner');
-    const $control = append($inner as HTMLElement, '<div class="art-chapters"></div>');
-    const $title = append($inner as HTMLElement, '<div class="art-chapter-title"></div>');
+    const $control = append(
+      $inner as HTMLElement,
+      '<div class="art-chapters"></div>'
+    );
+    const $title = append(
+      $inner as HTMLElement,
+      '<div class="art-chapter-title"></div>'
+    );
 
     function showTitle({
       $chapter,
@@ -183,7 +192,10 @@ export function artplayerPluginChapter(
         const { $chapter, $loaded, $played, $hover } = $chapters[i];
 
         const $target = (
-          { hover: $hover, loaded: $loaded, played: $played } as Record<string, Element>
+          { hover: $hover, loaded: $loaded, played: $played } as Record<
+            string,
+            Element
+          >
         )[typeStr];
 
         if (!$target) return;
@@ -232,12 +244,12 @@ export function artplayerPluginChapter(
 
     return {
       name: 'artplayerPluginChapter',
-      update: ({ chapters }: { chapters?: ChapterItem[] }) => update(chapters ?? []),
+      update: ({ chapters }: { chapters?: ChapterItem[] }) =>
+        update(chapters ?? []),
     };
   };
 }
 
-/** Inject plugin styles into document (runs once when module loads in browser). */
 function injectChapterStyles(): void {
   if (typeof document === 'undefined') return;
   const id = 'artplayer-plugin-chapter';

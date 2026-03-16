@@ -6,15 +6,26 @@ export interface VttThumbnailOption {
   style?: Record<string, string>;
 }
 
-export default function artplayerPluginVttThumbnail(
+export function artplayerPluginVttThumbnail(
   option: VttThumbnailOption
 ): (art: Artplayer) => { name: string } {
   return (art: Artplayer) => {
     type ArtInstance = Artplayer & {
-      constructor: { utils: { setStyle: (el: HTMLElement, k: string, v: string | number) => void; isMobile: boolean; addClass: (el: HTMLElement, name: string) => void } };
+      constructor: {
+        utils: {
+          setStyle: (el: HTMLElement, k: string, v: string | number) => void;
+          isMobile: boolean;
+          addClass: (el: HTMLElement, name: string) => void;
+        };
+      };
       template: { $progress: HTMLElement };
     };
-    const { constructor: { utils: { setStyle, isMobile, addClass } }, template: { $progress } } = art as ArtInstance;
+    const {
+      constructor: {
+        utils: { setStyle, isMobile, addClass },
+      },
+      template: { $progress },
+    } = art as ArtInstance;
 
     let timer: ReturnType<typeof setTimeout> | null = null;
     let thumbnails: VttThumbItem[] = [];
@@ -27,7 +38,11 @@ export default function artplayerPluginVttThumbnail(
       setStyle($control, 'backgroundImage', `url(${find.url})`);
       setStyle($control, 'height', `${find.h ?? 0}px`);
       setStyle($control, 'width', `${find.w ?? 0}px`);
-      setStyle($control, 'backgroundPosition', `-${find.x ?? 0}px -${find.y ?? 0}px`);
+      setStyle(
+        $control,
+        'backgroundPosition',
+        `-${find.x ?? 0}px -${find.y ?? 0}px`
+      );
       const findW = Number(find.w) || 0;
       if (width <= findW / 2) {
         setStyle($control, 'left', 0);

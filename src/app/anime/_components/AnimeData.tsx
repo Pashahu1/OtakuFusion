@@ -10,7 +10,7 @@ interface Props {
   page: number;
 }
 
-export default async function AnimeData({ category, page }: Props) {
+export async function AnimeData({ category, page }: Props) {
   const res = await getCategory(category, page);
   const data = res.results.data;
   const totalPages = res.results.totalPages;

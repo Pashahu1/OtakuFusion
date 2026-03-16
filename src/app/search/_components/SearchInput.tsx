@@ -4,11 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
 
-export default function SearchInput({
-  initialValue,
-}: {
-  initialValue: string;
-}) {
+export function SearchInput({ initialValue }: { initialValue: string }) {
   const [query, setQuery] = useState(initialValue);
   const debouncedQuery = useDebounce(query, 400);
   const router = useRouter();

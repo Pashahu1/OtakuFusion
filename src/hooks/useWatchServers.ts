@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { getServers } from '@/services/getServers';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
-
-const PREFERRED_SERVERS = ['HD-1', 'HD-2'] as const;
-
-const SERVER_PRIORITY_ORDER = ['HD-2', 'HD-1', 'MegaCloud', 'VidSrc'] as const;
-
-const STORAGE_SERVER_NAME = 'server_name';
-const STORAGE_SERVER_TYPE = 'server_type';
+import {
+  PREFERRED_SERVERS,
+  SERVER_PRIORITY_ORDER,
+  STORAGE_SERVER_NAME,
+  STORAGE_SERVER_TYPE,
+} from '@/shared/data/servers';
 
 function serverNameMatches(name: string, preferred: string): boolean {
   return name.trim().toLowerCase() === preferred.toLowerCase();
@@ -47,7 +46,9 @@ function getInitialServer(
   if (bySavedTypeAndPreferred) return bySavedTypeAndPreferred;
 
   for (const preferred of SERVER_PRIORITY_ORDER) {
-    const found = servers.find((s) => serverNameMatches(s.serverName, preferred));
+    const found = servers.find((s) =>
+      serverNameMatches(s.serverName, preferred)
+    );
     if (found) return found;
   }
 

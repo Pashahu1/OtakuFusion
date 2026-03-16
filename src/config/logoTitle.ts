@@ -1,3 +1,1 @@
-const logoTitle = 'OtakuFushion';
-
-export default logoTitle;
+export const LOGO_TITLE = 'OtakuFushion';

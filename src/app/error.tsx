@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import ErrorState from '@/components/ui/states/ErrorState';
+import { ErrorState } from '@/components/ui/states/ErrorState';
 
 export default function Error() {
   const router = useRouter();

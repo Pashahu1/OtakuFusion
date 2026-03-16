@@ -1,8 +1,8 @@
 import { getHomePage } from '@/services/getHomePage';
-import ErrorState from '@/components/ui/states/ErrorState';
+import { ErrorState } from '@/components/ui/states/ErrorState';
 import { Preview } from '@/components/Preview/PreviewHero';
 import { ContinueWatchingSection } from '@/components/ContinueWatchingSection/ContinueWatchingSection';
-import SwiperCard from '@/components/SwiperCard/SwiperCard';
+import { SwiperCard } from '@/components/SwiperCard/SwiperCard';
 
 export async function HomeContent() {
   const homeCatalog = await getHomePage();

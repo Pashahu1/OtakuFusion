@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { GenderSkeleton } from '@/components/ui/Skeleton/GenderSkeleton';
-import GenderData from './_components/GenderData';
+import { GenderData } from './_components/GenderData';
 
 export default async function GenderPage({
   params,

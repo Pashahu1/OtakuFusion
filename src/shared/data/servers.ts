@@ -1,6 +1,11 @@
-const servers = {
-  sub: [{ id: 1, title: "Sub", server: "hd-2" }],
-  dub: [{ id: 1, title: "Dub", server: "hd-2" }],
-};
+export const PREFERRED_SERVERS = ['HD-1', 'HD-2'] as const;
 
-export default servers;
+export const SERVER_PRIORITY_ORDER = [
+  'HD-2',
+  'HD-1',
+  'MegaCloud',
+  'VidSrc',
+] as const;
+
+export const STORAGE_SERVER_NAME = 'server_name';
+export const STORAGE_SERVER_TYPE = 'server_type';

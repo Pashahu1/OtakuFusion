@@ -1,5 +1,5 @@
 'use client';
-import website_name from '@/config/website';
+import { WEBSITE_NAME } from '@/config/website';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
@@ -76,11 +76,11 @@ export const useWatchPageEffects = (
 
   useEffect(() => {
     if (animeInfo) {
-      document.title = `Watch ${animeInfo.title} English Sub/Dub online Free on ${website_name}`;
+      document.title = `Watch ${animeInfo.title} English Sub/Dub online Free on ${WEBSITE_NAME}`;
     }
 
     return () => {
-      document.title = `${website_name} | Free anime streaming platform`;
+      document.title = `${WEBSITE_NAME} | Free anime streaming platform`;
     };
   }, [animeId, animeInfo]);
 

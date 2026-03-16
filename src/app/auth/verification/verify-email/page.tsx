@@ -3,7 +3,7 @@ import { Button } from '@/components/Button/Button';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-export default function VerifyEmail() {
+export function VerifyEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailFromUrl = searchParams.get('email') || '';
@@ -62,29 +62,29 @@ export default function VerifyEmail() {
     setIsLoading(false);
   };
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center gap-10 p-6 w-full lg:max-w-[750px]">
+    <div className="flex w-full flex-col items-center justify-center gap-10 p-6 md:flex-row lg:max-w-[750px]">
       <form
         onSubmit={handleVerify}
-        className="flex flex-col gap-5 bg-zinc-900 p-8 rounded-xl shadow-lg w-full max-w-md"
+        className="flex w-full max-w-md flex-col gap-5 rounded-xl bg-zinc-900 p-8 shadow-lg"
       >
         <h1 className="text-2xl font-semibold text-white">Verify your email</h1>
 
-        <p className="text-zinc-400 text-sm">
+        <p className="text-sm text-zinc-400">
           We sent a 6‑digit verification code to:
         </p>
 
         {email && (
-          <p className="text-orange-400 font-medium break-all">{email}</p>
+          <p className="font-medium break-all text-orange-400">{email}</p>
         )}
 
-        <div className="border-b-2 border-zinc-700 focus-within:border-orange-500 pb-2">
+        <div className="border-b-2 border-zinc-700 pb-2 focus-within:border-orange-500">
           <input
             type="text"
             maxLength={6}
             placeholder="Enter 6-digit code"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="w-full bg-transparent text-white px-1 py-3 outline-none text-lg tracking-widest"
+            className="w-full bg-transparent px-1 py-3 text-lg tracking-widest text-white outline-none"
           />
         </div>
 
@@ -98,7 +98,7 @@ export default function VerifyEmail() {
           </Button>
         </div>
 
-        <div className="text-zinc-400 text-sm">
+        <div className="text-sm text-zinc-400">
           {time !== 0 ? (
             <span>Resend available in {time}s</span>
           ) : (
@@ -106,8 +106,8 @@ export default function VerifyEmail() {
           )}
         </div>
 
-        {error && <p className="text-red-400 text-sm">{error}</p>}
-        {message && <p className="text-green-400 text-sm">{message}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
+        {message && <p className="text-sm text-green-400">{message}</p>}
       </form>
     </div>
   );

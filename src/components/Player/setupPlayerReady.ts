@@ -2,7 +2,7 @@ import Artplayer from 'artplayer';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { captionIcon, serverIcon } from './PlayerIcons';
 import { PROXY_URL } from './playerConstants';
-import artplayerPluginVttThumbnail from './artPlayerPluginVttThumbnail';
+import { artplayerPluginVttThumbnail } from './artPlayerPluginVttThumbnail';
 import { handlePlayerKeydown } from './playerKeydown';
 import { LOGO_HIDE_DELAY_MS } from './playerConstants';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';

@@ -1,3 +1,1 @@
-const website_name = 'OtakuFushion';
-
-export default website_name;
+export const WEBSITE_NAME = 'OtakuFushion';

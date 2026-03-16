@@ -11,7 +11,7 @@ type ErrorStateProps = {
   fullPage?: boolean;
 };
 
-export default function ErrorState({
+export function ErrorState({
   title = 'Error',
   message = 'failed to load data.',
   icon,

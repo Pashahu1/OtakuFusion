@@ -6,9 +6,9 @@ import { getNextEpisodesAnime } from '@/services/getNextEpisodesAnime';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import type { ScheduleAnime } from '@/shared/types/GlobalAnimeTypes';
 import { AnimeCalendarComponent as AnimeCalendar } from '@/components/AnimeCalendar/AnimeCalendar';
-import ErrorState from '@/components/ui/states/ErrorState';
+import { ErrorState } from '@/components/ui/states/ErrorState';
 import { normalizeError } from '@/lib/errors/normalizeError';
-import {EmptyState} from '@/components/ui/states/EmptyState';
+import { EmptyState } from '@/components/ui/states/EmptyState';
 
 const timeZone = 'Europe/Kyiv';
 const now = new Date();
@@ -68,9 +68,11 @@ export default function SchedulePage() {
   if (error) {
     return <ErrorState fullPage message="Failed to load schedule." />;
   }
+
   if (!Array.isArray(events) || events.length === 0) {
     return <EmptyState fullPage message="No releases today" />;
   }
+
   return (
     <div className="flex min-h-screen flex-col">
       <div className="mt-[60px]">

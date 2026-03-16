@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import './Search.scss';
 import { SearchSkeleton } from '@/components/ui/Skeleton/SearchSkeleton';
-import SearchInput from './_components/SearchInput';
-import SearchData from './_components/SearchData';
+import { SearchInput } from './_components/SearchInput';
+import { SearchData } from './_components/SearchData';
 
 export default async function SearchPage({
   searchParams,

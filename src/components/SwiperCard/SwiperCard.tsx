@@ -27,7 +27,7 @@ type Props = {
   sectionId?: string;
 };
 
-const SwiperCard = ({ catalog, sectionId }: Props) => {
+export function SwiperCard({ catalog, sectionId }: Props) {
   const reactId = useId().replace(/:/g, '');
   const id = sectionId ? slugify(sectionId) : reactId;
   const prevId = `swiper-prev-${id}`;
@@ -67,5 +67,4 @@ const SwiperCard = ({ catalog, sectionId }: Props) => {
       </Swiper>
     </div>
   );
-};
-export default SwiperCard;
+}

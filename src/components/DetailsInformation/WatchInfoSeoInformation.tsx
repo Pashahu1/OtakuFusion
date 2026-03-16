@@ -1,4 +1,4 @@
-import website_name from '@/config/website';
+import { WEBSITE_NAME } from '@/config/website';
 import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
 
 interface WatchInfoSeoInformationProps {
@@ -18,7 +18,7 @@ export function WatchInfoSeoInformation({
 
   return (
     <p className="shrink-0 text-[14px] max-[575px]:hidden">
-      {`${website_name} is the best site to watch `}
+      {`${WEBSITE_NAME} is the best site to watch `}
       <span className="font-bold">{title}</span>
       {` SUB online, or you can even watch `}
       <span className="font-bold">{title}</span>

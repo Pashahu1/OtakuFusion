@@ -1,5 +1,5 @@
-import AnimeFilters from './_components/AnimeFilters';
-import AnimeData from './_components/AnimeData';
+import { AnimeFilters } from './_components/AnimeFilters';
+import { AnimeData } from './_components/AnimeData';
 import { Suspense } from 'react';
 import { GenderSkeleton } from '@/components/ui/Skeleton/GenderSkeleton';
 

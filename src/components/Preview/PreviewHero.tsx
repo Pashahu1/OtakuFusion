@@ -28,10 +28,11 @@ import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { EmptyState } from '../ui/states/EmptyState';
 
 const LazySwiperCard = dynamic(
-  () => import('@/components/SwiperCard/SwiperCard'),
-  {
-    ssr: false,
-  }
+  () =>
+    import('@/components/SwiperCard/SwiperCard').then((mod) => ({
+      default: mod.SwiperCard,
+    })),
+  { ssr: false }
 );
 
 type Props = {

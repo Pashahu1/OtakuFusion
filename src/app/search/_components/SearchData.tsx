@@ -4,7 +4,7 @@ import { Card } from '@/components/Card/Card';
 import { EmptyState } from '@/components/ui/states/EmptyState';
 import type { AnimeSearchItems } from '@/shared/types/AnimeSearchTypes';
 
-export default async function SearchData({ keyword }: { keyword: string }) {
+export async function SearchData({ keyword }: { keyword: string }) {
   if (!keyword.trim()) {
     return <EmptyState message="Please enter Anime name." />;
   }

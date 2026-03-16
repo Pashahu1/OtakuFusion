@@ -3,7 +3,7 @@ import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import { Pagination } from '@/components/Pagination/Pagination';
 import { EmptyState } from '@/components/ui/states/EmptyState';
-import ErrorState from '@/components/ui/states/ErrorState';
+import { ErrorState } from '@/components/ui/states/ErrorState';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
   page: number;
 }
 
-export default async function GenderData({ gender, page }: Props) {
+export async function GenderData({ gender, page }: Props) {
   const decodedTitle = decodeURIComponent(gender).replaceAll('-', ' ');
 
   let data: AnimeInfo[] | null = null;
