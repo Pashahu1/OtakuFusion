@@ -7,72 +7,96 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Convertor } from '@/helper/Convertor';
+import { z } from 'zod';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 import './ContinueWatchingSection.scss';
-
-export type ContinueWatchingEntry = {
-  id: string;
-  data_id: number;
-  episodeId: string;
-  episodeNum?: number;
-  poster?: string;
-  title?: string;
-  japanese_title?: string;
-  adultContent?: boolean;
-};
+import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
 
 const STORAGE_KEY = 'continueWatching';
 const MAX_ITEMS = 12;
+
+const ContinueWatchingEntrySchema = z.object({
+  id: z.union([z.string(), z.null(), z.undefined()]),
+  data_id: z
+    .union([z.number(), z.string()])
+    .transform((v) => (typeof v === 'string' ? Number(v) : v)),
+  episodeId: z.union([z.string(), z.null(), z.undefined()]),
+  episodeNum: z.number().nullable().optional(),
+  poster: z.string().optional(),
+  title: z.string().optional(),
+  japanese_title: z.string().optional(),
+  adultContent: z.boolean().optional(),
+});
+
+function parseContinueWatchingList(
+  raw: string | null
+): ContinueWatchingEntry[] {
+  try {
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+
+    const valid: ContinueWatchingEntry[] = [];
+    for (const item of parsed) {
+      const result = ContinueWatchingEntrySchema.safeParse(item);
+      if (!result.success) continue;
+      const e = result.data;
+      if (
+        typeof e.id === 'string' &&
+        e.id !== '' &&
+        typeof e.episodeId === 'string' &&
+        e.episodeId !== ''
+      ) {
+        valid.push({
+          id: e.id,
+          data_id: e.data_id,
+          episodeId: e.episodeId,
+          episodeNum: e.episodeNum ?? undefined,
+          poster: e.poster,
+          title: e.title,
+          japanese_title: e.japanese_title,
+          adultContent: e.adultContent,
+        });
+      }
+    }
+    return valid.slice(-MAX_ITEMS).reverse();
+  } catch {
+    return [];
+  }
+}
 
 export function ContinueWatchingSection() {
   const [list, setList] = useState<ContinueWatchingEntry[]>([]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const parsed: ContinueWatchingEntry[] = raw ? JSON.parse(raw) : [];
-      const valid = Array.isArray(parsed)
-        ? parsed.filter(
-            (item) =>
-              item &&
-              typeof item.id === 'string' &&
-              item.id &&
-              typeof item.episodeId === 'string' &&
-              item.episodeId
-          )
-        : [];
-      setList(valid.slice(-MAX_ITEMS).reverse());
-    } catch {
-      setList([]);
-    }
+    setList(parseContinueWatchingList(localStorage.getItem(STORAGE_KEY)));
   }, []);
 
   if (list.length === 0) return null;
 
   return (
     <section className="w-full py-8">
-      <div className="flex items-center justify-between mb-4 px-4 md:px-6 lg:px-10">
+      <div className="mb-4 flex items-center justify-between px-4 md:px-6 lg:px-10">
         <h2 className="text-title text-brand-text-primary">
           Continue watching
         </h2>
       </div>
-      <div className="relative overflow-hidden pl-4 pr-4 md:pl-6 md:pr-6 lg:pl-10 lg:pr-10">
+      <div className="relative overflow-hidden pr-4 pl-4 md:pr-6 md:pl-6 lg:pr-10 lg:pl-10">
         <button
           type="button"
           className="continue-watching-nav continue-watching-nav--left"
           aria-label="Previous"
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <button
           type="button"
           className="continue-watching-nav continue-watching-nav--right"
           aria-label="Next"
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="h-6 w-6" />
         </button>
         <Swiper
           modules={[Navigation]}
@@ -87,10 +111,13 @@ export function ContinueWatchingSection() {
           {list.map((item) => (
             <SwiperSlide
               key={`${item.id}-${item.episodeId}`}
-              className="!w-[130px] sm:!w-[150px] md:!w-[160px] shrink-0"
+              className="!w-[130px] shrink-0 sm:!w-[150px] md:!w-[160px]"
             >
-              <Link href={`/watch/${item.id}?ep=${item.episodeId}`} className="block group">
-                <article className="relative flex flex-col w-full gap-1.5 transition duration-300 hover:scale-[1.04] hover:shadow-lg rounded-md overflow-hidden">
+              <Link
+                href={`/watch/${item.id}?ep=${item.episodeId}`}
+                className="group block"
+              >
+                <article className="relative flex w-full flex-col gap-1.5 overflow-hidden rounded-md transition duration-300 hover:scale-[1.04] hover:shadow-lg">
                   <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md">
                     <Image
                       src={
@@ -103,19 +130,19 @@ export function ContinueWatchingSection() {
                       className="object-cover object-center transition duration-300 group-hover:brightness-110"
                       sizes="160px"
                     />
-                    <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition duration-300" />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent px-1.5 py-1">
+                    <div className="absolute inset-0 bg-white/0 transition duration-300 group-hover:bg-white/10" />
+                    <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/90 to-transparent px-1.5 py-1">
                       <span className="text-[11px] font-medium text-white/90 sm:text-xs">
                         Ep. {item.episodeNum ?? item.episodeId}
                       </span>
                     </div>
                     {item.adultContent && (
-                      <div className="absolute top-1 left-1 bg-red-600 text-black px-1.5 py-[1px] rounded text-[10px] font-bold">
+                      <div className="absolute top-1 left-1 rounded bg-red-600 px-1.5 py-[1px] text-[10px] font-bold text-black">
                         +18
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xs font-medium text-brand-text-primary line-clamp-2 px-0.5">
+                  <h3 className="text-brand-text-primary line-clamp-2 px-0.5 text-xs font-medium">
                     {item.title || item.japanese_title || 'Anime'}
                   </h3>
                 </article>

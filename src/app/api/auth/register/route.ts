@@ -3,20 +3,31 @@ import { connectDB } from '@/lib/db';
 import { sendVerificationEmail } from '@/lib/mailer';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+import { RegisterBodySchema } from '@/shared/schemas/api';
 
 export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const { username, email, password } = await req.json();
-
-    if (!username || !email || !password) {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
       return NextResponse.json(
-        { message: 'All fields are required.' },
+        { message: 'Invalid JSON body.' },
         { status: 400 }
       );
     }
 
+    const result = RegisterBodySchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { message: 'Validation failed.', errors: result.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { username, email, password } = result.data;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(

@@ -54,7 +54,8 @@
     "sass": "^1.89.1",
     "swiper": "^11.2.8",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.11"
+    "tailwindcss": "^4.1.11",
+    "zod": "^4.3.6"
   },
   "scripts": {
     "dev": "next dev",

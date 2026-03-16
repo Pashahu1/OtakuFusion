@@ -3,7 +3,8 @@ import { Button } from '@/components/Button/Button';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-export function VerifyEmail() {
+
+export default function VerifyEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailFromUrl = searchParams.get('email') || '';
@@ -19,6 +20,7 @@ export function VerifyEmail() {
     const timer = setInterval(() => setTime((prev) => prev - 1), 1000);
     return () => clearInterval(timer);
   }, [time]);
+
   const handleResend = async () => {
     if (time !== 0 || !email) return;
     setIsLoading(true);

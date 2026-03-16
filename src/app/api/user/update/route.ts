@@ -1,27 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs/promises';
 import User from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
+import { UpdateUserBodySchema } from '@/shared/schemas/api';
 
 export async function PATCH(req: NextRequest) {
   try {
     await connectDB();
 
     const currentUser = await getUserFromRequest();
-
     if (!currentUser) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const { username } = await req.json();
-    if (!username || typeof username !== 'string') {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
       return NextResponse.json(
-        { message: 'Invalid username' },
+        { message: 'Invalid JSON body.' },
         { status: 400 }
       );
     }
+
+    const result = UpdateUserBodySchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { message: 'Validation failed.', errors: result.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { username } = result.data;
     const updatedUser = await User.findByIdAndUpdate(
       currentUser._id,
       { username },

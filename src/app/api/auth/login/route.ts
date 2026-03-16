@@ -3,19 +3,31 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '@/models/User';
 import { connectDB } from '@/lib/db';
+import { LoginBodySchema } from '@/shared/schemas/api';
 
 export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
       return NextResponse.json(
-        { message: 'Email and password are required.' },
+        { message: 'Invalid JSON body.' },
         { status: 400 }
       );
     }
+
+    const result = LoginBodySchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { message: 'Validation failed.', errors: result.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { email, password } = result.data;
     const user = await User.findOne({ email });
 
     if (!user) {
