@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect, useRef } from 'react';
 import './Episodelist.scss';
+import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 
 type EpisodeType = {
@@ -155,7 +156,7 @@ export function Episodelist({
   useEffect(() => {
     if (!Array.isArray(episodes)) return;
     const activeEpisode = episodes.find(
-      (item) => item?.id.match(/ep=(\d+)/)?.[1] === activeEpisodeId
+      (item) => getEpisodeNumberFromId(item?.id) === activeEpisodeId
     );
     if (activeEpisode) {
       setEpisodeNum(String(activeEpisode?.episode_no));
@@ -239,9 +240,7 @@ export function Episodelist({
             ? episodes
                 .slice(selectedRange[0] - 1, selectedRange[1])
                 .map((item, index) => {
-                  const episodeNumber = item?.id.match(
-                    /ep=(\d+)/
-                  )?.[1] as string;
+                  const episodeNumber = getEpisodeNumberFromId(item?.id) ?? '';
                   const isActive =
                     activeEpisodeId === episodeNumber ||
                     currentEpisode === episodeNumber;
@@ -287,7 +286,7 @@ export function Episodelist({
                   );
                 })
             : episodes?.map((item, index) => {
-                const episodeNumber = item?.id.match(/ep=(\d+)/)?.[1] as string;
+                const episodeNumber = getEpisodeNumberFromId(item?.id) ?? '';
                 const isActive =
                   activeEpisodeId === episodeNumber ||
                   currentEpisode === episodeNumber;

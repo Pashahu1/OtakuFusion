@@ -25,7 +25,7 @@ import type {
 import dynamic from 'next/dynamic';
 import { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
-import EmptyState from '../ui/states/EmptyState';
+import { EmptyState } from '../ui/states/EmptyState';
 
 const LazySwiperCard = dynamic(
   () => import('@/components/SwiperCard/SwiperCard'),
@@ -94,7 +94,9 @@ export const Preview = ({ spotlights, trending }: Props) => {
             <ChevronLeft width={46} height={46} />
           </button>
           <Swiper
-            key={paginationEl ? 'hero-pagination-ready' : 'hero-pagination-wait'}
+            key={
+              paginationEl ? 'hero-pagination-ready' : 'hero-pagination-wait'
+            }
             onSlideChange={(swiper) => {
               setCurrentIndex(swiper.realIndex);
             }}
@@ -110,9 +112,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
             effect="fade"
             fadeEffect={{ crossFade: true }}
             pagination={
-              paginationEl
-                ? { el: paginationEl, clickable: true }
-                : false
+              paginationEl ? { el: paginationEl, clickable: true } : false
             }
             navigation={{
               nextEl: '.hero--right',
@@ -169,7 +169,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
           </div>
         </div>
       </div>
-      <div className="relative z-10 isolate mt-[40px] flex flex-col gap-[20px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
+      <div className="relative isolate z-10 mt-[40px] flex flex-col gap-[20px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
         <h2 className="text-title text-brand-text-primary pl-4 md:pl-6 lg:pl-10">
           Trending
         </h2>

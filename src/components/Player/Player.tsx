@@ -6,6 +6,7 @@ import './Player.scss';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
 import { PLAYER_THEME_COLOR } from './playerConstants';
 
+import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { getStreamFullUrl, getStreamHeaders } from './playerStream';
 import { useChapterStyles } from '@/hooks/useChapterStyles';
 import { getArtplayerOptions } from './getArtplayerOptions';
@@ -34,7 +35,7 @@ export function Player({
 }: PlayerProps) {
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(
     episodes?.findIndex(
-      (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
+      (episode) => getEpisodeNumberFromId(episode.id) === episodeId
     )
   );
 
@@ -64,7 +65,7 @@ export function Player({
     userPausedRef.current = false;
     if (episodes && episodes.length > 0) {
       const newIndex = episodes.findIndex(
-        (episode) => episode.id.match(/ep=(\d+)/)?.[1] === episodeId
+        (episode) => getEpisodeNumberFromId(episode.id) === episodeId
       );
       setCurrentEpisodeIndex(newIndex);
     }
@@ -141,7 +142,7 @@ export function Player({
       if (epId) onEpisodeWatchedRef.current?.(epId);
       const next = list?.[idx + 1];
       if (next) {
-        const nextId = next.id.match(/ep=(\d+)/)?.[1];
+        const nextId = getEpisodeNumberFromId(next.id);
         if (nextId) playNextRef.current?.(nextId);
       }
     });

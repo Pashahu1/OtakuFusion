@@ -1,8 +1,7 @@
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { Card } from '../Card/Card';
 import { isArray } from 'lodash';
-import EmptyState from '../ui/states/EmptyState';
-import { TitleRefactor } from '@/helper/TitleRefactor';
+import { EmptyState } from '../ui/states/EmptyState';
 
 type Props = {
   title: string;

@@ -1,3 +1,4 @@
+import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import Artplayer from 'artplayer';
@@ -212,7 +213,7 @@ export function getPlayerLayers(
         const idx = currentEpisodeIndex ?? -1;
         const next = episodes?.[idx + 1];
         if (next) {
-          const nextId = next.id.match(/ep=(\d+)/)?.[1];
+          const nextId = getEpisodeNumberFromId(next.id);
           if (nextId) playNext(nextId);
         } else if (outro) {
           this.currentTime = outro.end;

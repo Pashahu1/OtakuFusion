@@ -8,7 +8,7 @@ import type { ScheduleAnime } from '@/shared/types/GlobalAnimeTypes';
 import { AnimeCalendarComponent as AnimeCalendar } from '@/components/AnimeCalendar/AnimeCalendar';
 import ErrorState from '@/components/ui/states/ErrorState';
 import { normalizeError } from '@/lib/errors/normalizeError';
-import EmptyState from '@/components/ui/states/EmptyState';
+import {EmptyState} from '@/components/ui/states/EmptyState';
 
 const timeZone = 'Europe/Kyiv';
 const now = new Date();

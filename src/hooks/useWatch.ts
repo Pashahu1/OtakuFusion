@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { useWatchAnime } from './useWatchAnime';
@@ -23,10 +24,9 @@ export function useWatch(
   const activeEpisodeNum = useMemo((): number | null => {
     const { episodes, episodeId } = anime;
     if (!episodes?.length || !episodeId) return null;
-    const ep = episodes.find((e: EpisodesTypes) => {
-      const m = e.id.match(/ep=(\d+)/);
-      return m && m[1] === episodeId;
-    });
+    const ep = episodes.find(
+      (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === episodeId
+    );
     return ep?.episode_no ?? null;
   }, [anime.episodes, anime.episodeId]);
 

@@ -1,4 +1,5 @@
 import Artplayer from 'artplayer';
+import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { captionIcon, serverIcon } from './PlayerIcons';
 import { PROXY_URL } from './playerConstants';
 import artplayerPluginVttThumbnail from './artPlayerPluginVttThumbnail';
@@ -38,7 +39,7 @@ export function setupPlayerReady(
     if (epId) onEpisodeWatchedRef.current?.(epId);
     const next = list?.[idx + 1];
     if (next) {
-      const nextId = next.id.match(/ep=(\d+)/)?.[1];
+      const nextId = getEpisodeNumberFromId(next.id);
       if (nextId) playNextRef.current?.(nextId);
     }
   };

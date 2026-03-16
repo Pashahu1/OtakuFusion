@@ -1,5 +1,6 @@
 'use client';
 import website_name from '@/config/website';
+import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
@@ -39,7 +40,7 @@ export const useWatchPageEffects = (
       const savedId = found?.episodeId;
       if (
         savedId &&
-        episodes.some((ep) => ep.id.match(/ep=(\d+)/)?.[1] === savedId)
+        episodes.some((ep) => getEpisodeNumberFromId(ep.id) === savedId)
       ) {
         setEpisodeId(savedId);
       }
@@ -52,13 +53,12 @@ export const useWatchPageEffects = (
   useEffect(() => {
     if (!episodes || episodes.length === 0) return;
 
-    const isValidEpisode = episodes.some((ep) => {
-      const epNumber = ep.id.split('ep=')[1];
-      return epNumber === episodeId;
-    });
+    const isValidEpisode = episodes.some(
+      (ep) => getEpisodeNumberFromId(ep.id) === episodeId
+    );
 
     if (!episodeId || !isValidEpisode) {
-      const fallbackId = episodes[0].id.match(/ep=(\d+)/)?.[1];
+      const fallbackId = getEpisodeNumberFromId(episodes[0].id);
       if (fallbackId && fallbackId !== episodeId) {
         setEpisodeId(fallbackId);
       }

@@ -1,7 +1,7 @@
 import { getAnimeSearch } from '@/services/getAnimeSearch';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
-import EmptyState from '@/components/ui/states/EmptyState';
+import { EmptyState } from '@/components/ui/states/EmptyState';
 import type { AnimeSearchItems } from '@/shared/types/AnimeSearchTypes';
 
 export default async function SearchData({ keyword }: { keyword: string }) {
@@ -28,7 +28,7 @@ export default async function SearchData({ keyword }: { keyword: string }) {
 
   if (!results || results.length === 0) {
     return (
-      <div className="text-center col-span-full">
+      <div className="col-span-full text-center">
         <EmptyState message="No results found." />
       </div>
     );
