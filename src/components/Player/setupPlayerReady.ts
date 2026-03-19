@@ -140,7 +140,7 @@ export function setupPlayerReady(
   thumbnail &&
     art.plugins.add(
       artplayerPluginVttThumbnail({
-        vtt: `${PROXY_URL}${thumbnail}`,
+        vtt: PROXY_URL ? `${PROXY_URL}${thumbnail}` : thumbnail,
       })
     );
   const defaultEnglishSub =

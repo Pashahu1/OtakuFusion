@@ -1,5 +1,5 @@
 import { ApiError } from './errors/ApiError';
-
+import { publicEnv } from '@/lib/env.public';
 export interface ApiResponse<T> {
   results: T;
 }
@@ -10,10 +10,7 @@ export const apiUrl = {
     revalidate?: number,
     signal?: AbortSignal
   ): Promise<T> => {
-    if (!process.env.NEXT_PUBLIC_API_URL) {
-      throw new Error('url is not set');
-    }
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+    const res = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}${endpoint}`, {
       next: revalidate ? { revalidate } : undefined,
       signal,
     });

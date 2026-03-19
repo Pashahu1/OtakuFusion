@@ -30,6 +30,7 @@ export function getStreamFullUrl(
   streamUrl: string,
   headers: Record<string, string>
 ): string {
+  if (!M3U8_PROXY_URL) return streamUrl;
   return (
     M3U8_PROXY_URL +
     encodeURIComponent(streamUrl) +

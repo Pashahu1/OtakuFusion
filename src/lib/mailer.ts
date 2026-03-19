@@ -1,13 +1,14 @@
 import nodemailer from 'nodemailer';
+import { env } from '@/lib/env';
 
 export async function sendVerificationEmail(email: string, code: string) {
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
     secure: false,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: env.SMTP_USER,
+      pass: env.SMTP_PASS,
     },
   });
 
@@ -101,7 +102,7 @@ export async function sendVerificationEmail(email: string, code: string) {
 `;
 
   await transporter.sendMail({
-    from: `"OtakuFusion" <${process.env.SMTP_USER}>`,
+    from: `"OtakuFusion" <${env.SMTP_USER}>`,
     to: email,
     subject: 'Your OtakuFusion verification code',
     html,

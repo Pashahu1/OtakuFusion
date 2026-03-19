@@ -1,5 +1,4 @@
 import type { Dispatch, SetStateAction } from 'react';
-
 export function onEpisodeWatched(
   id: string,
   setWatchedEpisodes: Dispatch<SetStateAction<Record<string, boolean>>>

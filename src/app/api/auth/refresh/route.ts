@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
+import { env } from '@/lib/env';
 
 export const runtime = 'nodejs';
 
@@ -24,7 +25,7 @@ export async function POST() {
   try {
     payload = jwt.verify(
       refreshToken,
-      process.env.NEXT_JWT_REFRESH_SECRET!
+      env.NEXT_JWT_REFRESH_SECRET
     ) as RefreshTokenPayload;
   } catch {
     return NextResponse.json(
@@ -49,7 +50,7 @@ export async function POST() {
       role: user.role,
       isVerified: user.isVerified,
     },
-    process.env.NEXT_JWT_ACCESS_SECRET!,
+    env.NEXT_JWT_ACCESS_SECRET,
     { expiresIn: '15m' }
   );
 

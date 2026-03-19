@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import User from '@/models/User';
 import { connectDB } from '@/lib/db';
-
+import { env } from '@/lib/env';
 export async function GET() {
   await connectDB();
 
@@ -17,7 +17,7 @@ export async function GET() {
   try {
     const payload = jwt.verify(
       token,
-      process.env.NEXT_JWT_ACCESS_SECRET!
+      env.NEXT_JWT_ACCESS_SECRET
     ) as {
       id: string;
     };

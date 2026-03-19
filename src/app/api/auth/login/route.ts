@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import User from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { LoginBodySchema } from '@/shared/schemas/api';
+import { env } from '@/lib/env';
 
 export async function POST(req: Request) {
   try {
@@ -63,12 +64,12 @@ export async function POST(req: Request) {
         role: user.role,
         isVerified: user.isVerified,
       },
-      process.env.NEXT_JWT_ACCESS_SECRET!,
+      env.NEXT_JWT_ACCESS_SECRET,
       { expiresIn: '15m' }
     );
     const refreshToken = jwt.sign(
       { id: user._id },
-      process.env.NEXT_JWT_REFRESH_SECRET!,
+      env.NEXT_JWT_REFRESH_SECRET,
       { expiresIn: '7d' }
     );
     user.refreshToken = refreshToken;

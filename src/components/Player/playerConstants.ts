@@ -1,3 +1,5 @@
+import { publicEnv } from '@/lib/env.public';
+
 export const KEY_CODES = {
   M: 'm',
   I: 'i',
@@ -12,8 +14,8 @@ export const KEY_CODES = {
 
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
 
-export const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL;
-export const M3U8_PROXY_URL = process.env.NEXT_PUBLIC_M3U8_PROXY_URL;
+export const PROXY_URL = publicEnv.NEXT_PUBLIC_PROXY_URL ?? '';
+export const M3U8_PROXY_URL = publicEnv.NEXT_PUBLIC_M3U8_PROXY_URL ?? '';
 
 export const DEFAULT_REFERER = 'https://megacloud.club/';
 export const PLAYER_THEME_COLOR = '#ff640a';

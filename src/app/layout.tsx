@@ -5,8 +5,9 @@ import '../style/main.scss';
 import { Suspense } from 'react';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { AuthProvider } from '@/context/AuthContext';
+import { env } from '@/lib/env';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://otakufusion.com';
+const siteUrl = env.NEXT_PUBLIC_SITE_URL ?? 'https://otakufusion.com';
 
 export const metadata = {
   metadataBase: new URL(siteUrl),

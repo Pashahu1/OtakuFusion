@@ -65,8 +65,8 @@ export function SwiperCard({ title, catalog, sectionId }: Props) {
           prevEl: `#${prevId}`,
         }}
       >
-        {catalog.map((anime: AnimeInfo, idx) => (
-          <SwiperSlide className="swiper-card__slide" key={idx}>
+        {catalog.map((anime) => (
+          <SwiperSlide className="swiper-card__slide" key={anime.id}>
             <Card anime={anime} />
           </SwiperSlide>
         ))}
