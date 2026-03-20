@@ -4,36 +4,27 @@ import { sendVerificationEmail } from '@/lib/mailer';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { RegisterBodySchema } from '@/shared/schemas/api';
+import {
+  handleRouteError,
+  jsonMessage,
+  parseWithSchema,
+  readJsonBody,
+} from '@/lib/http';
 
 export async function POST(req: Request) {
   try {
     await connectDB();
 
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
-      return NextResponse.json(
-        { message: 'Invalid JSON body.' },
-        { status: 400 }
-      );
-    }
+    const json = await readJsonBody(req);
+    if (!json.ok) return json.response;
 
-    const result = RegisterBodySchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json(
-        { message: 'Validation failed.', errors: result.error.flatten().fieldErrors },
-        { status: 400 }
-      );
-    }
+    const parsed = parseWithSchema(RegisterBodySchema, json.data);
+    if (!parsed.ok) return parsed.response;
 
-    const { username, email, password } = result.data;
+    const { username, email, password } = parsed.data;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return NextResponse.json(
-        { message: 'User with this email already exists.' },
-        { status: 409 }
-      );
+      return jsonMessage('User with this email already exists.', 409);
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationCode = Math.floor(
@@ -57,11 +48,6 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (err) {
-    console.error(err);
-    console.error('Error during user registration:', err);
-    return NextResponse.json(
-      { message: 'Internal Server Error' },
-      { status: 500 }
-    );
+    return handleRouteError(err, 'Error during user registration:');
   }
 }

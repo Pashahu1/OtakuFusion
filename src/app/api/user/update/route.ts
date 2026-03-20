@@ -3,6 +3,12 @@ import User from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 import { UpdateUserBodySchema } from '@/shared/schemas/api';
+import {
+  handleRouteError,
+  parseWithSchema,
+  readJsonBody,
+  unauthorizedResponse,
+} from '@/lib/http';
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -10,28 +16,16 @@ export async function PATCH(req: NextRequest) {
 
     const currentUser = await getUserFromRequest();
     if (!currentUser) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
-      return NextResponse.json(
-        { message: 'Invalid JSON body.' },
-        { status: 400 }
-      );
-    }
+    const json = await readJsonBody(req);
+    if (!json.ok) return json.response;
 
-    const result = UpdateUserBodySchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json(
-        { message: 'Validation failed.', errors: result.error.flatten().fieldErrors },
-        { status: 400 }
-      );
-    }
+    const parsed = parseWithSchema(UpdateUserBodySchema, json.data);
+    if (!parsed.ok) return parsed.response;
 
-    const { username } = result.data;
+    const { username } = parsed.data;
     const updatedUser = await User.findByIdAndUpdate(
       currentUser._id,
       { username },
@@ -39,10 +33,6 @@ export async function PATCH(req: NextRequest) {
     ).lean();
     return NextResponse.json({ user: updatedUser }, { status: 200 });
   } catch (error) {
-    console.error('Update username error:', error);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'Update username error:');
   }
 }

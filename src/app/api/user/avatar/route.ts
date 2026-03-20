@@ -4,6 +4,7 @@ import User from '@/models/User';
 import { getUserFromRequest } from '@/lib/auth';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '@/lib/env';
+import { handleRouteError, jsonMessage, unauthorizedResponse } from '@/lib/http';
 
 cloudinary.config({
   cloud_name: env.CLOUDINARY_CLOUD_NAME,
@@ -16,16 +17,13 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const currentUser = await getUserFromRequest();
     if (!currentUser) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
     const formData = await req.formData();
     const file = formData.get('avatar');
 
     if (!file || !(file instanceof File)) {
-      return NextResponse.json(
-        { message: 'No file provided' },
-        { status: 400 }
-      );
+      return jsonMessage('No file provided.', 400);
     }
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
@@ -38,9 +36,9 @@ export async function POST(req: NextRequest) {
     const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     const type = file.type?.toLowerCase();
     if (!type || !ALLOWED_TYPES.includes(type)) {
-      return NextResponse.json(
-        { message: 'Invalid file type. Use JPEG, PNG, WebP or GIF.' },
-        { status: 400 }
+      return jsonMessage(
+        'Invalid file type. Use JPEG, PNG, WebP or GIF.',
+        400
       );
     }
 
@@ -75,10 +73,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ user: updateUser }, { status: 200 });
   } catch (err) {
-    console.error('Avatar upload error:', err);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(err, 'Avatar upload error:');
   }
 }

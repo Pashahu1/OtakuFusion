@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { env } from '@/lib/env';
+import { jsonMessage } from '@/lib/http';
 
 export const runtime = 'nodejs';
 
@@ -18,7 +19,7 @@ export async function POST() {
   const refreshToken = cookieStore.get('refreshToken')?.value;
 
   if (!refreshToken) {
-    return NextResponse.json({ message: 'No refresh token' }, { status: 401 });
+    return jsonMessage('No refresh token.', 401);
   }
 
   let payload: RefreshTokenPayload;
@@ -28,18 +29,12 @@ export async function POST() {
       env.NEXT_JWT_REFRESH_SECRET
     ) as RefreshTokenPayload;
   } catch {
-    return NextResponse.json(
-      { message: 'Invalid refresh token' },
-      { status: 401 }
-    );
+    return jsonMessage('Invalid refresh token.', 401);
   }
 
   const user = await User.findById(payload.id);
   if (!user || user.refreshToken !== refreshToken) {
-    return NextResponse.json(
-      { message: 'Invalid refresh token' },
-      { status: 401 }
-    );
+    return jsonMessage('Invalid refresh token.', 401);
   }
 
   const newAccessToken = jwt.sign(

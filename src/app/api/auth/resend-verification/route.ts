@@ -1,26 +1,32 @@
-import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { sendVerificationEmail } from '@/lib/mailer';
+import { handleRouteError, jsonMessage, readJsonBody } from '@/lib/http';
+
 export async function POST(req: Request) {
   try {
     await connectDB();
-    const { email } = await req.json();
-    if (!email) {
-      return NextResponse.json(
-        { message: 'Email is required.' },
-        { status: 400 }
-      );
+
+    const json = await readJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const data = json.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return jsonMessage('Email is required.', 400);
     }
+
+    const emailRaw = (data as { email?: unknown }).email;
+    if (typeof emailRaw !== 'string' || !emailRaw.trim()) {
+      return jsonMessage('Email is required.', 400);
+    }
+    const email = emailRaw.trim();
+
     const user = await User.findOne({ email });
     if (!user) {
-      return NextResponse.json({ message: 'User not found.' }, { status: 404 });
+      return jsonMessage('User not found.', 404);
     }
     if (user.isVerified) {
-      return NextResponse.json(
-        { message: 'Email is already verified.' },
-        { status: 200 }
-      );
+      return jsonMessage('Email is already verified.', 200);
     }
     const verificationCode = Math.floor(
       100000 + Math.random() * 900000
@@ -30,15 +36,8 @@ export async function POST(req: Request) {
     user.verificationCodeExpires = verificationCodeExpires;
     await user.save();
     await sendVerificationEmail(user.email, verificationCode);
-    return NextResponse.json(
-      { message: 'Verification code resent.' },
-      { status: 200 }
-    );
+    return jsonMessage('Verification code resent.', 200);
   } catch (err) {
-    console.error('Resend verification error:', err);
-    return NextResponse.json(
-      { message: 'Internal server error.' },
-      { status: 500 }
-    );
+    return handleRouteError(err, 'Resend verification error:');
   }
 }

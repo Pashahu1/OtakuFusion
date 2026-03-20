@@ -1,15 +1,28 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
+import { handleRouteError, jsonMessage, readJsonBody } from '@/lib/http';
+
 export async function POST(req: Request) {
   try {
     await connectDB();
-    const { email, code } = await req.json();
-    if (!email || !code) {
-      return NextResponse.json(
-        { message: 'Email and code are required.' },
-        { status: 400 }
-      );
+
+    const json = await readJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const data = json.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return jsonMessage('Email and code are required.', 400);
+    }
+
+    const { email, code } = data as { email?: unknown; code?: unknown };
+    if (
+      typeof email !== 'string' ||
+      typeof code !== 'string' ||
+      !email ||
+      !code
+    ) {
+      return jsonMessage('Email and code are required.', 400);
     }
     const user = await User.findOne({
       email,
@@ -17,10 +30,7 @@ export async function POST(req: Request) {
       verificationCodeExpires: { $gt: new Date() },
     });
     if (!user) {
-      return NextResponse.json(
-        { message: 'Invalid or expired code.' },
-        { status: 400 }
-      );
+      return jsonMessage('Invalid or expired code.', 400);
     }
 
     user.isVerified = true;
@@ -33,10 +43,6 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (err) {
-    console.error('Verify email error:', err);
-    return NextResponse.json(
-      { message: 'Internal server error.' },
-      { status: 500 }
-    );
+    return handleRouteError(err, 'Verify email error:');
   }
 }

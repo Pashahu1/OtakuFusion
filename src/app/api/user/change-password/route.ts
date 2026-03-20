@@ -4,6 +4,13 @@ import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { getUserFromRequest } from '@/lib/auth';
 import { ChangePasswordBodySchema } from '@/shared/schemas/api';
+import {
+  handleRouteError,
+  jsonMessage,
+  parseWithSchema,
+  readJsonBody,
+  unauthorizedResponse,
+} from '@/lib/http';
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -11,39 +18,24 @@ export async function PATCH(req: NextRequest) {
 
     const currentUser = await getUserFromRequest();
     if (!currentUser) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
-      return NextResponse.json(
-        { message: 'Invalid JSON body.' },
-        { status: 400 }
-      );
-    }
+    const json = await readJsonBody(req);
+    if (!json.ok) return json.response;
 
-    const result = ChangePasswordBodySchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json(
-        { message: 'Validation failed.', errors: result.error.flatten().fieldErrors },
-        { status: 400 }
-      );
-    }
+    const parsed = parseWithSchema(ChangePasswordBodySchema, json.data);
+    if (!parsed.ok) return parsed.response;
 
-    const { oldPassword, newPassword } = result.data;
+    const { oldPassword, newPassword } = parsed.data;
     const user = await User.findById(currentUser._id);
     if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+      return jsonMessage('User not found.', 404);
     }
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return NextResponse.json(
-        { message: 'Old password is incorrect' },
-        { status: 400 }
-      );
+      return jsonMessage('Old password is incorrect.', 400);
     }
     const hashed = await bcrypt.hash(newPassword, 10);
     user.password = hashed;
@@ -51,10 +43,6 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('Change password error:', err);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(err, 'Change password error:');
   }
 }

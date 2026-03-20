@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { getUserFromRequest } from '@/lib/auth';
+import { handleRouteError, unauthorizedResponse } from '@/lib/http';
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -9,7 +10,7 @@ export async function DELETE(req: NextRequest) {
 
     const currentUser = await getUserFromRequest();
     if (!currentUser) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     await User.findByIdAndDelete(currentUser._id);
@@ -19,10 +20,6 @@ export async function DELETE(req: NextRequest) {
 
     return res;
   } catch (err) {
-    console.error('Delete account error:', err);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleRouteError(err, 'Delete account error:');
   }
 }

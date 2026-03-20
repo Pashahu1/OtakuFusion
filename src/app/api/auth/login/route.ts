@@ -5,55 +5,39 @@ import User from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { LoginBodySchema } from '@/shared/schemas/api';
 import { env } from '@/lib/env';
+import {
+  handleRouteError,
+  jsonMessage,
+  parseWithSchema,
+  readJsonBody,
+} from '@/lib/http';
 
 export async function POST(req: Request) {
   try {
     await connectDB();
 
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
-      return NextResponse.json(
-        { message: 'Invalid JSON body.' },
-        { status: 400 }
-      );
-    }
+    const json = await readJsonBody(req);
+    if (!json.ok) return json.response;
 
-    const result = LoginBodySchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json(
-        { message: 'Validation failed.', errors: result.error.flatten().fieldErrors },
-        { status: 400 }
-      );
-    }
+    const parsed = parseWithSchema(LoginBodySchema, json.data);
+    if (!parsed.ok) return parsed.response;
 
-    const { email, password } = result.data;
+    const { email, password } = parsed.data;
     const user = await User.findOne({ email });
 
     if (!user) {
-      return NextResponse.json(
-        { message: 'Invalid email or password.' },
-        { status: 404 }
-      );
+      return jsonMessage('Invalid email or password.', 404);
     }
 
     if (!user.isVerified) {
-      return NextResponse.json(
-        {
-          message: 'Please verify your email before logging in.',
-          needVerification: true,
-        },
-        { status: 403 }
-      );
+      return jsonMessage('Please verify your email before logging in.', 403, {
+        needVerification: true,
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return NextResponse.json(
-        { message: 'Invalid email or password.' },
-        { status: 401 }
-      );
+      return jsonMessage('Invalid email or password.', 401);
     }
 
     const accessToken = jwt.sign(
@@ -107,10 +91,6 @@ export async function POST(req: Request) {
 
     return response;
   } catch (err) {
-    console.error('Login error:', err);
-    return NextResponse.json(
-      { message: 'Internal server error.' },
-      { status: 500 }
-    );
+    return handleRouteError(err, 'Login error:');
   }
 }
