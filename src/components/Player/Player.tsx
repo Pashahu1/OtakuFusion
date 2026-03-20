@@ -196,8 +196,6 @@ export function Player({
         if (container && typeof container.innerHTML !== 'undefined')
           container.innerHTML = '';
       }
-
-      updateContinueWatching(animeInfo, episodeId, episodeNum);
     };
   }, [streamUrl, subtitles, intro, outro]);
 
