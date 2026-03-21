@@ -4,6 +4,7 @@ import { Montserrat, Playfair_Display, Rubik } from 'next/font/google';
 import '../style/main.scss';
 import { Suspense } from 'react';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
+import { AppToaster } from '@/components/ui/AppToaster';
 import { AuthProvider } from '@/context/AuthContext';
 import { env } from '@/lib/env';
 
@@ -82,6 +83,7 @@ export default function RootLayout({
               <main className="main">{children}</main>
               <Footer />
             </div>
+            <AppToaster />
           </AuthProvider>
         </Suspense>
       </body>

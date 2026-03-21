@@ -3,6 +3,27 @@ import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from '@/lib/toast';
+
+const API_ERROR_FALLBACK = 'Something went wrong.';
+
+async function messageFromResponse(res: Response): Promise<string> {
+  try {
+    const data: unknown = await res.json();
+    if (
+      data &&
+      typeof data === 'object' &&
+      'message' in data &&
+      typeof (data as { message: unknown }).message === 'string'
+    ) {
+      return (data as { message: string }).message;
+    }
+  } catch {
+    return API_ERROR_FALLBACK;
+  }
+  return API_ERROR_FALLBACK;
+}
+
 export const ProfileHeader = () => {
   const { user, setUser } = useAuth();
   const [username, setUsername] = useState(user?.username || '');
@@ -39,6 +60,10 @@ export const ProfileHeader = () => {
       if (usernameRes.ok) {
         const data = await usernameRes.json();
         updatedUser = data.user;
+        router.push('/');
+      } else {
+        toast.error(await messageFromResponse(usernameRes));
+        return;
       }
 
       if (avatarFile) {
@@ -53,12 +78,18 @@ export const ProfileHeader = () => {
         if (avatarRes.ok) {
           const data = await avatarRes.json();
           updatedUser = data.user;
+          router.push('/');
+        } else {
+          toast.error(await messageFromResponse(avatarRes));
+          return;
         }
       }
       setUser(updatedUser);
+      toast.success('Profile saved.');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Не вдалося зберегти профіль';
-      alert(message);
+      const message =
+        err instanceof Error ? err.message : 'Не вдалося зберегти профіль';
+      toast.error(message);
       console.error('Profile save error:', err);
     } finally {
       setIsLoading(false);
