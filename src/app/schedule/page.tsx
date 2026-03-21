@@ -75,7 +75,7 @@ export default function SchedulePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="mt-[60px]">
+      <div className="mt-[60px] w-full overflow-x-auto px-2 pb-6 sm:px-4">
         <AnimeCalendar
           selectedDate={selectedDate}
           events={event}

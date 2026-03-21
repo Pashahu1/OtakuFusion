@@ -7,7 +7,14 @@
   margin-top: 60px;
   gap: 20px;
   padding: 20px;
-  background: $color-bg linear-gradient(180deg, #0000, #213944);
+  background: $color-bg
+    linear-gradient(
+      180deg,
+      #0000 0%,
+      rgba(244, 117, 33, 0.07) 45%,
+      rgba(212, 95, 22, 0.14) 72%,
+      #1a0f08 100%
+    );
 
   &__content {
     display: flex;

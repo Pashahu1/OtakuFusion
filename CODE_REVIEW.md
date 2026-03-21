@@ -50,10 +50,10 @@
 ## Розбивка за пріоритетом і типом
 
 ### P0 — Production-ready (Refactor/Type/A11y)
-- A.3 — модуль env: перевірка обовʼязкових `process.env` при старті, експорт констант, заміна `process.env.X!`.
-- A.5 — Continue Watching: `updateContinueWatching` один раз при заході на watch + guard у функції.
-- A.6 — спільні хелпери для валідації та форматування помилок у API.
-- A.7 — `SwiperCard`: стабільні унікальні next/prev IDs, `type="button"`, `useMemo` для `navigation`, guard на порожній `catalog`, очистка зайвих `swiper/css` імпортів.
+- A.3 — модуль env: перевірка обовʼязкових `process.env` при старті, експорт констант, заміна `process.env.X!`. ~~ ✅
+- A.5 — Continue Watching: `updateContinueWatching` один раз при заході на watch + guard у функції. ~~ ✅
+- A.6 — спільні хелпери для валідації та форматування помилок у API. ~~ ✅
+- A.7 — `SwiperCard`: стабільні унікальні next/prev IDs, `type="button"`, `useMemo` для `navigation`, guard на порожній `catalog`, очистка зайвих `swiper/css` імпортів. ~~ ✅
 
 ### P1 — Рефакторинг логіки (Refactor)
 - A.1 — розбити `useWatchPageEffects` на дрібніші хуки.
@@ -62,8 +62,7 @@
 
 ### P1 — UX-покращення (UX)
 - ~~A.4 — toast замість `alert`~~ ✅
-- ~~B.1 — UI логіна/реєстрації + toast/інлайн-помилки~~ ✅
-- B.2 — confirm email: зрозумілі статуси, повторна відправка, next step.
+- ~~B.1 — UI логіна/реєстрації + toast/інлайн-помилки ~~ ✅
 - B.3 — responsive: перевірити й довести до коректної роботи на мобільних.
 - **B.4** — **Email / верифікація: продукт + техніка** (окремий епік, див. блок B нижче).
 

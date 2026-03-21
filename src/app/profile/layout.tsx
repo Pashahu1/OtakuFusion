@@ -4,7 +4,7 @@ type LayoutProfileType = {
 
 export default function LayoutProfile({ children }: LayoutProfileType) {
   return (
-    <div className="flex item-center justify-center max-w-xl mx-auto px-4 py-8 mt-[80px]">
+    <div className="mx-auto mt-[80px] flex w-full max-w-xl items-center justify-center px-4 py-8 sm:px-6">
       {children}
     </div>
   );

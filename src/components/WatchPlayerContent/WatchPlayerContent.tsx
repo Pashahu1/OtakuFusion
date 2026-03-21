@@ -56,7 +56,7 @@ export const WatchPlayerContent = ({
   return (
     <div
       ref={playerColumnRef}
-      className="watch-player flex h-[675px] w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1200px]:order-1"
+      className="watch-player flex w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1200px]:order-1 lg:h-[675px]"
     >
       <div className="player relative h-full w-full shrink-0 overflow-hidden rounded-xl border border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] max-[1400px]:h-[40vw] max-[1200px]:h-[48vw] max-[1024px]:h-[58vw] max-[600px]:h-[65vw]">
         {(serverLoading || buffering) && (

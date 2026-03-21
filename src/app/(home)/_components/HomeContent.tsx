@@ -17,7 +17,7 @@ export async function HomeContent() {
         trending={homeCatalog.trending || []}
       />
       <ContinueWatchingSection />
-      <div className="flex flex-col gap-[40px]">
+      <div className="flex flex-col gap-8 md:gap-10 lg:gap-[40px]">
         <SwiperCard title="Top Airing" catalog={homeCatalog.topAiring || []} />
         <SwiperCard
           title="Most Favorite"

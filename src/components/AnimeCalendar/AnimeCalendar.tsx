@@ -16,7 +16,7 @@ export function AnimeCalendarComponent({
   selectedDate,
 }: Props) {
   return (
-    <div className="calendar">
+    <div className="calendar block w-full min-w-[700px] max-w-full md:min-w-0">
       <AnimeSchedule
         events={events}
         selectedDate={selectedDate}

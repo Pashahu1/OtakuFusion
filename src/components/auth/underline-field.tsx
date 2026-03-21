@@ -19,10 +19,10 @@ export function UnderlineField({
   return (
     <div
       className={cn(
-        'group mb-4 border-b-2 pb-1 transition-colors',
+        'group mb-4 border-b-2 border-zinc-600 pb-1 transition-colors duration-200',
         hasError
           ? 'border-red-500'
-          : 'border-zinc-700 focus-within:border-[var(--color-brand-orange)]',
+          : 'focus-within:border-[var(--color-brand-orange)]',
       )}
     >
       <label

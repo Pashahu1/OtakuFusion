@@ -20,7 +20,7 @@ export async function SearchData({ keyword }: { keyword: string }) {
 
   if (hasError) {
     return (
-      <div className="p-10">
+      <div className="px-4 py-8 sm:p-10">
         <EmptyState message="Search service is temporarily unavailable." />
       </div>
     );

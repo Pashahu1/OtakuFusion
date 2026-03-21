@@ -7,8 +7,15 @@ import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { AppToaster } from '@/components/ui/AppToaster';
 import { AuthProvider } from '@/context/AuthContext';
 import { env } from '@/lib/env';
+import type { Viewport } from 'next';
 
 const siteUrl = env.NEXT_PUBLIC_SITE_URL ?? 'https://otakufusion.com';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
 
 export const metadata = {
   metadataBase: new URL(siteUrl),

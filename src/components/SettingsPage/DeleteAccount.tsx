@@ -67,12 +67,12 @@ export function DeleteAccount() {
             Are you absolutely sure you want to delete your account?
           </p>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-3">
             <button
               onClick={handleDelete}
               disabled={loading}
               className="
-              h-[40px] w-[120px]  rounded-md font-medium
+              h-11 w-full rounded-md font-medium sm:h-10 sm:w-[120px]
               bg-red-600 hover:bg-red-700
               text-white
               disabled:opacity-50
@@ -87,7 +87,7 @@ export function DeleteAccount() {
             <button
               onClick={() => setConfirm(false)}
               className="
-              h-[40px] w-[70px] rounded-md font-medium
+              h-11 w-full rounded-md font-medium sm:h-10 sm:w-[70px]
               bg-gray-600/80 hover:bg-gray-600
               text-white
               shadow-[0_4px_15px_rgba(0,0,0,0.25)]

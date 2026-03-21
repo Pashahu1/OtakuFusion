@@ -42,7 +42,7 @@ export const WatchInfoPanel = ({
           <Skeleton className="absolute inset-0 h-full w-full rounded-md" />
         )}
       </div>
-      <div className="flex min-w-0 flex-col justify-start gap-y-4 overflow-hidden">
+      <div className="flex min-w-0 flex-col justify-start gap-y-2 overflow-hidden">
         <WatchInfoTitle title={animeInfo?.title} />
         <NextEpisodeSchedule
           nextEpisodeSchedule={nextEpisodeSchedule}

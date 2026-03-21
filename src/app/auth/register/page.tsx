@@ -146,10 +146,10 @@ export default function RegisterPage() {
   return (
     <form
       onSubmit={handleRegister}
-      className="flex flex-col gap-2 p-8"
+      className="flex flex-col gap-1 p-4 sm:gap-2 sm:p-8"
       noValidate
     >
-      <h2 className="mb-4 text-center font-serif text-2xl font-normal text-white">
+      <h2 className="mb-5 text-center font-serif text-xl font-normal tracking-tight text-white sm:text-2xl">
         Create Account
       </h2>
 
@@ -168,7 +168,7 @@ export default function RegisterPage() {
             clearInvalid('username');
           }}
           aria-invalid={Boolean(invalidFields.username)}
-          className="w-full bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
+          className="w-full bg-transparent px-0 py-2.5 text-[var(--color-brand-text-primary)] outline-none transition-colors placeholder:text-zinc-500"
           placeholder="username"
         />
       </UnderlineField>
@@ -188,7 +188,7 @@ export default function RegisterPage() {
             clearInvalid('email');
           }}
           aria-invalid={Boolean(invalidFields.email)}
-          className="w-full bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
+          className="w-full bg-transparent px-0 py-2.5 text-[var(--color-brand-text-primary)] outline-none transition-colors placeholder:text-zinc-500"
           placeholder="mail@example.com"
         />
       </UnderlineField>
@@ -210,13 +210,13 @@ export default function RegisterPage() {
               clearInvalid('confirm');
             }}
             aria-invalid={Boolean(invalidFields.password)}
-            className="min-w-0 flex-1 bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
+            className="min-w-0 flex-1 bg-transparent px-0 py-2.5 text-[var(--color-brand-text-primary)] outline-none transition-colors placeholder:text-zinc-500"
             placeholder="password"
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="shrink-0 text-xs font-medium uppercase tracking-wide text-zinc-400 transition hover:text-white"
+            className="touch-manipulation shrink-0 rounded-md px-2 py-2 text-xs font-medium tracking-wide text-zinc-400 uppercase transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none"
           >
             {showPassword ? 'HIDE' : 'SHOW'}
           </button>
@@ -239,13 +239,13 @@ export default function RegisterPage() {
               clearInvalid('confirm');
             }}
             aria-invalid={Boolean(invalidFields.confirm)}
-            className="min-w-0 flex-1 bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
+            className="min-w-0 flex-1 bg-transparent px-0 py-2.5 text-[var(--color-brand-text-primary)] outline-none transition-colors placeholder:text-zinc-500"
             placeholder="confirm password"
           />
           <button
             type="button"
             onClick={() => setShowConfirm((v) => !v)}
-            className="shrink-0 text-xs font-medium uppercase tracking-wide text-zinc-400 transition hover:text-white"
+            className="touch-manipulation shrink-0 rounded-md px-2 py-2 text-xs font-medium tracking-wide text-zinc-400 uppercase transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none"
           >
             {showConfirm ? 'HIDE' : 'SHOW'}
           </button>
@@ -255,14 +255,14 @@ export default function RegisterPage() {
       <button
         type="submit"
         disabled={loading}
-        className="mt-2 h-[44px] rounded-lg bg-[var(--color-brand-orange)] py-3 font-semibold text-[var(--color-brand-text-primary)] shadow-md shadow-[var(--color-brand-orange-light)] transition hover:bg-[var(--color-brand-orange-light)] disabled:opacity-60"
+        className="mt-4 h-11 rounded-lg bg-[var(--color-brand-orange)] py-3 font-semibold text-[var(--color-brand-text-primary)] shadow-md shadow-[var(--color-brand-orange-light)]/35 transition-colors hover:bg-[var(--color-brand-orange-light)] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange-light)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111111] focus-visible:outline-none disabled:opacity-60 active:enabled:scale-[0.99]"
       >
         {loading ? 'Loading...' : 'Register'}
       </button>
 
       <a
         href="/auth/login"
-        className="mt-4 text-center text-sm text-zinc-300 transition hover:text-white"
+        className="mt-5 text-center text-sm text-zinc-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none"
       >
         Already have an account?
       </a>

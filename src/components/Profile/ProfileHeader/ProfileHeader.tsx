@@ -103,13 +103,15 @@ export const ProfileHeader = () => {
   };
 
   return (
-    <div className="mt-[60px] flex w-full flex-col items-center gap-6 py-20 lg:max-w-[500px]">
-      <h1 className="text-3xl font-semibold text-white">Edit Profile</h1>
+    <div className="mt-[60px] flex w-full flex-col items-center gap-6 py-10 sm:py-20 lg:max-w-[500px]">
+      <h1 className="text-2xl font-semibold text-white sm:text-3xl">
+        Edit Profile
+      </h1>
       <form
         onSubmit={handleSave}
         className="flex w-full flex-col gap-6 rounded-[30px]"
       >
-        <div className="flex flex-col gap-6 rounded-[20px] border border-zinc-800 bg-[#141519] px-[40px] py-[30px] shadow-lg">
+        <div className="flex flex-col gap-6 rounded-[20px] border border-zinc-800 bg-[#141519] px-5 py-6 shadow-lg sm:px-10 sm:py-8 md:px-[40px] md:py-[30px]">
           <div className="relative flex flex-col items-center justify-center gap-2 text-center">
             <Avatar className="relative flex h-[80px] w-[80px] items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-black">
               <AvatarImage
@@ -153,7 +155,7 @@ export const ProfileHeader = () => {
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
           <button
             type="submit"
             disabled={isDisabled}
