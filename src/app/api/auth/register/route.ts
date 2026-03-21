@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { sendVerificationEmail } from '@/lib/mailer';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+import { createSessionResponse } from '@/lib/auth-session-response';
 import { RegisterBodySchema } from '@/shared/schemas/api';
 import {
   handleRouteError,
@@ -43,10 +43,10 @@ export async function POST(req: Request) {
 
     await sendVerificationEmail(user.email, verificationCode);
 
-    return NextResponse.json(
-      { message: 'Registration successful. Please verify your email.', email },
-      { status: 201 }
-    );
+    return createSessionResponse(user, {
+      message: 'Registration successful. Check your email to verify your account.',
+      status: 201,
+    });
   } catch (err) {
     return handleRouteError(err, 'Error during user registration:');
   }

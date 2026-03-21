@@ -10,7 +10,6 @@ type AuthProviderProps = {
 interface LoginResult {
   ok: boolean;
   message?: string;
-  needVerification?: boolean;
 }
 
 interface User {
@@ -61,9 +60,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         credentials: 'include',
       });
       const data = await res.json();
-      if (data.needVerification) {
-        return { ok: false, needVerification: true, message: data.message };
-      }
       if (!res.ok) {
         return { ok: false, message: data.message || 'Login failed' };
       }

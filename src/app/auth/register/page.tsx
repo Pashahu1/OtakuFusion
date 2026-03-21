@@ -1,6 +1,7 @@
 'use client';
 
 import { UnderlineField } from '@/components/auth/underline-field';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -28,6 +29,7 @@ function errorsRecordToInvalidFlags(
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { setUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -70,6 +72,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           email: parsed.data.email,
           password: parsed.data.password,
@@ -110,9 +113,29 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push(
-        `/auth/verification/verify-email?email=${encodeURIComponent(parsed.data.email)}`,
-      );
+      if (
+        data &&
+        typeof data === 'object' &&
+        'user' in data &&
+        data.user &&
+        typeof data.user === 'object' &&
+        data.user !== null
+      ) {
+        setUser(
+          data.user as {
+            id: string;
+            username: string;
+            email: string;
+            avatar: string;
+            role: string;
+            isVerified: boolean;
+          },
+        );
+      }
+
+      toast.success('Welcome! Check your inbox for the verification code.');
+      router.push('/');
+      router.refresh();
     } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
@@ -146,7 +169,7 @@ export default function RegisterPage() {
           }}
           aria-invalid={Boolean(invalidFields.username)}
           className="w-full bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
-          placeholder=""
+          placeholder="username"
         />
       </UnderlineField>
 
@@ -166,7 +189,7 @@ export default function RegisterPage() {
           }}
           aria-invalid={Boolean(invalidFields.email)}
           className="w-full bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
-          placeholder=""
+          placeholder="mail@example.com"
         />
       </UnderlineField>
 
@@ -188,7 +211,7 @@ export default function RegisterPage() {
             }}
             aria-invalid={Boolean(invalidFields.password)}
             className="min-w-0 flex-1 bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
-            placeholder=""
+            placeholder="password"
           />
           <button
             type="button"
@@ -217,7 +240,7 @@ export default function RegisterPage() {
             }}
             aria-invalid={Boolean(invalidFields.confirm)}
             className="min-w-0 flex-1 bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
-            placeholder=""
+            placeholder="confirm password"
           />
           <button
             type="button"

@@ -50,12 +50,6 @@ export default function LoginPage() {
     const result = await login(trimmedEmail, password);
     setLoading(false);
 
-    if (result.needVerification) {
-      router.push(
-        `/auth/verify?email=${encodeURIComponent(trimmedEmail)}`,
-      );
-      return;
-    }
     if (!result.ok) {
       setEmailError(true);
       setPasswordError(true);
@@ -64,6 +58,7 @@ export default function LoginPage() {
     }
 
     router.push('/');
+    router.refresh();
   };
 
   if (loading) return <InitialLoader />;
@@ -78,7 +73,11 @@ export default function LoginPage() {
         Log In
       </h2>
 
-      <UnderlineField id="login-email" label="Email Address" hasError={emailError}>
+      <UnderlineField
+        id="login-email"
+        label="Email Address"
+        hasError={emailError}
+      >
         <input
           id="login-email"
           type="email"
@@ -86,11 +85,15 @@ export default function LoginPage() {
           value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
           className="w-full bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
-          placeholder=""
+          placeholder="mail@example.com"
         />
       </UnderlineField>
 
-      <UnderlineField id="login-password" label="Password" hasError={passwordError}>
+      <UnderlineField
+        id="login-password"
+        label="Password"
+        hasError={passwordError}
+      >
         <div className="flex items-center gap-2">
           <input
             id="login-password"
@@ -99,12 +102,12 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => handlePasswordChange(e.target.value)}
             className="min-w-0 flex-1 bg-transparent px-0 py-2 text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-500"
-            placeholder=""
+            placeholder="password"
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="shrink-0 text-xs font-medium uppercase tracking-wide text-zinc-400 transition hover:text-white"
+            className="shrink-0 text-xs font-medium tracking-wide text-zinc-400 uppercase transition hover:text-white"
           >
             {showPassword ? 'HIDE' : 'SHOW'}
           </button>
@@ -113,22 +116,12 @@ export default function LoginPage() {
 
       <button
         type="submit"
-        className="mt-4 h-11 rounded-full border border-zinc-500 bg-transparent py-2 text-sm font-semibold uppercase tracking-wider text-zinc-300 transition hover:border-zinc-400 hover:text-white"
+        className="mt-4 h-11 rounded-full border border-zinc-500 bg-transparent py-2 text-sm font-semibold tracking-wider text-zinc-300 uppercase transition hover:border-zinc-400 hover:text-white"
       >
         Log In
       </button>
 
-      <p className="mt-6 text-center text-xs font-bold uppercase tracking-wide text-[var(--color-brand-orange)]">
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-          }}
-          className="hover:underline"
-        >
-          Forgot password?
-        </a>
-        <span className="mx-2 font-normal text-zinc-500">|</span>
+      <p className="mt-6 text-center text-xs font-bold tracking-wide text-[var(--color-brand-orange)]">
         <a href="/auth/register" className="hover:underline">
           Create account
         </a>
