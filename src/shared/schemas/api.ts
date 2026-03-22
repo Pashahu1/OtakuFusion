@@ -42,13 +42,11 @@ export const RegisterPageFormSchema = z
     path: ['confirm'],
   });
 
-/** Body для PATCH /api/user/change-password */
 export const ChangePasswordBodySchema = z.object({
   oldPassword: z.string().min(1, 'Old password is required'),
   newPassword: z.string().min(6, 'New password must be at least 6 characters'),
 });
 
-/** Body для PATCH /api/user/update */
 export const UpdateUserBodySchema = z.object({
   username: z.string().min(1, 'Username is required'),
 });

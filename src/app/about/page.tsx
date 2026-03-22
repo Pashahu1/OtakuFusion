@@ -9,7 +9,6 @@ export default function AboutPage() {
         </h1>
 
         <div className="bg-[var(--color-brand-gray-light)] border border-zinc-800 rounded-2xl shadow-xl p-6 md:p-10 flex flex-col gap-10">
-          {/* Intro */}
           <p className="text-[var(--color-brand-text-primary)] text-lg leading-relaxed">
             Anime is loved all around the world, and millions of people search
             for anime online every month. With so many free anime sites

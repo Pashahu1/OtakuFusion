@@ -89,7 +89,7 @@ export default function Watch() {
       <div className="relative w-full px-4 max-[1400px]:px-[30px] max-[1200px]:px-[80px] max-[1024px]:px-0 lg:px-10">
         <div className="watch-layout relative z-10 mt-[128px] grid w-full grid-cols-[minmax(280px,28%)_1fr_minmax(240px,22%)] gap-4 pb-[50px] max-[1200px]:mt-[64px] max-[1200px]:grid-cols-1 max-[1200px]:grid-rows-[auto_auto_auto] max-[1024px]:px-0 max-md:mt-[50px]">
           <div
-            className="watch-episodes episodes flex min-h-[480px] min-w-0 flex-col overflow-hidden rounded-xl border border-white/5 bg-[#23252b]/80 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1200px]:order-2 max-[1200px]:min-h-[280px]"
+            className="watch-episodes episodes flex min-h-[480px] min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#23252b]/85 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1200px]:order-2 max-[1200px]:min-h-[280px]"
             style={
               episodesColumnHeight != null
                 ? { height: `${episodesColumnHeight}px` }

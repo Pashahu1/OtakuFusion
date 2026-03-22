@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { env } from '@/lib/env';
 
-/** Mongoose user document — достатньо полів для JWT і payload клієнта. */
 export interface SessionUserDoc {
   _id: { toString(): string };
   username: string;

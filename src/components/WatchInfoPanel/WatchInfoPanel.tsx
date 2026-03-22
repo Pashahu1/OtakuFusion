@@ -25,7 +25,7 @@ export const WatchInfoPanel = ({
 }: WatchInfoPanelProps) => {
   const [posterImageLoaded, setPosterImageLoaded] = useState(false);
   return (
-    <div className="watch-info flex h-full min-h-0 min-w-0 flex-col items-start gap-y-4 self-start overflow-hidden rounded-xl border border-white/5 bg-[#23252b]/80 px-4 py-8 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1200px]:order-3 max-[1024px]:mt-4 max-[1024px]:px-[30px] max-[500px]:mt-4 max-[500px]:px-4 md:px-6 lg:px-10">
+    <div className="watch-info flex h-full min-h-0 min-w-0 flex-col items-start gap-y-4 self-start overflow-hidden rounded-xl border border-white/10 bg-[#23252b]/85 px-4 py-8 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1200px]:order-3 max-[1024px]:mt-4 max-[1024px]:px-[30px] max-[500px]:mt-4 max-[500px]:px-4 md:px-6 lg:px-10">
       <div className="relative h-[150px] w-[100px] shrink-0 overflow-hidden rounded-md max-[500px]:h-[90px] max-[500px]:w-[70px]">
         {animeInfo?.poster && (
           <img

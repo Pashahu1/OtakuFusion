@@ -32,7 +32,6 @@ export async function POST(req: Request) {
       return jsonMessage('Invalid email or password.', 401);
     }
 
-    // Email може бути ще не підтверджений — сесію все одно видаємо (верифікація опційна).
     return createSessionResponse(user, {
       message: 'Login successful',
       status: 200,

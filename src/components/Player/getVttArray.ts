@@ -1,4 +1,3 @@
-/** Single VTT thumbnail entry: start/end times, image URL, and optional dimension keys (e.g. w, h, x, y) */
 export interface VttThumbItem {
   start: number;
   end: number;
@@ -22,7 +21,6 @@ function padEnd(
   return String(str) + padded;
 }
 
-/** Parse VTT timestamp (e.g. "00:01:02.500") to seconds */
 function t2d(time: string): number {
   const arr = time.split('.');
   const left = (arr[0] ?? '').split(':');
@@ -40,9 +38,6 @@ const TEXT_REGEX = /(.*)#(\w{4})=(.*)/i;
 const INDEX_LINE_REGEX = /^\d+$/;
 const ABSOLUTE_URL_REGEX = /^\/|((https?|ftp|file):\/\/)/i;
 
-/**
- * Fetches a VTT file and parses it into an array of thumbnail entries (start, end, url, and optional keys).
- */
 export async function getVttArray(vttUrl: string = ''): Promise<VttThumbItem[]> {
   const response = await fetch(vttUrl);
   const vttString = await response.text();

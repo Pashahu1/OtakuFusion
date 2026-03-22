@@ -1,23 +1,27 @@
-import {
-  faAngleDown,
-  faCirclePlay,
-  faList,
-  faCheck,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
-import { useState, useEffect, useRef } from 'react';
-import './Episodelist.scss';
-import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
+import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
+import { useCallback } from 'react';
+import { EpisodeFindInput } from './components/EpisodeFindInput';
+import { EpisodeListToolbar } from './components/EpisodeListToolbar';
+import { EpisodeGridItem } from './components/EpisodeGridItem';
+import { EpisodeListItem } from './components/EpisodeListItem';
+import { EpisodeRangeControls } from './components/EpisodeRangeControls';
+import { EpisodelistHeader } from './components/EpisodelistHeader';
+import { EpisodelistScrollArea } from './components/EpisodelistScrollArea';
+import { useEpisodeNumberSearch } from './hooks/useEpisodeNumberSearch';
+import { useEpisodeRangeFilter } from './hooks/useEpisodeRangeFilter';
+import { useEpisodelistScroll } from './hooks/useEpisodelistScroll';
+import { useEpisodelistState } from './hooks/useEpisodelistState';
+import { useRangeDropdown } from './hooks/useRangeDropdown';
+import './Episodelist.scss';
 
-type EpisodeType = {
+interface EpisodeType {
   episodes: EpisodesTypes[];
   onEpisodeClick: (episodeId: string) => void;
   currentEpisode: string | null;
   totalEpisodes: number;
   watchedEpisodes?: Record<string, boolean>;
-};
+}
 
 export function Episodelist({
   episodes,
@@ -26,317 +30,128 @@ export function Episodelist({
   totalEpisodes,
   watchedEpisodes = {},
 }: EpisodeType) {
-  const [activeEpisodeId, setActiveEpisodeId] = useState(currentEpisode);
-  const listContainerRef = useRef<HTMLDivElement>(null);
-  const activeEpisodeRef = useRef<HTMLDivElement>(null);
-  const [showDropDown, setShowDropDown] = useState(false);
-  const [selectedRange, setSelectedRange] = useState([1, 100]);
-  const [activeRange, setActiveRange] = useState('1-100');
-  const [episodeNum, setEpisodeNum] = useState(currentEpisode);
-  const dropDownRef = useRef<HTMLDivElement>(null);
-  const [searchedEpisode, setSearchedEpisode] = useState<string | null>(null);
-  const scrollToActiveEpisode = () => {
-    if (activeEpisodeRef.current && listContainerRef.current) {
-      const container = listContainerRef.current;
-      const activeEpisode = activeEpisodeRef.current;
-      const containerTop = container.getBoundingClientRect().top;
-      const containerHeight = container.clientHeight;
-      const activeEpisodeTop = activeEpisode.getBoundingClientRect().top;
-      const activeEpisodeHeight = activeEpisode.clientHeight;
-      const offset = activeEpisodeTop - containerTop;
-      container.scrollTop =
-        container.scrollTop +
-        offset -
-        containerHeight / 2 +
-        activeEpisodeHeight / 2;
-    }
-  };
+  const { activeEpisodeId, setActiveEpisodeId, episodeNum } =
+    useEpisodelistState(currentEpisode, episodes);
 
-  useEffect(() => {
-    setActiveEpisodeId(episodeNum);
-  }, [episodeNum]);
+  const {
+    selectedRange,
+    setSelectedRange,
+    activeRange,
+    setActiveRange,
+    handleRangeSelect,
+  } = useEpisodeRangeFilter(currentEpisode, episodeNum, totalEpisodes);
 
-  useEffect(() => {
-    if (currentEpisode != null) {
-      setActiveEpisodeId(currentEpisode);
-      setEpisodeNum(currentEpisode);
-    }
-  }, [currentEpisode]);
+  const { showDropDown, setShowDropDown, dropDownRef } = useRangeDropdown();
 
-  useEffect(() => {
-    scrollToActiveEpisode();
-  }, [activeEpisodeId]);
+  const { searchedEpisode, setSearchedEpisode, handleChange } =
+    useEpisodeNumberSearch({
+      episodes,
+      totalEpisodes,
+      episodeNum,
+      setSelectedRange,
+      setActiveRange,
+    });
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropDownRef.current &&
-        !dropDownRef.current.contains(event.target as Node)
-      ) {
-        setShowDropDown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  const { listContainerRef, activeEpisodeRef } =
+    useEpisodelistScroll(activeEpisodeId);
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const value = event.target.value;
-    if (value.trim() === '') {
-      const newRange = findRangeForEpisode(1);
-      setSelectedRange(newRange);
-      setActiveRange(`${newRange[0]}-${newRange[1]}`);
+  const handleEpisodeSelect = useCallback(
+    (episodeNumber: string) => {
+      onEpisodeClick(episodeNumber);
+      setActiveEpisodeId(episodeNumber);
       setSearchedEpisode(null);
-    } else if (!value || isNaN(Number(value))) {
-      setSearchedEpisode(null);
-    } else if (
-      !isNaN(Number(value)) &&
-      parseInt(value, 10) > totalEpisodes &&
-      episodeNum !== null
-    ) {
-      const episodeNumNumber =
-        typeof episodeNum === 'string' ? parseInt(episodeNum, 10) : episodeNum;
-      const newRange = findRangeForEpisode(episodeNumNumber);
-      setSelectedRange(newRange);
-      setActiveRange(`${newRange[0]}-${newRange[1]}`);
-      setSearchedEpisode(null);
-    } else if (!isNaN(Number(value)) && value.trim() !== '') {
-      const num = parseInt(value, 10);
-      const foundEpisode = episodes.find((item) => item?.episode_no === num);
-      if (foundEpisode) {
-        const newRange = findRangeForEpisode(num);
-        setSelectedRange(newRange);
-        setActiveRange(`${newRange[0]}-${newRange[1]}`);
-        setSearchedEpisode(foundEpisode?.id);
-      }
-    } else {
-      setSearchedEpisode(null);
-    }
-  }
+    },
+    [onEpisodeClick, setActiveEpisodeId, setSearchedEpisode]
+  );
 
-  function findRangeForEpisode(episodeNumber: number) {
-    const step = 100;
-    const start = Math.floor((episodeNumber - 1) / step) * step + 1;
-    const end = Math.min(start + step - 1, totalEpisodes);
-    return [start, end];
-  }
-
-  function generateRangeOptions(total: number) {
-    const step = 100;
-    const ranges: string[] = [];
-    for (let i = 0; i < total; i += step) {
-      const start = i + 1;
-      const end = Math.min(i + step, total);
-      ranges.push(`${start}-${end}`);
-    }
-    return ranges;
-  }
-  useEffect(() => {
-    if (currentEpisode && episodeNum) {
-      const episodeNumNumber =
-        typeof episodeNum === 'string' ? parseInt(episodeNum, 10) : episodeNum;
-      if (
-        episodeNumNumber < selectedRange[0] ||
-        episodeNumNumber > selectedRange[1]
-      ) {
-        const newRange = findRangeForEpisode(episodeNumNumber);
-        setSelectedRange(newRange);
-        setActiveRange(`${newRange[0]}-${newRange[1]}`);
-      }
-    }
-  }, [currentEpisode, totalEpisodes, episodeNum]);
-
-  const handleRangeSelect = (range: string) => {
-    const [start, end] = range.split('-').map(Number);
-    setSelectedRange([start, end]);
-  };
-
-  useEffect(() => {
-    if (!Array.isArray(episodes)) return;
-    const activeEpisode = episodes.find(
-      (item) => getEpisodeNumberFromId(item?.id) === activeEpisodeId
-    );
-    if (activeEpisode) {
-      setEpisodeNum(String(activeEpisode?.episode_no));
-    }
-  }, [activeEpisodeId, episodes]);
+  const gridClassName =
+    totalEpisodes > 30
+      ? 'grid grid-cols-5 gap-2 p-3 max-[1200px]:grid-cols-12 max-[860px]:grid-cols-10 max-[575px]:grid-cols-8 max-[478px]:grid-cols-6 max-[350px]:grid-cols-5'
+      : 'flex flex-col gap-2 p-2.5 pb-3';
 
   return (
-    <div className="relative flex flex-col w-full h-full min-h-0 max-[1200px]:max-h-[500px]">
-      <div className="sticky top-0 z-10 flex flex-col gap-y-[5px] justify-start px-3 py-4 bg-[#23252b]">
-        <h1 className="text-[15px] font-bold text-white">List of episodes:</h1>
-        {totalEpisodes > 100 && (
-          <div className="w-full flex gap-x-4 items-center max-[1200px]:justify-between">
-            <div className="min-w-fit flex text-[13px]">
-              <div
-                onClick={() => setShowDropDown((prev) => !prev)}
-                className="text-white w-fit mt-1 text-[13px] relative cursor-pointer bg-[#23252b] flex justify-center items-center"
-                ref={dropDownRef}
-              >
-                <FontAwesomeIcon icon={faList} />
-                <div className="w-fit flex justify-center items-center gap-x-2 ml-4">
-                  <p className="text-white text-[12px]">
-                    EPS:&nbsp;{selectedRange[0]}-{selectedRange[1]}
-                  </p>
-                  <FontAwesomeIcon
-                    icon={faAngleDown}
-                    className="mt-[2px] text-[10px]"
-                  />
-                </div>
-                {showDropDown && (
-                  <div className="episode-list__scroll absolute flex flex-col top-full mt-[10px] left-0 z-30 w-[200px] max-h-[200px] overflow-y-auto rounded-md border border-white/20 bg-[#23252b]">
-                    {generateRangeOptions(totalEpisodes).map((item, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          handleRangeSelect(item);
-                          setActiveRange(item);
-                        }}
-                        className={`hover:bg-gray-200 cursor-pointer text-black ${
-                          item === activeRange ? 'bg-[#EFF0F4]' : ''
-                        }`}
-                      >
-                        <p className="font-semibold text-[10px] text-white p-3 flex justify-between items-center bg-[#23252b] hover:opacity-[0.8]">
-                          EPS:&nbsp;{item}
-                          {item === activeRange ? (
-                            <FontAwesomeIcon icon={faCheck} />
-                          ) : null}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="border-[1px] border-[#ffffff34] rounded-sm py-[4px] px-[8px] flex items-center gap-x-[10px]">
-              <FontAwesomeIcon
-                icon={faMagnifyingGlass}
-                className="text-[11px]"
-              />
-              <input
-                type="text"
-                className="w-full bg-transparent focus:outline-none rounded-sm text-[13px] font-bold placeholder:text-[12px] placeholder:font-medium"
-                placeholder="Number of Ep"
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+    <div className="relative flex h-full min-h-0 w-full flex-col max-[1200px]:max-h-[500px]">
+      <EpisodelistHeader>
+        {totalEpisodes > 100 ? (
+          <EpisodeRangeControls
+            totalEpisodes={totalEpisodes}
+            selectedRange={selectedRange}
+            activeRange={activeRange}
+            showDropDown={showDropDown}
+            setShowDropDown={setShowDropDown}
+            dropDownRef={dropDownRef}
+            handleRangeSelect={handleRangeSelect}
+            setActiveRange={setActiveRange}
+            onSearchChange={handleChange}
+          />
+        ) : (
+          <EpisodeListToolbar>
+            <EpisodeFindInput
+              onSearchChange={handleChange}
+              placeholder="Find by episode number…"
+              className="w-full rounded-lg border border-white/12 bg-[#25262b] px-4 py-2.5 shadow-none focus-within:border-[#f47521]/45 focus-within:shadow-[0_0_0_1px_rgba(244,117,33,0.15)]"
+            />
+          </EpisodeListToolbar>
         )}
-      </div>
-      <div
-        ref={listContainerRef}
-        className="episode-list__scroll w-full h-full overflow-y-auto bg-[#23252b]"
-      >
-        <div
-          className={`${
-            totalEpisodes > 30
-              ? 'p-3 grid grid-cols-5 gap-1 max-[1200px]:grid-cols-12 max-[860px]:grid-cols-10 max-[575px]:grid-cols-8 max-[478px]:grid-cols-6 max-[350px]:grid-cols-5'
-              : ''
-          }`}
-        >
+      </EpisodelistHeader>
+
+      <EpisodelistScrollArea listContainerRef={listContainerRef}>
+        <div className={gridClassName}>
           {totalEpisodes > 30
             ? episodes
                 .slice(selectedRange[0] - 1, selectedRange[1])
                 .map((item, index) => {
-                  const episodeNumber = getEpisodeNumberFromId(item?.id) ?? '';
+                  const episodeNumber =
+                    getEpisodeNumberFromId(item?.id) ?? '';
                   const isActive =
                     activeEpisodeId === episodeNumber ||
                     currentEpisode === episodeNumber;
                   const isSearched = searchedEpisode === item?.id;
-                  const isWatched = episodeNumber ? watchedEpisodes[episodeNumber] === true : false;
+                  const isWatched = episodeNumber
+                    ? watchedEpisodes[episodeNumber] === true
+                    : false;
 
                   return (
-                    <div
+                    <EpisodeGridItem
                       key={item?.id}
-                      ref={isActive ? activeEpisodeRef : null}
-                      className={`relative flex items-center justify-center rounded-[3px] h-[30px] text-[13.5px] font-medium cursor-pointer group ${
-                        isWatched ? 'opacity-60' : ''
-                      } ${
-                        isActive
-                          ? 'bg-[#35373D] text-[#f47521] ring-2 ring-[#f47521] ring-inset'
-                          : 'bg-[#35373D] text-white md:hover:bg-[#f47521] md:hover:text-[#2a2a2a]'
-                      } ${isSearched ? 'glow-animation' : ''}`}
-                      onClick={() => {
-                        if (episodeNumber) {
-                          onEpisodeClick(episodeNumber);
-                          setActiveEpisodeId(episodeNumber);
-                          setSearchedEpisode(null);
-                        }
-                      }}
-                    >
-                      {item?.filler && (
-                        <span className="absolute top-0 right-0 px-[2px] text-[10px] text-white/80">
-                          F
-                        </span>
-                      )}
-                      <span
-                        className={
-                          isActive
-                            ? 'text-[#f47521]'
-                            : item?.filler
-                              ? 'text-white md:group-hover:text-[#2a2a2a]'
-                              : 'text-white md:group-hover:text-[#2a2a2a]'
-                        }
-                      >
-                        {index + selectedRange[0]}
-                      </span>
-                    </div>
+                      item={item}
+                      displayNumber={index + selectedRange[0]}
+                      episodeNumber={episodeNumber}
+                      isActive={isActive}
+                      isSearched={isSearched}
+                      isWatched={isWatched}
+                      episodeRef={isActive ? activeEpisodeRef : null}
+                      onEpisodeSelect={handleEpisodeSelect}
+                    />
                   );
                 })
             : episodes?.map((item, index) => {
-                const episodeNumber = getEpisodeNumberFromId(item?.id) ?? '';
+                const episodeNumber =
+                  getEpisodeNumberFromId(item?.id) ?? '';
                 const isActive =
                   activeEpisodeId === episodeNumber ||
                   currentEpisode === episodeNumber;
                 const isSearched = searchedEpisode === item?.id;
-                const isWatched = episodeNumber ? watchedEpisodes[episodeNumber] === true : false;
+                const isWatched = episodeNumber
+                  ? watchedEpisodes[episodeNumber] === true
+                  : false;
 
                 return (
-                  <div
+                  <EpisodeListItem
                     key={item?.id}
-                    ref={isActive ? activeEpisodeRef : null}
-                    className={`w-full pl-5 pr-2 py-2 flex items-center justify-start gap-x-8 cursor-pointer group ${
-                      isSearched ? 'glow-animation' : ''
-                    } ${isWatched ? 'opacity-60' : ''}`}
-                    onClick={() => {
-                      if (episodeNumber) {
-                        onEpisodeClick(episodeNumber);
-                        setActiveEpisodeId(episodeNumber);
-                        setSearchedEpisode(null);
-                      }
-                    }}
-                  >
-                    <p
-                      className={`text-[14px] font-medium ${
-                        isActive ? 'text-[#ff640a]' : 'text-white'
-                      }`}
-                    >
-                      {index + 1}
-                    </p>
-                    <div className="w-full flex items-center justify-between gap-x-[5px]">
-                      <h1
-                        className={`line-clamp-1 text-[15px] font-light ${
-                          isActive
-                            ? 'text-[#ff640a]'
-                            : 'text-white group-hover:text-[#ff640a]'
-                        }`}
-                      >
-                        {item?.title}
-                      </h1>
-                      {isActive && (
-                        <FontAwesomeIcon
-                          icon={faCirclePlay}
-                          className="w-[20px] h-[20px] text-[#ff640a]"
-                        />
-                      )}
-                    </div>
-                  </div>
+                    item={item}
+                    listIndex={index + 1}
+                    episodeNumber={episodeNumber}
+                    isActive={isActive}
+                    isSearched={isSearched}
+                    isWatched={isWatched}
+                    episodeRef={isActive ? activeEpisodeRef : null}
+                    onEpisodeSelect={handleEpisodeSelect}
+                  />
                 );
               })}
         </div>
-      </div>
+      </EpisodelistScrollArea>
     </div>
   );
 }

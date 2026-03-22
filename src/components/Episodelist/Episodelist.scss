@@ -14,9 +14,33 @@
   animation: glow 1.5s infinite;
 }
 
-/* Скролбар списку епізодів */
 .episode-list__scroll {
   scrollbar-gutter: stable;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #f47521;
+  }
+
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a #1a1a1a;
+}
+
+.episode-range-dropdown__scroll {
+  scrollbar-gutter: auto;
 
   &::-webkit-scrollbar {
     width: 8px;

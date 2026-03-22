@@ -7,7 +7,6 @@ import { toast } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-/** Повідомлення в Toaster при невірних облікових даних (без тексту під полями). */
 const LOGIN_INVALID_MESSAGE = 'Invalid email or password';
 
 export default function LoginPage() {

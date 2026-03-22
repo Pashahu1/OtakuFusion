@@ -9,7 +9,7 @@ type UseDropdownResult<
   toggle: () => void;
   close: () => void;
   triggerRef: RefObject<TTrigger | null>;
-  menuRef: RefObject<TMenu | null>; //
+  menuRef: RefObject<TMenu | null>;
 };
 
 export function useDropdown<

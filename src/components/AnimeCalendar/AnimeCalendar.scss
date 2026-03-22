@@ -6,7 +6,6 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-/* HEADER */
 .schedule-header {
   display: grid;
   grid-template-columns: 80px repeat(7, 1fr);
@@ -68,7 +67,6 @@
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* EVENT BLOCK */
 .event-block {
   background: linear-gradient(135deg, #ff5e1f, #ff7a3a);
   padding: 8px 10px;
