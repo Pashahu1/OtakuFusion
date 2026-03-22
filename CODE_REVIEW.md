@@ -1,124 +1,124 @@
 # Code Review: OtakuFusion
 
-**План поступового рефакторингу й розвитку** — що вже зроблено й що робити далі. Крок за кроком: один пункт → перевірка збірки → коміт. Без поспіху.
+**План поступового рефакторингу й розвитку.** Крок за кроком: один пункт → перевірка збірки → коміт.
+
+Стан зведено в три смуги: **готові** · **робиться** · **майбутнє**. Детальні блоки (A–F) лишаються внизу для майбутніх тасків.
 
 ---
 
-## ✅ Що вже зроблено
+## Готові
 
-### Загальний стан
+### Зведення по кроках плану
+
+| ID | Що зроблено |
+|----|-------------|
+| **Етап 1–3** | Опечатки / logout / ProfileHeader catch, episodeUtils, named exports, Zod (ContinueWatching, API body), менше `any`. |
+| **A.3** | Модуль `env`, перевірка `process.env`, заміна голих `process.env.X!`. |
+| **A.4** | `sonner` + `AppToaster`, `toast` з `@/lib/toast`, без `alert` у `src`. |
+| **A.5** | Continue Watching: один виклик `updateContinueWatching` на watch + guard. |
+| **A.6** | Спільні хелпери валідації / форматування помилок у API. |
+| **A.7** | `SwiperCard`: унікальні next/prev IDs, `type="button"`, `useMemo`, guard на порожній каталог, зайві `swiper/css` прибрані. |
+| **B.1** | Логін / реєстрація: `UnderlineField`, помилки полів візуально, toast для загальних кейсів. |
+| **B.3** | Адаптивність: hero (iOS Safari, ноути), auth, footer, пошук, розклад, дрібні екрани тощо. |
+
+### Загальний стан кодової бази
 
 | Що | Де |
 |----|-----|
 | Безпека: JWT не логуються, API URL з env | `api/auth/login`, `lib/api.ts` |
-| Watch-сторінка: контейнер + WatchPlayerContent, WatchInfoPanel, WatchTags, useWatchPageEffects | `app/watch/[id]/page.tsx`, компоненти |
-| Player: розбито на модулі (playerStream, getArtplayerOptions, getPlayerLayers, setupPlayerReady, updateContinueWatching, useChapterStyles) | `components/Player/`, `hooks/useChapterStyles.ts` |
-| Прибрано @ts-nocheck з усієї `src` | — |
-| Видалено мертвий код: ReplaceServerName, TextSliced, useToolTipPosition, getEpisodesServer, стара Skeleton | — |
-| Named exports у ключових місцях (Player, Watch*, хуки watch, сервіси getEpisodes/getServers, EmptyState, ErrorState, Episodelist, SwiperCard, getUser, getCategoryInfo, useWatch) | різні файли |
-| ErrorState, лоадери, metadata/SEO, revalidate головної | error.tsx, layout, getHomePage |
-
-### Етапи 1–3 (виконано)
-
-| Етап | Що зроблено |
-|------|-------------|
-| **Етап 1** | Опечатка fetchScheduleAnime, logout setIsLoading(false), видалено handlerDisabled, catch у handleSave (ProfileHeader). |
-| **Етап 2** | episodeUtils + заміни, named exports (EmptyState, ErrorState, getUser, getCategoryInfo, useWatch, SwiperCard). |
-| **Етап 3** | Zod ContinueWatching, Zod для API (request body), типи замість any. |
+| Watch: контейнер, WatchPlayerContent, WatchInfoPanel, WatchTags, useWatchPageEffects | `app/watch/[id]/page.tsx`, компоненти |
+| Player: модулі (playerStream, getArtplayerOptions, …) | `components/Player/`, `hooks/useChapterStyles.ts` |
+| Без `@ts-nocheck` у `src` | — |
+| Прибрано мертвий код (ReplaceServerName, TextSliced, …) | — |
+| Named exports у ключових модулях | Player, Watch*, сервіси, EmptyState, ErrorState, … |
+| ErrorState, лоадери, metadata/SEO, revalidate головної | `error.tsx`, `layout`, `getHomePage` |
 
 ### Додаткові виправлення (ревʼю)
 
-- Refresh-токен: `NEXT_JWT_ACCESS_SECRET` (api/auth/refresh).
-- Predeploy: прибрано prisma validate (package.json).
-- Назва сайту: єдине джерело правди в `config/website.ts`.
-- ProfileHeader: catch у handleSave з повідомленням користувачу.
-- Avatar API: перевірка MIME, прибрано закоментований код.
-
-### UX toast і auth-форми (виконано)
-
-| Крок | Що зроблено |
-|------|-------------|
-| **A.4** | `sonner` + `AppToaster` у layout, `toast` з `@/lib/toast`; ProfileHeader — `toast` замість `alert` (у `src` немає `alert(`). |
-| **B.1** | Логін/реєстрація: спільний `UnderlineField`, помилки полів — візуально (червона лінія + лейбл), без тексту під інпутами; toast для загальних кейсів (логін, реєстрація, профіль). *Примітка:* у плані було «інлайн під інпутами» — реалізовано еквівалентний варіант (field-level feedback без окремого рядка тексту). |
+- Refresh-токен: `NEXT_JWT_ACCESS_SECRET` (`api/auth/refresh`).
+- Predeploy: без prisma validate у `package.json`.
+- Назва сайту: `config/website.ts`.
+- ProfileHeader: catch у `handleSave` з повідомленням користувачу.
+- Avatar API: перевірка MIME, прибрано мертвий закоментований код.
 
 ---
 
-## 🔜 Що залишилося (план, крок за кроком)
+## Робиться
 
-Рекомендований порядок — по одному блоку, коли буде час. Технології (toast-бібліотека, state-рішення тощо) можна визначити пізніше.
-
-## Розбивка за пріоритетом і типом
-
-### P0 — Production-ready (Refactor/Type/A11y)
-- A.3 — модуль env: перевірка обовʼязкових `process.env` при старті, експорт констант, заміна `process.env.X!`. ~~ ✅
-- A.5 — Continue Watching: `updateContinueWatching` один раз при заході на watch + guard у функції. ~~ ✅
-- A.6 — спільні хелпери для валідації та форматування помилок у API. ~~ ✅
-- A.7 — `SwiperCard`: стабільні унікальні next/prev IDs, `type="button"`, `useMemo` для `navigation`, guard на порожній `catalog`, очистка зайвих `swiper/css` імпортів. ~~ ✅
-
-### P1 — Рефакторинг логіки (Refactor)
-- A.1 — розбити `useWatchPageEffects` на дрібніші хуки.
-- A.2 — розбити `Episodelist`: `useEpisodeList` + `EpisodeItem`.
-- Опційно (з блоку A, DX/якість): named exports для ключових секцій/форм, єдиний стиль скелетонів, unit-тести для `getEpisodeNumberFromId`, `updateContinueWatching`, `parseContinueWatchingList`, довести до нуля `any` в `refresh/avatar/AnimeCalendar`.
-
-### P1 — UX-покращення (UX)
-- ~~A.4 — toast замість `alert`~~ ✅
-- ~~B.1 — UI логіна/реєстрації + toast/інлайн-помилки ~~ ✅
-- B.3 — responsive: перевірити й довести до коректної роботи на мобільних.
-- **B.4** — **Email / верифікація: продукт + техніка** (окремий епік, див. блок B нижче).
-
-### P2 — Окремі фічі (Feature)
-- C.1 — Адмінка окремо: керування контентом/модерація, guard по ролі, окремі роути.
-- D.1–D.4 — AniList + глобальний стан (маппінг, синх прогресу, wish list, вибір підходу для state).
-
-### P3 — Achievements (Feature, на потім)
-- E.1 — агреговані achievements без прив’язки до кожного аніме окремо.
+| Зараз у фокусі | Нотатка |
+|----------------|---------|
+| A.1 | Коли береш таск — впиши тут ID (напр. **A.1**, **F.1**) і коротко, що саме робиш. |
 
 ---
 
-### Блок A — Рефакторинг (з оригінального плану)
+## Майбутнє
+
+### Короткий пріоритет
+
+| Пріоритет | Що |
+|-----------|-----|
+| **P1** | **A.1** `useWatchPageEffects` → дрібніші хуки · **A.2** `Episodelist` → `useEpisodeList` + `EpisodeItem` · **F.1** Lighthouse / CWV головної (mobile) · **B.2** UI/UX верифікації email · **B.4** продукт + код верифікації email (епік) |
+| **P2** | **C.1** адмінка · **D.1–D.4** AniList + глобальний стан |
+| **P3** | **E.1** achievements (агреговані) |
+
+Опційно (DX): named exports для AnimeSection, AnimeCalendar, форми налаштувань, Search*, GenderData, AnimeFilters, AnimeData; єдиний стиль скелетонів; unit-тести для `getEpisodeNumberFromId`, `updateContinueWatching`, `parseContinueWatchingList`; нуль `any` у refresh / avatar / AnimeCalendar.
+
+---
+
+### Блок A — рефакторинг (що лишилось)
 
 | Крок | Що зробити | Де |
 |------|------------|-----|
-| **A.1** | Розбити useWatchPageEffects на дрібніші хуки (continue watching sync, URL sync, document title, error state, висота колонки). | `hooks/useWatchPageEffects.ts`, `app/watch/[id]/page.tsx` |
-| **A.2** | Розбити Episodelist: хук useEpisodeList + компонент EpisodeItem. | `components/Episodelist/` |
-| **A.3** | Модуль env: перевірка обовʼязкових process.env при старті, експорт констант, замінити process.env.X! по коду. | `src/lib/env.ts`, api/auth, lib/auth, lib/db, middleware |
-| **A.4** | Toast замість alert для помилок/успіху (наприклад, збереження профілю). | ProfileHeader та інші місця з alert |
-| **A.5** | Continue Watching: викликати updateContinueWatching один раз при заході на watch (коли є animeInfo + episodeId); guard у функції. | `watch/[id]/page.tsx`, updateContinueWatching |
-| **A.6** | Спільні хелпери для валідації та форматування помилок у API. | окремий модуль, API routes |
-| **A.7** | `SwiperCard`: стабільні унікальні next/prev IDs (навіть з `sectionId`), `type="button"`, `useMemo` для `navigation`, guard на `catalog.length===0`, прибрати зайві `swiper/css` імпорти. | `src/components/SwiperCard/SwiperCard.tsx` |
+| **A.1** | Розбити `useWatchPageEffects` на дрібніші хуки (continue watching, URL, title, error, висота колонки). | `hooks/useWatchPageEffects.ts`, `app/watch/[id]/page.tsx` |
+| **A.1.5** | Додати скелетон до дати наступної серії
+| **A.2** | Розбити Episodelist: `useEpisodeList` + `EpisodeItem`. | `components/Episodelist/` |
 
-Опційно (коли буде настрій): named exports для AnimeSection, AnimeCalendar, DeleteAccount, ChangePasswordForm, SearchInput, SearchData, GenderData, AnimeFilters, AnimeData; єдиний стиль скелетонів; unit-тести для getEpisodeNumberFromId, updateContinueWatching, parseContinueWatchingList; довести до нуля any у refresh/avatar/AnimeCalendar.
+*(A.3–A.7 — у розділі **Готові**.)*
 
 ---
 
-### Блок B — UX: логін, реєстрація, підтвердження email
+### Блок B — UX: логін, реєстрація, email
 
 | Крок | Що зробити |
 |------|------------|
-| **B.1** | Оновити UI логіна та реєстрації. Повідомлення (успіх/помилка) — через toast; помилки полів форми — інлайн під інпутами. |
-| **B.2** | Змінити UI та логіку підтвердження по email: зрозумілі статуси (лист відправлено, прострочено, вже підтверджено), повторна відправка листа, next step для користувача. |
-| **B.3** | Адаптивність (responsive): перевірити й довести до коректної роботи на мобільних ключові екрани з цього блоку (розмітка, переноси, розміри інпутів/кнопок, відступи, читабельність, дотикова зручність). |
-| **B.4** | **Верифікація email — продуктове рішення + зміни в коді** (окремий таск, не змішувати з B.2 UI-only). |
+| **B.2** | UI та логіка підтвердження email: статуси (відправлено, прострочено, вже підтверджено), resend, зрозумілий next step. |
+| **B.4** | **Верифікація email — продукт + код** (окремо від B.2). |
 
-#### B.4 — деталі (що зробити)
+#### B.4 — деталі
 
 | Підпункт | Ідея |
 |----------|------|
-| **UI verify** | Якщо `email` уже в query після реєстрації — **не показувати друге поле вводу email** (лише read-only рядок або лейбл + «на цю адресу надіслано код»); поле вводу email лишити лише коли людина потрапила без `?email=` (edge case). |
-| **Проблема** | Зараз можливий **deadlock**: зареєструвався → лист не підтвердив / закрив форму → **не може зайти** (без верифікації) і **не може знову зареєструвати** той самий email — треба або resend, або зміна політики. |
-| **Варіант (рекомендовано обговорити)** | Зробити **верифікацію не обов’язковою** на етапі реєстрації: після sign-up користувач **вже може користуватися** акаунтом; підтвердження email винести в **налаштування профілю** («Підтвердити email») + обмеження для чутливих дій до підтвердження (за потреби). Це окремий обсяг: `login` / `register` API, `User` модель, middleware, UI профілю. |
+| **UI verify** | Якщо `email` уже в query після реєстрації — не показувати друге поле email; лише read-only / лейбл «на цю адресу надіслано код». Поле email — лише без `?email=`. |
+| **Проблема** | Можливий **deadlock**: зареєструвався → не підтвердив → не може зайти й не може зареєструвати той самий email знову. |
+| **Варіант** | Обговорити **опційну** верифікацію після sign-up; підтвердження в профілі + обмеження чутливих дій. Зачіпає login/register API, User, middleware, UI. |
 
-**Порядок:** спочатку узгодити продукт (обов’язкова vs опційна верифікація), потім — B.4 UI (прибрати зайвий input), потім — бекенд/флоу під обрану модель.
+**Порядок:** узгодити продукт → B.4 UI → бекенд під модель.
 
-Без жорсткого вибору технологій поки що — вирішиш пізніше (бібліотека для toast, валідація форм тощо).
+*(B.1, B.3 — у **Готові**.)*
 
 ---
 
-### Блок C — Адмінка
+### Блок F — Performance / Lighthouse (**F.1**)
+
+**Контекст:** Lighthouse (Performance), головна, **mobile**, prod (`otaku-fusion.vercel.app`). Повторний замір — **інкогніто, без розширень Chrome**.
+
+| Метрика | Знімок | Коментар |
+|---------|--------|----------|
+| Performance | **49** | червона зона |
+| FCP | 0.6 s | ок |
+| LCP | 1.2 s | можна покращити hero / LCP-елемент |
+| TBT | **810 ms** | важкий JS на головному потоці |
+| CLS | **0.257** | погано (вище 0.25) |
+
+**Чекліст:** CLS (резерви під медіа, шрифти) · TBT (dynamic import, бандл, Swiper) · LCP (`fetchPriority`, `sizes`, формат зображень) · повторний аудит і оновлення цифр у PR / тут.
+
+---
+
+### Блок C — адмінка
 
 | Крок | Що зробити |
 |------|------------|
-| **C.1** | Адмінка окремо: мінімум для керування контентом/модерації, guard по ролі, окремі роути. Реалізацію вести окремо від основного продукту. |
+| **C.1** | Адмінка: контент/модерація, guard по ролі, окремі роути. |
 
 ---
 
@@ -126,20 +126,20 @@
 
 | Крок | Що зробити |
 |------|------------|
-| **D.1** | Маппінг anime-api ↔ AniList (бекенд), сервіс «ourAnimeId → anilistId». |
-| **D.2** | Авто відстеження перегляду + синх з AniList (прогрес, захист від перезапису). |
-| **D.3** | Wish list / статуси (Дивлюся, Планую, Переглянув тощо), UI + бекенд. |
-| **D.4** | Глобальний стан для auth/AniList: вирішити підхід (контекст / інше рішення для стану). Конкретну технологію обрати пізніше. |
+| **D.1** | Маппінг anime-api ↔ AniList, `ourAnimeId → anilistId`. |
+| **D.2** | Автопрогрес + синх з AniList. |
+| **D.3** | Wish list / статуси, UI + бекенд. |
+| **D.4** | Глобальний стан auth/AniList (підхід обрати пізніше). |
 
-Весь блок D — окрема гілка / етап, після того як буде стабільний A/B.
+Блок D — окрема гілка після стабілізації A/B.
 
 ---
 
-### Блок E — Achievements (на потім)
+### Блок E — achievements (потім)
 
 | Крок | Що зробити |
 |------|------------|
-| **E.1** | Achievements: спочатку агреговані досягнення (наприклад «10/50/100 епізодів», «завершив N тайтлів», streak), без прив’язки до кожного аніме окремо. Візуал і складніші умови — пізніше. |
+| **E.1** | Агреговані досягнення (N епізодів, завершені тайтли, streak), без прив’язки до кожного аніме. |
 
 ---
 
@@ -147,17 +147,14 @@
 
 ### Невикористані файли
 
-Раніше видалено: ReplaceServerName, TextSliced, useToolTipPosition, getEpisodesServer, стара папка Skeleton. Нові невикористані файли — перевірити і при потребі видалити.
+Перевіряти час від часу; раніше видалено ReplaceServerName, TextSliced, useToolTipPosition, getEpisodesServer, стару Skeleton.
 
 ### Стиль коду (орієнтир)
 
-- Функції верхнього рівня: краще `function Name()`.
-- Колбеки в JSX: стрілками або useCallback там, де передаються в списки.
-- Об’єктні форми в TypeScript: краще `interface`.
+- Верхній рівень: краще `function Name()`.
+- Колбеки в списках: стрілки або `useCallback`.
+- Форми об’єктів у TS: краще `interface`.
 
-### Підсумок порядку
+---
 
-1. **Зроблено** — етапи 1–3, ключові named exports, безпека, Player/Watch структура.
-2. **Далі** — A (рефакторинг), потім B (логін/реєстрація/email), C (адмінка), D (AniList + стан), E (achievements) коли буде час.
-
-Крок за кроком, без напруги — один пункт за раз, перевірка, коміт.
+*Останнє оновлення структури: готові / робиться / майбутнє.*

@@ -7,7 +7,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Episodelist } from '@/components/Episodelist/Episodelist';
 import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
-import { useWatchPageEffects } from '@/hooks/useWatchPageEffects';
+import { useWatchPageEffects } from '@/hooks/watch/useWatchPageEffects';
 import { WatchInfoPanel } from '@/components/WatchInfoPanel/WatchInfoPanel';
 import { WatchPlayerContent } from '@/components/WatchPlayerContent/WatchPlayerContent';
 import { onEpisodeWatched as markWatchedInStorage } from '@/helper/WatchedEpisodes';
@@ -108,7 +108,7 @@ export default function Watch() {
               />
             )}
           </div>
-          
+
           <WatchPlayerContent
             playerColumnRef={playerColumnRef}
             serverLoading={serverLoading}

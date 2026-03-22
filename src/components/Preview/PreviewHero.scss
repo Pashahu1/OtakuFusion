@@ -6,8 +6,6 @@
   z-index: 1;
   overscroll-behavior-y: contain;
 
-  // iOS Safari: 100dvh/dvb перераховується при хованні адресного рядка → «стрибки».
-  // 100svh стабільний (small viewport). На великих екранах лишаємо dynamic.
   min-height: 100vh;
   min-height: -webkit-fill-available;
   height: 100svh;
@@ -18,7 +16,6 @@
     min-height: 100dvb;
   }
 
-  // Ноути з невеликою висотою: dvb знову «стрибає» в Safari — стабільніший svh
   @media (min-width: 1024px) and (max-height: 900px) {
     height: 100svh;
     min-height: 100svh;
@@ -31,7 +28,6 @@
     inset: 0;
     z-index: 2;
 
-    // Десктоп / ноут: урахування fixed header (60px) + менший зсув вгору, ніж фіксовані -100px
     @media (min-width: 1024px) {
       box-sizing: border-box;
       padding-top: 72px;
@@ -42,7 +38,6 @@
       transform: translateY(clamp(-40px, -6vh, -100px));
     }
 
-    // Мобільний: блок у нижній половині, але не «прилиплий» до краю (було занадто низько)
     @media (max-width: 1023px) {
       align-items: flex-end;
       justify-content: flex-start;
@@ -110,12 +105,14 @@
     line-height: 1.55;
     color: rgba(255, 255, 255, 0.9);
     display: -webkit-box;
-    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
     overflow: hidden;
 
     @media (max-width: 1023px) {
       -webkit-line-clamp: 3;
+      line-clamp: 3;
     }
   }
 
