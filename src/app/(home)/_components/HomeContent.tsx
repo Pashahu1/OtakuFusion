@@ -1,8 +1,7 @@
 import { getHomePage } from '@/services/getHomePage';
 import { ErrorState } from '@/components/ui/states/ErrorState';
 import { Preview } from '@/components/Preview/PreviewHero';
-import { ContinueWatchingSection } from '@/components/ContinueWatchingSection/ContinueWatchingSection';
-import { SwiperCard } from '@/components/SwiperCard/SwiperCard';
+import { HomeBelowFold } from './HomeBelowFold';
 
 export async function HomeContent() {
   const homeCatalog = await getHomePage();
@@ -16,22 +15,12 @@ export async function HomeContent() {
         spotlights={homeCatalog.spotlights || []}
         trending={homeCatalog.trending || []}
       />
-      <ContinueWatchingSection />
-      <div className="flex flex-col gap-8 md:gap-10 lg:gap-[40px]">
-        <SwiperCard title="Top Airing" catalog={homeCatalog.topAiring || []} />
-        <SwiperCard
-          title="Most Favorite"
-          catalog={homeCatalog.mostFavorite || []}
-        />
-        <SwiperCard
-          title="Latest Episode"
-          catalog={homeCatalog.latestEpisode || []}
-        />
-        <SwiperCard
-          title="Latest Completed"
-          catalog={homeCatalog.latestCompleted || []}
-        />
-      </div>
+      <HomeBelowFold
+        topAiring={homeCatalog.topAiring || []}
+        mostFavorite={homeCatalog.mostFavorite || []}
+        latestEpisode={homeCatalog.latestEpisode || []}
+        latestCompleted={homeCatalog.latestCompleted || []}
+      />
     </div>
   );
 }

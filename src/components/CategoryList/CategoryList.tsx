@@ -17,10 +17,10 @@ export const CategoryList = () => {
         Category
         <Image
           src="/icon/down.png"
-          alt="Down arrow"
+          alt=""
           width={14}
           height={14}
-          sizes="cover"
+          sizes="14px"
         />
       </p>
 

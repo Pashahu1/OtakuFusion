@@ -11,6 +11,9 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import './SwiperCard.scss';
 
+/** Має збігатися з відступом у SwiperCard.scss для стану до `swiper-initialized`. */
+const SPACING_BETWEEN_SLIDES = 20;
+
 function slugify(s: string): string {
   return s
     .toLowerCase()
@@ -65,7 +68,7 @@ export function SwiperCard({ title, catalog, sectionId }: SwiperCardProps) {
       <Swiper
         modules={[Navigation]}
         slidesPerView="auto"
-        spaceBetween={20}
+        spaceBetween={SPACING_BETWEEN_SLIDES}
         navigation={navigation}
       >
         {catalog.map((anime) => (

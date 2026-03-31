@@ -35,6 +35,7 @@ export function Card({ anime }: CardProps) {
             src={anime.poster ? Convertor(anime.poster) : '/sukuna-error.jpg'}
             alt={anime.title}
             fill
+            quality={70}
             className="object-cover object-center transition duration-300 group-hover:brightness-[0.85]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
           />

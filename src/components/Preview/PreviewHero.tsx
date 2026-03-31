@@ -3,11 +3,11 @@ import {
   A11y,
   Navigation,
   Pagination,
-  Scrollbar,
   Autoplay,
 } from 'swiper/modules';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperType } from 'swiper';
 import { Convertor } from '@/helper/Convertor';
 import 'swiper/css/effect-fade';
 import { EffectFade } from 'swiper/modules';
@@ -15,17 +15,36 @@ import { EffectFade } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import 'swiper/css/scrollbar';
 import './PreviewHero.scss';
 import Image from 'next/image';
 import type {
   SpotlightAnime,
   TrendingAnime,
 } from '@/shared/types/GlobalAnimeTypes';
-import { useState, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { EmptyState } from '../ui/states/EmptyState';
 import { SwiperCard } from '../SwiperCard/SwiperCard';
+
+/** Кастомний `el` для pagination монтується після Swiper — прив’язуємо після init без remount (див. Swiper + React: custom pagination). */
+function bindHeroPagination(swiper: SwiperType, el: HTMLDivElement | null) {
+  if (!el || swiper.destroyed) return;
+
+  swiper.params.pagination = {
+    ...(typeof swiper.params.pagination === 'object' &&
+    swiper.params.pagination !== null
+      ? swiper.params.pagination
+      : {}),
+    el,
+    clickable: true,
+    type: 'bullets',
+  };
+
+  swiper.pagination.destroy();
+  swiper.pagination.init();
+  swiper.pagination.render();
+  swiper.pagination.update();
+}
 
 type Props = {
   spotlights: SpotlightAnime[];
@@ -34,10 +53,39 @@ type Props = {
 
 export const Preview = ({ spotlights, trending }: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [paginationEl, setPaginationEl] = useState<HTMLDivElement | null>(null);
-  const paginationRef = useCallback((node: HTMLDivElement | null) => {
-    if (node) setPaginationEl(node);
+  /** Доки Swiper не прив’язав pagination до ref, контейнер порожній — показуємо статичні «смужки» без затримки. */
+  const [paginationReady, setPaginationReady] = useState(false);
+  const swiperRef = useRef<SwiperType | null>(null);
+  const paginationRef = useRef<HTMLDivElement | null>(null);
+  /** Уникаємо подвійного destroy/init на тому ж інстансі; після remount (Strict Mode) інстанс новий — прив’язка повториться. */
+  const paginationBoundSwiperRef = useRef<SwiperType | null>(null);
+
+  const attachPaginationOnce = useCallback((swiper: SwiperType, el: HTMLDivElement) => {
+    if (swiper.destroyed || paginationBoundSwiperRef.current === swiper) return;
+    bindHeroPagination(swiper, el);
+    paginationBoundSwiperRef.current = swiper;
+    setPaginationReady(true);
   }, []);
+
+  const setPaginationNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      paginationRef.current = node;
+      if (node && swiperRef.current) {
+        attachPaginationOnce(swiperRef.current, node);
+      }
+    },
+    [attachPaginationOnce]
+  );
+
+  const handleSwiper = useCallback(
+    (swiper: SwiperType) => {
+      swiperRef.current = swiper;
+      if (paginationRef.current) {
+        attachPaginationOnce(swiper, paginationRef.current);
+      }
+    },
+    [attachPaginationOnce]
+  );
 
   if (!Array.isArray(spotlights)) {
     return (
@@ -87,16 +135,13 @@ export const Preview = ({ spotlights, trending }: Props) => {
             <ChevronLeft width={46} height={46} />
           </button>
           <Swiper
-            key={
-              paginationEl ? 'hero-pagination-ready' : 'hero-pagination-wait'
-            }
+            onSwiper={handleSwiper}
             onSlideChange={(swiper) => {
               setCurrentIndex(swiper.realIndex);
             }}
             modules={[
               Navigation,
               Pagination,
-              Scrollbar,
               A11y,
               Autoplay,
               EffectFade,
@@ -104,19 +149,22 @@ export const Preview = ({ spotlights, trending }: Props) => {
             slidesPerView={1}
             effect="fade"
             fadeEffect={{ crossFade: true }}
-            pagination={
-              paginationEl ? { el: paginationEl, clickable: true } : false
-            }
+            pagination={false}
             navigation={{
               nextEl: '.hero--right',
               prevEl: '.hero--left',
             }}
-            autoplay={{
-              delay: 5000,
-            }}
-            loop={true}
+            autoplay={
+              spotlights.length > 1
+                ? {
+                    delay: 5000,
+                    waitForTransition: true,
+                  }
+                : false
+            }
+            rewind
           >
-            {spotlights?.map((anime) => (
+            {spotlights?.map((anime, index) => (
               <SwiperSlide key={anime.id}>
                 <div className="relative h-full min-h-0 w-full">
                   <Image
@@ -126,8 +174,10 @@ export const Preview = ({ spotlights, trending }: Props) => {
                     sizes="100vw"
                     className="object-cover object-center brightness-75 contrast-110"
                     decoding="async"
-                    loading="eager"
-                    quality={80}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    /* LCP: перший слайд трохи якісніше; решта — менший ваговий бюджет (Lighthouse image delivery) */
+                    quality={index === 0 ? 70 : 62}
                   />
                   <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="preview__shine" />
@@ -153,8 +203,26 @@ export const Preview = ({ spotlights, trending }: Props) => {
                 <Play className="h-5 w-5 shrink-0 fill-current" />
                 Watch Ep 1
               </Link>
+            </div>
+            {/* Під текстом у колонці .hero__content; слот з min-height — без стрибка при mount Swiper */}
+            <div className="hero__pagination-slot">
+              {/* До init Swiper лише placeholder; після bind — лише контейнер Swiper (інакше два ряди смужок) */}
+              {!paginationReady && (
+                <div className="hero__pagination-placeholder" aria-hidden>
+                  {spotlights.map((s, i) => (
+                    <span
+                      key={s.id}
+                      className={
+                        i === currentIndex
+                          ? 'hero-pagination-placeholder-dash hero-pagination-placeholder-dash--active'
+                          : 'hero-pagination-placeholder-dash'
+                      }
+                    />
+                  ))}
+                </div>
+              )}
               <div
-                ref={paginationRef}
+                ref={setPaginationNode}
                 className="hero__pagination-container"
                 aria-hidden
               />

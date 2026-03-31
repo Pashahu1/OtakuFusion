@@ -24,6 +24,11 @@ html {
   @include body-text;
 }
 
+/* Резерв під скролбар — інакше при появі полоси прокрутки змінюється ширина viewport і верстка «стрибає». */
+html {
+  scrollbar-gutter: stable;
+}
+
 h1,
 h2,
 h3 {

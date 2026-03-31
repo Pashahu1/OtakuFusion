@@ -14,9 +14,20 @@ const nextConfig = {
         hostname: 'cdn.noitatnemucod.net',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.myanimelist.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'myanimelist.net',
+        pathname: '/**',
+      },
     ],
-    qualities: [75, 80],
-    unoptimized: true,
+    /* Дозволені рівні стиснення для <Image quality={…}> (Lighthouse: менший розмір прев’ю) */
+    qualities: [60, 62, 65, 70, 75, 80],
+    unoptimized: process.env.NEXT_IMAGE_UNOPTIMIZED === 'true',
   },
 };
 

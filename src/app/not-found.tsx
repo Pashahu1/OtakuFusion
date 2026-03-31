@@ -21,6 +21,7 @@ export default function NotFoundPage() {
             height={200}
             src="/sukuna-404.png"
             alt="Page not found — 404 illustration"
+            sizes="(max-width: 768px) min(90vw, 400px), 400px"
             className="drop-shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-transform duration-300 hover:drop-shadow-[0_0_40px_rgba(220,38,38,0.7)]"
           />
         </div>

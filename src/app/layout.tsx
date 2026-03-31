@@ -79,6 +79,9 @@ export default function RootLayout({
 }) {
   return (
     <html className="dark" lang="en" suppressHydrationWarning>
+      <head>
+        {/* Без preconnect до CDN: next/image тягне через /_next/image на origin — прямого з’єднання браузер→CDN часто нема, Lighthouse маркує як unused */}
+      </head>
       <body
         className={`${montserrat.className} ${rubik.className} ${playfair.variable}`}
         suppressHydrationWarning

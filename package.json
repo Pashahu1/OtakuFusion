@@ -58,6 +58,12 @@
     "tailwindcss": "^4.1.11",
     "zod": "^4.3.6"
   },
+  "browserslist": [
+    "chrome >= 92",
+    "edge >= 92",
+    "firefox >= 90",
+    "safari >= 15.4"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

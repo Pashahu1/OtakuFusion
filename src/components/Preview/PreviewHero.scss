@@ -23,7 +23,9 @@
 
   &__content {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
     position: absolute;
     inset: 0;
     z-index: 2;
@@ -39,8 +41,9 @@
     }
 
     @media (max-width: 1023px) {
-      align-items: flex-end;
-      justify-content: flex-start;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-end;
       transform: none;
       padding-top: 0;
       padding-bottom: calc(
@@ -130,6 +133,12 @@
   overflow: hidden;
 }
 
+/* До ініціалізації Swiper fade ще не застосований — ховаємо всі слайди крім першого, щоб не було «ghosting». */
+.hero__slider .swiper:not(.swiper-initialized) .swiper-slide:not(:first-of-type) {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .hero-zone {
   position: absolute;
   top: 45%;
@@ -156,19 +165,112 @@
   right: 0;
 }
 
-.hero__pagination-container {
-  margin-top: 12px;
-  z-index: 5;
-  display: flex !important;
+/* Під кнопкою в одній колонці з .hero__info; min-height + placeholder лишають місце до mount Swiper */
+.hero__pagination-slot {
+  position: relative;
+  flex-shrink: 0;
+  height: 28px;
+  min-height: 28px;
+  z-index: 6;
+  /* Той самий inset, що й у .hero__info — для absolute placeholder (left: 0 ігнорує padding батька) */
+  --hero-pagination-padding-start: clamp(16px, 5vw, 64px);
+  --hero-pagination-padding-end: 16px;
+  /* Swiper pagination.css очікує el всередині .swiper — інакше absolute/bottom/left/transform ламають потік */
+  --swiper-pagination-bottom: auto;
+  --swiper-pagination-top: auto;
+  --swiper-pagination-left: auto;
+  --swiper-pagination-right: auto;
+  box-sizing: border-box;
+  width: 100%;
+  padding-left: var(--hero-pagination-padding-start);
+  padding-right: var(--hero-pagination-padding-end);
+
+  @media (min-width: 1024px) {
+    max-width: 800px;
+    /* Відступ від CTA: стабільний при першому кадрі та після init Swiper */
+    margin-top: clamp(16px, 2.2vh, 22px);
+  }
+
+  @media (max-width: 1023px) {
+    margin-top: clamp(14px, 2vh, 20px);
+  }
+}
+
+.hero__pagination-placeholder {
+  position: absolute;
+  /* Не 0: інакше перший кадр — впритик до краю екрана, після init — як у тексту (CLS) */
+  left: var(--hero-pagination-padding-start);
+  top: 0;
+  z-index: 1;
+  display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.hero-pagination-placeholder-dash {
+  display: block;
+  width: 24px;
+  min-width: 24px;
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0.7;
+
+  &--active {
+    width: 48px;
+    min-width: 48px;
+    background: rgba(255, 255, 255, 0.35);
+    opacity: 1;
+  }
+}
+
+.hero__pagination-container {
+  position: relative;
+  z-index: 5;
+  margin: 0;
+  padding: 0 !important;
+  line-height: 0;
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
   width: auto;
   min-height: 28px;
 
+  /* Кастомний pagination el поза .swiper: скидаємо стилі з swiper/css/pagination */
+  &.swiper-pagination {
+    position: relative !important;
+    inset: auto !important;
+    bottom: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto !important;
+    transform: none !important;
+    text-align: start;
+  }
+
   &.swiper-pagination-horizontal {
-    width: auto;
+    width: auto !important;
+    left: auto !important;
+    transform: none !important;
+    padding: 0 !important;
+  }
+
+  &.swiper-pagination-bullets.swiper-pagination-horizontal {
+    width: auto !important;
+    left: auto !important;
+    transform: none !important;
+  }
+
+  &.swiper-pagination-horizontal.swiper-pagination-bullets-dynamic {
+    left: auto !important;
+    transform: none !important;
+    white-space: normal;
   }
 
   .swiper-pagination-bullet {
@@ -294,6 +396,7 @@
   }
 }
 
+/* Анімація лише transform (композитор), без left — інакше reflow щокадру, CLS + «non-composited animations» у Lighthouse */
 .preview__shine {
   display: none;
 
@@ -301,7 +404,7 @@
     display: block;
     position: absolute;
     top: 0;
-    left: -75%;
+    left: 0;
     width: 50%;
     height: 100%;
     background: linear-gradient(
@@ -310,18 +413,19 @@
       rgba(255, 255, 255, 0.2) 50%,
       transparent 100%
     );
-    transform: skewX(-20deg);
+    transform: skewX(-20deg) translateX(-150%);
     animation: shine 5s infinite;
     z-index: 3;
     pointer-events: none;
+    will-change: transform;
   }
 }
 
 @keyframes shine {
   0% {
-    left: -75%;
+    transform: skewX(-20deg) translateX(-150%);
   }
   100% {
-    left: 125%;
+    transform: skewX(-20deg) translateX(250%);
   }
 }

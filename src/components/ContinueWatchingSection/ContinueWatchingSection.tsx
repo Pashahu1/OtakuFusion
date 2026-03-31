@@ -128,8 +128,9 @@ export function ContinueWatchingSection() {
                       }
                       alt={item.title || item.japanese_title || 'Anime'}
                       fill
+                      quality={70}
                       className="object-cover object-center transition duration-300 group-hover:brightness-110"
-                      sizes="160px"
+                      sizes="(max-width: 640px) 130px, (max-width: 768px) 150px, 160px"
                     />
                     <div className="absolute inset-0 bg-white/0 transition duration-300 group-hover:bg-white/10" />
                     <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/90 to-transparent px-1.5 py-1">
@@ -138,7 +139,7 @@ export function ContinueWatchingSection() {
                       </span>
                     </div>
                     {item.adultContent && (
-                      <div className="absolute top-1 left-1 rounded bg-red-600 px-1.5 py-[1px] text-[10px] font-bold text-black">
+                      <div className="absolute top-1 left-1 rounded bg-red-700 px-1.5 py-[1px] text-[10px] font-bold text-white">
                         +18
                       </div>
                     )}
