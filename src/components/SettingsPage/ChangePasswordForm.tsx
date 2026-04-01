@@ -1,5 +1,7 @@
 'use client';
+
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export function ChangePasswordForm() {
   const [oldPassword, setOldPassword] = useState('');
@@ -108,7 +110,12 @@ export function ChangePasswordForm() {
       <button
         type="submit"
         disabled={isLoading}
-        className="h-[40px] bg-orange-500 hover:bg-orange-600 transition px-4 py-2 rounded-md text-white"
+        className={cn(
+          'mt-1 h-11 w-full touch-manipulation rounded-lg border border-transparent px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange-light)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-brand-gray)]',
+          isLoading
+            ? 'cursor-wait bg-[var(--color-brand-orange)] text-[var(--color-brand-text-primary)] opacity-90 shadow-md shadow-[var(--color-brand-orange-light)]/35'
+            : 'bg-[var(--color-brand-orange)] text-[var(--color-brand-text-primary)] shadow-md shadow-[var(--color-brand-orange-light)]/35 hover:bg-[var(--color-brand-orange-light)] active:scale-[0.99]',
+        )}
       >
         {isLoading ? 'Saving...' : 'Save changes'}
       </button>

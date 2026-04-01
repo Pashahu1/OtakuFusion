@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from '@/lib/toast';
+import { cn } from '@/lib/utils';
 
 const API_ERROR_FALLBACK = 'Something went wrong.';
 
@@ -33,8 +34,8 @@ export const ProfileHeader = () => {
   const router = useRouter();
 
   if (!user) return null;
-  const hasChanges = username !== user.username || avatarFile;
-  const isDisabled = isLoading || !hasChanges;
+  const hasChanges = username !== user.username || Boolean(avatarFile);
+  const saveDisabled = isLoading || !hasChanges;
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -155,18 +156,28 @@ export const ProfileHeader = () => {
             </span>
           </div>
         </div>
-        <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:flex-row-reverse sm:justify-start sm:gap-3">
           <button
             type="submit"
-            disabled={isDisabled}
-            className={`h-[40px] w-full rounded-lg font-semibold transition ${isDisabled ? 'cursor-not-allowed bg-zinc-700 text-zinc-400 opacity-50' : 'bg-[var(--color-brand-orange)] text-black hover:opacity-90'} `}
+            disabled={saveDisabled}
+            className={cn(
+              'h-11 w-full touch-manipulation rounded-lg px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange-light)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#141519] sm:min-w-[8.5rem] sm:flex-1',
+              isLoading &&
+                'cursor-wait border border-transparent bg-[var(--color-brand-orange)] text-[var(--color-brand-text-primary)] opacity-90 shadow-md shadow-[var(--color-brand-orange-light)]/35',
+              !isLoading &&
+                hasChanges &&
+                'border border-transparent bg-[var(--color-brand-orange)] text-[var(--color-brand-text-primary)] shadow-md shadow-[var(--color-brand-orange-light)]/35 hover:bg-[var(--color-brand-orange-light)] active:scale-[0.99]',
+              !isLoading &&
+                !hasChanges &&
+                'cursor-not-allowed border border-zinc-700/90 bg-transparent text-zinc-500 shadow-none hover:bg-transparent',
+            )}
           >
             {isLoading ? 'Saving...' : 'Save'}
           </button>
           <button
             type="button"
             onClick={handleCancel}
-            className="h-[40px] w-full rounded-lg bg-zinc-700 text-white transition hover:bg-zinc-600"
+            className="h-11 w-full touch-manipulation rounded-lg border border-zinc-600 bg-transparent px-4 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500 hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141519] sm:min-w-[8.5rem] sm:flex-1"
           >
             Cancel
           </button>

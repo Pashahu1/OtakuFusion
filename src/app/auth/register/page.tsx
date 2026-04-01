@@ -6,6 +6,10 @@ import { toast } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { RegisterPageFormSchema } from '@/shared/schemas/api';
+import { cn } from '@/lib/utils';
+
+const passwordToggleClassName =
+  'touch-manipulation shrink-0 rounded-md border border-zinc-600/70 bg-transparent px-2.5 py-2 text-xs font-semibold tracking-wide text-zinc-300 uppercase transition-colors hover:border-zinc-500 hover:bg-zinc-800/45 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40';
 
 type RegisterFieldKey = 'username' | 'email' | 'password' | 'confirm';
 
@@ -216,7 +220,8 @@ export default function RegisterPage() {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="touch-manipulation shrink-0 rounded-md px-2 py-2 text-xs font-medium tracking-wide text-zinc-400 uppercase transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none"
+            className={passwordToggleClassName}
+            aria-pressed={showPassword}
           >
             {showPassword ? 'HIDE' : 'SHOW'}
           </button>
@@ -245,7 +250,8 @@ export default function RegisterPage() {
           <button
             type="button"
             onClick={() => setShowConfirm((v) => !v)}
-            className="touch-manipulation shrink-0 rounded-md px-2 py-2 text-xs font-medium tracking-wide text-zinc-400 uppercase transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none"
+            className={passwordToggleClassName}
+            aria-pressed={showConfirm}
           >
             {showConfirm ? 'HIDE' : 'SHOW'}
           </button>
@@ -255,17 +261,24 @@ export default function RegisterPage() {
       <button
         type="submit"
         disabled={loading}
-        className="mt-4 h-11 rounded-lg bg-[var(--color-brand-orange)] py-3 font-semibold text-[var(--color-brand-text-primary)] shadow-md shadow-[var(--color-brand-orange-light)]/35 transition-colors hover:bg-[var(--color-brand-orange-light)] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange-light)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111111] focus-visible:outline-none disabled:opacity-60 active:enabled:scale-[0.99]"
+        className={cn(
+          'mt-4 h-11 w-full touch-manipulation rounded-lg border border-transparent px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange-light)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111111]',
+          loading
+            ? 'cursor-wait bg-[var(--color-brand-orange)] text-[var(--color-brand-text-primary)] opacity-90 shadow-md shadow-[var(--color-brand-orange-light)]/35'
+            : 'bg-[var(--color-brand-orange)] text-[var(--color-brand-text-primary)] shadow-md shadow-[var(--color-brand-orange-light)]/35 hover:bg-[var(--color-brand-orange-light)] active:scale-[0.99]',
+        )}
       >
         {loading ? 'Loading...' : 'Register'}
       </button>
 
-      <a
-        href="/auth/login"
-        className="mt-5 text-center text-sm text-zinc-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none"
-      >
-        Already have an account?
-      </a>
+      <p className="mt-5 text-center text-sm text-zinc-500">
+        <a
+          href="/auth/login"
+          className="rounded-md px-2 py-1 font-medium text-zinc-300 underline-offset-4 transition-colors hover:text-[var(--color-brand-orange-light)] hover:underline focus-visible:text-[var(--color-brand-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/45"
+        >
+          Already have an account?
+        </a>
+      </p>
     </form>
   );
 }

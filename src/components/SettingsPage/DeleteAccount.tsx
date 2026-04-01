@@ -1,11 +1,11 @@
 'use client';
+
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export function DeleteAccount() {
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleDelete = async () => {
     try {
@@ -30,69 +30,62 @@ export function DeleteAccount() {
 
   return (
     <div
-      className="
-    flex flex-col gap-5 p-6
-    bg-[#1d1f24]/80 backdrop-blur-md
-    rounded-xl border border-red-500/20
-    shadow-[0_8px_30px_rgba(255,0,0,0.15)]
-    transition-all duration-300
-  "
+      className={cn(
+        'rounded-2xl border border-red-500/20 bg-[#141519] p-5 sm:p-6',
+        'shadow-[0_0_0_1px_rgba(239,68,68,0.06),0_12px_40px_-12px_rgba(0,0,0,0.5)]',
+        'ring-1 ring-inset ring-white/[0.03]',
+      )}
     >
-      <h2 className="text-2xl font-semibold text-red-400 tracking-wide">
+      <h3
+        id="delete-account-title"
+        className="text-lg font-semibold tracking-tight text-red-400 sm:text-xl"
+      >
         Delete Account
-      </h2>
+      </h3>
 
-      <p className="text-sm text-white/70 leading-relaxed">
+      <p className="mt-3 text-sm leading-relaxed text-zinc-400">
         This action is{' '}
-        <span className="text-red-400 font-semibold">permanent</span>. Your
+        <span className="font-semibold text-red-400/95">permanent</span>. Your
         account and all associated data will be removed.
       </p>
 
       {!confirm ? (
         <button
+          type="button"
           onClick={() => setConfirm(true)}
-          className="
-          h-[40px] w-full rounded-md font-medium
-          bg-red-600/90 hover:bg-red-600
-          text-white shadow-[0_4px_15px_rgba(255,0,0,0.3)]
-          transition-all duration-200
-          hover:shadow-[0_6px_20px_rgba(255,0,0,0.45)]
-        "
+          className="mt-5 h-11 w-full touch-manipulation rounded-lg border-2 border-red-500/50 bg-transparent px-4 text-sm font-semibold text-red-400 transition-colors hover:border-red-500 hover:bg-red-950/40 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141519]"
         >
           Delete my account
         </button>
       ) : (
-        <div className="flex flex-col gap-4 mt-2">
-          <p className="text-white/80 text-[15px]">
+        <div
+          className="mt-5 flex flex-col gap-4 border-t border-red-500/15 pt-5"
+          role="region"
+          aria-live="polite"
+        >
+          <p className="text-[15px] leading-snug text-zinc-200">
             Are you absolutely sure you want to delete your account?
           </p>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:gap-3">
+          <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:flex-row-reverse sm:justify-start sm:gap-3">
             <button
+              type="button"
               onClick={handleDelete}
               disabled={loading}
-              className="
-              h-11 w-full rounded-md font-medium sm:h-10 sm:w-[120px]
-              bg-red-600 hover:bg-red-700
-              text-white
-              disabled:opacity-50
-              shadow-[0_4px_15px_rgba(255,0,0,0.3)]
-              hover:shadow-[0_6px_20px_rgba(255,0,0,0.45)]
-              transition-all duration-200
-            "
+              className={cn(
+                'h-11 w-full touch-manipulation rounded-lg border border-transparent px-4 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141519] sm:min-w-[9.5rem] sm:flex-1',
+                loading
+                  ? 'cursor-wait bg-red-600 opacity-90'
+                  : 'bg-red-600 hover:bg-red-700 active:scale-[0.99]',
+              )}
             >
               {loading ? 'Deleting...' : 'Yes, delete'}
             </button>
-
             <button
+              type="button"
               onClick={() => setConfirm(false)}
-              className="
-              h-11 w-full rounded-md font-medium sm:h-10 sm:w-[70px]
-              bg-gray-600/80 hover:bg-gray-600
-              text-white
-              shadow-[0_4px_15px_rgba(0,0,0,0.25)]
-              transition-all duration-200
-            "
+              disabled={loading}
+              className="h-11 w-full touch-manipulation rounded-lg border border-zinc-600 bg-transparent px-4 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500 hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141519] disabled:opacity-50 sm:min-w-[8.5rem] sm:flex-1"
             >
               Cancel
             </button>
