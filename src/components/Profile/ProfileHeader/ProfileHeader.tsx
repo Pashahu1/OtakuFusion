@@ -1,6 +1,7 @@
 'use client';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from '@/lib/toast';
@@ -103,32 +104,54 @@ export const ProfileHeader = () => {
     router.push('/');
   };
 
+  const verifyEmailHref = `/auth/verification/verify-email?email=${encodeURIComponent(user.email)}`;
+
   return (
     <div className="mt-[60px] flex w-full flex-col items-center gap-6 py-10 sm:py-20 lg:max-w-[500px]">
       <h1 className="text-2xl font-semibold text-white sm:text-3xl">
         Edit Profile
       </h1>
+      {!user.isVerified && (
+        <div
+          className="flex w-full flex-col gap-3 rounded-2xl border border-amber-600/40 bg-amber-950/30 px-4 py-3 text-sm text-zinc-200 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+          role="status"
+        >
+          <p className="text-pretty text-zinc-300">
+            Your email is not verified. Some features may be limited until you
+            confirm your address.
+          </p>
+          <Link
+            href={verifyEmailHref}
+            className="shrink-0 rounded-lg bg-[var(--color-brand-orange)] px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-[var(--color-brand-text-primary)] shadow-md shadow-[var(--color-brand-orange-light)]/30 transition hover:bg-[var(--color-brand-orange-light)]"
+          >
+            Verify email
+          </Link>
+        </div>
+      )}
       <form
         onSubmit={handleSave}
         className="flex w-full flex-col gap-6 rounded-[30px]"
       >
         <div className="flex flex-col gap-6 rounded-[20px] border border-zinc-800 bg-[#141519] px-5 py-6 shadow-lg sm:px-10 sm:py-8 md:px-[40px] md:py-[30px]">
-          <div className="relative flex flex-col items-center justify-center gap-2 text-center">
-            <Avatar className="relative flex h-[80px] w-[80px] items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-black">
-              <AvatarImage
-                className="h-full w-full cursor-pointer object-cover"
-                src={preview || user.avatar}
+          <div className="flex flex-col items-center justify-center gap-2 text-center">
+            <div className="relative mx-auto h-20 w-20 shrink-0 cursor-pointer rounded-full">
+              <Avatar className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-black">
+                <AvatarImage
+                  className="pointer-events-none h-full w-full object-cover"
+                  src={preview || user.avatar}
+                />
+                <AvatarFallback className="text-xl text-white">
+                  {user?.email?.[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <input
+                type="file"
+                accept="image/*"
+                aria-label="Change profile photo"
+                className="absolute inset-0 z-10 h-full w-full cursor-pointer rounded-full opacity-0"
+                onChange={handleAvatarChange}
               />
-              <AvatarFallback className="text-xl text-white">
-                {user?.email?.[0]?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <input
-              className="absolute h-[80px] w-[80px] cursor-pointer opacity-0"
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-            />
+            </div>
           </div>
           <label className="flex flex-col gap-2 text-left">
             <span className="text-sm text-zinc-400">Profile Name</span>

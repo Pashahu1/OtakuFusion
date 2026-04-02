@@ -1,14 +1,15 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { Loader2 } from 'lucide-react';
 import { getNextEpisodesAnime } from '@/services/getNextEpisodesAnime';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import type { ScheduleAnime } from '@/shared/types/GlobalAnimeTypes';
 import { AnimeCalendarComponent as AnimeCalendar } from '@/components/AnimeCalendar/AnimeCalendar';
 import { ErrorState } from '@/components/ui/states/ErrorState';
 import { normalizeError } from '@/lib/errors/normalizeError';
-import { EmptyState } from '@/components/ui/states/EmptyState';
+import { toast } from '@/lib/toast';
 
 const timeZone = 'Europe/Kyiv';
 const now = new Date();
@@ -23,6 +24,10 @@ export default function SchedulePage() {
   const [error, setError] = useState<ReturnType<typeof normalizeError> | null>(
     null
   );
+  /** After the first completed request — overlay instead of full-page loader */
+  const [hasCompletedInitialFetch, setHasCompletedInitialFetch] =
+    useState(false);
+  const fetchCompletedOnceRef = useRef(false);
 
   const handleDateChange = useCallback(
     ({ year, month, day }: { year: number; month: number; day: number }) => {
@@ -46,41 +51,78 @@ export default function SchedulePage() {
   });
 
   useEffect(() => {
+    setIsLoading(true);
+    setError(null);
+
     const fetchScheduleAnime = async () => {
-      setIsLoading(true);
       try {
         const res = await getNextEpisodesAnime(selectedDate);
         setEvents(res);
       } catch (err) {
         const normalizedError = normalizeError(err);
-        setEvents([]);
-        setError(normalizedError);
         console.error('failed data fetching schedule anime', err);
+        if (fetchCompletedOnceRef.current) {
+          toast.error(
+            normalizedError.message ??
+              'Could not load the schedule for this day.'
+          );
+        } else {
+          setEvents([]);
+          setError(normalizedError);
+        }
       } finally {
         setIsLoading(false);
+        fetchCompletedOnceRef.current = true;
+        setHasCompletedInitialFetch(true);
       }
     };
-    fetchScheduleAnime();
+
+    void fetchScheduleAnime();
   }, [selectedDate]);
 
-  if (isLoading) return <InitialLoader />;
+  if (!hasCompletedInitialFetch && isLoading) {
+    return <InitialLoader />;
+  }
 
   if (error) {
     return <ErrorState fullPage message="Failed to load schedule." />;
   }
 
-  if (!Array.isArray(events) || events.length === 0) {
-    return <EmptyState fullPage message="No releases today" />;
-  }
+  const showCalendarOverlay = isLoading && hasCompletedInitialFetch;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="mt-[60px] w-full overflow-x-auto px-2 pb-6 sm:px-4">
-        <AnimeCalendar
-          selectedDate={selectedDate}
-          events={event}
-          onDateChange={handleDateChange}
-        />
+    <div className="flex min-h-screen w-full flex-col">
+      <div className="flex flex-1 flex-col items-center px-3 pb-10 pt-[76px] sm:px-5 sm:pt-[92px] lg:px-10 lg:pt-[108px]">
+        <div className="relative w-full overflow-x-auto">
+          <AnimeCalendar
+            selectedDate={selectedDate}
+            events={event}
+            onDateChange={handleDateChange}
+          />
+          {showCalendarOverlay ? (
+            <div
+              className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--color-brand-gray)]/60 backdrop-blur-[2px] transition-opacity duration-200"
+              aria-busy="true"
+              aria-live="polite"
+              role="status"
+            >
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-zinc-600/80 bg-zinc-900/95 px-8 py-6 shadow-xl">
+                <Loader2
+                  className="h-9 w-9 shrink-0 animate-spin text-[var(--color-brand-orange)]"
+                  aria-hidden
+                />
+                <span className="text-xs font-medium tracking-wide text-zinc-400">
+                  Updating schedule…
+                </span>
+              </div>
+            </div>
+          ) : null}
+        </div>
+        {!isLoading && events.length === 0 ? (
+          <p className="mt-6 max-w-md text-center text-sm text-zinc-400">
+            No releases on this day — pick another date in the calendar.
+          </p>
+        ) : null}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ export type User = {
   email: string;
   role: string;
   avatar?: string | null;
+  isVerified?: boolean;
 };
 
 type UserMenuProps = {
@@ -29,6 +30,7 @@ export function UserMenu({ user }: UserMenuProps) {
   const handleLogout = async () => {
     try {
       setLoading(true);
+      close();
       await logout();
       router.push('/auth/login');
     } finally {
@@ -53,7 +55,9 @@ export function UserMenu({ user }: UserMenuProps) {
       {isOpen && (
         <div
           ref={menuRef}
+          role="menu"
           className="absolute top-0 right-0 translate-y-[60px] w-full bg-[#141519] md:max-w-[400px] bg-[#141519] border border-zinc-800"
+          onClick={(e) => e.stopPropagation()}
         >
           <div
             className="
@@ -74,8 +78,18 @@ export function UserMenu({ user }: UserMenuProps) {
               <AvatarFallback>{user?.email?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
 
-            <div className="flex flex-col">
-              <span className="text-white font-medium">{user.username}</span>
+            <div className="flex flex-col gap-0.5">
+              <span className="flex flex-wrap items-center gap-2 text-white font-medium">
+                {user.username}
+                {user.isVerified ? (
+                  <span
+                    className="inline-flex items-center rounded-full border border-emerald-600/50 bg-emerald-950/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400"
+                    title="Email verified"
+                  >
+                    Verified
+                  </span>
+                ) : null}
+              </span>
               <span className="text-zinc-400 text-sm">{user.email}</span>
             </div>
           </div>

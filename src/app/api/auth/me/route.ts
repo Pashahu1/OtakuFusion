@@ -4,6 +4,10 @@ import jwt from 'jsonwebtoken';
 import User from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { env } from '@/lib/env';
+import {
+  type SessionUserDoc,
+  userToClientPayload,
+} from '@/lib/auth-session-response';
 export async function GET() {
   await connectDB();
 
@@ -28,7 +32,9 @@ export async function GET() {
       return NextResponse.json({ user: null });
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({
+      user: userToClientPayload(user as unknown as SessionUserDoc),
+    });
   } catch {
     return NextResponse.json({ user: null });
   }

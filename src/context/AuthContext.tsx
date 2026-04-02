@@ -28,6 +28,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -79,6 +80,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(false);
   };
 
+  const refreshUser = async () => {
+    try {
+      const res = await fetchWithRefresh('/api/auth/me', {
+        credentials: 'include',
+      });
+      const data = (await res.json()) as { user?: User | null };
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
+      setUser(data.user ?? null);
+    } catch {
+      setUser(null);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -88,6 +105,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isLoading,
         login,
         logout,
+        refreshUser,
       }}
     >
       {children}
