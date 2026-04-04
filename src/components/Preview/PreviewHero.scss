@@ -128,6 +128,45 @@
   }
 }
 
+/* Планшет (768–1023px): той самий вертикальний hero, що й на телефоні, але зручніше читати й більший «текстовий» блок */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero__content::before {
+    width: min(78%, 720px);
+    max-width: none;
+  }
+
+  .hero__info {
+    padding-left: clamp(24px, 5vw, 56px);
+    padding-right: clamp(24px, 4vw, 40px);
+  }
+
+  .hero__title {
+    font-size: clamp(2.35rem, 4.8vw, 3.1rem);
+  }
+
+  .hero__meta,
+  .hero__description {
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .hero__description {
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+  }
+
+  .hero__pagination-slot {
+    --hero-pagination-padding-start: clamp(24px, 5vw, 56px);
+    --hero-pagination-padding-end: clamp(24px, 4vw, 40px);
+    margin-top: clamp(18px, 2.2vh, 26px);
+  }
+
+  .hero-zone {
+    width: 72px;
+    height: 72px;
+  }
+}
+
 .hero__slider {
   height: 100%;
   overflow: hidden;
@@ -172,6 +211,8 @@
   height: 28px;
   min-height: 28px;
   z-index: 6;
+  box-sizing: border-box;
+  width: 100%;
   /* Той самий inset, що й у .hero__info — для absolute placeholder (left: 0 ігнорує padding батька) */
   --hero-pagination-padding-start: clamp(16px, 5vw, 64px);
   --hero-pagination-padding-end: 16px;
@@ -180,8 +221,6 @@
   --swiper-pagination-top: auto;
   --swiper-pagination-left: auto;
   --swiper-pagination-right: auto;
-  box-sizing: border-box;
-  width: 100%;
   padding-left: var(--hero-pagination-padding-start);
   padding-right: var(--hero-pagination-padding-end);
 

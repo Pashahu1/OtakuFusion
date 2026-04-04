@@ -7,7 +7,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Convertor } from '@/helper/Convertor';
-import { z } from 'zod';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -17,19 +16,11 @@ import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry
 const STORAGE_KEY = 'continueWatching';
 const MAX_ITEMS = 12;
 
-const ContinueWatchingEntrySchema = z.object({
-  id: z.union([z.string(), z.null(), z.undefined()]),
-  data_id: z
-    .union([z.number(), z.string()])
-    .transform((v) => (typeof v === 'string' ? Number(v) : v)),
-  episodeId: z.union([z.string(), z.null(), z.undefined()]),
-  episodeNum: z.number().nullable().optional(),
-  poster: z.string().optional(),
-  title: z.string().optional(),
-  japanese_title: z.string().optional(),
-  adultContent: z.boolean().optional(),
-});
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
 
+/** Легка валідація без Zod — інакше ~90 KiB zod у клієнтському чанку головної (TBT). */
 function parseContinueWatchingList(
   raw: string | null
 ): ContinueWatchingEntry[] {
@@ -39,26 +30,40 @@ function parseContinueWatchingList(
 
     const valid: ContinueWatchingEntry[] = [];
     for (const item of parsed) {
-      const result = ContinueWatchingEntrySchema.safeParse(item);
-      if (!result.success) continue;
-      const e = result.data;
-      if (
-        typeof e.id === 'string' &&
-        e.id !== '' &&
-        typeof e.episodeId === 'string' &&
-        e.episodeId !== ''
-      ) {
-        valid.push({
-          id: e.id,
-          data_id: e.data_id,
-          episodeId: e.episodeId,
-          episodeNum: e.episodeNum ?? undefined,
-          poster: e.poster,
-          title: e.title,
-          japanese_title: e.japanese_title,
-          adultContent: e.adultContent,
-        });
+      if (!isRecord(item)) continue;
+
+      const id = item.id;
+      const episodeId = item.episodeId;
+      if (typeof id !== 'string' || id === '' || typeof episodeId !== 'string' || episodeId === '') {
+        continue;
       }
+
+      const rawDataId = item.data_id;
+      const data_id =
+        typeof rawDataId === 'number'
+          ? rawDataId
+          : typeof rawDataId === 'string'
+            ? Number(rawDataId)
+            : NaN;
+      if (!Number.isFinite(data_id)) continue;
+
+      const episodeNum =
+        typeof item.episodeNum === 'number' ? item.episodeNum : undefined;
+
+      valid.push({
+        id,
+        data_id,
+        episodeId,
+        episodeNum,
+        poster: typeof item.poster === 'string' ? item.poster : undefined,
+        title: typeof item.title === 'string' ? item.title : undefined,
+        japanese_title:
+          typeof item.japanese_title === 'string'
+            ? item.japanese_title
+            : undefined,
+        adultContent:
+          typeof item.adultContent === 'boolean' ? item.adultContent : undefined,
+      });
     }
     return valid.slice(-MAX_ITEMS).reverse();
   } catch {

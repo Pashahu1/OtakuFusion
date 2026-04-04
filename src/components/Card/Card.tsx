@@ -10,6 +10,10 @@ import { cn } from '@/lib/utils';
 
 interface CardProps {
   anime: AnimeInfo;
+  /** Для `sizes` у next/image: у каруселі (SwiperCard) ширина `clamp(140px, 22vw, 310px)`, не 50vw — інакше зайві ~100–150 KiB на ряд. */
+  posterSizes?: string;
+  /** У рядку каруселі можна нижче за сітку (менший файл, Lighthouse). */
+  posterQuality?: number;
 }
 
 const iconRow =
@@ -17,7 +21,14 @@ const iconRow =
 
 const metaIconClass = 'h-2.5 w-2.5 shrink-0 text-zinc-200 sm:h-3 sm:w-3';
 
-export function Card({ anime }: CardProps) {
+const DEFAULT_POSTER_SIZES =
+  '(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 20vw, 13vw';
+
+export function Card({
+  anime,
+  posterSizes = DEFAULT_POSTER_SIZES,
+  posterQuality = 65,
+}: CardProps) {
   const tv = anime.tvInfo;
   const episodeCountRaw = tv?.sub?.trim() ?? '';
   const looksLikeEpisodeCount = /^\d+(\.\d+)?$/.test(episodeCountRaw);
@@ -70,9 +81,9 @@ export function Card({ anime }: CardProps) {
             src={anime.poster ? Convertor(anime.poster) : '/sukuna-error.jpg'}
             alt=""
             fill
-            quality={70}
+            quality={posterQuality}
             className="object-cover object-center"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
+            sizes={posterSizes}
             aria-hidden
           />
 

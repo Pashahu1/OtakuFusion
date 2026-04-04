@@ -4,7 +4,6 @@
     "@types/crypto-js": "^4.2.2",
     "@types/hls.js": "^0.13.3",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/lodash.throttle": "^4.1.9",
     "@types/node": "^22.15.29",
     "@types/nodemailer": "^7.0.4",
     "@types/react": "^19.1.6",
@@ -39,8 +38,6 @@
     "hls.js": "^1.6.4",
     "jose": "^6.2.2",
     "jsonwebtoken": "^9.0.3",
-    "lodash": "^4.17.21",
-    "lodash.throttle": "^4.1.1",
     "lucide-react": "^0.511.0",
     "mongoose": "^9.1.2",
     "next": "^16.1.1",
@@ -58,10 +55,10 @@
     "zod": "^4.3.6"
   },
   "browserslist": [
-    "chrome >= 92",
-    "edge >= 92",
-    "firefox >= 90",
-    "safari >= 15.4"
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 111",
+    "safari >= 16.4"
   ],
   "scripts": {
     "dev": "next dev",

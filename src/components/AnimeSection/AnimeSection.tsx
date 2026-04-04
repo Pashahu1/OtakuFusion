@@ -1,6 +1,5 @@
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { Card } from '../Card/Card';
-import { isArray } from 'lodash';
 import { EmptyState } from '../ui/states/EmptyState';
 
 type Props = {
@@ -9,7 +8,7 @@ type Props = {
 };
 
 export const AnimeSection = ({ title, catalog }: Props) => {
-  if (!isArray(catalog)) {
+  if (!Array.isArray(catalog)) {
     return null;
   }
 

@@ -80,7 +80,10 @@ export default function RootLayout({
   return (
     <html className="dark" lang="en" suppressHydrationWarning>
       <head>
-        {/* Без preconnect до CDN: next/image тягне через /_next/image на origin — прямого з’єднання браузер→CDN часто нема, Lighthouse маркує як unused */}
+        {/*
+          Preconnect до CDN майже не дає виграшу для next/image: браузер качає з origin (`/_next/image`), а апстрим тягне сервер.
+          Render-blocking CSS: у production увімкнено `experimental.inlineCss` у next.config (у `next dev` лишаються окремі .css чанки — це норма).
+        */}
       </head>
       <body
         className={`${montserrat.className} ${rubik.className} ${playfair.variable}`}

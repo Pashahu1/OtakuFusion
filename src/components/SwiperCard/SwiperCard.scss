@@ -23,6 +23,11 @@
   &:has(a:hover) {
     z-index: 20;
   }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    width: clamp(152px, 26vw, 300px);
+    min-width: 152px;
+  }
 }
 
 /* До ініціалізації Swiper не ставить margin між слайдами (spaceBetween лише з JS) — FOUC «зліплені» картки. Значення = SPACING_BETWEEN_SLIDES у SwiperCard.tsx */

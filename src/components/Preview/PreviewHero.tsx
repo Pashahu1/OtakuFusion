@@ -172,12 +172,13 @@ export const Preview = ({ spotlights, trending }: Props) => {
                     alt={anime.title}
                     fill
                     sizes="100vw"
+                    priority={index === 0}
                     className="object-cover object-center brightness-75 contrast-110"
                     decoding="async"
                     fetchPriority={index === 0 ? 'high' : 'auto'}
                     loading={index === 0 ? 'eager' : 'lazy'}
-                    /* LCP: перший слайд трохи якісніше; решта — менший ваговий бюджет (Lighthouse image delivery) */
-                    quality={index === 0 ? 70 : 62}
+                    /* LCP: перший кадр ще прийнятний візуально; інші слайди — мінімум байтів (fade не показує їх одразу) */
+                    quality={index === 0 ? 58 : 52}
                   />
                   <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="preview__shine" />
@@ -230,7 +231,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
           </div>
         </div>
       </div>
-      <div className="relative isolate z-10 mt-[40px] flex flex-col gap-[20px] md:mt-[-60px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
+      <div className="relative isolate z-10 mt-[40px] flex flex-col gap-[20px] md:mt-[-80px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
         {safeTrending.length === 0 ? (
           <EmptyState
             title="No trending anime"

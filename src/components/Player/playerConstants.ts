@@ -1,4 +1,9 @@
-import { publicEnv } from '@/lib/env.public';
+/** Без `@/lib/env.public` (Zod) — інакше весь zod тягнеться в клієнтський бандл плеєра. */
+function readPublicOptional(key: string): string {
+  if (typeof process === 'undefined') return '';
+  const v = process.env[key];
+  return typeof v === 'string' ? v.trim() : '';
+}
 
 export const KEY_CODES = {
   M: 'm',
@@ -14,8 +19,10 @@ export const KEY_CODES = {
 
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
 
-export const PROXY_URL = publicEnv.NEXT_PUBLIC_PROXY_URL ?? '';
-export const M3U8_PROXY_URL = publicEnv.NEXT_PUBLIC_M3U8_PROXY_URL ?? '';
+export const PROXY_URL = readPublicOptional('NEXT_PUBLIC_PROXY_URL');
+export const M3U8_PROXY_URL = readPublicOptional(
+  'NEXT_PUBLIC_M3U8_PROXY_URL',
+);
 
 export const DEFAULT_REFERER = 'https://megacloud.club/';
 export const PLAYER_THEME_COLOR = '#ff640a';
