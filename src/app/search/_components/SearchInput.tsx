@@ -23,14 +23,16 @@ export function SearchInput({ initialValue }: { initialValue: string }) {
 
   return (
     <div className="mt-[60px] flex w-full justify-center bg-[#141519] px-4 py-6 sm:px-8 sm:py-8">
-      <input
-        type="text"
-        placeholder="Search..."
-        autoFocus
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="mx-auto h-11 w-full max-w-[880px] border-b border-zinc-500 bg-transparent px-2.5 text-white placeholder:text-zinc-500 focus:border-zinc-300 focus:outline-none sm:h-[50px]"
-      />
+      <div className="mx-auto w-full max-w-[880px] border-b-2 border-zinc-600 transition-[border-color] duration-200 ease-out focus-within:border-[var(--color-brand-orange)]">
+        <input
+          type="text"
+          placeholder="Search..."
+          autoFocus
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="h-11 w-full border-0 bg-transparent px-2.5 pb-1 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0 sm:h-[50px]"
+        />
+      </div>
     </div>
   );
 }

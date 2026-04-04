@@ -2,9 +2,26 @@
 import Link from 'next/link';
 import './Footer.scss';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { WEBSITE_NAME } from '@/config/website';
+import { useAuth } from '@/context/AuthContext';
 
 export const Footer = () => {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setLogoutLoading(true);
+      await logout();
+      router.push('/auth/login');
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
+
   return (
     <footer className="footer">
       <div className="footer__content">
@@ -80,12 +97,36 @@ export const Footer = () => {
         <div className="footer__loggin">
           <h2>Account</h2>
           <div className="footer__information">
-            <Link className="footer__link" href="/auth/register">
-              Create Account
-            </Link>
-            <Link className="footer__link" href="/auth/login">
-              Log In
-            </Link>
+            {user ? (
+              <>
+                <Link className="footer__link" href="/profile/manage">
+                  Profile
+                </Link>
+                <Link className="footer__link" href="/profile/preferences">
+                  Settings
+                </Link>
+                <Link className="footer__link" href="/profile/favorites">
+                  Wish List
+                </Link>
+                <button
+                  type="button"
+                  className="footer__link"
+                  disabled={logoutLoading}
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link className="footer__link" href="/auth/register">
+                  Create Account
+                </Link>
+                <Link className="footer__link" href="/auth/login">
+                  Log In
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

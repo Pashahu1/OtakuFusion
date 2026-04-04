@@ -51,6 +51,20 @@
     padding: 1.125rem;
   }
 
+  button.footer__link {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    color: #dadada;
+    text-align: left;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
   @include respond(tablet) {
     justify-content: center;
     align-items: center;

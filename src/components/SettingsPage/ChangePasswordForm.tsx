@@ -68,7 +68,7 @@ export function ChangePasswordForm() {
   return (
     <form
       onSubmit={handleChangePassword}
-      className="flex flex-col gap-4 w-full"
+      className="flex flex-col gap-1 w-full"
     >
       <h2 className="text-xl font-semibold">Change Password</h2>
       {error && <p className="text-red-400">{error}</p>}
