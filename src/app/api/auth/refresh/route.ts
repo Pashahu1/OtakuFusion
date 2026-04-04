@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { env } from '@/lib/env';
+import { authSessionCookieDefaults } from '@/lib/auth-cookie-options';
 import { jsonMessage } from '@/lib/http';
 
 export const runtime = 'nodejs';
@@ -52,10 +53,7 @@ export async function POST() {
   const response = NextResponse.json({ message: 'Refreshed' });
 
   response.cookies.set('accessToken', newAccessToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'strict',
-    path: '/',
+    ...authSessionCookieDefaults,
     maxAge: 60 * 15,
   });
 

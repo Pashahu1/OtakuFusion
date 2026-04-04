@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return jsonMessage('Invalid email or password.', 404);
+      return jsonMessage('Invalid email or password.', 401);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

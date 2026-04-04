@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { env } from '@/lib/env';
+import { authSessionCookieDefaults } from '@/lib/auth-cookie-options';
 
 export interface SessionUserDoc {
   _id: { toString(): string };
@@ -55,18 +56,12 @@ export async function createSessionResponse(
   );
 
   response.cookies.set('accessToken', accessToken, {
-    httpOnly: true,
-    secure: true,
-    path: '/',
-    sameSite: 'strict',
+    ...authSessionCookieDefaults,
     maxAge: 60 * 15,
   });
 
   response.cookies.set('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: true,
-    path: '/',
-    sameSite: 'strict',
+    ...authSessionCookieDefaults,
     maxAge: 60 * 60 * 24 * 7,
   });
 
