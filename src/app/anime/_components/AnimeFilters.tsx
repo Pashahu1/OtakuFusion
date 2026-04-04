@@ -15,7 +15,7 @@ export function AnimeFilters({ selected }: { selected: string }) {
   };
 
   return (
-    <div className="mb-10 grid grid-cols-2 gap-[20px] px-4 md:grid-cols-3 lg:grid-cols-4 lg:px-10 xl:grid-cols-6">
+    <div className="mb-10 grid w-full grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 md:gap-4 lg:grid-cols-5 xl:grid-cols-6">
       {categoryes.map((cat, idx) => (
         <button
           className={`h-[50px] rounded-md transition-colors ${

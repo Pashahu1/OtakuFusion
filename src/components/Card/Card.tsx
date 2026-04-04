@@ -21,8 +21,9 @@ const iconRow =
 
 const metaIconClass = 'h-2.5 w-2.5 shrink-0 text-zinc-200 sm:h-3 sm:w-3';
 
+/** Узгоджено з сіткою AnimeListLayout / AnimeSection: 2 / 3 / 4 / 6 / 8 колонок. */
 const DEFAULT_POSTER_SIZES =
-  '(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 20vw, 13vw';
+  '(min-width: 1280px) 13vw, (min-width: 1024px) 17vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw';
 
 export function Card({
   anime,

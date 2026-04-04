@@ -13,7 +13,7 @@ export default async function AnimePage({
   const currentCategory = parsedParams.category || 'most-favorite';
 
   return (
-    <div className="mt-[80px] px-4 lg:px-10">
+    <div className="mt-[80px] px-4 md:px-6 lg:px-10">
       <AnimeFilters selected={currentCategory} />
       <Suspense
         key={currentCategory + currentPage}

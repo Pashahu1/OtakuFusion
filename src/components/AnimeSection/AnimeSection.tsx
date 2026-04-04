@@ -21,7 +21,7 @@ export const AnimeSection = ({ title, catalog }: Props) => {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-title text-brand-text-primary">{title}</h2>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 sm:gap-4 md:gap-5">
         {catalog.map((anime) => (
           <Card key={anime.id} anime={anime} />
         ))}
