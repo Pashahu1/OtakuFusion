@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useId } from 'react';
 import { Player } from '../Player/Player';
 import { BouncingLoader } from '../ui/Bouncingloader/Bouncingloader';
@@ -88,10 +89,12 @@ export const WatchPlayerContent = ({
 
         {showErrorBlock && isErrorState && (
           <div className="bg-opacity-50 absolute inset-0 flex flex-col items-center justify-center bg-black text-center">
-            <img
+            <Image
               src="/gojo-player.png"
               alt=""
-              className="w-[100px]"
+              width={100}
+              height={100}
+              className="h-auto w-[100px]"
               role="presentation"
             />
             <span>Servers now is not Available</span>
