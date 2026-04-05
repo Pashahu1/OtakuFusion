@@ -1,5 +1,6 @@
 'use client';
 
+import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { fetchWithRefresh } from '@/lib/fetchWithRefresh';
 import { createContext, useContext, useEffect, useState } from 'react';
 
@@ -108,7 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         refreshUser,
       }}
     >
-      {children}
+      {isLoading ? <InitialLoader /> : children}
     </AuthContext.Provider>
   );
 };

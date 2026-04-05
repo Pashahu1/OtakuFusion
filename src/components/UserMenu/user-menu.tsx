@@ -41,7 +41,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
   return (
     <div
-      className="flex items-center px-5 lg:hover:bg-black h-full cursor-pointer transition-colors"
+      className="flex h-full cursor-pointer items-center px-5 transition-colors lg:hover:bg-[#141519]"
       onClick={toggle}
       ref={triggerRef}
       role="button"
