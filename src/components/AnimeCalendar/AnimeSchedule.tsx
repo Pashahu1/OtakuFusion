@@ -1,17 +1,17 @@
 'use client';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { format, isSameDay } from 'date-fns';
 import './AnimeCalendar.scss';
 import { useRouter } from 'next/navigation';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { cn } from '@/lib/utils';
 
-/** Фіксовані мітки доби кожні 4 год (00→20); слот 20:00 покриває 20:00–24:00 */
 const TIME_SLOT_STARTS_HOUR = [0, 4, 8, 12, 16, 20] as const;
 
 function slotStartForHour(hour: number): number {
   return Math.floor(hour / 4) * 4;
 }
 
-/** Підпис слота: 08:00 – 12:00 … останній 20:00 – 24:00 */
 function formatSlotRangeLabel(startHour: number): string {
   const start = `${String(startHour).padStart(2, '0')}:00`;
   if (startHour >= 20) return `${start} – 24:00`;
@@ -45,6 +45,7 @@ export const AnimeSchedule: React.FC<Props> = ({
   onDateChange,
 }) => {
   const route = useRouter();
+  const isWeekGrid = useMediaQuery('(min-width: 1024px)', false);
 
   const selected = new Date(selectedDate);
   const weekStart = startOfWeekMonday(selected);
@@ -55,37 +56,105 @@ export const AnimeSchedule: React.FC<Props> = ({
     return d;
   });
 
+  const foundDayIndex = days.findIndex(
+    (d) => format(d, 'yyyy-MM-dd') === selectedDate
+  );
+  const selectedDayIndex = foundDayIndex === -1 ? 0 : foundDayIndex;
+
   const handleSelectEvent = (event: string) => {
     route.push(`/watch/${event}`);
   };
 
-  return (
-    <div className="anime-schedule">
-      <div className="schedule-header">
-        <div className="time-col-header"></div>
-        {days.map((day) => (
+  const selectDay = useCallback(
+    (day: Date) => {
+      onDateChange({
+        year: day.getFullYear(),
+        month: day.getMonth(),
+        day: day.getDate(),
+      });
+    },
+    [onDateChange]
+  );
+
+  const renderDayHeader = (day: Date) => {
+    const active = format(day, 'yyyy-MM-dd') === selectedDate;
+    return (
+      <div
+        key={day.toString()}
+        role="button"
+        tabIndex={0}
+        className={cn('day-header', active && 'active')}
+        onClick={() => selectDay(day)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectDay(day);
+          }
+        }}
+      >
+        <div className="day-name">{format(day, 'EEE')}</div>
+        <div className="day-num">{format(day, 'dd')}</div>
+      </div>
+    );
+  };
+
+  const renderCellForDay = (
+    day: Date,
+    slotStartHour: number,
+    cellKey: string
+  ) => {
+    const dayEvents = events
+      .filter(
+        (e) =>
+          isSameDay(e.start, day) &&
+          slotStartForHour(e.start.getHours()) === slotStartHour
+      )
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    return (
+      <div key={cellKey} className="schedule-cell">
+        {dayEvents.map((event, eventIndex) => (
           <div
-            key={day.toString()}
-            className={`day-header ${
-              format(day, 'yyyy-MM-dd') === selectedDate ? 'active' : ''
-            }`}
-            onClick={() =>
-              onDateChange({
-                year: day.getFullYear(),
-                month: day.getMonth(),
-                day: day.getDate(),
-              })
-            }
+            key={`${event.id}-${event.start.getTime()}-${eventIndex}`}
+            className="event-block"
+            role="button"
+            tabIndex={0}
+            onClick={() => handleSelectEvent(event.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleSelectEvent(event.id);
+              }
+            }}
           >
-            <div className="day-name">{format(day, 'EEE')}</div>
-            <div className="day-num">{format(day, 'dd')}</div>
+            <div className="event-title">{event.title}</div>
+            <div className="event-time">
+              {format(event.start, 'HH:mm')} – {format(event.end, 'HH:mm')}
+            </div>
           </div>
         ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className={cn('anime-schedule', !isWeekGrid && 'anime-schedule--compact')}>
+      <div
+        className={cn(
+          'schedule-header',
+          !isWeekGrid && 'schedule-header--compact'
+        )}
+      >
+        {isWeekGrid ? <div className="time-col-header" aria-hidden /> : null}
+        {days.map((day) => renderDayHeader(day))}
       </div>
 
       <div className="schedule-body">
         {TIME_SLOT_STARTS_HOUR.map((slotStartHour) => (
-          <div key={slotStartHour} className="schedule-row">
+          <div
+            key={slotStartHour}
+            className={cn('schedule-row', !isWeekGrid && 'schedule-row--compact')}
+          >
             <div
               className="time-col"
               title={formatSlotRangeLabel(slotStartHour)}
@@ -93,35 +162,15 @@ export const AnimeSchedule: React.FC<Props> = ({
               {formatSlotRangeLabel(slotStartHour)}
             </div>
 
-            {days.map((day) => {
-              const dayEvents = events
-                .filter(
-                  (e) =>
-                    isSameDay(e.start, day) &&
-                    slotStartForHour(e.start.getHours()) === slotStartHour
+            {isWeekGrid
+              ? days.map((day) =>
+                  renderCellForDay(day, slotStartHour, day.toString())
                 )
-                .sort(
-                  (a, b) => a.start.getTime() - b.start.getTime()
-                );
-
-              return (
-                <div key={day.toString()} className="schedule-cell">
-                  {dayEvents.map((event, eventIndex) => (
-                    <div
-                      key={`${event.id}-${event.start.getTime()}-${eventIndex}`}
-                      className="event-block"
-                      onClick={() => handleSelectEvent(event.id)}
-                    >
-                      <div className="event-title">{event.title}</div>
-                      <div className="event-time">
-                        {format(event.start, 'HH:mm')} –{' '}
-                        {format(event.end, 'HH:mm')}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
+              : renderCellForDay(
+                  days[selectedDayIndex],
+                  slotStartHour,
+                  `slot-${slotStartHour}`
+                )}
           </div>
         ))}
       </div>

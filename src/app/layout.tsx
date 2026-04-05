@@ -79,12 +79,7 @@ export default function RootLayout({
 }) {
   return (
     <html className="dark" lang="en" suppressHydrationWarning>
-      <head>
-        {/*
-          Preconnect до CDN майже не дає виграшу для next/image: браузер качає з origin (`/_next/image`), а апстрим тягне сервер.
-          Render-blocking CSS: у production увімкнено `experimental.inlineCss` у next.config (у `next dev` лишаються окремі .css чанки — це норма).
-        */}
-      </head>
+      <head />
       <body
         className={`${montserrat.className} ${rubik.className} ${playfair.variable}`}
         suppressHydrationWarning

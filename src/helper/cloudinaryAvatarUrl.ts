@@ -8,10 +8,6 @@ function hasCloudinaryTransformPrefix(segment: string): boolean {
   );
 }
 
-/**
- * Вставляє трансформації Cloudinary одразу після `/upload/`, щоб не тягнути
- * повнорозмірне фото для маленького аватара (Lighthouse / мережа).
- */
 export function cloudinaryAvatarUrl(
   url: string | null | undefined,
   displayCssPx: number

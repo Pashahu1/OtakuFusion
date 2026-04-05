@@ -199,3 +199,76 @@
   opacity: 0.88;
   color: var(--color-brand-text-secondary);
 }
+
+.anime-schedule--compact {
+  border-radius: 0.85rem;
+}
+
+.schedule-header--compact {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  width: 100%;
+  overflow: hidden;
+
+  .day-header {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.15rem;
+    border-right: 1px solid rgb(255 255 255 / 0.06);
+    touch-action: manipulation;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    @media (min-width: 480px) {
+      padding: 0.6rem 0.35rem;
+    }
+  }
+
+  .day-name {
+    font-size: clamp(0.5625rem, 2.1vw, 0.6875rem);
+    letter-spacing: 0.04em;
+  }
+
+  .day-num {
+    font-size: clamp(0.875rem, 3.5vw, 1rem);
+    margin-top: 0.1rem;
+  }
+}
+
+.schedule-row--compact {
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+
+  .time-col {
+    padding: 0.45rem 0.3rem;
+    font-size: 0.5625rem;
+    line-height: 1.2;
+
+    @media (min-width: 640px) {
+      font-size: 0.625rem;
+    }
+  }
+
+  .schedule-cell {
+    min-height: 4rem;
+    padding: 0.5rem 0.45rem;
+    grid-template-columns: 1fr;
+  }
+
+  .event-block {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .event-title {
+    -webkit-line-clamp: 4;
+  }
+}
