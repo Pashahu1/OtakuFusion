@@ -15,7 +15,7 @@ export function usePlayerColumnHeightSync(
 
     const updateHeight = () => {
       if (typeof window === 'undefined') return;
-      if (window.innerWidth > 1200) {
+      if (window.innerWidth >= 1200) {
         const h = centerColumn.clientHeight;
         setEpisodesColumnHeight(h > 0 ? h : null);
       } else {

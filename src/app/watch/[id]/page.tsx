@@ -86,10 +86,10 @@ export default function Watch() {
 
   return (
     <div className="relative flex h-fit w-full flex-col items-center justify-center">
-      <div className="relative w-full px-4 max-[1400px]:px-[30px] max-[1200px]:px-[80px] max-[1024px]:px-0 lg:px-10">
-        <div className="watch-layout relative z-10 mt-[128px] grid w-full grid-cols-[minmax(280px,28%)_1fr_minmax(240px,22%)] gap-4 pb-[50px] max-[1200px]:mt-[64px] max-[1200px]:grid-cols-1 max-[1200px]:grid-rows-[auto_auto_auto] max-[1024px]:px-0 max-md:mt-[50px]">
+      <div className="relative w-full px-4 sm:px-5 md:px-6 min-[1200px]:px-8 xl:px-10">
+        <div className="watch-layout relative z-10 mt-16 grid w-full gap-4 pb-[50px] max-md:mt-[50px] min-[1200px]:mt-32 min-[1200px]:grid-cols-[minmax(280px,28%)_1fr_minmax(240px,22%)] max-[1199px]:grid-cols-1 md:max-[1199px]:grid-cols-2">
           <div
-            className="watch-episodes episodes flex min-h-[480px] min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#23252b]/85 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1200px]:order-2 max-[1200px]:min-h-[280px]"
+            className="watch-episodes episodes flex min-h-[480px] min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#23252b]/85 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1199px]:order-2 max-md:min-h-[280px] md:max-[1199px]:min-h-[320px]"
             style={
               episodesColumnHeight != null
                 ? { height: `${episodesColumnHeight}px` }
@@ -141,8 +141,8 @@ export default function Watch() {
         </div>
       </div>
 
-      <div className="grid w-full grid-cols-[minmax(0,75%),minmax(0,25%)] flex-col gap-x-6 max-[1200px]:flex">
-        <div className="mt-[15px] flex flex-col gap-y-7">
+      <div className="grid w-full max-w-[1920px] grid-cols-[minmax(0,75%),minmax(0,25%)] flex-col gap-x-6 px-4 sm:px-5 md:px-6 min-[1200px]:px-8 xl:px-10 max-[1199px]:flex">
+        <div className="mt-[15px] flex w-full min-w-0 flex-col gap-y-7">
           {(animeInfo?.recommended_data?.length ?? 0) > 0 ? (
             <AnimeSection
               title="Recommended for you"
