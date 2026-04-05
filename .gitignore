@@ -36,4 +36,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
 FIX_LOG.md
+CODE_REVIEW.md

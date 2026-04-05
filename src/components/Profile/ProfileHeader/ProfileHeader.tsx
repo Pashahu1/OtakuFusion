@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
+import { cloudinaryAvatarUrl } from '@/helper/cloudinaryAvatarUrl';
 
 const API_ERROR_FALLBACK = 'Something went wrong.';
 
@@ -138,7 +139,11 @@ export const ProfileHeader = () => {
               <Avatar className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-black">
                 <AvatarImage
                   className="pointer-events-none h-full w-full object-cover"
-                  src={preview || user.avatar}
+                  src={
+                    preview ||
+                    cloudinaryAvatarUrl(user.avatar, 80)
+                  }
+                  alt="Profile avatar"
                 />
                 <AvatarFallback className="text-xl text-white">
                   {user?.email?.[0]?.toUpperCase()}

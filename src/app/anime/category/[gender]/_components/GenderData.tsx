@@ -39,8 +39,14 @@ export async function GenderData({ gender, page }: Props) {
   return (
     <div className="mt-[80px] px-4 md:px-6 lg:px-10">
       <AnimeListLayout title={decodedTitle}>
-        {data.map((anime: AnimeInfo) => (
-          <Card key={anime.id} anime={anime} />
+        {data.map((anime: AnimeInfo, index: number) => (
+          <Card
+            key={anime.id}
+            anime={anime}
+            priority={index === 0}
+            posterEager={index < 6}
+            posterQuality={58}
+          />
         ))}
       </AnimeListLayout>
 

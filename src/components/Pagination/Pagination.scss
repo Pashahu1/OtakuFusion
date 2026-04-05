@@ -1,10 +1,15 @@
+.pagination-nav {
+  margin-top: 2rem;
+}
+
 .pagination {
   display: flex;
   flex-wrap: wrap;
   list-style: none;
   gap: 8px;
   justify-content: center;
-  margin-top: 2rem;
+  margin: 0;
+  padding: 0;
 
   li {
     a {
@@ -24,6 +29,16 @@
         background-color: #ff640a;
       }
     }
+  }
+
+  .break .pagination__ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    color: #fff;
+    user-select: none;
   }
 }
 

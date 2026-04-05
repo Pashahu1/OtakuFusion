@@ -10,18 +10,16 @@ import { cn } from '@/lib/utils';
 
 interface CardProps {
   anime: AnimeInfo;
-  /** Для `sizes` у next/image: у каруселі (SwiperCard) ширина `clamp(140px, 22vw, 310px)`, не 50vw — інакше зайві ~100–150 KiB на ряд. */
   posterSizes?: string;
-  /** У рядку каруселі можна нижче за сітку (менший файл, Lighthouse). */
   posterQuality?: number;
+  priority?: boolean;
+  posterEager?: boolean;
 }
 
 const iconRow =
   'h-6 w-6 shrink-0 stroke-[var(--color-brand-orange)] text-[var(--color-brand-orange)] sm:h-7 sm:w-7';
 
 const metaIconClass = 'h-2.5 w-2.5 shrink-0 text-zinc-200 sm:h-3 sm:w-3';
-
-/** Узгоджено з сіткою; `min(...)` обмежує запит до оптимізатора — менше 404/навантаження на вузьких великих екранах. */
 const DEFAULT_POSTER_SIZES =
   '(min-width: 1280px) min(13vw, 320px), (min-width: 1024px) min(17vw, 320px), (min-width: 768px) min(25vw, 280px), (min-width: 640px) min(33vw, 260px), min(50vw, 240px)';
 
@@ -29,6 +27,8 @@ export function Card({
   anime,
   posterSizes = DEFAULT_POSTER_SIZES,
   posterQuality = 65,
+  priority = false,
+  posterEager = false,
 }: CardProps) {
   const tv = anime.tvInfo;
   const rawSub = tv?.sub;
@@ -58,12 +58,12 @@ export function Card({
         <div className="relative z-10 flex w-full flex-col">
           <div className="aspect-[2/3] w-full shrink-0" aria-hidden />
           <div className="flex min-h-[3.25rem] w-full min-w-0 flex-col gap-0.5 px-2 py-2 transition-opacity duration-300 group-focus-within/card:pointer-events-none group-focus-within/card:opacity-0 group-hover/card:pointer-events-none group-hover/card:opacity-0">
-            <h3
+            <p
               className="line-clamp-2 leading-tight font-semibold text-white"
               style={{ fontSize: 'var(--text-card-title)' }}
             >
               {anime.title}
-            </h3>
+            </p>
             <p
               className="leading-tight text-[var(--color-brand-text-muted)]"
               style={{ fontSize: 'var(--text-card-label)' }}
@@ -93,6 +93,11 @@ export function Card({
             alt=""
             fill
             quality={posterQuality}
+            priority={priority}
+            fetchPriority={priority ? 'high' : undefined}
+            loading={
+              priority ? undefined : posterEager ? 'eager' : undefined
+            }
             className="object-cover object-center"
             sizes={posterSizes}
             aria-hidden
@@ -108,9 +113,9 @@ export function Card({
             aria-hidden
           >
             <div className="flex flex-col gap-y-1.5">
-              <h3 className="line-clamp-2 text-[16px] leading-[1.2] font-semibold tracking-[0.04em] text-white uppercase">
+              <p className="line-clamp-2 text-[16px] leading-[1.2] font-semibold tracking-[0.04em] text-white uppercase">
                 {anime.title}
-              </h3>
+              </p>
 
               {tv?.rating ? (
                 <p className="flex flex-wrap items-center gap-1 text-[9px] font-normal text-zinc-400 tabular-nums sm:text-[10px]">

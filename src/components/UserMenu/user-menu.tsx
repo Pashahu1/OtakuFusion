@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import { useDropdown } from '@/hooks/useDropdown';
 import Image from 'next/image';
+import { cloudinaryAvatarUrl } from '@/helper/cloudinaryAvatarUrl';
 
 export type User = {
   username: string;
@@ -20,7 +21,7 @@ type UserMenuProps = {
 
 export function UserMenu({ user }: UserMenuProps) {
   const { isOpen, toggle, close, triggerRef, menuRef } = useDropdown<
-    HTMLParagraphElement,
+    HTMLDivElement,
     HTMLDivElement
   >();
   const [loading, setLoading] = useState(false);
@@ -43,11 +44,23 @@ export function UserMenu({ user }: UserMenuProps) {
       className="flex items-center px-5 lg:hover:bg-black h-full cursor-pointer transition-colors"
       onClick={toggle}
       ref={triggerRef}
+      role="button"
+      tabIndex={0}
+      aria-haspopup="menu"
+      aria-expanded={isOpen}
+      aria-label={`Account menu, ${user.username}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
+        }
+      }}
     >
       <Avatar className="items-center justify-center">
         <AvatarImage
           className="w-[36px] h-[36px] object-cover rounded-full"
-          src={user?.avatar || ''}
+          src={cloudinaryAvatarUrl(user?.avatar, 36)}
+          alt=""
         />
         <AvatarFallback>{user?.email?.[0]?.toUpperCase()}</AvatarFallback>
       </Avatar>
@@ -73,7 +86,8 @@ export function UserMenu({ user }: UserMenuProps) {
             <Avatar>
               <AvatarImage
                 className="w-full h-full object-cover rounded-full"
-                src={user?.avatar || ''}
+                src={cloudinaryAvatarUrl(user?.avatar, 40)}
+                alt=""
               />
               <AvatarFallback>{user?.email?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
