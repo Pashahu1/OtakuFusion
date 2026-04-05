@@ -204,7 +204,6 @@
   right: 0;
 }
 
-/* Під кнопкою в одній колонці з .hero__info; min-height + placeholder лишають місце до mount Swiper */
 .hero__pagination-slot {
   position: relative;
   flex-shrink: 0;
@@ -213,10 +212,9 @@
   z-index: 6;
   box-sizing: border-box;
   width: 100%;
-  /* Той самий inset, що й у .hero__info — для absolute placeholder (left: 0 ігнорує padding батька) */
+
   --hero-pagination-padding-start: clamp(16px, 5vw, 64px);
   --hero-pagination-padding-end: 16px;
-  /* Swiper pagination.css очікує el всередині .swiper — інакше absolute/bottom/left/transform ламають потік */
   --swiper-pagination-bottom: auto;
   --swiper-pagination-top: auto;
   --swiper-pagination-left: auto;
@@ -226,7 +224,6 @@
 
   @media (min-width: 1024px) {
     max-width: 800px;
-    /* Відступ від CTA: стабільний при першому кадрі та після init Swiper */
     margin-top: clamp(16px, 2.2vh, 22px);
   }
 
@@ -237,7 +234,6 @@
 
 .hero__pagination-placeholder {
   position: absolute;
-  /* Не 0: інакше перший кадр — впритик до краю екрана, після init — як у тексту (CLS) */
   left: var(--hero-pagination-padding-start);
   top: 0;
   z-index: 1;
@@ -280,7 +276,6 @@
   width: auto;
   min-height: 28px;
 
-  /* Кастомний pagination el поза .swiper: скидаємо стилі з swiper/css/pagination */
   &.swiper-pagination {
     position: relative !important;
     inset: auto !important;

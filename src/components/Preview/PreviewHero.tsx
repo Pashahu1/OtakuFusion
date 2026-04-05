@@ -8,7 +8,7 @@ import {
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Swiper as SwiperType } from 'swiper';
-import { Convertor } from '@/helper/Convertor';
+import { Convertor, HERO_THUMBNAIL_RES } from '@/helper/Convertor';
 import 'swiper/css/effect-fade';
 import { EffectFade } from 'swiper/modules';
 
@@ -168,7 +168,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
               <SwiperSlide key={anime.id}>
                 <div className="relative h-full min-h-0 w-full">
                   <Image
-                    src={Convertor(anime.poster)}
+                    src={Convertor(anime.poster, HERO_THUMBNAIL_RES)}
                     alt={anime.title}
                     fill
                     sizes="100vw"
@@ -177,8 +177,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
                     decoding="async"
                     fetchPriority={index === 0 ? 'high' : 'auto'}
                     loading={index === 0 ? 'eager' : 'lazy'}
-                    /* LCP: перший кадр ще прийнятний візуально; інші слайди — мінімум байтів (fade не показує їх одразу) */
-                    quality={index === 0 ? 58 : 52}
+                    quality={index === 0 ? 80 : 68}
                   />
                   <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="preview__shine" />

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Convertor } from '@/helper/Convertor';
+import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
 import { truncateText } from '@/helper/truncateText';
 import { Play, BookmarkPlus, Plus, Star, Tv, List, Clock } from 'lucide-react';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
@@ -21,9 +21,9 @@ const iconRow =
 
 const metaIconClass = 'h-2.5 w-2.5 shrink-0 text-zinc-200 sm:h-3 sm:w-3';
 
-/** Узгоджено з сіткою AnimeListLayout / AnimeSection: 2 / 3 / 4 / 6 / 8 колонок. */
+/** Узгоджено з сіткою; `min(...)` обмежує запит до оптимізатора — менше 404/навантаження на вузьких великих екранах. */
 const DEFAULT_POSTER_SIZES =
-  '(min-width: 1280px) 13vw, (min-width: 1024px) 17vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, 50vw';
+  '(min-width: 1280px) min(13vw, 320px), (min-width: 1024px) min(17vw, 320px), (min-width: 768px) min(25vw, 280px), (min-width: 640px) min(33vw, 260px), min(50vw, 240px)';
 
 export function Card({
   anime,
@@ -31,7 +31,13 @@ export function Card({
   posterQuality = 65,
 }: CardProps) {
   const tv = anime.tvInfo;
-  const episodeCountRaw = tv?.sub?.trim() ?? '';
+  const rawSub = tv?.sub;
+  const episodeCountRaw =
+    typeof rawSub === 'string'
+      ? rawSub.trim()
+      : typeof rawSub === 'number' && Number.isFinite(rawSub)
+        ? String(rawSub)
+        : '';
   const looksLikeEpisodeCount = /^\d+(\.\d+)?$/.test(episodeCountRaw);
 
   const hasMetaBlock =
@@ -46,7 +52,7 @@ export function Card({
       className="group/card block w-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)] focus-visible:ring-inset"
     >
       <article
-        className="relative flex w-full flex-col overflow-hidden focus-within:z-10 hover:z-10"
+        className="relative flex min-w-0 max-w-full flex-col overflow-hidden focus-within:z-10 hover:z-10"
         style={{ fontFamily: 'var(--font-sans)' }}
       >
         <div className="relative z-10 flex w-full flex-col">
@@ -79,7 +85,11 @@ export function Card({
           )}
         >
           <Image
-            src={anime.poster ? Convertor(anime.poster) : '/sukuna-error.jpg'}
+            src={
+              anime.poster
+                ? Convertor(anime.poster, LIST_THUMBNAIL_RES)
+                : '/sukuna-error.jpg'
+            }
             alt=""
             fill
             quality={posterQuality}

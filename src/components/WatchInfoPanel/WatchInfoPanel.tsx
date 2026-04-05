@@ -8,7 +8,7 @@ import { WatchTags } from '../WatchTags/WatchTags';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Convertor } from '@/helper/Convertor';
+import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
 
 type WatchInfoPanelProps = {
   animeInfo: AnimeData | null;
@@ -32,7 +32,7 @@ export const WatchInfoPanel = ({
         {animeInfo?.poster && (
           <Image
             ref={posterImgRef}
-            src={Convertor(animeInfo.poster)}
+            src={Convertor(animeInfo.poster, LIST_THUMBNAIL_RES)}
             alt={animeInfo.title ? `Poster: ${animeInfo.title}` : 'Anime poster'}
             fill
             quality={75}

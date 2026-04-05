@@ -48,7 +48,7 @@ const nextConfig = {
       384,
     ],
     /* Дозволені рівні стиснення для <Image quality={…}> (Lighthouse: менший розмір прев’ю) */
-    qualities: [52, 55, 58, 60, 62, 65, 70, 75, 80],
+    qualities: [52, 55, 58, 60, 62, 65, 68, 70, 75, 80],
     unoptimized: process.env.NEXT_IMAGE_UNOPTIMIZED === 'true',
   },
 };

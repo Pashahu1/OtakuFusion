@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Convertor } from '@/helper/Convertor';
+import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -128,7 +128,7 @@ export function ContinueWatchingSection() {
                     <Image
                       src={
                         item.poster
-                          ? Convertor(item.poster)
+                          ? Convertor(item.poster, LIST_THUMBNAIL_RES)
                           : '/sukuna-error.jpg'
                       }
                       alt={item.title || item.japanese_title || 'Anime'}
