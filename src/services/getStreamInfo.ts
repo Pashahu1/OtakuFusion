@@ -9,7 +9,7 @@ export async function getStreamInfo(
   signal?: AbortSignal
 ): Promise<StreamingData> {
   const data = await apiUrl.get<ApiResponse<StreamingData>>(
-    `/stream/fallback?id=${animeId}?ep=${episodeId}&server=VidSrc&type=${type}`,
+    `/stream/fallback?id=${animeId}?ep=${episodeId}&server=${serverName}&type=${type}`,
     undefined,
     signal
   );
