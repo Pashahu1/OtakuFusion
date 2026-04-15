@@ -8,8 +8,14 @@ export async function getStreamInfo(
   type: string,
   signal?: AbortSignal
 ): Promise<StreamingData> {
+  const qs = new URLSearchParams({
+    id: animeId,
+    ep: episodeId,
+    server: serverName,
+    type,
+  });
   const data = await apiUrl.get<ApiResponse<StreamingData>>(
-    `/stream/fallback?id=${animeId}?ep=${episodeId}&server=${serverName}&type=${type}`,
+    `/stream/fallback?${qs.toString()}`,
     undefined,
     signal
   );
