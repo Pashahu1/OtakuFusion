@@ -11,7 +11,9 @@ export const apiUrl = {
     signal?: AbortSignal
   ): Promise<T> => {
     const res = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}${endpoint}`, {
-      next: revalidate ? { revalidate } : undefined,
+      ...(typeof revalidate === 'number'
+        ? { next: { revalidate } }
+        : { cache: 'no-store' as RequestCache }),
       signal,
     });
 

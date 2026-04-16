@@ -92,7 +92,7 @@ export function Player({
 
     const headers = getStreamHeaders(streamInfo);
     const fullURL = getStreamFullUrl(streamUrl, headers);
-
+    console.log(fullURL);
     const art = new Artplayer({
       url: fullURL,
       container,

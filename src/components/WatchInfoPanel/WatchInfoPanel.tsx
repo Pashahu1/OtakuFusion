@@ -39,7 +39,7 @@ export const WatchInfoPanel = ({
             sizes="(max-width: 500px) 70px, 100px"
             priority
             className={`object-cover transition-opacity duration-200 ${posterImageLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoadingComplete={() => setPosterImageLoaded(true)}
+            onLoad={() => setPosterImageLoaded(true)}
           />
         )}
         {(!animeInfo?.poster || !posterImageLoaded) && (

@@ -76,7 +76,7 @@ export function useWatchStream(
         const data = await getStreamInfo(
           animeId,
           episodeId,
-          server.serverName,
+          server,
           server.type.toLowerCase(),
           signal
         );
