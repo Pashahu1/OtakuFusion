@@ -70,6 +70,12 @@ export function useWatchStream(
     const { signal } = controller;
     setError(null);
     setBuffering(true);
+    setStreamInfo(null);
+    setStreamUrl(null);
+    setSubtitles([]);
+    setThumbnail(null);
+    setIntro(null);
+    setOutro(null);
 
     const fetchStream = async () => {
       try {
