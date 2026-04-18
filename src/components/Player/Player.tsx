@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Artplayer from 'artplayer';
+import Hls from 'hls.js';
 
 import './Player.scss';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
@@ -32,6 +33,7 @@ export function Player({
   servers = null,
   activeServerId = null,
   setActiveServerId = () => {},
+  onPlaybackError,
 }: PlayerProps) {
   const currentEpisodeIndex =
     episodes?.findIndex(
@@ -47,6 +49,7 @@ export function Player({
   const currentEpisodeIndexRef = useRef(currentEpisodeIndex);
   const playNextRef = useRef(playNext);
   const onEpisodeWatchedRef = useRef(onEpisodeWatched);
+  const onPlaybackErrorRef = useRef(onPlaybackError);
   const hasTriggeredNextRef = useRef(false);
   const hasMarkedWatchedForOutroRef = useRef(false);
   const userPausedRef = useRef(false);
@@ -59,6 +62,7 @@ export function Player({
     currentEpisodeIndexRef.current = currentEpisodeIndex;
     playNextRef.current = playNext;
     onEpisodeWatchedRef.current = onEpisodeWatched;
+    onPlaybackErrorRef.current = onPlaybackError;
   });
 
   useEffect(() => {
@@ -122,6 +126,40 @@ export function Player({
         userPausedRef
       ),
     });
+
+    let hasStartedPlaying = false;
+    let hasReportedError = false;
+    const reportError = () => {
+      if (hasReportedError) return;
+      hasReportedError = true;
+      onPlaybackErrorRef.current?.();
+    };
+    art.on('video:playing', () => {
+      hasStartedPlaying = true;
+    });
+    art.on('video:canplay', () => {
+      hasStartedPlaying = true;
+    });
+
+    if (art.hls) {
+      art.hls.on(
+        Hls.Events.ERROR,
+        (_evt: unknown, data: { fatal?: boolean; type?: string }) => {
+          if (data?.fatal) {
+            reportError();
+            return;
+          }
+          if (
+            !hasStartedPlaying &&
+            data?.type === Hls.ErrorTypes.NETWORK_ERROR
+          ) {
+            reportError();
+          }
+        }
+      );
+    }
+    art.on('video:error', reportError);
+    art.on('error', reportError);
 
     art.on('resize', () => {
       art.subtitle.style({

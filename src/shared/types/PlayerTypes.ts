@@ -26,5 +26,6 @@ export interface PlayerProps {
   servers: ServerInfo[] | null;
   activeServerId: string | null;
   setActiveServerId: (id: string | null) => void;
+  onPlaybackError?: () => void;
 }
 

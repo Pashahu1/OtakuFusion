@@ -141,17 +141,15 @@ export default function Watch() {
         </div>
       </div>
 
-      <div className="grid w-full max-w-[1920px] grid-cols-[minmax(0,75%),minmax(0,25%)] flex-col gap-x-6 px-4 sm:px-5 md:px-6 min-[1200px]:px-8 xl:px-10 max-[1199px]:flex">
-        <div className="mt-[15px] flex w-full min-w-0 flex-col gap-y-7">
-          {(animeInfo?.recommended_data?.length ?? 0) > 0 ? (
-            <AnimeSection
-              title="Recommended for you"
-              catalog={animeInfo?.recommended_data ?? []}
-            />
-          ) : (
-            <AnimeSectionSkeleton title="Recommended for you" />
-          )}
-        </div>
+      <div className="mt-[15px] flex w-full min-w-0 flex-col gap-y-7">
+        {(animeInfo?.recommended_data?.length ?? 0) > 0 ? (
+          <AnimeSection
+            title="Recommended for you"
+            catalog={animeInfo?.recommended_data ?? []}
+          />
+        ) : (
+          <AnimeSectionSkeleton title="Recommended for you" />
+        )}
       </div>
     </div>
   );

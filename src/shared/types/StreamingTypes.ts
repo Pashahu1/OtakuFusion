@@ -17,6 +17,7 @@ export type StreamingType = {
   intro: Segment;
   outro: Segment;
   server: string;
+  iframe?: string;
 };
 
 export type StreamServer = {
