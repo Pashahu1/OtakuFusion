@@ -72,7 +72,7 @@ function getErrorMessage(err: unknown): string {
 }
 
 export function useWatchServers(
-  animeId: string,
+  providerAnimeId: string | null,
   episodeId: string | null
 ): UseWatchServersReturn {
   const [servers, setServers] = useState<ServerInfo[] | null>(null);
@@ -81,7 +81,7 @@ export function useWatchServers(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!episodeId) {
+    if (!providerAnimeId || !episodeId) {
       setServers(null);
       setActiveServerId(null);
       setServerLoading(true);
@@ -96,7 +96,7 @@ export function useWatchServers(
 
     const fetchServers = async () => {
       try {
-        const data = await getServers(animeId, episodeId, signal);
+        const data = await getServers(providerAnimeId, episodeId, signal);
         if (signal.aborted) return;
 
         const filtered =
@@ -127,7 +127,7 @@ export function useWatchServers(
     fetchServers();
 
     return () => controller.abort();
-  }, [animeId, episodeId]);
+  }, [providerAnimeId, episodeId]);
 
   return {
     servers,

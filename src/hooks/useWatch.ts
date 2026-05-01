@@ -13,12 +13,13 @@ export function useWatch(
   const [isFullOverview, setIsFullOverview] = useState(false);
 
   const anime = useWatchAnime(animeId, initialEpisodeId);
-  const servers = useWatchServers(animeId, anime.episodeId);
+  const servers = useWatchServers(anime.providerAnimeId, anime.episodeId);
   const stream = useWatchStream(
-    animeId,
+    anime.providerAnimeId,
     anime.episodeId,
     servers.activeServerId,
-    servers.servers
+    servers.servers,
+    servers.setActiveServerId
   );
 
   const activeEpisodeNum = useMemo((): number | null => {

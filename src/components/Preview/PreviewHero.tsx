@@ -118,6 +118,10 @@ export const Preview = ({ spotlights, trending }: Props) => {
   }
   const metaLine = metaParts.join(' • ');
 
+  function isAniListImage(url: string): boolean {
+    return url.includes('anilist.co') || url.includes('s4.anilist.co');
+  }
+
   return (
     <>
       <div className="hero relative w-full">
@@ -177,7 +181,8 @@ export const Preview = ({ spotlights, trending }: Props) => {
                     decoding="async"
                     fetchPriority={index === 0 ? 'high' : 'auto'}
                     loading={index === 0 ? 'eager' : 'lazy'}
-                    quality={index === 0 ? 80 : 68}
+                    quality={index === 0 ? 95 : 90}
+                    unoptimized={isAniListImage(anime.poster)}
                   />
                   <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="preview__shine" />

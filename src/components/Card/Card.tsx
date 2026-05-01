@@ -26,7 +26,7 @@ const DEFAULT_POSTER_SIZES =
 export function Card({
   anime,
   posterSizes = DEFAULT_POSTER_SIZES,
-  posterQuality = 65,
+  posterQuality = 75,
   priority = false,
   posterEager = false,
 }: CardProps) {

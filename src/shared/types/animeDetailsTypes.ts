@@ -14,6 +14,7 @@ export interface AnimeData {
   adultContent: boolean;
   id: string;
   data_id: number;
+  mal_id: number | null;
   title: string;
   japanese_title: string;
   poster: string;
@@ -37,7 +38,6 @@ export interface AnimeDetailsInfo {
   Producers: string[]
   tvInfo: TvInfo;
 }
-
 export interface AnimeSeason {
   id: string;
   data_number: number;
@@ -47,3 +47,4 @@ export interface AnimeSeason {
   japanese_title: string;
   season_poster: string;
 }
+

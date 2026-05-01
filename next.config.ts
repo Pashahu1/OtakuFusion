@@ -27,6 +27,16 @@ const nextConfig = {
         hostname: 'myanimelist.net',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 's4.anilist.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'anilist.co',
+        pathname: '/**',
+      },
     ],
     imageSizes: [
       16,

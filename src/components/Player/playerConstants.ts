@@ -20,9 +20,9 @@ export const KEY_CODES = {
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
 
 export const PROXY_URL = readPublicOptional('NEXT_PUBLIC_PROXY_URL');
-export const M3U8_PROXY_URL = readPublicOptional(
-  'NEXT_PUBLIC_M3U8_PROXY_URL',
-);
+const DEFAULT_M3U8_PROXY_URL = 'https://m3u8proxy.fly.dev/m3u8-proxy?url=';
+export const M3U8_PROXY_URL =
+  readPublicOptional('NEXT_PUBLIC_M3U8_PROXY_URL') || DEFAULT_M3U8_PROXY_URL;
 
 export const DEFAULT_REFERER = 'https://megacloud.club/';
 export const PLAYER_THEME_COLOR = '#ff640a';

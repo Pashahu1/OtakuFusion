@@ -1,4 +1,5 @@
-import { apiUrl, type ApiResponse } from '@/lib/api';
+import type { ApiResponse } from '@/lib/api';
+import { getAniListMediaPage, mapAniListMediaToAnimeInfo } from '@/lib/anilist';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 export type GenreResults = {
@@ -11,8 +12,18 @@ export const getGenreAnime = async (
   name: string = 'most-popular',
   page: number = 1
 ): Promise<ApiResponse<GenreResults>> => {
-  const data = await apiUrl.get<ApiResponse<GenreResults>>(
-    `/genre/${name}?page=${page}`
-  );
-  return data;
+  const genre = decodeURIComponent(name).replace(/-/g, ' ');
+  const anilistPage = await getAniListMediaPage({
+    page,
+    perPage: 20,
+    sort: ['POPULARITY_DESC'],
+    genre,
+  });
+
+  return {
+    results: {
+      data: (anilistPage.media ?? []).map(mapAniListMediaToAnimeInfo),
+      totalPages: anilistPage.pageInfo?.lastPage ?? 1,
+    },
+  };
 };

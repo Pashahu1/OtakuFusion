@@ -1,11 +1,9 @@
-import { apiUrl, type ApiResponse } from '@/lib/api';
+import { getCategory, type CategoryResults } from '@/services/getCategory';
+import type { ApiResponse } from '@/lib/api';
 
 export async function getCategoryInfo(
   path: string,
   page: string
-): Promise<ApiResponse<unknown>> {
-  const data = await apiUrl.get<ApiResponse<unknown>>(
-    `/${path}?page=${page}`
-  );
-  return data;
+): Promise<ApiResponse<CategoryResults>> {
+  return getCategory(path, Number(page));
 }

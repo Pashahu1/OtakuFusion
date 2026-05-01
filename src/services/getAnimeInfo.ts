@@ -1,9 +1,12 @@
-import { apiUrl, type ApiResponse } from '@/lib/api';
+import {
+  getAniListMediaById,
+  mapAniListMediaToAnimeDetails,
+} from '@/lib/anilist';
 import type { AnimeResults } from '@/shared/types/animeDetailsTypes';
 
 export async function getAnimeInfo(
   id: string
 ): Promise<AnimeResults> {
-  const data = await apiUrl.get<ApiResponse<AnimeResults>>(`/info?id=${id}`);
-  return data.results;
+  const media = await getAniListMediaById(id);
+  return mapAniListMediaToAnimeDetails(media);
 }

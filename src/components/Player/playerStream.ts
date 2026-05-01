@@ -8,9 +8,13 @@ interface StreamInfoForHeaders {
 
 export function getStreamHeaders(streamInfo: StreamInfoForHeaders | null): Record<string, string> {
   const headers: Record<string, string> = {};
-  const streamLinkRaw = streamInfo?.streamingLink as { iframe?: string } | undefined;
-  const iframeUrl =
-    streamLinkRaw && !Array.isArray(streamLinkRaw) ? streamLinkRaw.iframe : undefined;
+  const streamLinkRaw = streamInfo?.streamingLink as
+    | { iframe?: string }
+    | Array<{ iframe?: string }>
+    | undefined;
+  const iframeUrl = Array.isArray(streamLinkRaw)
+    ? streamLinkRaw.find((item) => typeof item?.iframe === 'string')?.iframe
+    : streamLinkRaw?.iframe;
 
   if (iframeUrl) {
     try {

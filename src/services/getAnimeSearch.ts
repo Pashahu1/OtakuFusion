@@ -1,14 +1,13 @@
-import { apiUrl, type ApiResponse } from '@/lib/api';
+import { getAniListMediaPage, mapAniListMediaToSearchItem } from '@/lib/anilist';
 import type { AnimeSearchItems } from '@/shared/types/AnimeSearchTypes';
-
-type SearchResults = AnimeSearchItems[] | { data: AnimeSearchItems[] };
 
 export const getAnimeSearch = async (
   query: string
 ): Promise<AnimeSearchItems[]> => {
-  const data = await apiUrl.get<ApiResponse<SearchResults>>(
-    `/search?keyword=${query}`
-  );
-  const results = data.results;
-  return Array.isArray(results) ? results : results.data ?? [];
+  const page = await getAniListMediaPage({
+    search: query,
+    perPage: 20,
+    sort: ['SEARCH_MATCH'],
+  });
+  return (page.media ?? []).map(mapAniListMediaToSearchItem);
 };
