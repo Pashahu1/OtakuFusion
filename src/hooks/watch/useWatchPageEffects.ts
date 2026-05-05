@@ -20,6 +20,7 @@ export const useWatchPageEffects = (
   serverLoading: boolean,
   buffering: boolean,
   streamUrl: string | null,
+  playerShellPending: boolean,
   animeInfo: AnimeData | null,
   nextEpisodeSchedule: NextEpisodeScheduleResult | null,
   errorBlockTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>,
@@ -48,7 +49,8 @@ export const useWatchPageEffects = (
     setShowErrorBlock,
     serverLoading,
     buffering,
-    streamUrl
+    streamUrl,
+    playerShellPending
   );
   usePlayerColumnHeightSync(
     playerColumnRef,

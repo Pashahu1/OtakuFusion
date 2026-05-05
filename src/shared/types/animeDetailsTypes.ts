@@ -16,6 +16,8 @@ export interface AnimeData {
   data_id: number;
   mal_id: number | null;
   title: string;
+  /** AniList `title.romaji` — для зіставлення з AnimeKai надійніше за англ. локалізацію. */
+  romaji_title?: string;
   japanese_title: string;
   poster: string;
   showType: string;

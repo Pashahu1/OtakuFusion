@@ -1,44 +1,29 @@
-import { videoApiUrl } from '@/lib/video-api';
+import { animekaiApi } from '@/lib/animekai-api';
 import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
 
-interface MoruroEpisode {
-  episodeNumber: number | string;
+interface AnimeKaiEpisode {
+  number?: string | number;
+  /** Деякі відповіді API використовують інші ключі замість `number`. */
+  episode?: string | number;
+  ep?: string | number;
+  episode_num?: string | number;
+  episode_number?: string | number;
+  slug?: string;
   title?: string;
-  image?: string;
-  isSub?: boolean;
-  isDub?: boolean;
-  sub?: boolean;
-  dub?: boolean;
-  hasSub?: boolean;
-  hasDub?: boolean;
-  isFiller?: boolean;
+  japanese_title?: string;
+  token?: string;
+  has_sub?: boolean;
+  has_dub?: boolean;
 }
 
-interface MoruroEpisodesResponse {
-  episodes?: MoruroEpisode[];
-  totalEpisodes?: number;
+interface AnimeKaiEpisodesResponse {
+  success?: boolean;
+  episodes?: AnimeKaiEpisode[];
+  count?: number;
+  error?: string;
 }
 
-function unwrapEpisodesPayload(input: unknown): MoruroEpisodesResponse {
-  if (!input || typeof input !== 'object') return {};
-  if ('results' in input) {
-    const results = (input as { results?: unknown }).results;
-    if (results && typeof results === 'object') {
-      return results as MoruroEpisodesResponse;
-    }
-  }
-  return input as MoruroEpisodesResponse;
-}
-
-async function fetchEpisodesPayload(id: string): Promise<MoruroEpisodesResponse> {
-  const payload = await videoApiUrl.get<unknown>(
-    `/api/episodes?id=${encodeURIComponent(id)}`,
-    30
-  );
-  return unwrapEpisodesPayload(payload);
-}
-
-function toEpisodeId(episodeNumber: number): string {
+function toEpisodeQueryId(episodeNumber: number): string {
   return `?ep=${episodeNumber}`;
 }
 
@@ -48,29 +33,66 @@ function toSafeEpisodeNumber(value: number | string): number {
   return Math.floor(parsed);
 }
 
-function resolveAudioFlags(episode: MoruroEpisode): {
-  hasSub: boolean;
-  hasDub: boolean;
-} {
-  const subCandidates = [episode.isSub, episode.sub, episode.hasSub];
-  const dubCandidates = [episode.isDub, episode.dub, episode.hasDub];
-  const hasExplicitSub = subCandidates.some((value) => typeof value === 'boolean');
-  const hasExplicitDub = dubCandidates.some((value) => typeof value === 'boolean');
-
-  if (!hasExplicitSub && !hasExplicitDub) {
-    return { hasSub: true, hasDub: true };
+/**
+ * Номер епізоду з полів API. Якщо номера немає — позиція в масиві (1-based),
+ * інакше всі рядки зліпляться в один `episode_no === 1` і лишається один ep_token.
+ */
+function resolveEpisodeNumber(
+  episode: AnimeKaiEpisode,
+  indexInResponse: number
+): number {
+  const candidates: unknown[] = [
+    episode.number,
+    episode.episode,
+    episode.ep,
+    episode.episode_num,
+    episode.episode_number,
+  ];
+  for (const c of candidates) {
+    if (c === undefined || c === null) continue;
+    if (typeof c === 'string' && !c.trim()) continue;
+    const n = toSafeEpisodeNumber(c as number | string);
+    if (n >= 1) return n;
   }
-
-  return {
-    hasSub: subCandidates.some((value) => value === true),
-    hasDub: dubCandidates.some((value) => value === true),
-  };
+  return indexInResponse + 1;
 }
 
-export async function getEpisodes(
-  id: string
-): Promise<GetEpisodesResult> {
-  const data = await fetchEpisodesPayload(id);
+/** API інколи віддає 1 / "1" замість boolean. */
+function isExplicitTrue(v: unknown): boolean {
+  if (v === true) return true;
+  if (typeof v === 'number' && v === 1) return true;
+  if (typeof v === 'string') {
+    const t = v.trim().toLowerCase();
+    return t === '1' || t === 'true' || t === 'yes';
+  }
+  return false;
+}
+
+function isExplicitFalse(v: unknown): boolean {
+  if (v === false) return true;
+  if (typeof v === 'number' && v === 0) return true;
+  if (typeof v === 'string') {
+    const t = v.trim().toLowerCase();
+    return t === '0' || t === 'false' || t === 'no';
+  }
+  return false;
+}
+
+export async function getEpisodes(aniId: string): Promise<GetEpisodesResult> {
+  const trimmed = aniId.trim();
+  if (!trimmed) {
+    return { episodes: [], totalEpisodes: 0 };
+  }
+
+  const data = await animekaiApi.get<AnimeKaiEpisodesResponse>(
+    `/api/episodes/${encodeURIComponent(trimmed)}`,
+    60
+  );
+
+  if (typeof data.error === 'string' && data.error.trim()) {
+    throw new Error(data.error.trim());
+  }
+
   const episodesRaw = Array.isArray(data.episodes) ? data.episodes : [];
   const episodeMap = new Map<
     number,
@@ -83,27 +105,36 @@ export async function getEpisodes(
       japanese_title: string;
       filler: boolean;
       variant: string;
+      ep_token: string;
       hasSub: boolean;
       hasDub: boolean;
     }
   >();
 
-  for (const episode of episodesRaw) {
-    const episodeNumber = toSafeEpisodeNumber(episode.episodeNumber);
-    const title = episode.title?.trim() || `Episode ${episodeNumber}`;
-    const { hasSub, hasDub } = resolveAudioFlags(episode);
+  for (let i = 0; i < episodesRaw.length; i++) {
+    const episode = episodesRaw[i];
+    const episodeNumber = resolveEpisodeNumber(episode, i);
+    const token = episode.token?.trim() ?? '';
+    if (!token) continue;
+
+    const title =
+      episode.title?.trim() || `Episode ${episodeNumber}`;
+    const jp = episode.japanese_title?.trim() || title;
+    const hasSub = isExplicitFalse(episode.has_sub) ? false : true;
+    const hasDub = isExplicitTrue(episode.has_dub);
     const existing = episodeMap.get(episodeNumber);
 
     if (!existing) {
       episodeMap.set(episodeNumber, {
         episode_no: episodeNumber,
-        id: toEpisodeId(episodeNumber),
+        id: toEpisodeQueryId(episodeNumber),
         data_id: episodeNumber,
         jname: title,
         title,
-        japanese_title: title,
-        filler: Boolean(episode.isFiller),
+        japanese_title: jp,
+        filler: false,
         variant: hasSub && hasDub ? 'Sub | Dub' : hasDub ? 'Dub' : 'Sub',
+        ep_token: token,
         hasSub,
         hasDub,
       });
@@ -114,11 +145,11 @@ export async function getEpisodes(
     const mergedHasDub = existing.hasDub || hasDub;
     existing.hasSub = mergedHasSub;
     existing.hasDub = mergedHasDub;
-    existing.filler = existing.filler || Boolean(episode.isFiller);
+    existing.ep_token = token;
     if (existing.title.startsWith('Episode ') && !title.startsWith('Episode ')) {
       existing.title = title;
       existing.jname = title;
-      existing.japanese_title = title;
+      existing.japanese_title = jp;
     }
     existing.variant =
       mergedHasSub && mergedHasDub ? 'Sub | Dub' : mergedHasDub ? 'Dub' : 'Sub';
@@ -126,15 +157,19 @@ export async function getEpisodes(
 
   const episodes = Array.from(episodeMap.values())
     .sort((a, b) => a.episode_no - b.episode_no)
-    .map(({ hasSub: _hasSub, hasDub: _hasDub, ...item }) => item);
+    .map(({ hasSub, hasDub, ...rest }) => ({
+      ...rest,
+      hasSub,
+      hasDub,
+    }));
 
   const totalEpisodes =
-    typeof data.totalEpisodes === 'number' && data.totalEpisodes > 0
-      ? data.totalEpisodes
+    typeof data.count === 'number' && data.count > 0
+      ? data.count
       : episodes.length;
 
   return {
     episodes,
     totalEpisodes,
-  } as GetEpisodesResult;
+  };
 }

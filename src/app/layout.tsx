@@ -54,6 +54,10 @@ export const metadata = {
     index: true,
     follow: true,
   },
+  icons: {
+    icon: '/language.png',
+    apple: '/language.png',
+  },
 };
 
 const montserrat = Montserrat({

@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { getStreamInfo } from '@/services/getStreamInfo';
-import type { StreamingData } from '@/shared/types/StreamingTypes';
-import type { StreamingType } from '@/shared/types/StreamingTypes';
-import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import { useEffect, useState } from 'react';
+import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
+import type { StreamingData } from '@/shared/types/StreamingTypes';
+import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
+import { resolveWatchStream } from '@/services/resolveWatchStream';
 
 export interface UseWatchStreamReturn {
   streamInfo: StreamingData | null;
@@ -15,40 +15,109 @@ export interface UseWatchStreamReturn {
   intro: Segment | null;
   outro: Segment | null;
   error: string | null;
+  /** Нефатальне повідомлення (наприклад dub недоступний — відтворюється sub). */
+  streamNotice: string | null;
 }
+
+interface WatchResolveOptions {
+  animeId: string;
+  episodeId: string | null;
+  animeInfo: AnimeData | null;
+  providerAnimeId?: string | null;
+  preferredLang: 'sub' | 'dub';
+}
+
+/** Відомі коди помилок GET /api/watch/resolve на бекенді AnimeKai (не з нашого коду). */
+const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
+  'no_working_source|sub_not_available':
+    'AnimeKai / резолвер не віддав робочий саб для цього епізоду (sub_not_available). Спробуйте Dub, інший епізод або пізніше — зазвичай це зміна сайту, лінків або зовнішнього розшифрування, а не вашого коду.',
+  'no_working_source|dub_not_available':
+    'Для цього епізоду не знайдено робочого дубу (dub_not_available). Спробуйте Sub або інший епізод.',
+  no_working_source:
+    'Бекенд не зміг отримати робоче відео (HLS): джерело на AnimeKai недоступне, зламане шифрування або змінився сайт. Спробуйте інший епізод, перемкніть Sub/Dub або повторіть пізніше.',
+  'lang must be sub or dub':
+    'Некоректний параметр мови стріму. Оновіть сторінку або перемкніть Sub/Dub.',
+};
 
 function getErrorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : 'An error occurred.';
+  if (!(err instanceof Error)) return 'Сталася помилка.';
+  const key = err.message.trim();
+  return (
+    WATCH_RESOLVE_UPSTREAM_HINTS[key] ??
+    (key.includes('|')
+      ? WATCH_RESOLVE_UPSTREAM_HINTS[key.split('|')[0] ?? ''] ?? key
+      : key)
+  );
 }
 
-function getFirstStreamLink(data: StreamingData | null): StreamingType | null {
-  if (!data?.streamingLink) return null;
-  const sl = data.streamingLink;
-  if (!Array.isArray(sl)) return sl;
-  if (sl.length === 0) return null;
+function parseSegment(input: { start: number; end: number } | number[] | null | undefined): Segment | null {
+  if (!input) return null;
+  if (Array.isArray(input)) {
+    if (input.length < 2) return null;
+    const start = Number(input[0]);
+    const end = Number(input[1]);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+    return { start, end };
+  }
+  const start = Number(input.start);
+  const end = Number(input.end);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+  return { start, end };
+}
 
-  const blockedHosts = ['watching.onl', 'mewstream.buzz'];
-  const byQuality = sl.find((stream) => {
-    const file = stream?.link?.file ?? '';
-    return file.includes('master.m3u8') && !blockedHosts.some((host) => file.includes(host));
-  });
-  if (byQuality) return byQuality;
+function parseSubtitleTracks(tracks: Array<{ file: string; kind?: string; label?: string; default?: boolean }>): SubtitleItem[] {
+  return tracks
+    .filter((t) => {
+      if (!t.file?.trim()) return false;
+      const kind = t.kind?.trim().toLowerCase();
+      if (!kind) return true;
+      if (kind === 'thumbnails' || kind === 'thumbnail' || kind === 'thumbs') return false;
+      return true;
+    })
+    .map((t) => ({
+      file: t.file,
+      label: t.label?.trim() || 'Subtitle',
+      ...(typeof t.default === 'boolean' ? { default: t.default } : {}),
+    }));
+}
 
-  const byHost = sl.find((stream) => {
-    const file = stream?.link?.file ?? '';
-    return !blockedHosts.some((host) => file.includes(host));
-  });
-  if (byHost) return byHost;
+function isEnglishSubtitleLabel(label: string): boolean {
+  const n = label.trim().toLowerCase();
+  return n.includes('english') || n === 'eng' || n.startsWith('en ');
+}
 
-  return sl[0] ?? null;
+function isEnglishAiSubtitleLabel(label: string): boolean {
+  const n = label.trim().toLowerCase();
+  if (!isEnglishSubtitleLabel(label)) return false;
+  return n.includes('ai') || n.includes('(ai)') || n.includes('[ai]');
+}
+
+function filterSubtitleTracksByStreamLang(
+  tracks: SubtitleItem[],
+  streamLang: 'sub' | 'dub'
+): SubtitleItem[] {
+  if (!tracks.length) return tracks;
+  if (streamLang === 'dub') {
+    const englishAi = tracks.filter((t) => isEnglishAiSubtitleLabel(t.label));
+    if (englishAi.length) return englishAi;
+    const english = tracks.filter((t) => isEnglishSubtitleLabel(t.label));
+    return english.length ? english : tracks;
+  }
+  const nonEnglishAi = tracks.filter((t) => !isEnglishAiSubtitleLabel(t.label));
+  return nonEnglishAi.length ? nonEnglishAi : tracks;
+}
+
+function getThumbnailTrack(tracks: VideoTrack[]): string | null {
+  const thumbnail = tracks.find(
+    (t) =>
+      (t.kind === 'thumbnails' || t.kind === 'thumbnail' || t.kind === 'thumbs') &&
+      t.file?.trim()
+  );
+  return thumbnail?.file ?? null;
 }
 
 export function useWatchStream(
-  providerAnimeId: string | null,
-  episodeId: string | null,
-  activeServerId: string | null,
-  servers: ServerInfo[] | null,
-  setActiveServerId?: (id: string | null) => void
+  watchResolveOptions?: WatchResolveOptions
 ): UseWatchStreamReturn {
   const [streamInfo, setStreamInfo] = useState<StreamingData | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
@@ -58,31 +127,23 @@ export function useWatchStream(
   const [intro, setIntro] = useState<Segment | null>(null);
   const [outro, setOutro] = useState<Segment | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [streamNotice, setStreamNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!providerAnimeId || !episodeId || !activeServerId || !servers?.length) {
-      if (!providerAnimeId || !episodeId || !activeServerId) {
-        setStreamInfo(null);
-        setStreamUrl(null);
-        setSubtitles([]);
-        setThumbnail(null);
-        setIntro(null);
-        setOutro(null);
-        setBuffering(false);
-        setError(null);
-      }
-      return;
-    }
-
-    const activeServer = servers.find(
-      (s) => String(s.data_id) === String(activeServerId)
-    );
-    if (!activeServer) {
-      setError('No server found with the activeServerId.');
+    if (!watchResolveOptions?.animeInfo || !watchResolveOptions.episodeId) {
+      setStreamInfo(null);
+      setStreamUrl(null);
+      setSubtitles([]);
+      setThumbnail(null);
+      setIntro(null);
+      setOutro(null);
       setBuffering(false);
+      setError(null);
+      setStreamNotice(null);
       return;
     }
 
+    const animeInfo = watchResolveOptions.animeInfo;
     const controller = new AbortController();
     const { signal } = controller;
     setError(null);
@@ -93,96 +154,81 @@ export function useWatchStream(
     setThumbnail(null);
     setIntro(null);
     setOutro(null);
+    setStreamNotice(null);
 
-    const fetchStream = async () => {
+    void (async () => {
       try {
-        const fallbackType = activeServer.type === 'dub' ? 'sub' : 'dub';
-        const candidates = [
-          activeServer,
-          ...servers.filter(
-            (server) =>
-              String(server.data_id) !== String(activeServer.data_id) &&
-              server.type === fallbackType
-          ),
-          ...servers.filter(
-            (server) =>
-              String(server.data_id) !== String(activeServer.data_id) &&
-              server.type !== fallbackType
-          ),
-        ];
-
-        let resolved = false;
-        let lastError: unknown;
-
-        for (const serverCandidate of candidates) {
-          try {
-            const data = await getStreamInfo(
-              providerAnimeId,
-              episodeId,
-              serverCandidate,
-              serverCandidate.type.toLowerCase(),
-              signal
-            );
-            if (signal.aborted) return;
-
-            setStreamInfo(data);
-            const first = getFirstStreamLink(data);
-            if (first) {
-              setStreamUrl(first.link?.file ?? null);
-              setIntro(first.intro ?? null);
-              setOutro(first.outro ?? null);
-              const subs: SubtitleItem[] =
-                first.tracks
-                  ?.filter((t) => t.kind === 'captions')
-                  .map((t) => ({
-                    file: t.file,
-                    label: t.label,
-                    ...(t.default !== undefined && { default: t.default }),
-                  })) ?? [];
-              setSubtitles(subs);
-              const thumb = first.tracks?.find(
-                (t) => t.kind === 'thumbnails' && t.file
-              );
-              setThumbnail(thumb?.file ?? null);
-            } else {
-              setStreamUrl(null);
-              setSubtitles([]);
-              setThumbnail(null);
-              setIntro(null);
-              setOutro(null);
-            }
-
-            if (
-              setActiveServerId &&
-              String(serverCandidate.data_id) !== String(activeServerId)
-            ) {
-              setActiveServerId(String(serverCandidate.data_id));
-            }
-            resolved = true;
-            break;
-          } catch (error) {
-            lastError = error;
-          }
+        const episodeNumber = Number(watchResolveOptions.episodeId);
+        if (!Number.isFinite(episodeNumber) || episodeNumber <= 0) {
+          throw new Error('Invalid episode number.');
         }
 
-        if (!resolved) {
-          throw lastError instanceof Error
-            ? lastError
-            : new Error('Stream unavailable');
+        const tracks = [] as VideoTrack[];
+        const result = await resolveWatchStream(
+          {
+            anilistId: animeInfo.id?.trim() ? Number(animeInfo.id) : undefined,
+            malId:
+              typeof animeInfo.mal_id === 'number' && animeInfo.mal_id > 0
+                ? animeInfo.mal_id
+                : undefined,
+            keyword: animeInfo.title,
+            localAnimeId: watchResolveOptions.animeId,
+            providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
+            episode: episodeNumber,
+            lang: watchResolveOptions.preferredLang,
+          },
+          signal
+        );
+        if (signal.aborted) return;
+
+        for (const t of result.stream.tracks ?? []) {
+          if (!t.file?.trim()) continue;
+          tracks.push({
+            file: t.file,
+            kind: t.kind ?? 'captions',
+            label: t.label ?? 'Track',
+            default: Boolean(t.default),
+          });
         }
+
+        setStreamInfo({
+          streamingLink: [
+            {
+              id: 1,
+              type: result.stream.lang,
+              link: { file: result.stream.url, type: 'hls' },
+              tracks,
+              intro: parseSegment(result.stream.intro) ?? { start: 0, end: 0 },
+              outro: parseSegment(result.stream.outro) ?? { start: 0, end: 0 },
+              server: result.stream.server || 'Resolved',
+              request_headers: result.stream.request_headers,
+            },
+          ],
+          servers: [],
+        });
+        setStreamUrl(result.stream.url);
+        const subtitleItems = filterSubtitleTracksByStreamLang(
+          parseSubtitleTracks(result.stream.tracks),
+          result.stream.lang
+        );
+        setSubtitles(subtitleItems);
+        setThumbnail(getThumbnailTrack(tracks));
+        setIntro(parseSegment(result.stream.intro));
+        setOutro(parseSegment(result.stream.outro));
+        setStreamNotice(null);
       } catch (err) {
         if (signal.aborted) return;
         if (err instanceof Error && err.name === 'AbortError') return;
-        console.error('Error fetching stream info:', err);
+        console.error('Error resolving watch stream:', err);
         setError(getErrorMessage(err));
+        setStreamNotice(null);
       } finally {
         if (!signal.aborted) setBuffering(false);
       }
-    };
-    fetchStream();
+    })();
 
     return () => controller.abort();
-  }, [providerAnimeId, episodeId, activeServerId, servers, setActiveServerId]);
+  }, [watchResolveOptions]);
 
   return {
     streamInfo,
@@ -193,5 +239,6 @@ export function useWatchStream(
     intro,
     outro,
     error,
+    streamNotice,
   };
 }

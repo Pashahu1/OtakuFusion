@@ -9,6 +9,8 @@ import type { AnimeData } from './animeDetailsTypes';
 
 export interface UseWatchReturn {
   error: string | null;
+  /** Повідомлення після автоматичного fallback стріму (dub→sub тощо). */
+  streamNotice: string | null;
   buffering: boolean;
   serverLoading: boolean;
   streamInfo: StreamingData | null;
@@ -16,6 +18,8 @@ export interface UseWatchReturn {
   episodes: EpisodesTypes[] | null;
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   animeInfoLoading: boolean;
+  /** Плеєр ще не готовий (аніме/епізоди/ep_token) — не показувати «помилку» до завантаження. */
+  playerShellPending: boolean;
   totalEpisodes: number | null;
   servers: ServerInfo[] | null;
   streamUrl: string | null;

@@ -17,6 +17,13 @@ import { updateContinueWatching } from './updateContinueWatching';
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
 
+function isHardHttpFailure(data: unknown): boolean {
+  if (!data || typeof data !== 'object') return false;
+  const d = data as { response?: { code?: unknown } };
+  const code = typeof d.response?.code === 'number' ? d.response.code : null;
+  return code != null && code >= 400 && code < 500;
+}
+
 export function Player({
   streamUrl,
   subtitles,
@@ -94,9 +101,8 @@ export function Player({
 
     container.innerHTML = '';
 
-    const headers = getStreamHeaders(streamInfo);
+    const headers = getStreamHeaders(streamInfo, streamUrl);
     const fullURL = getStreamFullUrl(streamUrl, headers);
-    console.log(fullURL);
     const art = new Artplayer({
       url: fullURL,
       container,
@@ -120,8 +126,8 @@ export function Player({
       ...getArtplayerOptions(
         intro,
         outro,
-        currentEpisodeIndex ?? 0,
-        episodes ?? [],
+        () => currentEpisodeIndexRef.current ?? -1,
+        () => episodesRef.current ?? [],
         playNext,
         userPausedRef
       ),
@@ -129,9 +135,20 @@ export function Player({
 
     let hasStartedPlaying = false;
     let hasReportedError = false;
+    let hlsRecoverNetworkTried = false;
+    let hlsRecoverMediaTried = false;
     const reportError = () => {
       if (hasReportedError) return;
       hasReportedError = true;
+      try {
+        if (art.hls) {
+          art.hls.stopLoad();
+          art.hls.destroy();
+          art.hls = null;
+        }
+      } catch {
+        /* noop */
+      }
       onPlaybackErrorRef.current?.();
     };
     art.on('video:playing', () => {
@@ -144,8 +161,36 @@ export function Player({
     if (art.hls) {
       art.hls.on(
         Hls.Events.ERROR,
-        (_evt: unknown, data: { fatal?: boolean; type?: string }) => {
-          if (data?.fatal) {
+        (_evt: unknown, data: { fatal?: boolean; type?: string; response?: { code?: number } }) => {
+          if (data?.type === Hls.ErrorTypes.NETWORK_ERROR && isHardHttpFailure(data)) {
+            reportError();
+            return;
+          }
+          if (data?.fatal && art.hls) {
+            if (
+              data.type === Hls.ErrorTypes.NETWORK_ERROR &&
+              !hlsRecoverNetworkTried
+            ) {
+              hlsRecoverNetworkTried = true;
+              try {
+                art.hls.startLoad();
+                return;
+              } catch {
+                /* fall through to reportError */
+              }
+            }
+            if (
+              data.type === Hls.ErrorTypes.MEDIA_ERROR &&
+              !hlsRecoverMediaTried
+            ) {
+              hlsRecoverMediaTried = true;
+              try {
+                art.hls.recoverMediaError();
+                return;
+              } catch {
+                /* fall through */
+              }
+            }
             reportError();
             return;
           }
@@ -162,10 +207,18 @@ export function Player({
     art.on('error', reportError);
 
     art.on('resize', () => {
-      art.subtitle.style({
-        fontSize:
-          (art.width > 500 ? art.width * 0.02 : art.width * 0.03) + 'px',
-      });
+      if ((art as Artplayer & { __subtitleResizeRaf?: number }).__subtitleResizeRaf) {
+        cancelAnimationFrame(
+          (art as Artplayer & { __subtitleResizeRaf?: number }).__subtitleResizeRaf as number
+        );
+      }
+      (art as Artplayer & { __subtitleResizeRaf?: number }).__subtitleResizeRaf =
+        requestAnimationFrame(() => {
+          art.subtitle.style({
+            fontSize:
+              (art.width > 500 ? art.width * 0.02 : art.width * 0.03) + 'px',
+          });
+        });
     });
 
     art.on('video:ended', () => {
@@ -211,6 +264,13 @@ export function Player({
       if (instanceToDestroy) {
         artInstanceRef.current = null;
         try {
+          const resizeRaf = (instanceToDestroy as Artplayer & { __subtitleResizeRaf?: number })
+            .__subtitleResizeRaf;
+          if (resizeRaf) {
+            cancelAnimationFrame(resizeRaf);
+            (instanceToDestroy as Artplayer & { __subtitleResizeRaf?: number })
+              .__subtitleResizeRaf = undefined;
+          }
           if (instanceToDestroy.hls) {
             instanceToDestroy.hls.destroy();
             instanceToDestroy.hls = null;

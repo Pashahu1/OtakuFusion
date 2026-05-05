@@ -191,6 +191,7 @@ export function mapAniListMediaToAnimeDetails(media: AniListMedia): AnimeResults
     data_id: media.id,
     mal_id: media.idMal ?? null,
     title: base.title,
+    romaji_title: media.title?.romaji?.trim() || undefined,
     japanese_title: base.japanese_title,
     poster: base.poster,
     showType: media.format ?? 'TV',

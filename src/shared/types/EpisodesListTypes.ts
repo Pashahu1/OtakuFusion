@@ -6,6 +6,11 @@ export interface EpisodesTypes {
   title: string;
   japanese_title: string;
   filler?: boolean;
+  /** AnimeKai ep_token для /api/servers/... */
+  ep_token?: string;
+  variant?: string;
+  hasSub?: boolean;
+  hasDub?: boolean;
 }
 
 export interface GetEpisodesResult {

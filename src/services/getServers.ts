@@ -1,152 +1,79 @@
-import { videoApiUrl } from '@/lib/video-api';
+import { animekaiApi } from '@/lib/animekai-api';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 
-interface MoruroEpisode {
-  episodeNumber: number | string;
-  isSub?: boolean;
-  isDub?: boolean;
-  sub?: boolean;
-  dub?: boolean;
-  hasSub?: boolean;
-  hasDub?: boolean;
+interface KaiServerEntry {
+  name?: string;
+  server_id?: string;
+  episode_id?: string;
+  link_id?: string;
 }
 
-interface MoruroEpisodesResponse {
-  episodes?: MoruroEpisode[];
-  results?: {
-    episodes?: MoruroEpisode[];
-  };
+interface KaiServersPayload {
+  success?: boolean;
+  servers?: Record<string, unknown>;
+  error?: string;
 }
 
-async function fetchEpisodesForServers(
-  animeId: string,
-  signal?: AbortSignal
-): Promise<MoruroEpisodesResponse | null> {
-  let lastError: unknown;
-  try {
-    return await videoApiUrl.get<MoruroEpisodesResponse>(
-      `/api/episodes?id=${encodeURIComponent(animeId)}`,
-      60,
-      signal
-    );
-  } catch (error) {
-    lastError = error;
-  }
-  if (
-    typeof process !== 'undefined' &&
-    process.env.NODE_ENV === 'development' &&
-    lastError
-  ) {
-    console.warn('[getServers] episodes lookup failed, using defaults:', lastError);
-  }
-  return null;
+function formatServerLabel(groupKey: string, name: string): string {
+  const g = groupKey.toLowerCase();
+  const prefix =
+    g === 'dub' ? 'Dub' : g === 'softsub' ? 'Softsub' : 'Sub';
+  return `${prefix} · ${name}`;
 }
 
-function toEpisodeNumber(value: string): number {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) return 1;
-  return Math.floor(parsed);
-}
-
-function createServerList(options: {
-  hasSub: boolean;
-  hasDub: boolean;
-}): ServerInfo[] {
-  const out: ServerInfo[] = [];
-  const addPair = (type: 'sub' | 'dub', offset: number) => {
+function pushServerGroup(
+  out: ServerInfo[],
+  groupKey: string,
+  playbackType: 'sub' | 'dub',
+  list: unknown,
+  nextId: { n: number }
+): void {
+  if (!Array.isArray(list)) return;
+  for (const raw of list) {
+    if (!raw || typeof raw !== 'object') continue;
+    const e = raw as KaiServerEntry;
+    const linkId = e.link_id?.trim();
+    if (!linkId) continue;
+    const sidRaw = e.server_id?.trim();
+    const serverNum = Number(sidRaw);
+    const server_id = Number.isFinite(serverNum) ? serverNum : nextId.n;
+    const name = e.name?.trim() || `Server ${server_id}`;
     out.push({
-      type,
-      data_id: offset + 1,
-      server_id: 1,
-      serverName: 'HD-1',
+      type: playbackType,
+      data_id: nextId.n++,
+      server_id,
+      serverName: formatServerLabel(groupKey, name),
+      link_id: linkId,
     });
-    out.push({
-      type,
-      data_id: offset + 2,
-      server_id: 2,
-      serverName: 'HD-2',
-    });
-  };
-
-  if (options.hasSub) addPair('sub', 0);
-  if (options.hasDub) addPair('dub', 2);
-
-  if (out.length === 0) addPair('sub', 0);
-  return out;
-}
-
-function hasTrue(values: Array<boolean | undefined>): boolean {
-  return values.some((value) => value === true);
-}
-
-function hasBoolean(values: Array<boolean | undefined>): boolean {
-  return values.some((value) => typeof value === 'boolean');
-}
-
-function resolveEpisodeAudio(episode: MoruroEpisode | undefined): {
-  hasSub: boolean | null;
-  hasDub: boolean | null;
-} {
-  if (!episode) return { hasSub: null, hasDub: null };
-  const subCandidates = [episode.isSub, episode.sub, episode.hasSub];
-  const dubCandidates = [episode.isDub, episode.dub, episode.hasDub];
-  const hasSubKnown = hasBoolean(subCandidates);
-  const hasDubKnown = hasBoolean(dubCandidates);
-
-  if (!hasSubKnown && !hasDubKnown) {
-    return { hasSub: null, hasDub: null };
   }
-
-  return {
-    hasSub: hasTrue(subCandidates),
-    hasDub: hasTrue(dubCandidates),
-  };
-}
-
-function resolveCatalogAudio(episodes: MoruroEpisode[]): {
-  hasSub: boolean;
-  hasDub: boolean;
-} {
-  const anySubTrue = episodes.some((episode) =>
-    hasTrue([episode.isSub, episode.sub, episode.hasSub])
-  );
-  const anyDubTrue = episodes.some((episode) =>
-    hasTrue([episode.isDub, episode.dub, episode.hasDub])
-  );
-
-  if (!anySubTrue && !anyDubTrue) {
-    return { hasSub: true, hasDub: true };
-  }
-
-  return {
-    hasSub: anySubTrue || !anyDubTrue,
-    hasDub: anyDubTrue,
-  };
 }
 
 export async function getServers(
-  animeId: string,
-  episodeId: string,
+  epToken: string | null | undefined,
   signal?: AbortSignal
 ): Promise<ServerInfo[]> {
-  const episodeNumber = toEpisodeNumber(episodeId);
-  const data = await fetchEpisodesForServers(animeId, signal);
-  if (!data) {
-    return createServerList({ hasSub: true, hasDub: true });
-  }
-  const episodes = Array.isArray(data.episodes)
-    ? data.episodes
-    : Array.isArray(data.results?.episodes)
-      ? data.results.episodes
-      : [];
-  const matchedEpisode = episodes.find(
-    (episode) => Number(episode.episodeNumber) === episodeNumber
-  );
-  const matchedAudio = resolveEpisodeAudio(matchedEpisode);
-  const fallbackAudio = resolveCatalogAudio(episodes);
+  const token = epToken?.trim();
+  if (!token) return [];
 
-  return createServerList({
-    hasSub: matchedAudio.hasSub ?? fallbackAudio.hasSub,
-    hasDub: matchedAudio.hasDub ?? fallbackAudio.hasDub,
-  });
+  const data = await animekaiApi.get<KaiServersPayload>(
+    `/api/servers/${encodeURIComponent(token)}`,
+    60,
+    signal
+  );
+
+  if (typeof data.error === 'string' && data.error.trim()) {
+    throw new Error(data.error.trim());
+  }
+
+  const serversObj = data.servers;
+  if (!serversObj || typeof serversObj !== 'object') return [];
+
+  const out: ServerInfo[] = [];
+  const nextId = { n: 1 };
+
+  pushServerGroup(out, 'sub', 'sub', serversObj.sub, nextId);
+  pushServerGroup(out, 'softsub', 'sub', serversObj.softsub, nextId);
+  pushServerGroup(out, 'dub', 'dub', serversObj.dub, nextId);
+
+  return out;
 }

@@ -24,8 +24,8 @@ import { getPlayerLayers } from './getPlayerLayers';
 export function getArtplayerOptions(
   intro: Segment | null,
   outro: Segment | null,
-  currentEpisodeIndex: number,
-  episodes: EpisodesTypes[],
+  getCurrentEpisodeIndex: () => number,
+  getEpisodes: () => EpisodesTypes[],
   playNext: (episodeId: string) => void,
   userPausedRef: React.RefObject<boolean>
 ) {
@@ -50,8 +50,8 @@ export function getArtplayerOptions(
       escape: false,
     },
     layers: getPlayerLayers(
-      currentEpisodeIndex,
-      episodes,
+      getCurrentEpisodeIndex,
+      getEpisodes,
       playNext,
       userPausedRef,
       intro,

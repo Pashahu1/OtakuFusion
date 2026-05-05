@@ -39,7 +39,21 @@ const INDEX_LINE_REGEX = /^\d+$/;
 const ABSOLUTE_URL_REGEX = /^\/|((https?|ftp|file):\/\/)/i;
 
 export async function getVttArray(vttUrl: string = ''): Promise<VttThumbItem[]> {
-  const response = await fetch(vttUrl);
+  const url = vttUrl.trim();
+  if (!url) return [];
+
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch {
+    return [];
+  }
+
+  if (!response.ok) {
+    /** CDN часто віддає 403 без «правильного» Referer — превʼю на таймлайні просто вимикається. */
+    return [];
+  }
+
   const vttString = await response.text();
   const lines = vttString.split(/\r?\n/).filter((item) => item.trim());
   const vttArray: VttThumbItem[] = [];

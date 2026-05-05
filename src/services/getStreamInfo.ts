@@ -1,112 +1,189 @@
+/**
+ * AnimeKai playback: ланцюжок на бекенді
+ * 1) (опційно) GET /api/anime/anilist/<id> або /api/anime/mal/<mal_id> → ani_id
+ * 2) GET /api/search?keyword=… → slug
+ * 3) GET /api/anime/<slug> → ani_id (+ mal_id / anilist_id у форку)
+ * 4) GET /api/episodes/<ani_id> → episodes[].token (ep_token)
+ * 5) GET /api/servers/<ep_token> → servers.*[].link_id
+ * 6) GET /api/source/<link_id> → цей модуль (HLS, skip, tracks, embed_url)
+ */
 import { ApiError } from '@/lib/errors/ApiError';
-import { publicEnv } from '@/lib/env.public';
-import { videoApiUrl } from '@/lib/video-api';
+import { animekaiApi } from '@/lib/animekai-api';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import type { AnimeKaiSourceResponse } from '@/shared/types/AnimeKaiSourceTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
+import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
 
-interface MoruroStreamItem {
-  url?: string;
-  file?: string;
-  src?: string;
-  hls?: string;
-  playlist?: string;
-  type?: string;
-  referer?: string;
-  intro?: { start?: number; end?: number };
-  outro?: { start?: number; end?: number };
-  captions?: Array<{ lang?: string; url?: string }>;
-  subtitles?: Array<{ lang?: string; url?: string }>;
+function asFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const n = Number(value.trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
 }
 
-interface MoruroStreamResponse {
-  streams?: MoruroStreamItem[];
-  error?: string;
-  results?: {
-    streams?: MoruroStreamItem[];
-    error?: string;
-  };
+/** У відповіді API skip.intro / skip.outro — зазвичай кортеж [start, end] у секундах. */
+function segmentFromTuple(
+  value: unknown
+): { start: number; end: number } | undefined {
+  if (!Array.isArray(value) || value.length < 2) return undefined;
+  const start = asFiniteNumber(value[0]);
+  const end = asFiniteNumber(value[1]);
+  if (start == null || end == null || start < 0 || end <= start) return undefined;
+  return { start, end };
 }
 
-function getResultsError(results: unknown): string | null {
-  if (!results || typeof results !== 'object') return null;
-  const err = (results as { error?: unknown }).error;
-  return typeof err === 'string' && err.trim() ? err.trim() : null;
+function segmentFromObject(
+  value: unknown
+): { start: number; end: number } | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const o = value as Record<string, unknown>;
+  const start = asFiniteNumber(o.start ?? o.from);
+  const end = asFiniteNumber(o.end ?? o.to);
+  if (start == null || end == null || start < 0 || end <= start) return undefined;
+  return { start, end };
 }
 
-function hasStreamingPayload(results: MoruroStreamResponse): boolean {
-  const streams = Array.isArray(results.streams)
-    ? results.streams
-    : Array.isArray(results.results?.streams)
-      ? results.results.streams
-      : [];
-  return streams.length > 0;
+function introOutroFromSkip(skip: AnimeKaiSourceResponse['skip']): {
+  intro: { start: number; end: number };
+  outro: { start: number; end: number };
+} {
+  if (!skip || typeof skip !== 'object') {
+    return {
+      intro: { start: 0, end: 0 },
+      outro: { start: 0, end: 0 },
+    };
+  }
+  const s = skip as Record<string, unknown>;
+  const intro =
+    segmentFromTuple(s.intro) ??
+    segmentFromObject(s.intro) ??
+    segmentFromObject(s.op) ??
+    { start: 0, end: 0 };
+  const outro =
+    segmentFromTuple(s.outro) ??
+    segmentFromObject(s.outro) ??
+    segmentFromObject(s.ed) ??
+    { start: 0, end: 0 };
+  return { intro, outro };
 }
 
-function buildStreamQueryString(
-  animeId: string,
-  episodeId: string,
-  server: string,
-  type: string
-): string {
-  const enc = encodeURIComponent;
-  return `id=${enc(animeId)}&ep=${enc(episodeId)}&server=${enc(server)}&type=${enc(type)}`;
+function refererFromEmbed(embedUrl: string | undefined): string | undefined {
+  if (!embedUrl?.trim()) return undefined;
+  try {
+    const u = new URL(embedUrl);
+    return `${u.origin}/`;
+  } catch {
+    return undefined;
+  }
 }
 
-async function fetchStreamPath(
-  query: string,
-  signal?: AbortSignal
-): Promise<MoruroStreamResponse> {
-  return videoApiUrl.get<MoruroStreamResponse>(`/api/stream?${query}`, 60, signal);
+function firstPlayableFile(row: Record<string, unknown>): string | undefined {
+  const keys = ['file', 'url', 'src', 'hls', 'link', 'source', 'm3u8'] as const;
+  for (const k of keys) {
+    const v = row[k];
+    if (typeof v === 'string' && v.trim().length > 0) return v.trim();
+  }
+  return undefined;
 }
 
-function toStreamingData(
-  payload: MoruroStreamResponse,
+function collectSourceRows(payload: AnimeKaiSourceResponse): Record<string, unknown>[] {
+  const raw = payload.sources ?? (payload as { source?: unknown }).source;
+  if (Array.isArray(raw)) {
+    return raw.filter(
+      (x): x is Record<string, unknown> => x != null && typeof x === 'object'
+    );
+  }
+  if (raw && typeof raw === 'object' && Array.isArray((raw as { list?: unknown }).list)) {
+    const list = (raw as { list: unknown[] }).list;
+    return list.filter(
+      (x): x is Record<string, unknown> => x != null && typeof x === 'object'
+    );
+  }
+  return [];
+}
+
+function mapRootTracks(
+  tracks: AnimeKaiSourceResponse['tracks'] | undefined
+): VideoTrack[] {
+  if (!Array.isArray(tracks)) return [];
+  const out: VideoTrack[] = [];
+  tracks.forEach((t, i) => {
+    if (!t || typeof t !== 'object') return;
+    const file =
+      typeof t.file === 'string' && t.file.trim()
+        ? t.file.trim()
+        : typeof t.url === 'string' && t.url.trim()
+          ? t.url.trim()
+          : '';
+    if (!file.trim()) return;
+    const kindRaw = (typeof t.kind === 'string' ? t.kind : 'captions').toLowerCase();
+    const kind =
+      kindRaw === 'thumbnail' || kindRaw === 'thumbs' ? 'thumbnails' : kindRaw;
+    const label =
+      typeof t.label === 'string' && t.label.trim()
+        ? t.label.trim()
+        : typeof t.lang === 'string' && t.lang.trim()
+          ? t.lang.trim()
+          : kind;
+    out.push({
+      file,
+      label,
+      kind,
+      default: t.default === true || i === 0,
+    });
+  });
+  return out;
+}
+
+function sourcePayloadToStreamingData(
+  payload: AnimeKaiSourceResponse,
   server: ServerInfo,
   type: string
 ): StreamingData {
-  const streams = Array.isArray(payload.streams)
-    ? payload.streams
-    : Array.isArray(payload.results?.streams)
-      ? payload.results.streams
-      : [];
+  if (typeof payload.error === 'string' && payload.error.trim()) {
+    throw new ApiError(payload.error.trim(), 502);
+  }
+  if (payload.success === false) {
+    throw new ApiError(
+      typeof payload.error === 'string' && payload.error.trim()
+        ? payload.error.trim()
+        : 'AnimeKai: source unavailable',
+      502
+    );
+  }
+
+  const rows = collectSourceRows(payload);
+  const { intro, outro } = introOutroFromSkip(payload.skip);
+  const embedReferer = refererFromEmbed(payload.embed_url);
+  const rootTracks = mapRootTracks(payload.tracks);
+
+  const streamingLink = rows
+    .map((row, index) => {
+      const file = firstPlayableFile(row);
+      if (!file) return null;
+      const linkType =
+        typeof row.type === 'string' && row.type.trim()
+          ? String(row.type).toLowerCase()
+          : file.includes('.m3u8')
+            ? 'hls'
+            : 'mp4';
+      return {
+        id: index + 1,
+        type: type === 'dub' ? ('dub' as const) : ('sub' as const),
+        server: server.serverName,
+        link: { file, type: linkType },
+        iframe: embedReferer,
+        tracks: index === 0 ? rootTracks : [],
+        intro,
+        outro,
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x != null);
+
   return {
-    streamingLink: streams
-      .filter((item) =>
-        Boolean(item.url || item.file || item.src || item.hls || item.playlist)
-      )
-      .map((item, index) => {
-        const subtitles = item.subtitles ?? item.captions ?? [];
-        const file =
-          item.url || item.file || item.src || item.hls || item.playlist || '';
-        const referer = item.referer?.trim();
-        return {
-          id: index + 1,
-          type: type === 'dub' ? 'dub' : 'sub',
-          server: server.serverName,
-          link: {
-            file,
-            type: item.type ?? 'hls',
-          },
-          iframe: referer ? `${referer.replace(/\/+$/, '')}/` : undefined,
-          tracks: subtitles
-            .filter((track) => Boolean(track.url))
-            .map((track, trackIndex) => ({
-              id: trackIndex + 1,
-              kind: 'captions',
-              default: trackIndex === 0,
-              file: track.url ?? '',
-              label: track.lang ?? `Subtitle ${trackIndex + 1}`,
-            })),
-          intro: {
-            start: item.intro?.start ?? 0,
-            end: item.intro?.end ?? 0,
-          },
-          outro: {
-            start: item.outro?.start ?? 0,
-            end: item.outro?.end ?? 0,
-          },
-        };
-      }),
+    streamingLink,
     servers: [
       {
         type: server.type,
@@ -118,83 +195,56 @@ function toStreamingData(
   };
 }
 
-async function fetchStreamEndpoints(
-  server: ServerInfo,
-  type: string,
-  query: string,
-  signal?: AbortSignal
-): Promise<{ data: StreamingData } | { message: string }> {
-  if (process.env.NODE_ENV === 'development') {
-    const base = publicEnv.NEXT_PUBLIC_STREAM_API_URL || publicEnv.NEXT_PUBLIC_API_URL;
-    console.debug('[getStreamInfo]', `${base}/api/stream?${query}`);
-  }
-
-  const results = await fetchStreamPath(query, signal);
-  if (!getResultsError(results) && hasStreamingPayload(results)) {
-    return { data: toStreamingData(results, server, type) };
-  }
-
-  return {
-    message: getResultsError(results) || 'Stream unavailable',
-  };
+function isRetryableSourceHttpStatus(status: number): boolean {
+  return (
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504
+  );
 }
 
-function serverQueryCandidates(server: ServerInfo): string[] {
-  const out: string[] = [];
-  const normalizedServerName = server.serverName.trim().toLowerCase();
-  const fromName =
-    normalizedServerName === 'hd-1' || normalizedServerName === 'hd-2'
-      ? normalizedServerName
-      : normalizedServerName.includes('hd-1')
-        ? 'hd-1'
-        : normalizedServerName.includes('hd-2')
-          ? 'hd-2'
-          : null;
-
-  if (fromName) out.push(fromName);
-  if (server.server_id === 1) out.push('hd-1');
-  if (server.server_id === 2) out.push('hd-2');
-
-  const push = (v: string | number | undefined | null) => {
-    if (v === undefined || v === null) return;
-    const s = String(v).trim();
-    if (s && !out.includes(s)) out.push(s);
-  };
-
-  // Fallbacks for non-standard backends only.
-  push(normalizedServerName);
-  push(server.serverName);
-  push(server.server_id);
-  return out;
+/** Один повтор після короткої паузи — часто Fly/проксі дають тимчасовий 500. */
+async function fetchSourcePayload(
+  linkId: string,
+  signal?: AbortSignal
+): Promise<AnimeKaiSourceResponse> {
+  const path = `/api/source/${encodeURIComponent(linkId)}`;
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await animekaiApi.get<AnimeKaiSourceResponse>(
+        path,
+        undefined,
+        signal
+      );
+    } catch (e) {
+      lastErr = e;
+      const retry =
+        attempt === 0 &&
+        e instanceof ApiError &&
+        isRetryableSourceHttpStatus(e.status) &&
+        !signal?.aborted;
+      if (!retry) throw e;
+      await new Promise((r) => setTimeout(r, 500));
+      if (signal?.aborted) throw e;
+    }
+  }
+  throw lastErr;
 }
 
 export async function getStreamInfo(
-  animeId: string,
-  episodeId: string,
   server: ServerInfo,
   type: string,
   signal?: AbortSignal
 ): Promise<StreamingData> {
-  const attempts = serverQueryCandidates(server);
-  if (attempts.length === 0) {
-    throw new ApiError('No server identifier', 400);
+  const linkId = server.link_id?.trim();
+  if (!linkId) {
+    throw new ApiError('Немає link_id для відтворення (AnimeKai).', 400);
   }
 
-  let lastMessage = 'Stream unavailable';
+  const payload = await fetchSourcePayload(linkId, signal);
 
-  for (const serverValue of attempts) {
-    if (signal?.aborted) throw new ApiError('Aborted', 499);
-    const query = buildStreamQueryString(
-      animeId,
-      episodeId,
-      serverValue,
-      type
-    );
-
-    const out = await fetchStreamEndpoints(server, type, query, signal);
-    if ('data' in out) return out.data;
-    lastMessage = out.message;
-  }
-
-  throw new ApiError(lastMessage, 502);
+  return sourcePayloadToStreamingData(payload, server, type);
 }

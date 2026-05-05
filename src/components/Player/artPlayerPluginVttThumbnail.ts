@@ -97,7 +97,7 @@ export function artplayerPluginVttThumbnail(
       },
     });
 
-    getVttArray(option.vtt).then((arr) => {
+    void getVttArray(option.vtt).then((arr) => {
       thumbnails = arr ?? [];
     });
 

@@ -1,7 +1,8 @@
 import Artplayer from 'artplayer';
+import { SERVER_PRIORITY_ORDER } from '@/shared/data/servers';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { captionIcon, serverIcon } from './PlayerIcons';
-import { PROXY_URL } from './playerConstants';
+import { ANIKAI_PAGE_REFERER, M3U8_PROXY_URL, PROXY_URL } from './playerConstants';
 import { artplayerPluginVttThumbnail } from './artPlayerPluginVttThumbnail';
 import { handlePlayerKeydown } from './playerKeydown';
 import { LOGO_HIDE_DELAY_MS } from './playerConstants';
@@ -9,6 +10,39 @@ import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
+
+function toPlayableAssetUrl(url: string): string {
+  const raw = url.trim();
+  if (!raw) return raw;
+  if (raw.startsWith('blob:') || raw.startsWith('data:')) return raw;
+  if (!/^https?:\/\//i.test(raw)) return raw;
+  const proxyBase = (PROXY_URL || M3U8_PROXY_URL || '/api/m3u8-proxy?url=').trim();
+  if (!proxyBase) return raw;
+  const encoded = encodeURIComponent(raw);
+  const headers = encodeURIComponent(
+    JSON.stringify({
+      Referer: ANIKAI_PAGE_REFERER,
+      Origin: 'https://anikai.to',
+    })
+  );
+  if (proxyBase.includes('{url}')) {
+    const withUrl = proxyBase.replace('{url}', encoded);
+    if (withUrl.includes('headers=')) return withUrl;
+    const sep = withUrl.includes('?') ? '&' : '?';
+    return `${withUrl}${sep}headers=${headers}`;
+  }
+  if (proxyBase.endsWith('=')) {
+    return `${proxyBase}${encoded}&headers=${headers}`;
+  }
+  if (proxyBase.includes('?')) {
+    const sep = proxyBase.endsWith('?') || proxyBase.endsWith('&') ? '' : '&';
+    return `${proxyBase}${sep}url=${encoded}&headers=${headers}`;
+  }
+  if (proxyBase.endsWith('/')) {
+    return `${proxyBase}${encoded}?headers=${headers}`;
+  }
+  return `${proxyBase}?url=${encoded}&headers=${headers}`;
+}
 
 export function setupPlayerReady(
   art: Artplayer,
@@ -31,6 +65,7 @@ export function setupPlayerReady(
   serversRef: React.RefObject<ServerInfo[] | null>,
   activeServerIdRef: React.RefObject<string | null>
 ) {
+  let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
   const goToNextEpisode = () => {
     const id = episodeIdRef.current;
     const list = episodesRef.current;
@@ -43,12 +78,6 @@ export function setupPlayerReady(
       if (nextId) playNextRef.current?.(nextId);
     }
   };
-  if (art.video) {
-    art.video.addEventListener('ended', goToNextEpisode);
-    art.on('destroy', () =>
-      art.video?.removeEventListener('ended', goToNextEpisode)
-    );
-  }
 
   const tryPlay = () => {
     if (userPausedRef.current) return;
@@ -83,7 +112,7 @@ export function setupPlayerReady(
     logoLayer.style.transform = 'translateY(0) scale(1)';
   });
 
-  setTimeout(() => {
+  logoHideTimeoutId = setTimeout(() => {
     logoLayer.style.opacity = '0';
     logoLayer.style.transform = 'translateY(-10px) scale(0.95)';
   }, LOGO_HIDE_DELAY_MS);
@@ -131,30 +160,48 @@ export function setupPlayerReady(
     }
   });
 
-  document.addEventListener('keydown', (event) =>
-    handlePlayerKeydown(event, art)
-  );
+  const onKeydown = (event: KeyboardEvent) => {
+    handlePlayerKeydown(event, art);
+  };
+  document.addEventListener('keydown', onKeydown);
+  art.on('destroy', () => {
+    document.removeEventListener('keydown', onKeydown);
+    if (logoHideTimeoutId) {
+      clearTimeout(logoHideTimeoutId);
+      logoHideTimeoutId = null;
+    }
+  });
   art.subtitle.style({
     fontSize: (art.width > 500 ? art.width * 0.02 : art.width * 0.03) + 'px',
   });
   thumbnail &&
     art.plugins.add(
       artplayerPluginVttThumbnail({
-        vtt: PROXY_URL ? `${PROXY_URL}${thumbnail}` : thumbnail,
+        vtt: toPlayableAssetUrl(thumbnail),
       })
     );
+  const playableSubtitles = (subtitles ?? [])
+    .map((sub) => ({
+      ...sub,
+      file: toPlayableAssetUrl(sub.file),
+    }))
+    .filter((sub) => sub.file.trim().length > 0);
   const defaultEnglishSub =
-    subtitles?.find(
-      (sub) => sub.label.toLowerCase() === 'english' && sub.default
-    ) || subtitles?.find((sub) => sub.label.toLowerCase() === 'english');
-  subtitles &&
-    subtitles.length > 0 &&
+    playableSubtitles.find(
+      (sub) => sub.label.toLowerCase().includes('english') && sub.default
+    ) ||
+    playableSubtitles.find((sub) =>
+      sub.label.toLowerCase().includes('english')
+    );
+  playableSubtitles.length > 0 &&
     art.setting.add({
       name: 'captions',
       icon: captionIcon,
       html: 'Subtitle',
       tooltip:
-        subtitles.find((sub) => sub.label.toLowerCase() === 'english')?.label ||
+        playableSubtitles.find((sub) =>
+          sub.label.toLowerCase().includes('english')
+        )?.label ||
         'default',
       position: 'right',
       selector: [
@@ -162,43 +209,68 @@ export function setupPlayerReady(
           html: 'Display',
           switch: true,
           onSwitch: function (item) {
-            item.tooltip = item.switch ? 'Hide' : 'Show';
-            art.subtitle.show = !item.switch;
-            return !item.switch;
+            const isEnabled = Boolean(item.switch);
+            item.tooltip = isEnabled ? 'Hide' : 'Show';
+            art.subtitle.show = isEnabled;
+            return isEnabled;
           },
         },
-        ...subtitles.map((sub) => ({
+        ...playableSubtitles.map((sub) => ({
           default:
-            sub.label.toLowerCase() === 'english' && sub === defaultEnglishSub,
+            sub.label.toLowerCase().includes('english') &&
+            sub === defaultEnglishSub,
           html: sub.label,
           url: sub.file,
         })),
       ],
       onSelect: function (item) {
         art.subtitle.switch(item.url, { name: item.html });
+        art.subtitle.show = true;
         return item.html;
       },
     });
-  const defaultSubtitle = subtitles?.find(
-    (sub) => sub.label.toLowerCase() === 'english'
+  const defaultSubtitle = playableSubtitles.find(
+    (sub) => sub.label.toLowerCase().includes('english')
   );
   if (defaultSubtitle) {
     art.subtitle.switch(defaultSubtitle.file, {
       name: defaultSubtitle.label,
       default: true,
     } as { name: string; default?: boolean });
+    art.subtitle.show = true;
   }
 
   const langServers = serversRef.current ?? null;
   const langActiveId = activeServerIdRef.current ?? null;
-  const getPreferredServer = (list: ServerInfo[] | null | undefined) =>
-    list?.find((s: ServerInfo) => s.serverName === 'HD-2') ||
-    list?.find((s: ServerInfo) => s.serverName === 'HD-1') ||
-    list?.[0];
+
+  /** Частина після «Sub ·» / «Dub ·» — як у useWatchStream (не порівнювати з сирими «HD-1»). */
+  function mirrorLabel(serverName: string): string {
+    const parts = serverName.split('·');
+    if (parts.length >= 2) return parts.slice(1).join('·').trim();
+    return serverName.trim();
+  }
+
+  function pickPreferredInGroup(list: ServerInfo[]): ServerInfo | undefined {
+    if (!list.length) return undefined;
+    for (const pref of SERVER_PRIORITY_ORDER) {
+      const p = pref.toLowerCase();
+      const hit = list.find(
+        (s) => mirrorLabel(s.serverName).toLowerCase() === p
+      );
+      if (hit) return hit;
+    }
+    return list[0];
+  }
+
   const subList = langServers?.filter((s) => s.type === 'sub') ?? [];
   const dubList = langServers?.filter((s) => s.type === 'dub') ?? [];
-  const jp = getPreferredServer(subList);
-  const en = getPreferredServer(dubList);
+  /** Спочатку рядок, що відповідає активному стріму — меню Language збігається з реальним сервером. */
+  const jp =
+    subList.find((s) => String(s.data_id) === String(langActiveId)) ??
+    pickPreferredInGroup(subList);
+  const en =
+    dubList.find((s) => String(s.data_id) === String(langActiveId)) ??
+    pickPreferredInGroup(dubList);
   type LangOption = {
     html: string;
     default: boolean;

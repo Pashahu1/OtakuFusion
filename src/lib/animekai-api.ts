@@ -1,32 +1,35 @@
 import { publicEnv } from '@/lib/env.public';
 import { ApiError } from '@/lib/errors/ApiError';
 
-export interface VideoApiResponse<T> {
-  results: T;
+function getAnimeKaiBaseUrl(): string {
+  return publicEnv.NEXT_PUBLIC_ANIMEKAI_API_URL;
 }
 
-function getVideoApiBaseUrl(): string {
-  return publicEnv.NEXT_PUBLIC_STREAM_API_URL || publicEnv.NEXT_PUBLIC_API_URL;
-}
-
-export const videoApiUrl = {
+export const animekaiApi = {
   get: async <T = unknown>(
-    endpoint: string,
+    path: string,
     revalidate?: number,
     signal?: AbortSignal
   ): Promise<T> => {
-    const url = `${getVideoApiBaseUrl()}${endpoint}`;
-    const res = await fetch(url, {
-      ...(typeof revalidate === 'number'
+    const base = getAnimeKaiBaseUrl();
+    const url = `${base}${path.startsWith('/') ? path : `/${path}`}`;
+
+    /** У браузері `next.revalidate` не застосовується — лише зайве; завжди no-store. */
+    const isBrowser = typeof window !== 'undefined';
+    const cacheInit =
+      !isBrowser && typeof revalidate === 'number'
         ? { next: { revalidate } }
-        : { cache: 'no-store' as RequestCache }),
+        : { cache: 'no-store' as RequestCache };
+
+    const res = await fetch(url, {
+      ...cacheInit,
       signal,
     });
 
     const bodyText = await res.text();
 
     if (!res.ok) {
-      let message = `Video API request failed (${res.status})`;
+      let message = `AnimeKai API failed (${res.status})`;
       const trimmed = bodyText.trim();
       if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
         try {
@@ -41,7 +44,7 @@ export const videoApiUrl = {
             }
           }
         } catch {
-          /* залишаємо дефолтне повідомлення */
+          /* noop */
         }
       }
       throw new ApiError(message, res.status);
@@ -50,18 +53,17 @@ export const videoApiUrl = {
     const contentType = res.headers.get('content-type')?.toLowerCase() ?? '';
     const likelyJson =
       contentType.includes('application/json') ||
-      contentType.includes('application/problem+json') ||
       bodyText.trim().startsWith('{') ||
       bodyText.trim().startsWith('[');
 
     if (!likelyJson) {
-      throw new ApiError(`Video API returned non-JSON for ${endpoint}`, 502);
+      throw new ApiError(`AnimeKai returned non-JSON for ${path}`, 502);
     }
 
     try {
       return JSON.parse(bodyText) as T;
     } catch {
-      throw new ApiError(`Invalid JSON from Video API for ${endpoint}`, 502);
+      throw new ApiError(`Invalid JSON from AnimeKai for ${path}`, 502);
     }
   },
 };

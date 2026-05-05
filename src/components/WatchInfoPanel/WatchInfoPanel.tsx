@@ -35,6 +35,7 @@ export const WatchInfoPanel = ({
             src={Convertor(animeInfo.poster, LIST_THUMBNAIL_RES)}
             alt={animeInfo.title ? `Poster: ${animeInfo.title}` : 'Anime poster'}
             fill
+            priority
             quality={75}
             sizes="(max-width: 500px) 70px, 100px"
             className={`object-cover transition-opacity duration-200 ${posterImageLoaded ? 'opacity-100' : 'opacity-0'}`}

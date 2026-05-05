@@ -5,8 +5,8 @@ import Artplayer from 'artplayer';
 import { backwardIcon, forwardIcon } from './PlayerIcons';
 
 export function getPlayerLayers(
-  currentEpisodeIndex: number,
-  episodes: EpisodesTypes[],
+  getCurrentEpisodeIndex: () => number,
+  getEpisodes: () => EpisodesTypes[],
   playNext: (episodeId: string) => void,
   userPausedRef: React.RefObject<boolean>,
   intro: Segment | null,
@@ -210,8 +210,8 @@ export function getPlayerLayers(
         border: '1px solid rgba(255,255,255,0.1)',
       },
       click: function (this: Artplayer) {
-        const idx = currentEpisodeIndex ?? -1;
-        const next = episodes?.[idx + 1];
+        const idx = getCurrentEpisodeIndex() ?? -1;
+        const next = getEpisodes()?.[idx + 1];
         if (next) {
           const nextId = getEpisodeNumberFromId(next.id);
           if (nextId) playNext(nextId);

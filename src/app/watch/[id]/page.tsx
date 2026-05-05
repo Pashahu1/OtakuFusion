@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useWatch } from '@/hooks/useWatch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -54,11 +54,17 @@ export default function Watch() {
     setActiveServerId,
     servers,
     serverLoading,
+    streamNotice,
+    playerShellPending,
   } = useWatch(animeId || '', urlEp ?? undefined);
 
   const hasAppliedSavedEpisodeRef = useRef(false);
   const isFirstSet = useRef(true);
   const errorBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    isFirstSet.current = true;
+  }, [animeId]);
 
   useWatchPageEffects(
     hasAppliedSavedEpisodeRef,
@@ -71,6 +77,7 @@ export default function Watch() {
     serverLoading,
     buffering,
     streamUrl,
+    playerShellPending,
     animeInfo,
     nextEpisodeSchedule,
     errorBlockTimerRef,
@@ -110,6 +117,7 @@ export default function Watch() {
           </div>
 
           <WatchPlayerContent
+            animeId={animeId}
             playerColumnRef={playerColumnRef}
             serverLoading={serverLoading}
             buffering={buffering}
@@ -129,6 +137,8 @@ export default function Watch() {
             activeServerId={activeServerId}
             setActiveServerId={setActiveServerId}
             showErrorBlock={showErrorBlock}
+            streamNotice={streamNotice}
+            playerShellPending={playerShellPending}
           />
 
           <WatchInfoPanel

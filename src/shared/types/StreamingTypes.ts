@@ -18,6 +18,7 @@ export type StreamingType = {
   outro: Segment;
   server: string;
   iframe?: string;
+  request_headers?: Record<string, string>;
 };
 
 export type StreamServer = {

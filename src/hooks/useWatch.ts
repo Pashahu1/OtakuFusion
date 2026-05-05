@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
+import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
 import { useWatchAnime } from './useWatchAnime';
-import { useWatchServers } from './useWatchServers';
 import { useWatchStream } from './useWatchStream';
 
 export function useWatch(
@@ -13,14 +14,71 @@ export function useWatch(
   const [isFullOverview, setIsFullOverview] = useState(false);
 
   const anime = useWatchAnime(animeId, initialEpisodeId);
-  const servers = useWatchServers(anime.providerAnimeId, anime.episodeId);
-  const stream = useWatchStream(
-    anime.providerAnimeId,
-    anime.episodeId,
-    servers.activeServerId,
-    servers.servers,
-    servers.setActiveServerId
+
+  const playerShellPending =
+    anime.animeInfoLoading ||
+    anime.episodes === null ||
+    (Boolean(anime.episodeId) &&
+      Array.isArray(anime.episodes) &&
+      anime.episodes.length > 0 &&
+      anime.episodes.every(
+        (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) !== anime.episodeId
+      ));
+
+  function getPersistedServerId(): string {
+    if (typeof window === 'undefined') return '2';
+    const savedType = localStorage.getItem(STORAGE_SERVER_TYPE)?.toLowerCase();
+    return savedType === 'sub' ? '1' : '2';
+  }
+
+  const [activeServerId, setActiveServerId] = useState<string | null>(() =>
+    getPersistedServerId()
   );
+  const hasAnyDub = useMemo(
+    () => Boolean(anime.episodes?.some((e) => e.hasDub === true)),
+    [anime.episodes]
+  );
+
+  useEffect(() => {
+    /**
+     * На кожному новому тайтлі залишаємо глобальний вибір користувача
+     * (English/Dub або Japanese/Sub) з localStorage.
+     */
+    setActiveServerId(getPersistedServerId());
+  }, [animeId]);
+
+  const preferredLang = useMemo<'sub' | 'dub'>(
+    () => (activeServerId === '2' ? 'dub' : 'sub'),
+    [activeServerId]
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_SERVER_TYPE, preferredLang);
+  }, [preferredLang]);
+
+  const servers = useMemo<ServerInfo[]>(() => {
+    const base: ServerInfo[] = [
+      { type: 'sub', data_id: 1, server_id: 1, serverName: 'Sub · Auto' },
+    ];
+    if (hasAnyDub) {
+      base.push({ type: 'dub', data_id: 2, server_id: 2, serverName: 'Dub · Auto' });
+    }
+    return base;
+  }, [hasAnyDub]);
+
+  const watchResolveOptions = useMemo(
+    () => ({
+      animeId,
+      episodeId: anime.episodeId,
+      animeInfo: anime.animeInfo,
+      providerAnimeId: anime.providerAnimeId,
+      preferredLang,
+    }),
+    [anime.animeInfo, anime.episodeId, anime.providerAnimeId, animeId, preferredLang]
+  );
+
+  const stream = useWatchStream(watchResolveOptions);
 
   const activeEpisodeNum = useMemo((): number | null => {
     const { episodes, episodeId } = anime;
@@ -32,19 +90,21 @@ export function useWatch(
   }, [anime.episodes, anime.episodeId]);
 
   const error =
-    anime.error ?? servers.error ?? stream.error ?? null;
+    anime.error ?? stream.error ?? null;
 
   return {
     error,
+    streamNotice: stream.streamNotice,
     buffering: stream.buffering,
-    serverLoading: servers.serverLoading,
+    serverLoading: false,
     streamInfo: stream.streamInfo,
     animeInfo: anime.animeInfo,
     episodes: anime.episodes,
     nextEpisodeSchedule: anime.nextEpisodeSchedule,
     animeInfoLoading: anime.animeInfoLoading,
+    playerShellPending,
     totalEpisodes: anime.totalEpisodes,
-    servers: servers.servers,
+    servers,
     streamUrl: stream.streamUrl,
     isFullOverview,
     setIsFullOverview,
@@ -56,7 +116,7 @@ export function useWatch(
     setEpisodeId: anime.setEpisodeId,
     activeEpisodeNum,
     setActiveEpisodeNum: () => {},
-    activeServerId: servers.activeServerId,
-    setActiveServerId: servers.setActiveServerId,
+    activeServerId,
+    setActiveServerId,
   };
 }

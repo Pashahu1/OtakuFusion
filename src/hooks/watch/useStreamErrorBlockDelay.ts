@@ -5,9 +5,14 @@ export function useStreamErrorBlockDelay(
   setShowErrorBlock: (item: boolean) => void,
   serverLoading: boolean,
   buffering: boolean,
-  streamUrl: string | null
+  streamUrl: string | null,
+  playerShellPending: boolean
 ) {
-  const isErrorState = !serverLoading && !buffering && !streamUrl;
+  const isErrorState =
+    !playerShellPending &&
+    !serverLoading &&
+    !buffering &&
+    !streamUrl;
   useEffect(() => {
     if (isErrorState) {
       errorBlockTimerRef.current = setTimeout(

@@ -71,6 +71,8 @@ export type ServerInfo = {
   data_id: number;
   server_id: number;
   serverName: string;
+  /** AnimeKai — GET /api/source/<link_id> */
+  link_id?: string;
 };
 
 export interface NextEpisodeScheduleResult {
