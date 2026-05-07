@@ -178,6 +178,29 @@ export async function GET(req: NextRequest) {
   const contentTypeRaw =
     upstreamResponse.headers.get('content-type') ?? 'application/octet-stream';
 
+  const contentLength = upstreamResponse.headers.get('content-length');
+  const parsedLen = contentLength ? Number(contentLength) : NaN;
+
+  /**
+   * Відео/аудіо сегменти та дуже великі blob — стрімимо без повної буферизації.
+   * Плейлисти (часто `octet-stream`) лишаємо в RAM лише до MAX_PLAYLIST_BYTES + rewrite.
+   */
+  const streamAsPassthrough =
+    upstreamResponse.ok &&
+    upstreamResponse.body &&
+    (/\.(ts|m4s|aac|mp4|webm|mkv)(\?|$)/i.test(targetUrl) ||
+      (Number.isFinite(parsedLen) && parsedLen > MAX_PLAYLIST_BYTES));
+
+  if (streamAsPassthrough) {
+    return new Response(upstreamResponse.body, {
+      status: upstreamResponse.status,
+      headers: {
+        'Content-Type': contentTypeRaw,
+        'Cache-Control': 'private, max-age=120',
+      },
+    });
+  }
+
   const buf = await upstreamResponse.arrayBuffer();
 
   if (!upstreamResponse.ok) {

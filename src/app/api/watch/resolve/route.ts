@@ -6,11 +6,28 @@ import {
   tryResolveAnimeKaiByAnilistId,
   tryResolveAnimeKaiByMalId,
 } from '@/services/animekaiResolve';
+import {
+  buildProbeHeaders,
+  isPlayableViaProxy,
+  readWatchProbeConfig,
+  type WatchProbeConfig,
+} from '@/lib/watchResolveProbe';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
 type WatchLang = 'sub' | 'dub';
+
+/** Одночасні однакові GET з різних вкладок — один прохід резолву на інстанс. */
+const inflightResolve = new Map<string, Promise<Response>>();
+
+function canonicalResolveKey(reqUrl: URL): string {
+  const entries = [...reqUrl.searchParams.entries()].sort(([a], [b]) =>
+    a.localeCompare(b)
+  );
+  const sp = new URLSearchParams(entries);
+  return `${reqUrl.pathname}?${sp.toString()}`;
+}
 
 function getNormalizedLang(sp: URLSearchParams): WatchLang {
   const raw = sp.get('lang') ?? sp.get('language');
@@ -70,74 +87,10 @@ function buildServerCandidateGroups(
   return dedupedGroups;
 }
 
-function buildProbeHeaders(stream: StreamingType): Record<string, string> {
-  const iframe = stream.iframe?.trim();
-  if (iframe) {
-    try {
-      const url = new URL(iframe);
-      return {
-        Referer: `${url.origin}/`,
-        Origin: url.origin,
-      };
-    } catch {
-      // ignore malformed iframe and use fallback headers
-    }
-  }
-  return {
-    Referer: 'https://anikai.to/',
-    Origin: 'https://anikai.to',
-  };
-}
-
-async function isPlayableViaProxy(req: Request, stream: StreamingType): Promise<boolean> {
-  const streamUrl = stream.link?.file?.trim();
-  if (!streamUrl) return false;
-  const origin = new URL(req.url).origin;
-  const probeUrl = new URL('/api/m3u8-proxy', origin);
-  probeUrl.searchParams.set('url', streamUrl);
-  probeUrl.searchParams.set('headers', JSON.stringify(buildProbeHeaders(stream)));
-  try {
-    const res = await fetch(probeUrl.toString(), {
-      method: 'GET',
-      cache: 'no-store',
-      signal: AbortSignal.timeout(6000),
-    });
-    if (!res.ok) return false;
-    const contentType = res.headers.get('content-type')?.toLowerCase() ?? '';
-    const isPlaylist =
-      contentType.includes('mpegurl') ||
-      contentType.includes('vnd.apple.mpegurl') ||
-      contentType.includes('application/octet-stream');
-    if (!isPlaylist) return false;
-
-    const text = await res.text();
-    if (!text.includes('#EXTM3U')) return false;
-    if (!text.includes('#EXT-X-STREAM-INF')) return true;
-
-    /**
-     * Для master playlist перевіряємо ще перший variant playlist,
-     * бо часто master = 200, а рівні 403 і плеєр починає нескінченно ретраїти.
-     */
-    const firstVariant = text
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .find((line) => line.length > 0 && !line.startsWith('#'));
-    if (!firstVariant) return false;
-    const variantProbeUrl = new URL(firstVariant, probeUrl.toString());
-    const variantRes = await fetch(variantProbeUrl.toString(), {
-      method: 'GET',
-      cache: 'no-store',
-      signal: AbortSignal.timeout(6000),
-    });
-    return variantRes.ok;
-  } catch {
-    return false;
-  }
-}
-
 async function tryResolveServerCandidate(
   candidate: ServerInfo,
-  req: Request
+  origin: string,
+  probeCfg: WatchProbeConfig
 ): Promise<{ candidate: ServerInfo; primary: StreamingType }> {
   const streamData = await getStreamInfo(
     candidate,
@@ -147,22 +100,36 @@ async function tryResolveServerCandidate(
   if (!links.length) {
     throw new Error('source_missing_url');
   }
-  for (const link of links) {
-    if (!link?.link?.file?.trim()) continue;
-    if (!(await isPlayableViaProxy(req, link))) continue;
-    return { candidate, primary: link };
+  const withFile = links.filter((link) => link?.link?.file?.trim());
+  if (!withFile.length) {
+    throw new Error('source_missing_url');
   }
-  throw new Error('source_not_playable_via_proxy');
+
+  try {
+    const primary = await Promise.any(
+      withFile.map(async (link) => {
+        const ok = await isPlayableViaProxy(origin, link, probeCfg);
+        if (!ok) throw new Error('not_playable');
+        return link;
+      })
+    );
+    return { candidate, primary };
+  } catch {
+    throw new Error('source_not_playable_via_proxy');
+  }
 }
 
 async function resolveFirstWorkingStream(
   candidateGroups: ServerInfo[][],
-  req: Request
+  origin: string,
+  probeCfg: WatchProbeConfig
 ) {
   let lastError: unknown = null;
   for (const group of candidateGroups) {
     if (!group.length) continue;
-    const tasks = group.map((candidate) => tryResolveServerCandidate(candidate, req));
+    const tasks = group.map((candidate) =>
+      tryResolveServerCandidate(candidate, origin, probeCfg)
+    );
     try {
       return await Promise.any(tasks);
     } catch (error) {
@@ -180,7 +147,7 @@ function extractKeyword(sp: URLSearchParams): string | undefined {
   return undefined;
 }
 
-export async function GET(req: Request) {
+async function handleWatchResolve(req: Request): Promise<Response> {
   const startedAt = Date.now();
   const url = new URL(req.url);
   const lang = getNormalizedLang(url.searchParams);
@@ -195,6 +162,9 @@ export async function GET(req: Request) {
       { status: 400 }
     );
   }
+
+  const probeCfg = readWatchProbeConfig();
+  const origin = url.origin;
 
   try {
     const explicitAniId = url.searchParams.get('ani_id')?.trim();
@@ -273,49 +243,57 @@ export async function GET(req: Request) {
       );
     }
 
-    const { candidate, primary } = await resolveFirstWorkingStream(candidateGroups, req);
+    const { candidate, primary } = await resolveFirstWorkingStream(
+      candidateGroups,
+      origin,
+      probeCfg
+    );
     const usedLang: WatchLang = candidate.type.toLowerCase() === 'dub' ? 'dub' : 'sub';
     const fallbackApplied =
       (lang === 'dub' && !isDubServer(candidate)) ||
       (lang === 'sub' && isDubServer(candidate));
 
-    return Response.json(
-      {
-        success: true,
-        resolved_anime: {
-          ani_id: resolved.ani_id,
-          slug: resolved.slug,
-          status: 'verified',
-          resolved_by: resolvedBy,
-        },
-        episode: {
-          number: episode,
-          ep_token: targetEpisode.ep_token,
-          hasSub: Boolean(targetEpisode.hasSub ?? true),
-          hasDub: Boolean(targetEpisode.hasDub ?? false),
-        },
-        stream: {
-          url: primary.link.file,
-          lang: usedLang,
-          server: primary.server,
-          request_headers: buildProbeHeaders(primary),
-          tracks: primary.tracks ?? [],
-          intro: primary.intro ?? { start: 0, end: 0 },
-          outro: primary.outro ?? { start: 0, end: 0 },
-        },
-        fallback: {
-          applied: fallbackApplied,
-          from: fallbackApplied ? lang : null,
-          to: fallbackApplied ? usedLang : null,
-          reason: fallbackApplied ? `${lang}_unavailable_or_failed` : null,
-        },
-        debug: {
-          latency_ms: Date.now() - startedAt,
-          requested_lang: lang,
-        },
+    const body = {
+      success: true as const,
+      resolved_anime: {
+        ani_id: resolved.ani_id,
+        slug: resolved.slug,
+        status: 'verified' as const,
+        resolved_by: resolvedBy,
       },
-      { status: 200 }
-    );
+      episode: {
+        number: episode,
+        ep_token: targetEpisode.ep_token,
+        hasSub: Boolean(targetEpisode.hasSub ?? true),
+        hasDub: Boolean(targetEpisode.hasDub ?? false),
+      },
+      stream: {
+        url: primary.link.file,
+        lang: usedLang,
+        server: primary.server,
+        request_headers: buildProbeHeaders(primary),
+        tracks: primary.tracks ?? [],
+        intro: primary.intro ?? { start: 0, end: 0 },
+        outro: primary.outro ?? { start: 0, end: 0 },
+      },
+      fallback: {
+        applied: fallbackApplied,
+        from: fallbackApplied ? lang : null,
+        to: fallbackApplied ? usedLang : null,
+        reason: fallbackApplied ? `${lang}_unavailable_or_failed` : null,
+      },
+      debug: {
+        latency_ms: Date.now() - startedAt,
+        requested_lang: lang,
+      },
+    };
+
+    return Response.json(body, {
+      status: 200,
+      headers: {
+        'Cache-Control': 'private, max-age=12, stale-while-revalidate=24',
+      },
+    });
   } catch (error) {
     return Response.json(
       {
@@ -325,4 +303,27 @@ export async function GET(req: Request) {
       { status: 502 }
     );
   }
+}
+
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const episode = parseEpisodeNumber(url.searchParams);
+
+  if (episode == null) {
+    return Response.json(
+      {
+        success: false,
+        error: 'episode is required and must be a positive integer',
+      },
+      { status: 400 }
+    );
+  }
+
+  const key = canonicalResolveKey(url);
+  let pending = inflightResolve.get(key);
+  if (!pending) {
+    pending = handleWatchResolve(req).finally(() => inflightResolve.delete(key));
+    inflightResolve.set(key, pending);
+  }
+  return pending;
 }
