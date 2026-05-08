@@ -62,6 +62,7 @@ export function setupPlayerReady(
   intro: Segment | null,
   outro: Segment | null,
   subtitles: SubtitleItem[] | null,
+  streamLang: 'sub' | 'dub' | null,
   serversRef: React.RefObject<ServerInfo[] | null>,
   activeServerIdRef: React.RefObject<string | null>
 ) {
@@ -193,21 +194,21 @@ export function setupPlayerReady(
     playableSubtitles.find((sub) =>
       sub.label.toLowerCase().includes('english')
     );
+  const shouldEnableSubtitleByDefault = streamLang !== 'dub';
+  const defaultSubtitle = shouldEnableSubtitleByDefault
+    ? defaultEnglishSub ?? playableSubtitles[0]
+    : null;
   playableSubtitles.length > 0 &&
     art.setting.add({
       name: 'captions',
       icon: captionIcon,
       html: 'Subtitle',
-      tooltip:
-        playableSubtitles.find((sub) =>
-          sub.label.toLowerCase().includes('english')
-        )?.label ||
-        'default',
+      tooltip: defaultSubtitle?.label ?? 'None',
       position: 'right',
       selector: [
         {
           html: 'Display',
-          switch: true,
+          switch: shouldEnableSubtitleByDefault && Boolean(defaultSubtitle),
           onSwitch: function (item) {
             const isEnabled = Boolean(item.switch);
             item.tooltip = isEnabled ? 'Hide' : 'Show';
@@ -215,29 +216,35 @@ export function setupPlayerReady(
             return isEnabled;
           },
         },
+        {
+          html: 'None',
+          default: !defaultSubtitle,
+          url: '',
+        },
         ...playableSubtitles.map((sub) => ({
-          default:
-            sub.label.toLowerCase().includes('english') &&
-            sub === defaultEnglishSub,
+          default: Boolean(defaultSubtitle && sub === defaultSubtitle),
           html: sub.label,
           url: sub.file,
         })),
       ],
-      onSelect: function (item) {
-        art.subtitle.switch(item.url, { name: item.html });
+      onSelect: function (item: { html?: string; url?: string }) {
+        if (!item.url?.trim()) {
+          art.subtitle.show = false;
+          return item.html ?? 'None';
+        }
+        art.subtitle.switch(item.url, { name: item.html ?? 'Subtitle' });
         art.subtitle.show = true;
-        return item.html;
+        return item.html ?? 'Subtitle';
       },
     });
-  const defaultSubtitle = playableSubtitles.find(
-    (sub) => sub.label.toLowerCase().includes('english')
-  );
   if (defaultSubtitle) {
     art.subtitle.switch(defaultSubtitle.file, {
       name: defaultSubtitle.label,
       default: true,
     } as { name: string; default?: boolean });
     art.subtitle.show = true;
+  } else {
+    art.subtitle.show = false;
   }
 
   const langServers = serversRef.current ?? null;

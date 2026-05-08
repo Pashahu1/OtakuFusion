@@ -27,6 +27,22 @@ function isHardHttpFailure(data: unknown): boolean {
   return code != null && code >= 400 && code < 500;
 }
 
+function getPreferred720LevelIndex(levels: Array<{ height?: number }>): number {
+  if (!levels.length) return -1;
+  const withHeight = levels
+    .map((level, index) => ({ index, height: Number(level.height ?? 0) }))
+    .filter((item) => Number.isFinite(item.height) && item.height > 0);
+  if (!withHeight.length) return levels.length - 1;
+
+  const atOrBelow720 = withHeight
+    .filter((item) => item.height <= 720)
+    .sort((a, b) => b.height - a.height);
+  if (atOrBelow720.length) return atOrBelow720[0].index;
+
+  const above720 = withHeight.sort((a, b) => a.height - b.height);
+  return above720[0].index;
+}
+
 export function Player({
   streamUrl,
   subtitles,
@@ -267,6 +283,7 @@ export function Player({
         intro,
         outro,
         subtitles,
+        streamInfo?.streamingLink?.[0]?.type ?? null,
         serversRef,
         activeServerIdRef
       );
@@ -278,12 +295,28 @@ export function Player({
       const syncHlsQualityUi = () => {
         plugins.artplayerPluginHlsControl?.update?.();
       };
+      const applyDefault720Quality = () => {
+        if (!hlsInstance.levels?.length) return;
+        const targetLevelIndex = getPreferred720LevelIndex(
+          hlsInstance.levels as Array<{ height?: number }>
+        );
+        if (targetLevelIndex < 0) return;
+
+        // Фіксуємо стартову якість на 720p (або найближчу доступну),
+        // щоб користувач не перемикав вручну на кожному епізоді.
+        hlsInstance.currentLevel = targetLevelIndex;
+        hlsInstance.nextLevel = targetLevelIndex;
+        hlsInstance.loadLevel = targetLevelIndex;
+      };
       const hlsInstance = art.hls;
       if (hlsInstance) {
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, applyDefault720Quality);
         hlsInstance.on(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
         hlsInstance.on(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
+        applyDefault720Quality();
         syncHlsQualityUi();
         art.on('destroy', () => {
+          hlsInstance.off(Hls.Events.MANIFEST_PARSED, applyDefault720Quality);
           hlsInstance.off(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
           hlsInstance.off(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
         });

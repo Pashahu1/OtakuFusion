@@ -34,7 +34,8 @@ export function getArtplayerOptions(
       artplayerPluginHlsControl({
         quality: {
           control: true,
-          setting: true,
+          /** Лише індикатор у панелі зліва від шестерні — без окремого рядка в меню налаштувань. */
+          setting: false,
           getName: (level: { height?: number }) =>
             String(level?.height ?? '') + 'P',
           title: 'Quality',
