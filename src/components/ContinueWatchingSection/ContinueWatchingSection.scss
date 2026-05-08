@@ -1,3 +1,19 @@
+/* Обрізаємо ряд слайдів; інакше виглядає як «сплошний» flex-ряд на всю ширину сторінки. */
+.continue-watching-slider {
+  position: relative;
+  overflow: hidden;
+}
+
+.continue-watching-swiper.swiper {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* До ініціалізації Swiper ще не ставить spaceBetween — щоб картки не злипалися. */
+.continue-watching-swiper:not(.swiper-initialized) .swiper-slide:not(:last-child) {
+  margin-right: 12px;
+}
+
 .continue-watching-nav {
   position: absolute;
   top: 0;

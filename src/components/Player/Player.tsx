@@ -12,7 +12,10 @@ import { getStreamFullUrl, getStreamHeaders } from './playerStream';
 import { useChapterStyles } from '@/hooks/useChapterStyles';
 import { getArtplayerOptions } from './getArtplayerOptions';
 import { setupPlayerReady } from './setupPlayerReady';
-import { updateContinueWatching } from './updateContinueWatching';
+import {
+  removeFromContinueWatching,
+  updateContinueWatching,
+} from './updateContinueWatching';
 
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
@@ -57,6 +60,7 @@ export function Player({
   const playNextRef = useRef(playNext);
   const onEpisodeWatchedRef = useRef(onEpisodeWatched);
   const onPlaybackErrorRef = useRef(onPlaybackError);
+  const animeInfoRef = useRef(animeInfo);
   const hasTriggeredNextRef = useRef(false);
   const hasMarkedWatchedForOutroRef = useRef(false);
   const userPausedRef = useRef(false);
@@ -70,6 +74,7 @@ export function Player({
     playNextRef.current = playNext;
     onEpisodeWatchedRef.current = onEpisodeWatched;
     onPlaybackErrorRef.current = onPlaybackError;
+    animeInfoRef.current = animeInfo;
   });
 
   useEffect(() => {
@@ -231,6 +236,17 @@ export function Player({
       if (next) {
         const nextId = getEpisodeNumberFromId(next.id);
         if (nextId) playNextRef.current?.(nextId);
+        return;
+      }
+      const info = animeInfoRef.current;
+      if (
+        info?.id &&
+        info.data_id != null &&
+        list &&
+        list.length > 0 &&
+        idx >= 0
+      ) {
+        removeFromContinueWatching(info.id, info.data_id);
       }
     });
 

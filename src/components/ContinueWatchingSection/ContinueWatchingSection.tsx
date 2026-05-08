@@ -1,20 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
+import { CONTINUE_WATCHING_STORAGE_KEY } from '@/components/Player/updateContinueWatching';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 import './ContinueWatchingSection.scss';
 import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
 
-const STORAGE_KEY = 'continueWatching';
-const MAX_ITEMS = 12;
+const STORAGE_KEY = CONTINUE_WATCHING_STORAGE_KEY;
+/** Має збігатися з відступом у ContinueWatchingSection.scss до `swiper-initialized`. */
+const SPACE_BETWEEN_SLIDES = 12;
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -50,6 +52,12 @@ function parseContinueWatchingList(
       const episodeNum =
         typeof item.episodeNum === 'number' ? item.episodeNum : undefined;
 
+      const rawUpdated = item.updatedAt;
+      const updatedAt =
+        typeof rawUpdated === 'number' && Number.isFinite(rawUpdated)
+          ? rawUpdated
+          : 0;
+
       valid.push({
         id,
         data_id,
@@ -63,9 +71,10 @@ function parseContinueWatchingList(
             : undefined,
         adultContent:
           typeof item.adultContent === 'boolean' ? item.adultContent : undefined,
+        updatedAt,
       });
     }
-    return valid.slice(-MAX_ITEMS).reverse();
+    return valid.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
   } catch {
     return [];
   }
@@ -73,12 +82,34 @@ function parseContinueWatchingList(
 
 export function ContinueWatchingSection() {
   const [list, setList] = useState<ContinueWatchingEntry[]>([]);
+  const reactId = useId().replace(/:/g, '');
+  const prevNavId = `cw-swiper-prev-${reactId}`;
+  const nextNavId = `cw-swiper-next-${reactId}`;
+  const navigation = useMemo(
+    () => ({
+      prevEl: `#${prevNavId}`,
+      nextEl: `#${nextNavId}`,
+    }),
+    [prevNavId, nextNavId]
+  );
 
-  useEffect(() => {
+  const refreshList = useCallback(() => {
     if (typeof window === 'undefined') return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setList(parseContinueWatchingList(localStorage.getItem(STORAGE_KEY)));
   }, []);
+
+  useEffect(() => {
+    refreshList();
+    window.addEventListener('continueWatchingUpdated', refreshList);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY || e.key === null) refreshList();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener('continueWatchingUpdated', refreshList);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [refreshList]);
 
   if (list.length === 0) return null;
 
@@ -89,30 +120,31 @@ export function ContinueWatchingSection() {
           Continue watching
         </h2>
       </div>
-      <div className="relative overflow-hidden pr-4 pl-4 md:pr-6 md:pl-6 lg:pr-10 lg:pl-10">
+      <div className="continue-watching-slider relative overflow-hidden pr-4 pl-4 md:pr-6 md:pl-6 lg:pr-10 lg:pl-10">
         <button
-          type="button"
-          className="continue-watching-nav continue-watching-nav--left"
-          aria-label="Previous"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <button
+          id={nextNavId}
           type="button"
           className="continue-watching-nav continue-watching-nav--right"
-          aria-label="Next"
+          aria-label="Далі"
         >
           <ChevronRight className="h-6 w-6" />
+        </button>
+        <button
+          id={prevNavId}
+          type="button"
+          className="continue-watching-nav continue-watching-nav--left"
+          aria-label="Назад"
+        >
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <Swiper
           modules={[Navigation]}
           slidesPerView="auto"
-          spaceBetween={12}
-          navigation={{
-            nextEl: '.continue-watching-nav--right',
-            prevEl: '.continue-watching-nav--left',
-          }}
-          className="!overflow-visible"
+          spaceBetween={SPACE_BETWEEN_SLIDES}
+          grabCursor
+          watchOverflow
+          navigation={navigation}
+          className="continue-watching-swiper"
         >
           {list.map((item) => (
             <SwiperSlide

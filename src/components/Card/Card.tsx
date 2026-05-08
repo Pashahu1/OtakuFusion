@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
 import { truncateText } from '@/helper/truncateText';
-import { Play, BookmarkPlus, Plus, Star, Tv, List, Clock } from 'lucide-react';
+import { Play, Bookmark, Plus, Star } from 'lucide-react';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { cn } from '@/lib/utils';
 
@@ -19,9 +19,15 @@ interface CardProps {
 const iconRow =
   'h-6 w-6 shrink-0 stroke-[var(--color-brand-orange)] text-[var(--color-brand-orange)] sm:h-7 sm:w-7';
 
-const metaIconClass = 'h-2.5 w-2.5 shrink-0 text-zinc-200 sm:h-3 sm:w-3';
 const DEFAULT_POSTER_SIZES =
   '(min-width: 1280px) min(13vw, 320px), (min-width: 1024px) min(17vw, 320px), (min-width: 768px) min(25vw, 280px), (min-width: 640px) min(33vw, 260px), min(50vw, 240px)';
+
+function splitTenPointRating(rating: string): { score: string; outOfTen?: string } {
+  const trimmed = rating.trim();
+  const m = trimmed.match(/^(\d+(?:\.\d+)?)\s*\/\s*10$/i);
+  if (m) return { score: m[1], outOfTen: '/10' };
+  return { score: trimmed };
+}
 
 export function Card({
   anime,
@@ -43,8 +49,14 @@ export function Card({
   const hasMetaBlock =
     Boolean(tv?.showType) ||
     looksLikeEpisodeCount ||
-    Boolean(tv?.duration) ||
-    Boolean(tv?.quality);
+    Boolean(tv?.duration);
+
+  const metaLinePrimary = tv?.showType?.trim() || '';
+  const metaLineSecondary = looksLikeEpisodeCount
+    ? `${Number(episodeCountRaw).toLocaleString()} Episodes`
+    : tv?.duration?.trim() || '';
+
+  const ratingParts = tv?.rating ? splitTenPointRating(tv.rating) : null;
 
   return (
     <Link
@@ -98,96 +110,75 @@ export function Card({
             loading={
               priority ? undefined : posterEager ? 'eager' : undefined
             }
-            className="object-cover object-center"
+            className="object-cover object-center transition-[filter] duration-300 ease-out group-hover/card:saturate-[0.78] group-focus-within/card:saturate-[0.78]"
             sizes={posterSizes}
             aria-hidden
           />
 
           <div
-            className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-b from-black/58 via-black/62 to-black/84 opacity-0 transition-opacity duration-300 ease-out group-focus-within/card:opacity-100 group-hover/card:opacity-100"
+            className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-b from-black/88 via-black/72 to-black/93 opacity-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.55)] transition-opacity duration-300 ease-out group-focus-within/card:opacity-100 group-hover/card:opacity-100"
             aria-hidden
           />
 
           <div
-            className="flex gap-y-1.5 pointer-events-none absolute inset-0 z-10 flex flex-col px-3.5 pt-3.5 pb-3 text-left opacity-0 transition-opacity duration-300 ease-out group-focus-within/card:opacity-100 group-hover/card:opacity-100 sm:px-4 sm:pt-4 sm:pb-3.5"
+            className="pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col px-4 pt-4 pb-4 text-left opacity-0 transition-opacity duration-300 ease-out group-focus-within/card:opacity-100 group-hover/card:opacity-100"
             aria-hidden
           >
-            <div className="flex flex-col gap-y-1.5">
-              <p className="line-clamp-2 text-[16px] leading-[1.2] font-semibold tracking-[0.04em] text-white uppercase">
+            <div className="shrink-0 space-y-2">
+              <p className="line-clamp-2 text-[15px] leading-snug font-bold tracking-tight text-white sm:text-base">
                 {anime.title}
               </p>
 
-              {tv?.rating ? (
-                <p className="flex flex-wrap items-center gap-1 text-[9px] font-normal text-zinc-400 tabular-nums sm:text-[10px]">
-                  <span>{tv.rating}</span>
+              {ratingParts ? (
+                <p className="flex flex-wrap items-center gap-1.5 text-[12px] font-medium tabular-nums text-zinc-400 sm:text-[13px]">
+                  <span className="text-zinc-200">{ratingParts.score}</span>
+                  {ratingParts.outOfTen ? (
+                    <span className="font-normal text-zinc-500">{ratingParts.outOfTen}</span>
+                  ) : null}
                   <Star
-                    className="h-2 w-2 shrink-0 fill-zinc-300 text-zinc-300"
-                    strokeWidth={3}
+                    className="h-2.5 w-2.5 shrink-0 fill-zinc-400 text-zinc-500"
+                    strokeWidth={0}
                     aria-hidden
                   />
                 </p>
               ) : null}
 
               {hasMetaBlock ? (
-                <div className="flex flex-col gap-y-0.5 leading-snug font-normal sm:text-[10px]">
-                  {tv?.showType ? (
-                    <span className="inline-flex items-center gap-1.5 text-zinc-300 text-[14px]">
-                      <Tv
-                        className={metaIconClass}
-                        strokeWidth={3}
-                        aria-hidden
-                      />
-                      {tv.showType}
-                    </span>
-                  ) : null}
-                  {looksLikeEpisodeCount ? (
-                    <span className="inline-flex items-center gap-1.5 text-zinc-300 tabular-nums text-[14px]">
-                      <List
-                        className={metaIconClass}
-                        strokeWidth={3}
-                        aria-hidden
-                      />
-                      {Number(episodeCountRaw).toLocaleString()} Episodes
-                    </span>
-                  ) : null}
-                  {tv?.duration ? (
-                    <span className="inline-flex items-center gap-1.5 text-zinc-300 text-[14px]">
-                      <Clock
-                        className={metaIconClass}
-                        strokeWidth={3}
-                        aria-hidden
-                      />
-                      {tv.duration}
-                    </span>
-                  ) : null}
-                  {tv?.quality ? (
-                    <span className="text-zinc-400 ">{tv.quality}</span>
+                <div className="flex flex-col gap-y-0.5 text-[11px] leading-snug font-normal text-zinc-400 sm:text-xs">
+                  {metaLinePrimary ? <p>{metaLinePrimary}</p> : null}
+                  {metaLineSecondary &&
+                  metaLineSecondary !== metaLinePrimary ? (
+                    <p className="tabular-nums">{metaLineSecondary}</p>
                   ) : null}
                   {anime.adultContent ? (
-                    <p className="mt-1.5 shrink-0 text-[14px] font-medium tracking-widest">
+                    <p className="text-[10px] font-semibold tracking-widest text-amber-400/95">
                       +18
                     </p>
                   ) : null}
                 </div>
+              ) : anime.adultContent ? (
+                <p className="text-[10px] font-semibold tracking-widest text-amber-400/95">
+                  +18
+                </p>
               ) : null}
             </div>
 
             {anime.description ? (
-              <p className="mt-2 line-clamp-3 min-h-0 flex-1 text-[9px] leading-[1.4] font-normal text-pretty text-white/90 sm:line-clamp-4 sm:text-[6px]">
-                {truncateText(anime.description)}
+              <p className="mt-3 line-clamp-4 min-h-0 flex-1 text-pretty text-[11px] leading-relaxed font-normal text-zinc-100 sm:line-clamp-5 sm:text-xs">
+                {truncateText(anime.description, 280)}
               </p>
             ) : (
               <div className="min-h-0 flex-1" aria-hidden />
             )}
 
-            <div className="mt-auto flex justify-start gap-4 pt-3">
+            <div className="mt-auto flex shrink-0 justify-start gap-6 pt-3">
               <Play
                 className={iconRow}
                 strokeWidth={2}
                 fill="none"
                 aria-hidden
               />
-              <BookmarkPlus
+              <Bookmark
                 className={iconRow}
                 strokeWidth={2}
                 fill="none"
