@@ -108,6 +108,11 @@ export function playM3u8(
       manifestLoadingTimeOut: 10000,
       levelLoadingTimeOut: 10000,
       fragLoadingTimeOut: 15000,
+      /** VoD: більший «цільовий» буфер уперед (на високих бітрейтах корисніше для стабільного відтворення). */
+      maxBufferLength: 90,
+      maxMaxBufferLength: 600,
+      lowLatencyMode: false,
+      startFragPrefetch: true,
     });
     hls.loadSource(url);
     hls.attachMedia(video);

@@ -271,6 +271,23 @@ export function Player({
         activeServerIdRef
       );
       updateContinueWatching(animeInfo, episodeId, episodeNum);
+
+      const plugins = art.plugins as unknown as {
+        artplayerPluginHlsControl?: { update?: () => void };
+      };
+      const syncHlsQualityUi = () => {
+        plugins.artplayerPluginHlsControl?.update?.();
+      };
+      const hlsInstance = art.hls;
+      if (hlsInstance) {
+        hlsInstance.on(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
+        syncHlsQualityUi();
+        art.on('destroy', () => {
+          hlsInstance.off(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
+          hlsInstance.off(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
+        });
+      }
     });
 
     artInstanceRef.current = art;

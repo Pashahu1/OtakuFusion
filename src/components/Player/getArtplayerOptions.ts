@@ -33,6 +33,7 @@ export function getArtplayerOptions(
     plugins: [
       artplayerPluginHlsControl({
         quality: {
+          control: true,
           setting: true,
           getName: (level: { height?: number }) =>
             String(level?.height ?? '') + 'P',
