@@ -94,6 +94,9 @@ export function playM3u8(
 ): void {
   if (Hls.isSupported()) {
     if (art.hls) art.hls.destroy();
+    // VoD: хочемо стабільніше відтворення на нестабільних/проксі-серверах.
+    // Більший буфер зменшує ймовірність "waiting" при збої в завантаженні сегментів.
+    // Старт з нижчої якості допомагає швидше набрати буфер без різких стрибків ABR.
     const hls = new Hls({
       /**
        * Обмежуємо ретраї, щоб при 4xx не було сотень/тисяч XHR.
@@ -109,14 +112,25 @@ export function playM3u8(
       levelLoadingTimeOut: 10000,
       fragLoadingTimeOut: 15000,
       /** VoD: більший «цільовий» буфер уперед (на високих бітрейтах корисніше для стабільного відтворення). */
-      maxBufferLength: 90,
-      maxMaxBufferLength: 600,
+      maxBufferLength: 180,
+      maxMaxBufferLength: 1200,
+      // Для VoD default 60MB може бути замало при високих бітрейтах.
+      // Підвищуємо, щоб HLS мав простір тримати буфер стабільніше.
+      maxBufferSize: 120 * 1024 * 1024,
       lowLatencyMode: false,
+      // Explicit: стартуємо завантаження одразу після ініціалізації,
+      // навіть якщо artplayer ще не почав відтворювати (autoplay: false).
+      autoStartLoad: false,
+      startLevel: 0,
       startFragPrefetch: true,
+      // Якщо стається starvation, HLS буде довше "намагатися" без різкого голодування.
+      maxStarvationDelay: 10,
+      maxLoadingDelay: 10,
     });
     hls.loadSource(url);
     hls.attachMedia(video);
     art.hls = hls;
+    hls.startLoad(-1);
     art.on('destroy', () => hls.destroy());
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = url;
