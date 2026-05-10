@@ -1,4 +1,5 @@
 import './AnimeListLayout.scss';
+import './anime-card-feed.scss';
 import { TitleRefactor } from '@/helper/TitleRefactor';
 
 type props = {
@@ -14,9 +15,7 @@ export const AnimeListLayout = ({ children, title }: props) => {
           {`${TitleRefactor(title)} Page`}
         </h1>
       )}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 sm:gap-4 md:gap-5">
-        {children}
-      </div>
+      <div className="anime-card-feed">{children}</div>
     </div>
   );
 };

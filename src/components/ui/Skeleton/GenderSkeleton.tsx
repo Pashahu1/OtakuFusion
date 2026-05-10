@@ -1,4 +1,6 @@
 import { AnimeCardSkeleton } from '../Skeleton/AnimeCardSkeleton';
+import '@/components/Layout/anime-card-feed.scss';
+
 export function GenderSkeleton() {
   const isMobile =
     typeof window !== 'undefined' ? window.innerWidth < 768 : false;
@@ -9,7 +11,7 @@ export function GenderSkeleton() {
         <div className="flex alight-center justify-center h-[50px]">
           <span className="w-[400px] bg-neutral-800 rounded-md animate-pulse" />
         </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 sm:gap-4 md:gap-5">
+        <div className="anime-card-feed">
           {!isMobile
             ? Array.from({ length: 20 }).map((_, i) => (
                 <AnimeCardSkeleton key={i} />

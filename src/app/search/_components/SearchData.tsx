@@ -1,6 +1,10 @@
 import { getAnimeSearch } from '@/services/getAnimeSearch';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
+import {
+  ANIME_CAROUSEL_POSTER_QUALITY,
+  ANIME_CAROUSEL_POSTER_SIZES,
+} from '@/lib/anime-card-poster';
 import { EmptyState } from '@/components/ui/states/EmptyState';
 import type { AnimeSearchItems } from '@/shared/types/AnimeSearchTypes';
 
@@ -37,7 +41,12 @@ export async function SearchData({ keyword }: { keyword: string }) {
   return (
     <AnimeListLayout>
       {results.map((anime: AnimeSearchItems, idx: number) => (
-        <Card key={anime.id || idx} anime={anime} />
+        <Card
+          key={anime.id || idx}
+          anime={anime}
+          posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
+          posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
+        />
       ))}
     </AnimeListLayout>
   );

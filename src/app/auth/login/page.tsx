@@ -118,7 +118,7 @@ export default function LoginPage() {
       <button
         type="submit"
         disabled={loading}
-        className="mt-5 flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-500 bg-transparent py-2 text-sm font-semibold tracking-wider text-zinc-300 uppercase transition-colors hover:border-zinc-400 hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111111] focus-visible:outline-none active:scale-[0.99] disabled:pointer-events-none disabled:border-zinc-600 disabled:text-zinc-500"
+        className="mt-5 flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-500 bg-transparent py-2 text-sm font-semibold tracking-wider text-zinc-300 uppercase transition-colors hover:border-zinc-400 hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/45 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none active:scale-[0.99] disabled:pointer-events-none disabled:border-zinc-600 disabled:text-zinc-500"
       >
         {loading ? (
           <>

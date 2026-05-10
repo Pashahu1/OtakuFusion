@@ -2,6 +2,11 @@
 
 import Link from 'next/link';
 import { Card } from '@/components/Card/Card';
+import {
+  ANIME_CAROUSEL_POSTER_QUALITY,
+  ANIME_CAROUSEL_POSTER_SIZES,
+} from '@/lib/anime-card-poster';
+import '@/components/Layout/anime-card-feed.scss';
 import { EmptyState } from '@/components/ui/states/EmptyState';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { useAuth } from '@/context/AuthContext';
@@ -70,9 +75,14 @@ export default function FavoritesPage() {
           {favorites.length} saved {favorites.length === 1 ? 'title' : 'titles'}
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 sm:gap-4 md:gap-5">
+      <div className="anime-card-feed">
         {favorites.map((anime) => (
-          <Card key={anime.id} anime={anime} />
+          <Card
+            key={anime.id}
+            anime={anime}
+            posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
+            posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
+          />
         ))}
       </div>
     </section>

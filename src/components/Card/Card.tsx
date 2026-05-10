@@ -4,10 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
 import { truncateText } from '@/helper/truncateText';
-import { Play, Plus, Star } from 'lucide-react';
+import { Bookmark, Play, Star } from 'lucide-react';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { cn } from '@/lib/utils';
 import { FavoriteBookmark } from '@/components/Card/FavoriteBookmark';
+import { useIsFavoriteAnime } from '@/hooks/useFavorites';
 
 interface CardProps {
   anime: AnimeInfo;
@@ -18,7 +19,7 @@ interface CardProps {
 }
 
 const iconRow =
-  'h-6 w-6 shrink-0 stroke-[var(--color-brand-orange)] text-[var(--color-brand-orange)] sm:h-7 sm:w-7';
+  'h-[24px] w-[24px] shrink-0 stroke-[var(--color-brand-orange)] text-[var(--color-brand-orange)]';
 
 const DEFAULT_POSTER_SIZES =
   '(min-width: 1280px) min(13vw, 320px), (min-width: 1024px) min(17vw, 320px), (min-width: 768px) min(25vw, 280px), (min-width: 640px) min(33vw, 260px), min(50vw, 240px)';
@@ -58,6 +59,7 @@ export function Card({
     : tv?.duration?.trim() || '';
 
   const ratingParts = tv?.rating ? splitTenPointRating(tv.rating) : null;
+  const isFavorite = useIsFavoriteAnime(anime.id);
 
   return (
     <article
@@ -75,7 +77,11 @@ export function Card({
       <div className="relative z-10 w-full pointer-events-none">
         <div className="relative z-10 flex w-full flex-col">
           <div className="aspect-[2/3] w-full shrink-0" aria-hidden />
-          <div className="flex min-h-[3.25rem] w-full min-w-0 flex-col gap-0.5 px-2 py-2 transition-opacity duration-300 group-focus-within/card:pointer-events-none group-focus-within/card:opacity-0 group-hover/card:pointer-events-none group-hover/card:opacity-0">
+          <div
+            className={cn(
+              'flex min-h-[3.25rem] w-full min-w-0 flex-col gap-0.5 bg-black px-2 py-2 transition-opacity duration-300 group-focus-within/card:pointer-events-none group-focus-within/card:opacity-0 group-hover/card:pointer-events-none group-hover/card:opacity-0',
+            )}
+          >
             <p
               className="line-clamp-2 leading-tight font-semibold text-white"
               style={{ fontSize: 'var(--text-card-title)' }}
@@ -97,9 +103,9 @@ export function Card({
           className={cn(
             'absolute top-0 right-0 left-0 z-0 overflow-hidden',
             'aspect-[2/3] w-full max-w-full',
-            'transition-[inset,top,right,bottom,left,border-radius,height] duration-300 ease-out',
+            'transition-[inset,top,right,bottom,left,border-radius,height,box-shadow] duration-300 ease-out',
             'group-hover/card:inset-0 group-hover/card:aspect-auto group-hover/card:h-full',
-            'group-focus-within/card:inset-0 group-focus-within/card:aspect-auto group-focus-within/card:h-full'
+            'group-focus-within/card:inset-0 group-focus-within/card:aspect-auto group-focus-within/card:h-full',
           )}
         >
           <Image
@@ -120,6 +126,19 @@ export function Card({
             sizes={posterSizes}
             aria-hidden
           />
+
+          {isFavorite ? (
+            <div
+              className="pointer-events-none absolute top-0 right-0 z-[12] h-[52px] w-[52px]"
+              aria-hidden
+            >
+              <div className="absolute right-0 top-0 h-0 w-0 border-l-[52px] border-t-[52px] border-l-transparent border-t-black" />
+              <Bookmark
+                className="absolute right-[7px] top-[9px] h-[15px] w-[15px] fill-[var(--color-brand-orange)]"
+                strokeWidth={0}
+              />
+            </div>
+          ) : null}
 
           <div
             className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-b from-black/88 via-black/72 to-black/93 opacity-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.55)] transition-opacity duration-300 ease-out group-focus-within/card:opacity-100 group-hover/card:opacity-100"
@@ -184,12 +203,6 @@ export function Card({
                 aria-hidden
               />
               <FavoriteBookmark anime={anime} iconClassName={iconRow} />
-              <Plus
-                className={iconRow}
-                strokeWidth={2}
-                fill="none"
-                aria-hidden
-              />
             </div>
           </div>
         </div>

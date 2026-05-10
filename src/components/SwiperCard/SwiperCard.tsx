@@ -10,15 +10,13 @@ import type { SwiperCardProps } from '@/shared/types/SwiperCardProps ';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import './SwiperCard.scss';
+import {
+  ANIME_CAROUSEL_POSTER_QUALITY,
+  ANIME_CAROUSEL_POSTER_SIZES,
+} from '@/lib/anime-card-poster';
 
 /** Має збігатися з відступом у SwiperCard.scss для стану до `swiper-initialized`. */
 const SPACING_BETWEEN_SLIDES = 20;
-
-/** Узгоджено з `.swiper-card__slide`: телефон / планшет (26vw) / десктоп. */
-const SWIPER_ROW_POSTER_SIZES =
-  '(max-width: 635px) 152px, (max-width: 1023px) 28vw, (max-width: 1410px) 22vw, 310px';
-
-const SWIPER_ROW_POSTER_QUALITY = 55;
 
 function slugify(s: string): string {
   return s
@@ -81,8 +79,8 @@ export function SwiperCard({ title, catalog, sectionId }: SwiperCardProps) {
           <SwiperSlide className="swiper-card__slide" key={anime.id}>
             <Card
               anime={anime}
-              posterSizes={SWIPER_ROW_POSTER_SIZES}
-              posterQuality={SWIPER_ROW_POSTER_QUALITY}
+              posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
+              posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
             />
           </SwiperSlide>
         ))}
