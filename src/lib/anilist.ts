@@ -543,6 +543,12 @@ export async function getAniListScheduleByDate(
           airingAt
           media {
             id
+            format
+            coverImage {
+              extraLarge
+              large
+              medium
+            }
             title {
               romaji
               english
@@ -570,12 +576,21 @@ export async function getAniListScheduleByDate(
       const pad = (value: number): string => String(value).padStart(2, '0');
       const releaseDate = `${airing.getUTCFullYear()}-${pad(airing.getUTCMonth() + 1)}-${pad(airing.getUTCDate())}`;
       const time = `${pad(airing.getUTCHours())}:${pad(airing.getUTCMinutes())}:00`;
+      const media = item.media;
+      const poster =
+        media?.coverImage?.extraLarge ||
+        media?.coverImage?.large ||
+        media?.coverImage?.medium ||
+        '';
+      const formatRaw = media?.format?.trim();
       return {
-        id: String(item.media?.id ?? ''),
-        data_id: item.media?.id ?? 0,
-        title: pickTitle(item.media?.title),
+        id: String(media?.id ?? ''),
+        data_id: media?.id ?? 0,
+        title: pickTitle(media?.title),
         japanese_title:
-          item.media?.title?.native || item.media?.title?.romaji || pickTitle(item.media?.title),
+          media?.title?.native || media?.title?.romaji || pickTitle(media?.title),
+        poster,
+        ...(formatRaw ? { format: formatRaw } : {}),
         releaseDate,
         time,
         episode_no: item.episode ?? 0,

@@ -1,8 +1,10 @@
 'use client';
 import React, { useCallback } from 'react';
+import Image from 'next/image';
 import { format, isSameDay } from 'date-fns';
 import './AnimeCalendar.scss';
 import { useRouter } from 'next/navigation';
+import { Convertor } from '@/helper/Convertor';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 
@@ -26,12 +28,27 @@ function startOfWeekMonday(date: Date): Date {
   return new Date(d.setDate(diff));
 }
 
-export type CalendarEvent = {
+export interface CalendarEvent {
   id: string;
   title: string;
   start: Date;
   end: Date;
-};
+  episodeNumber: number;
+  posterUrl: string;
+  /** AniList format (TV, ONA, …) — short tag on the card. */
+  format?: string;
+}
+
+const CALENDAR_POSTER_THUMB = '80x120';
+
+function isAniListCdnHost(url: string): boolean {
+  return url.includes('anilist.co');
+}
+
+function formatScheduleTag(raw?: string): string | null {
+  if (!raw?.trim()) return null;
+  return raw.trim().replace(/_/g, ' ');
+}
 
 type Props = {
   events: CalendarEvent[];
@@ -113,26 +130,69 @@ export const AnimeSchedule: React.FC<Props> = ({
 
     return (
       <div key={cellKey} className="schedule-cell">
-        {dayEvents.map((event, eventIndex) => (
-          <div
-            key={`${event.id}-${event.start.getTime()}-${eventIndex}`}
-            className="event-block"
-            role="button"
-            tabIndex={0}
-            onClick={() => handleSelectEvent(event.id)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleSelectEvent(event.id);
-              }
-            }}
-          >
-            <div className="event-title">{event.title}</div>
-            <div className="event-time">
-              {format(event.start, 'HH:mm')} – {format(event.end, 'HH:mm')}
+        {dayEvents.map((event, eventIndex) => {
+          const resolvedPoster = event.posterUrl?.trim()
+            ? Convertor(event.posterUrl.trim(), CALENDAR_POSTER_THUMB)
+            : '';
+          const showPosterColumn = Boolean(resolvedPoster);
+          const episodeLabel =
+            event.episodeNumber > 0
+              ? `Episode ${event.episodeNumber}`
+              : 'Episode TBA';
+          const formatTag = formatScheduleTag(event.format);
+          const showPremiere = event.episodeNumber === 1;
+
+          const timeRange = `${format(event.start, 'HH:mm')} – ${format(event.end, 'HH:mm')}`;
+          const ariaLabel = `${event.title}. ${episodeLabel}. ${timeRange}`;
+
+          return (
+            <div
+              key={`${event.id}-${event.start.getTime()}-${eventIndex}`}
+              className={cn(
+                'event-block',
+                !showPosterColumn && 'event-block--no-poster'
+              )}
+              role="button"
+              tabIndex={0}
+              aria-label={ariaLabel}
+              onClick={() => handleSelectEvent(event.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleSelectEvent(event.id);
+                }
+              }}
+            >
+              {showPosterColumn ? (
+                <div className="event-poster-wrap" aria-hidden>
+                  <Image
+                    src={resolvedPoster}
+                    alt=""
+                    fill
+                    className="event-poster-img"
+                    sizes="(max-width: 1023px) 40px, 48px"
+                    unoptimized={isAniListCdnHost(resolvedPoster)}
+                  />
+                </div>
+              ) : null}
+              <div className="event-body">
+                <div className="event-title" title={event.title}>
+                  {event.title}
+                </div>
+                <div className="event-meta">
+                  {formatTag ? (
+                    <span className="event-format-tag">{formatTag}</span>
+                  ) : null}
+                  {showPremiere ? (
+                    <span className="event-premiere-tag">Premiere</span>
+                  ) : null}
+                  <span className="event-episode">{episodeLabel}</span>
+                </div>
+                <div className="event-time">{timeRange}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
@@ -164,7 +224,11 @@ export const AnimeSchedule: React.FC<Props> = ({
 
             {isWeekGrid
               ? days.map((day) =>
-                  renderCellForDay(day, slotStartHour, day.toString())
+                  renderCellForDay(
+                    day,
+                    slotStartHour,
+                    `${format(day, 'yyyy-MM-dd')}-${slotStartHour}`
+                  )
                 )
               : renderCellForDay(
                   days[selectedDayIndex],

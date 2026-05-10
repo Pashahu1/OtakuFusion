@@ -43,10 +43,12 @@ export default function SchedulePage() {
     const end = new Date(start.getTime() + 30 * 60 * 1000);
     return {
       id: item.id,
-      title: `${item.title} - Episode ${item.episode_no}`,
+      title: item.title,
+      episodeNumber: item.episode_no,
+      posterUrl: item.poster,
+      format: item.format,
       start,
       end,
-      japanese_title: item.japanese_title,
     };
   });
 

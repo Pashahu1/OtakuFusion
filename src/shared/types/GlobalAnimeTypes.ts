@@ -62,6 +62,10 @@ export interface ScheduleAnime {
   data_id: number;
   title: string;
   japanese_title: string;
+  /** Постер з AniList `coverImage` (може бути порожнім рядком). */
+  poster: string;
+  /** AniList `MediaFormat` (TV, ONA тощо), якщо є. */
+  format?: string;
   releaseDate: string;
   time: string;
   episode_no: number;
