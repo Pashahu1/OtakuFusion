@@ -26,6 +26,15 @@ interface AuthContextType {
   user: User | null;
   isAuth: boolean;
   isLoading: boolean;
+  /** Під час збереження профілю — InitialLoader поверх контенту. */
+  profileSavePending: boolean;
+  setProfileSavePending: (pending: boolean) => void;
+  /**
+   * Після успішного аплоаду аватара: тримати непрозорий скелетон у меню,
+   * доки нове зображення не декодується (без миготіння старого фото).
+   */
+  profileNavbarAvatarHold: boolean;
+  setProfileNavbarAvatarHold: (hold: boolean) => void;
   login: (email: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -37,6 +46,9 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileSavePending, setProfileSavePending] = useState(false);
+  const [profileNavbarAvatarHold, setProfileNavbarAvatarHold] =
+    useState(false);
 
   useEffect(() => {
     if (!isLoading) return;
@@ -79,6 +91,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     setUser(null);
     setIsLoading(false);
+    setProfileNavbarAvatarHold(false);
+    setProfileSavePending(false);
   };
 
   const refreshUser = async () => {
@@ -104,12 +118,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser,
         isAuth: !!user,
         isLoading,
+        profileSavePending,
+        setProfileSavePending,
+        profileNavbarAvatarHold,
+        setProfileNavbarAvatarHold,
         login,
         logout,
         refreshUser,
       }}
     >
-      {isLoading ? <InitialLoader /> : children}
+      {isLoading ? (
+        <InitialLoader />
+      ) : (
+        <>
+          {children}
+          {profileSavePending ? (
+            <div className="fixed inset-x-0 bottom-0 top-[60px] z-[50] flex bg-zinc-950">
+              <InitialLoader variant="container" className="min-h-0 flex-1" />
+            </div>
+          ) : null}
+        </>
+      )}
     </AuthContext.Provider>
   );
 };

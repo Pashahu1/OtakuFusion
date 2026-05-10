@@ -7,6 +7,13 @@
   z-index: 9999;
 }
 
+.loader-wrapper--container {
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+}
+
+
 .loader {
   width: 48px;
   height: 48px;

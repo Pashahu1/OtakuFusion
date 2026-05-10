@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { cloudinaryAvatarUrl } from '@/helper/cloudinaryAvatarUrl';
@@ -28,12 +28,19 @@ async function messageFromResponse(res: Response): Promise<string> {
 }
 
 export const ProfileHeader = () => {
-  const { user, setUser } = useAuth();
+  const { user, setUser, setProfileSavePending, setProfileNavbarAvatarHold } =
+    useAuth();
   const [username, setUsername] = useState(user?.username || '');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   if (!user) return null;
   const hasChanges = username !== user.username || Boolean(avatarFile);
@@ -50,6 +57,10 @@ export const ProfileHeader = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setProfileSavePending(true);
+    setProfileNavbarAvatarHold(false);
+    let scheduleOverlayClearAfterRedirect = false;
+    let keepNavbarHoldAfterAvatarSuccess = false;
 
     try {
       let updatedUser = user;
@@ -60,14 +71,13 @@ export const ProfileHeader = () => {
         body: JSON.stringify({ username }),
       });
 
-      if (usernameRes.ok) {
-        const data = await usernameRes.json();
-        updatedUser = data.user;
-        router.push('/');
-      } else {
+      if (!usernameRes.ok) {
         toast.error(await messageFromResponse(usernameRes));
         return;
       }
+
+      const usernameData = await usernameRes.json();
+      updatedUser = usernameData.user;
 
       if (avatarFile) {
         const formData = new FormData();
@@ -78,17 +88,27 @@ export const ProfileHeader = () => {
           body: formData,
         });
 
-        if (avatarRes.ok) {
-          const data = await avatarRes.json();
-          updatedUser = data.user;
-          router.push('/');
-        } else {
+        if (!avatarRes.ok) {
+          setUser(updatedUser);
           toast.error(await messageFromResponse(avatarRes));
           return;
         }
+
+        const avatarData = await avatarRes.json();
+        updatedUser = avatarData.user;
       }
+
+      const hadAvatarUpload = Boolean(avatarFile);
       setUser(updatedUser);
-      toast.success('Profile saved.');
+      setPreview(null);
+      setAvatarFile(null);
+      if (hadAvatarUpload) {
+        setProfileNavbarAvatarHold(true);
+        keepNavbarHoldAfterAvatarSuccess = true;
+      }
+      toast.success(hadAvatarUpload ? 'Photo updated.' : 'Profile saved.');
+      router.push('/');
+      scheduleOverlayClearAfterRedirect = true;
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Не вдалося зберегти профіль';
@@ -96,12 +116,21 @@ export const ProfileHeader = () => {
       console.error('Profile save error:', err);
     } finally {
       setIsLoading(false);
+      if (!keepNavbarHoldAfterAvatarSuccess) {
+        setProfileNavbarAvatarHold(false);
+      }
+      if (scheduleOverlayClearAfterRedirect) {
+        window.setTimeout(() => setProfileSavePending(false), 450);
+      } else {
+        setProfileSavePending(false);
+      }
     }
   };
 
   const handleCancel = () => {
     setAvatarFile(null);
-    setUsername('');
+    setPreview(null);
+    setUsername(user.username);
     router.push('/');
   };
 
@@ -131,17 +160,22 @@ export const ProfileHeader = () => {
       )}
       <form
         onSubmit={handleSave}
+        aria-busy={isLoading}
         className="flex w-full flex-col gap-6 rounded-[30px]"
       >
         <div className="flex flex-col gap-6 rounded-[20px] border border-zinc-800 bg-[#141519] px-5 py-6 shadow-lg sm:px-10 sm:py-8 md:px-[40px] md:py-[30px]">
-          <div className="flex flex-col items-center justify-center gap-2 text-center">
-            <div className="relative mx-auto h-20 w-20 shrink-0 cursor-pointer rounded-full">
-              <Avatar className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-black">
+          <div className="flex flex-col items-center justify-center text-center">
+            <div
+              className={cn(
+                'relative mx-auto h-20 w-20 shrink-0 rounded-full',
+                !isLoading && 'cursor-pointer',
+              )}
+            >
+              <Avatar className="relative z-0 flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-zinc-700 bg-black">
                 <AvatarImage
                   className="pointer-events-none h-full w-full object-cover"
                   src={
-                    preview ||
-                    cloudinaryAvatarUrl(user.avatar, 80)
+                    preview || cloudinaryAvatarUrl(user.avatar, 80)
                   }
                   alt="Profile avatar"
                 />
@@ -149,13 +183,15 @@ export const ProfileHeader = () => {
                   {user?.email?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <input
-                type="file"
-                accept="image/*"
-                aria-label="Change profile photo"
-                className="absolute inset-0 z-10 h-full w-full cursor-pointer rounded-full opacity-0"
-                onChange={handleAvatarChange}
-              />
+              {!isLoading ? (
+                <input
+                  type="file"
+                  accept="image/*"
+                  aria-label="Change profile photo"
+                  className="absolute inset-0 z-10 h-full w-full cursor-pointer rounded-full opacity-0"
+                  onChange={handleAvatarChange}
+                />
+              ) : null}
             </div>
           </div>
           <label className="flex flex-col gap-2 text-left">
@@ -205,7 +241,8 @@ export const ProfileHeader = () => {
           <button
             type="button"
             onClick={handleCancel}
-            className="h-11 w-full touch-manipulation rounded-lg border border-zinc-600 bg-transparent px-4 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500 hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141519] sm:min-w-[8.5rem] sm:flex-1"
+            disabled={isLoading}
+            className="h-11 w-full touch-manipulation rounded-lg border border-zinc-600 bg-transparent px-4 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-500 hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141519] enabled:active:scale-[0.99] disabled:pointer-events-none disabled:opacity-45 sm:min-w-[8.5rem] sm:flex-1"
           >
             Cancel
           </button>
