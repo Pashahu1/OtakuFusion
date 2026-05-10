@@ -25,6 +25,7 @@ import { useState, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { EmptyState } from '../ui/states/EmptyState';
 import { SwiperCard } from '../SwiperCard/SwiperCard';
+import { getStreamAvailabilityLabel } from '@/shared/utils/streamAvailabilityLabel';
 
 /** Кастомний `el` для pagination монтується після Swiper — прив’язуємо після init без remount (див. Swiper + React: custom pagination). */
 function bindHeroPagination(swiper: SwiperType, el: HTMLDivElement | null) {
@@ -110,9 +111,8 @@ export const Preview = ({ spotlights, trending }: Props) => {
 
   const tv = currentAnime.tvInfo;
   const metaParts: string[] = [];
-  if (tv?.sub && tv?.dub) metaParts.push('Sub | Dub');
-  else if (tv?.sub) metaParts.push('Sub');
-  else if (tv?.dub) metaParts.push('Dub');
+  const streamLabel = getStreamAvailabilityLabel(tv);
+  if (streamLabel) metaParts.push(streamLabel);
   if (tv?.showType || tv?.duration) {
     metaParts.push([tv?.showType, tv?.duration].filter(Boolean).join(' • '));
   }

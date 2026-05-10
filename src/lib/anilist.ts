@@ -120,8 +120,7 @@ function toTvInfo(media: AniListMedia): TvInfo {
         : '',
     releaseDate,
     quality: 'HD',
-    sub: hasEpisodes ? String(media.episodes) : '',
-    dub: '',
+    episodeTotal: hasEpisodes ? String(media.episodes) : undefined,
     rating:
       typeof media.averageScore === 'number' && media.averageScore > 0
         ? `${media.averageScore / 10}/10`
@@ -239,8 +238,6 @@ export function mapAniListMediaToSearchItem(media: AniListMedia): AnimeSearchIte
       duration: '',
       releaseDate: '',
       quality: 'HD',
-      sub: '',
-      dub: '',
     },
   };
 }
@@ -257,6 +254,7 @@ export function mapAniListMediaToTrending(
     poster: base.poster,
     title: base.title,
     japanese_title: base.japanese_title,
+    tvInfo: base.tvInfo,
   };
 }
 
@@ -274,8 +272,6 @@ export function mapAniListMediaToSpotlight(media: AniListMedia): SpotlightAnime 
       duration: '',
       releaseDate: '',
       quality: 'HD',
-      sub: '',
-      dub: '',
     },
   };
 }

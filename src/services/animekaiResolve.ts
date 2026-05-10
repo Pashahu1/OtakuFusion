@@ -145,7 +145,7 @@ export function buildAnimeKaiResolveHints(data: AnimeData): AnimeKaiResolveHints
   if (prem && /^\d{4}$/.test(prem)) {
     seasonYear = parseInt(prem, 10);
   }
-  const subEp = data.animeInfo?.tvInfo?.sub?.trim();
+  const subEp = data.animeInfo?.tvInfo?.episodeTotal?.trim();
   let episodeCount: number | null = null;
   if (subEp && /^\d+$/.test(subEp)) {
     episodeCount = parseInt(subEp, 10);

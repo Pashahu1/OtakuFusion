@@ -9,6 +9,7 @@ import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { cn } from '@/lib/utils';
 import { FavoriteBookmark } from '@/components/Card/FavoriteBookmark';
 import { useIsFavoriteAnime } from '@/hooks/useFavorites';
+import { getStreamAvailabilityLabel } from '@/shared/utils/streamAvailabilityLabel';
 
 interface CardProps {
   anime: AnimeInfo;
@@ -31,6 +32,25 @@ function splitTenPointRating(rating: string): { score: string; outOfTen?: string
   return { score: trimmed };
 }
 
+/** Другий рядок під назвою: метадані AniList, коли ще немає лічильників каталогу (has_sub / has_dub). */
+function buildCardFooterFallbackLine(
+  tv: AnimeInfo['tvInfo']
+): string | null {
+  if (!tv) return null;
+  const epRaw =
+    typeof tv.episodeTotal === 'string' ? tv.episodeTotal.trim() : '';
+  const hasEpisodeTotal = /^\d+(\.\d+)?$/.test(epRaw);
+  const parts: string[] = [];
+  const showT = tv.showType?.trim();
+  if (showT) parts.push(showT);
+  if (hasEpisodeTotal) {
+    parts.push(`${Number(epRaw).toLocaleString()} Episodes`);
+  }
+  const dur = tv.duration?.trim();
+  if (dur) parts.push(dur);
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
 export function Card({
   anime,
   posterSizes = DEFAULT_POSTER_SIZES,
@@ -39,14 +59,12 @@ export function Card({
   posterEager = false,
 }: CardProps) {
   const tv = anime.tvInfo;
-  const rawSub = tv?.sub;
   const episodeCountRaw =
-    typeof rawSub === 'string'
-      ? rawSub.trim()
-      : typeof rawSub === 'number' && Number.isFinite(rawSub)
-        ? String(rawSub)
-        : '';
+    typeof tv?.episodeTotal === 'string' ? tv.episodeTotal.trim() : '';
   const looksLikeEpisodeCount = /^\d+(\.\d+)?$/.test(episodeCountRaw);
+  const streamLabel = getStreamAvailabilityLabel(tv);
+  const underTitleSecondary =
+    streamLabel ?? buildCardFooterFallbackLine(tv);
 
   const hasMetaBlock =
     Boolean(tv?.showType) ||
@@ -88,14 +106,14 @@ export function Card({
             >
               {anime.title}
             </p>
-            <p
-              className="leading-tight text-[var(--color-brand-text-muted)]"
-              style={{ fontSize: 'var(--text-card-label)' }}
-            >
-              {tv?.sub && tv?.dub && 'Sub | Dub'}
-              {tv?.sub && !tv?.dub && 'Sub'}
-              {!tv?.sub && tv?.dub && 'Dub'}
-            </p>
+            {underTitleSecondary ? (
+              <p
+                className="leading-tight text-[var(--color-brand-text-muted)]"
+                style={{ fontSize: 'var(--text-card-label)' }}
+              >
+                {underTitleSecondary}
+              </p>
+            ) : null}
           </div>
         </div>
 

@@ -1,9 +1,9 @@
-import type { faClosedCaptioning } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 export type TagItem = {
-    condition?: unknown;
-    bgColor: string;
-    text?: string;
-    icon?: typeof faClosedCaptioning;
-  };
+  condition?: unknown;
+  bgColor: string;
+  text?: string;
+  icon?: IconDefinition;
+};
   

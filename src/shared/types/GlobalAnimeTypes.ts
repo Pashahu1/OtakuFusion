@@ -13,8 +13,18 @@ export interface TvInfo {
   duration: string;
   releaseDate: string;
   quality: string;
-  sub: string;
-  dub: string;
+  /** Загальна кількість епізодів з AniList (метадані). */
+  episodeTotal?: string;
+  /**
+   * Кількість епізодів у каталозі з субами (після синку з API епізодів).
+   * На картках: > 0 означає наявність Sub у каталозі.
+   */
+  has_sub?: number;
+  /**
+   * Кількість епізодів у каталозі з озвучкою.
+   * На картках: > 0 означає наявність Dub.
+   */
+  has_dub?: number;
   rating?: string;
 }
 
@@ -43,6 +53,8 @@ export interface TrendingAnime {
   poster: string;
   title: string;
   japanese_title: string;
+  /** Як у `AnimeInfo` — для карток у каруселі «Trending». */
+  tvInfo?: TvInfo;
 }
 
 export interface ScheduleAnime {

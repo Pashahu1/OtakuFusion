@@ -9,6 +9,7 @@ import {
   estimateAnimeKaiCatalogEpisodeCount,
   resolveAnimeKaiAniId,
 } from '@/services/animekaiResolve';
+import { aggregateCatalogStreamCounts } from '@/shared/utils/catalogStreamCounts';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
@@ -48,9 +49,9 @@ function getMappingCacheKey(localAnimeId: string): string {
   return `animekai:mapping:${localAnimeId}`;
 }
 
-/** Число епізодів з AniList у нас лежить в `tvInfo.sub` (mapAniListMediaToAnimeDetails → toTvInfo). */
+/** Очікуваний тотал епізодів з AniList — `tvInfo.episodeTotal`. */
 function parseExpectedEpisodesFromAnimeData(data: AnimeData): number {
-  const raw = data.animeInfo?.tvInfo?.sub?.trim();
+  const raw = data.animeInfo?.tvInfo?.episodeTotal?.trim();
   if (!raw) return 0;
   const n = Number(raw);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
@@ -295,6 +296,22 @@ export function useWatchAnime(
 
           setEpisodes(episodesData.episodes ?? null);
           setTotalEpisodes(episodesData.totalEpisodes ?? null);
+
+          const counts = aggregateCatalogStreamCounts(list);
+          setAnimeInfo((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              animeInfo: {
+                ...prev.animeInfo,
+                tvInfo: {
+                  ...prev.animeInfo.tvInfo,
+                  has_sub: counts.has_sub,
+                  has_dub: counts.has_dub,
+                },
+              },
+            };
+          });
           const newEpisodeId =
             initialEpisodeRef.current ??
             (episodesData.episodes?.length
