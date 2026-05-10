@@ -51,7 +51,12 @@ export const UpdateUserBodySchema = z.object({
   username: z.string().min(1, 'Username is required'),
 });
 
+export const FavoriteAnimeBodySchema = z.object({
+  animeId: z.string().min(1, 'Anime id is required'),
+});
+
 export type LoginBody = z.infer<typeof LoginBodySchema>;
 export type RegisterBody = z.infer<typeof RegisterBodySchema>;
 export type ChangePasswordBody = z.infer<typeof ChangePasswordBodySchema>;
 export type UpdateUserBody = z.infer<typeof UpdateUserBodySchema>;
+export type FavoriteAnimeBody = z.infer<typeof FavoriteAnimeBodySchema>;

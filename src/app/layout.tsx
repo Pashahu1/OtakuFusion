@@ -8,6 +8,8 @@ import { AppToaster } from '@/components/ui/AppToaster';
 import { AuthProvider } from '@/context/AuthContext';
 import { env } from '@/lib/env';
 import type { Viewport } from 'next';
+import { QueryProvider } from '@/components/providers/query-provider';
+import { AuthQueryBridge } from '@/components/providers/auth-query-bridge';
 
 const siteUrl = env.NEXT_PUBLIC_SITE_URL ?? 'https://otakufusion.com';
 
@@ -89,14 +91,17 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Suspense fallback={<InitialLoader />}>
-          <AuthProvider>
-            <div className="layout">
-              <Header />
-              <main className="main">{children}</main>
-              <Footer />
-            </div>
+          <QueryProvider>
+            <AuthProvider>
+              <AuthQueryBridge />
+              <div className="layout">
+                <Header />
+                <main className="main">{children}</main>
+                <Footer />
+              </div>
             <AppToaster />
-          </AuthProvider>
+            </AuthProvider>
+          </QueryProvider>
         </Suspense>
       </body>
     </html>

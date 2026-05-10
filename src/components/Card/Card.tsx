@@ -4,9 +4,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
 import { truncateText } from '@/helper/truncateText';
-import { Play, Bookmark, Plus, Star } from 'lucide-react';
+import { Play, Plus, Star } from 'lucide-react';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { cn } from '@/lib/utils';
+import { FavoriteBookmark } from '@/components/Card/FavoriteBookmark';
 
 interface CardProps {
   anime: AnimeInfo;
@@ -59,14 +60,19 @@ export function Card({
   const ratingParts = tv?.rating ? splitTenPointRating(tv.rating) : null;
 
   return (
-    <Link
-      href={`/watch/${anime.id}`}
-      className="group/card block w-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)] focus-visible:ring-inset"
+    <article
+      className="group/card relative flex min-w-0 max-w-full flex-col overflow-hidden focus-within:z-10 hover:z-10"
+      style={{ fontFamily: 'var(--font-sans)' }}
     >
-      <article
-        className="relative flex min-w-0 max-w-full flex-col overflow-hidden focus-within:z-10 hover:z-10"
-        style={{ fontFamily: 'var(--font-sans)' }}
+      <Link
+        href={`/watch/${anime.id}`}
+        className="absolute inset-0 z-0 block outline-none focus-visible:z-[5] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)] focus-visible:ring-inset"
+        aria-label={`Watch ${anime.title}`}
       >
+        <span className="sr-only">Watch {anime.title}</span>
+      </Link>
+
+      <div className="relative z-10 w-full pointer-events-none">
         <div className="relative z-10 flex w-full flex-col">
           <div className="aspect-[2/3] w-full shrink-0" aria-hidden />
           <div className="flex min-h-[3.25rem] w-full min-w-0 flex-col gap-0.5 px-2 py-2 transition-opacity duration-300 group-focus-within/card:pointer-events-none group-focus-within/card:opacity-0 group-hover/card:pointer-events-none group-hover/card:opacity-0">
@@ -122,7 +128,6 @@ export function Card({
 
           <div
             className="pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col px-4 pt-4 pb-4 text-left opacity-0 transition-opacity duration-300 ease-out group-focus-within/card:opacity-100 group-hover/card:opacity-100"
-            aria-hidden
           >
             <div className="shrink-0 space-y-2">
               <p className="line-clamp-2 text-[15px] leading-snug font-bold tracking-tight text-white sm:text-base">
@@ -171,19 +176,14 @@ export function Card({
               <div className="min-h-0 flex-1" aria-hidden />
             )}
 
-            <div className="mt-auto flex shrink-0 justify-start gap-6 pt-3">
+            <div className="relative z-20 mt-auto flex shrink-0 justify-start gap-6 pt-3">
               <Play
                 className={iconRow}
                 strokeWidth={2}
                 fill="none"
                 aria-hidden
               />
-              <Bookmark
-                className={iconRow}
-                strokeWidth={2}
-                fill="none"
-                aria-hidden
-              />
+              <FavoriteBookmark anime={anime} iconClassName={iconRow} />
               <Plus
                 className={iconRow}
                 strokeWidth={2}
@@ -193,7 +193,7 @@ export function Card({
             </div>
           </div>
         </div>
-      </article>
-    </Link>
+      </div>
+    </article>
   );
 }
