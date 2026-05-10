@@ -30,7 +30,7 @@ export function SidebarMenu({ menuRef, close }: Props) {
       ref={menuRef}
     >
       <NavLink className="aside-bar__link" href="/schedule" onClick={close}>
-        Schedule
+        Release Calendar
       </NavLink>
 
       <NavLink className="aside-bar__link" href="/anime" onClick={close}>
@@ -45,7 +45,7 @@ export function SidebarMenu({ menuRef, close }: Props) {
             handleOpenCategory();
           }}
         >
-          Category
+          Categories
         </div>
 
         <div
@@ -57,7 +57,7 @@ export function SidebarMenu({ menuRef, close }: Props) {
             <NavLink
               key={item + idx}
               className="aside-bar__link"
-              href={`/anime/category/${item}`}
+              href={`/anime/category/${encodeURIComponent(item)}`}
               onClick={close}
             >
               {item}
