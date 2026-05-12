@@ -1,7 +1,7 @@
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { useEffect } from 'react';
-import { CONTINUE_WATCHING_STORAGE_KEY } from '@/components/Player/updateContinueWatching';
+import { CONTINUE_WATCHING_STORAGE_KEY } from '@/features/player';
 
 export function useApplyContinueWatchingEpisode(
   urlEp: string | undefined,

@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
-import { useWatch } from '@/hooks/useWatch';
+import { useWatch, useWatchPageEffects } from '@/features/watch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { Episodelist } from '@/components/Episodelist/Episodelist';
 import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
-import { useWatchPageEffects } from '@/hooks/watch/useWatchPageEffects';
 import { WatchInfoPanel } from '@/components/WatchInfoPanel/WatchInfoPanel';
 import { WatchPlayerContent } from '@/components/WatchPlayerContent/WatchPlayerContent';
 import { onEpisodeWatched as markWatchedInStorage } from '@/helper/WatchedEpisodes';

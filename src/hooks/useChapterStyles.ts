@@ -1,4 +1,4 @@
-import { getChapterStyles } from '@/components/Player/getChapterStyle';
+import { getChapterStyles } from '@/features/player';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import { useEffect } from 'react';
 

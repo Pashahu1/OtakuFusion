@@ -7,7 +7,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
-import { CONTINUE_WATCHING_STORAGE_KEY } from '@/components/Player/updateContinueWatching';
+import { CONTINUE_WATCHING_STORAGE_KEY } from '@/features/player';
 
 import 'swiper/css';
 import 'swiper/css/navigation';

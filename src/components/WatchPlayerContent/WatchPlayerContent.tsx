@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import Image from 'next/image';
-import { Player } from '../Player/Player';
+import { Player } from '@/features/player';
 import { BouncingLoader } from '../ui/Bouncingloader/Bouncingloader';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
