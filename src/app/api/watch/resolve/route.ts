@@ -50,7 +50,10 @@ function parsePositiveInt(sp: URLSearchParams, key: string): number | undefined 
 }
 
 function pickEpisodeByNumber(episodes: EpisodesTypes[], episodeNo: number): EpisodesTypes | null {
-  return episodes.find((ep) => ep.episode_no === episodeNo) ?? null;
+  const exact = episodes.find((ep) => ep.episode_no === episodeNo);
+  if (exact) return exact;
+  /** `getEpisodes` ставить `data_id` = номеру епізоду — запасний збіг. */
+  return episodes.find((ep) => ep.data_id === episodeNo) ?? null;
 }
 
 function isSoftsubServer(server: ServerInfo): boolean {

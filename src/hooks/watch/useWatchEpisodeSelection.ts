@@ -31,5 +31,5 @@ export function useWatchEpisodeSelection(
     const newUrl = `/watch/${animeId}?ep=${episodeId}`;
     router.replace(newUrl);
     isFirstSetRef.current = false;
-  }, [episodeId, animeId, router, episodes, setEpisodeId]);
+  }, [episodeId, animeId, router, episodes, setEpisodeId, isFirstSetRef]);
 }

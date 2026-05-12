@@ -1,9 +1,4 @@
-/** Без `@/lib/env.public` (Zod) — інакше весь zod тягнеться в клієнтський бандл плеєра. */
-function readPublicOptional(key: string): string {
-  if (typeof process === 'undefined') return '';
-  const v = process.env[key];
-  return typeof v === 'string' ? v.trim() : '';
-}
+/** Без `process.env.NEXT_PUBLIC_*` у клієнтському плеєрі — лише фіксовані значення (перевірка поведінки / бандлу). */
 
 export const KEY_CODES = {
   M: 'm',
@@ -19,18 +14,14 @@ export const KEY_CODES = {
 
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
 
-export const PROXY_URL = readPublicOptional('NEXT_PUBLIC_PROXY_URL');
+/** Загальний проксі для плеєра (раніше `NEXT_PUBLIC_PROXY_URL`). */
+export const PROXY_URL = '';
 
 /**
- * AnimeKai віддає прямі m3u8; CDN часто дає 403 з Referer localhost — потрібен проксі.
- * За замовчуванням — same-origin `/api/m3u8-proxy` (без зовнішнього fly.dev).
- * Щоб вимкнути проксі: NEXT_PUBLIC_M3U8_PROXY_URL=direct
- * Зовнішній приклад: https://m3u8proxy.fly.dev/m3u8-proxy?url=
+ * AnimeKai віддає прямі m3u8; CDN часто дає 403 з Referer localhost — same-origin проксі.
+ * (Раніше можна було перевизначити через `NEXT_PUBLIC_M3U8_PROXY_URL` / `direct`.)
  */
-const DEFAULT_M3U8_PROXY_URL = '/api/m3u8-proxy?url=';
-const m3u8Raw = readPublicOptional('NEXT_PUBLIC_M3U8_PROXY_URL');
-export const M3U8_PROXY_URL =
-  m3u8Raw.toLowerCase() === 'direct' ? '' : m3u8Raw || DEFAULT_M3U8_PROXY_URL;
+export const M3U8_PROXY_URL = '/api/m3u8-proxy?url=';
 
 /** Резерв, якщо немає embed_url у відповіді source. */
 export const ANIKAI_PAGE_REFERER = 'https://anikai.to/';

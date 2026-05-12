@@ -32,5 +32,5 @@ export function useStreamErrorBlockDelay(
         errorBlockTimerRef.current = null;
       }
     };
-  }, [isErrorState]);
+  }, [errorBlockTimerRef, isErrorState, setShowErrorBlock]);
 }

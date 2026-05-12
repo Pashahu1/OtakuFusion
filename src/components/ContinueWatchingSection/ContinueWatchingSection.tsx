@@ -99,13 +99,18 @@ export function ContinueWatchingSection() {
   }, []);
 
   useEffect(() => {
-    refreshList();
+    /** Не синхронно в тілі ефекта — інакше cascading renders (eslint react-hooks/set-state-in-effect). */
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) refreshList();
+    });
     window.addEventListener('continueWatchingUpdated', refreshList);
     const onStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY || e.key === null) refreshList();
     };
     window.addEventListener('storage', onStorage);
     return () => {
+      cancelled = true;
       window.removeEventListener('continueWatchingUpdated', refreshList);
       window.removeEventListener('storage', onStorage);
     };

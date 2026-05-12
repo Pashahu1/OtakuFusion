@@ -32,7 +32,6 @@ export interface UseWatchReturn {
   episodeId: string | null;
   setEpisodeId: Dispatch<SetStateAction<string | null>>;
   activeEpisodeNum: number | null;
-  setActiveEpisodeNum: Dispatch<SetStateAction<number | null>>;
   activeServerId: string | null;
   setActiveServerId: Dispatch<SetStateAction<string | null>>;
 }

@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { Card } from '@/components/Card/Card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { SwiperCardProps } from '@/shared/types/SwiperCardProps ';
+import type { SwiperCardProps } from '@/shared/types/SwiperCardProps';
 
 import 'swiper/css';
 import 'swiper/css/navigation';

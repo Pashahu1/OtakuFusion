@@ -40,5 +40,6 @@ export function usePlayerColumnHeightSync(
     serverLoading,
     buffering,
     nextEpisodeSchedule?.nextEpisodeSchedule,
+    playerColumnRef,
   ]);
 }

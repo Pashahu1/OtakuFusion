@@ -59,8 +59,17 @@ const nextConfig = {
       320,
       384,
     ],
-    qualities: [52, 55, 58, 60, 62, 65, 68, 70, 75, 80],
-    unoptimized: process.env.NEXT_IMAGE_UNOPTIMIZED === 'true',
+    /** Має містити всі значення `quality` з `<Image />` (див. PreviewHero 90/95 тощо). */
+    qualities: [52, 55, 58, 60, 62, 65, 68, 70, 75, 80, 85, 90, 95],
+    /**
+     * У dev Next 16 інколи сипле LRU при записі дискового кешу оптимізатора (`calculateSize === 0`).
+     * Без серверної оптимізації в розробці помилки зникають; у production залишається оптимізація.
+     * Примусово увімкнути оптимізацію в dev: NEXT_IMAGE_OPTIMIZE_IN_DEV=true
+     */
+    unoptimized:
+      process.env.NEXT_IMAGE_UNOPTIMIZED === 'true' ||
+      (process.env.NODE_ENV === 'development' &&
+        process.env.NEXT_IMAGE_OPTIMIZE_IN_DEV !== 'true'),
   },
 };
 

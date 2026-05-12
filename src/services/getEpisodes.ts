@@ -78,7 +78,10 @@ function isExplicitFalse(v: unknown): boolean {
   return false;
 }
 
-export async function getEpisodes(aniId: string): Promise<GetEpisodesResult> {
+export async function getEpisodes(
+  aniId: string,
+  signal?: AbortSignal
+): Promise<GetEpisodesResult> {
   const trimmed = aniId.trim();
   if (!trimmed) {
     return { episodes: [], totalEpisodes: 0 };
@@ -86,7 +89,8 @@ export async function getEpisodes(aniId: string): Promise<GetEpisodesResult> {
 
   const data = await animekaiApi.get<AnimeKaiEpisodesResponse>(
     `/api/episodes/${encodeURIComponent(trimmed)}`,
-    60
+    60,
+    signal
   );
 
   if (typeof data.error === 'string' && data.error.trim()) {

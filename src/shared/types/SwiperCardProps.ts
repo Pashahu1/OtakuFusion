@@ -1,4 +1,4 @@
-import type { AnimeInfo } from "./GlobalAnimeTypes";
+import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 export interface SwiperCardProps {
   title?: string;

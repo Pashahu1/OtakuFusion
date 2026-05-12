@@ -7,6 +7,10 @@ import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
 import { useWatchAnime } from './useWatchAnime';
 import { useWatchStream } from './useWatchStream';
 
+/**
+ * Сторінка watch: композиція `useWatchAnime` + `useWatchStream`.
+ * Див. також `useKaiPlayback` — той самий API з акцентом на архітектуру AniList ↔ AnimeKai.
+ */
 export function useWatch(
   animeId: string,
   initialEpisodeId: string | undefined
@@ -34,18 +38,19 @@ export function useWatch(
   const [activeServerId, setActiveServerId] = useState<string | null>(() =>
     getPersistedServerId()
   );
+  const [prevAnimeId, setPrevAnimeId] = useState(animeId);
+  if (animeId !== prevAnimeId) {
+    setPrevAnimeId(animeId);
+    /**
+     * Новий тайтл — підтягуємо глобальний вибір (Sub/Dub) з localStorage без setState в ефекті.
+     */
+    setActiveServerId(getPersistedServerId());
+  }
+
   const hasAnyDub = useMemo(
     () => Boolean(anime.episodes?.some((e) => e.hasDub === true)),
     [anime.episodes]
   );
-
-  useEffect(() => {
-    /**
-     * На кожному новому тайтлі залишаємо глобальний вибір користувача
-     * (English/Dub або Japanese/Sub) з localStorage.
-     */
-    setActiveServerId(getPersistedServerId());
-  }, [animeId]);
 
   const preferredLang = useMemo<'sub' | 'dub'>(
     () => (activeServerId === '2' ? 'dub' : 'sub'),
@@ -87,7 +92,7 @@ export function useWatch(
       (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === episodeId
     );
     return ep?.episode_no ?? null;
-  }, [anime.episodes, anime.episodeId]);
+  }, [anime]);
 
   const error =
     anime.error ?? stream.error ?? null;
@@ -115,7 +120,6 @@ export function useWatch(
     episodeId: anime.episodeId,
     setEpisodeId: anime.setEpisodeId,
     activeEpisodeNum,
-    setActiveEpisodeNum: () => {},
     activeServerId,
     setActiveServerId,
   };

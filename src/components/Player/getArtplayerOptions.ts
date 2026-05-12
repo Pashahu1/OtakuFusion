@@ -1,6 +1,6 @@
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
 import { artplayerPluginUploadSubtitle } from './artplayerPluginUploadSubtitle';
-import artplayerPluginChapter from './artPlayerPluinChaper';
+import artplayerPluginChapter from './artPlayerPluginChapter';
 import { createChapters } from './playerChapters';
 import { SUBTITLE_DEFAULT_STYLE } from './playerConstants';
 
@@ -57,7 +57,7 @@ export function getArtplayerOptions(
       playNext,
       userPausedRef,
       intro,
-      outro,
+      outro
     ),
     icons: {
       play: playIcon,

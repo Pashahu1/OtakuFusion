@@ -30,5 +30,5 @@ export function useApplyContinueWatchingEpisode(
       console.error('Error parsing continue watching data');
       return;
     }
-  }, [animeId, episodes, setEpisodeId, urlEp]);
+  }, [animeId, episodes, setEpisodeId, urlEp, hasAppliedSavedEpisodeRef]);
 }

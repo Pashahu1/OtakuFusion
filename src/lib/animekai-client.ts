@@ -1,4 +1,8 @@
 import { animekaiApi } from '@/lib/animekai-api';
+import {
+  tryResolveAnimeKaiByAnilistId,
+  tryResolveAnimeKaiByMalId,
+} from '@/services/animekaiResolve';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { AnimeKaiSourceResponse } from '@/shared/types/AnimeKaiSourceTypes';
 
@@ -89,6 +93,14 @@ export const animekaiClient = {
     keyword?: string,
     signal?: AbortSignal
   ): Promise<AnimeKaiResolvedMapping | null> {
+    const direct = await tryResolveAnimeKaiByAnilistId(String(anilistId), signal);
+    if (direct) {
+      return {
+        ani_id: direct.ani_id,
+        slug: direct.slug,
+        status: 'verified',
+      };
+    }
     const q = new URLSearchParams();
     q.set('anilist_id', String(anilistId).trim());
     if (localAnimeId?.trim()) q.set('local_anime_id', localAnimeId.trim());
@@ -103,6 +115,14 @@ export const animekaiClient = {
     keyword?: string,
     signal?: AbortSignal
   ): Promise<AnimeKaiResolvedMapping | null> {
+    const direct = await tryResolveAnimeKaiByMalId(malId, signal);
+    if (direct) {
+      return {
+        ani_id: direct.ani_id,
+        slug: direct.slug,
+        status: 'verified',
+      };
+    }
     const q = new URLSearchParams();
     q.set('mal_id', String(malId).trim());
     if (localAnimeId?.trim()) q.set('local_anime_id', localAnimeId.trim());

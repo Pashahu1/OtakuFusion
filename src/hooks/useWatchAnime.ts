@@ -137,6 +137,8 @@ export function useWatchAnime(
   }, [animeId]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
     let cancelled = false;
 
     setEpisodes(null);
@@ -184,7 +186,8 @@ export function useWatchAnime(
             const byAnilist = await animekaiClient.resolveByAnilist(
               dataForResolve.id,
               animeId,
-              keyword
+              keyword,
+              signal
             );
             if (byAnilist?.ani_id && (!byAnilist.status || byAnilist.status === 'verified')) {
               resolvedBy = 'anilist';
@@ -201,7 +204,8 @@ export function useWatchAnime(
             const byMal = await animekaiClient.resolveByMal(
               dataForResolve.mal_id,
               animeId,
-              keyword
+              keyword,
+              signal
             );
             if (byMal?.ani_id && (!byMal.status || byMal.status === 'verified')) {
               resolvedBy = 'mal';
@@ -212,7 +216,7 @@ export function useWatchAnime(
           if (!resolved) {
             resolved = await resolveAnimeKaiAniId(
               searchTerms,
-              undefined,
+              signal,
               buildAnimeKaiResolveHints(dataForResolve)
             );
             resolvedBy = 'fuzzy';
@@ -226,14 +230,14 @@ export function useWatchAnime(
             latency_ms: Date.now() - resolveStartedAt,
           });
 
-          const episodesData = await getEpisodes(ani_id);
+          const episodesData = await getEpisodes(ani_id, signal);
 
           if (cancelled) return;
 
           let expectedEps = parseExpectedEpisodesFromAnimeData(dataForResolve);
           const catalogHint = await estimateAnimeKaiCatalogEpisodeCount(
             searchTerms,
-            undefined,
+            signal,
             buildAnimeKaiResolveHints(dataForResolve)
           );
           if (typeof catalogHint === 'number' && catalogHint > expectedEps) {
@@ -319,7 +323,7 @@ export function useWatchAnime(
               : null);
           setEpisodeId(newEpisodeId ?? null);
         } catch (episodesError) {
-          if (cancelled) return;
+          if (cancelled || signal.aborted) return;
           console.warn('[useWatchAnime] AnimeKai episodes:', episodesError);
           setError(getErrorMessage(episodesError));
           setProviderAnimeId(null);
@@ -333,7 +337,7 @@ export function useWatchAnime(
           });
         }
       } catch (err) {
-        if (cancelled) return;
+        if (cancelled || signal.aborted) return;
         console.error('Error fetching initial data:', err);
         setError(getErrorMessage(err));
       } finally {
@@ -344,6 +348,7 @@ export function useWatchAnime(
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [animeId, episodeRemapPass]);
 

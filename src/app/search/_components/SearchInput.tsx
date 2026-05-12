@@ -9,9 +9,10 @@ export function SearchInput({ initialValue }: { initialValue: string }) {
   const debouncedQuery = useDebounce(query, 400);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchParamsKey = searchParams.toString();
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParamsKey);
     if (debouncedQuery) {
       params.set('keyword', debouncedQuery);
     } else {
@@ -19,7 +20,7 @@ export function SearchInput({ initialValue }: { initialValue: string }) {
     }
 
     router.replace(`/search?${params.toString()}`, { scroll: false });
-  }, [debouncedQuery, router]);
+  }, [debouncedQuery, router, searchParamsKey]);
 
   return (
     <div className="mt-[60px] flex w-full justify-center bg-[#141519] px-4 py-6 sm:px-8 sm:py-8">

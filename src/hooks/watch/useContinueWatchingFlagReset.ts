@@ -6,5 +6,5 @@ export const useContinueWatchingFlagReset = (
 ) => {
   useEffect(() => {
     hasAppliedSavedEpisodeRef.current = false;
-  }, [animeId]);
+  }, [animeId, hasAppliedSavedEpisodeRef]);
 };

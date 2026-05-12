@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import Image from 'next/image';
 import { Player } from '../Player/Player';
 import { BouncingLoader } from '../ui/Bouncingloader/Bouncingloader';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
@@ -58,15 +59,22 @@ export const WatchPlayerContent = ({
   streamNotice,
   playerShellPending,
 }: WatchPlayerContentProps) => {
-  const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
-  const [noticeDismissed, setNoticeDismissed] = useState(false);
-  useEffect(() => {
-    setBuiltinRuntimeError(false);
-  }, [episodeId, activeServerId, streamUrl]);
+  const streamKey = `${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
+  const noticeResetKey = `${streamNotice ?? ''}:${episodeId ?? ''}:${activeServerId ?? ''}`;
 
-  useEffect(() => {
+  const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
+  const [prevStreamKey, setPrevStreamKey] = useState(streamKey);
+  if (streamKey !== prevStreamKey) {
+    setPrevStreamKey(streamKey);
+    setBuiltinRuntimeError(false);
+  }
+
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
+  const [prevNoticeResetKey, setPrevNoticeResetKey] = useState(noticeResetKey);
+  if (noticeResetKey !== prevNoticeResetKey) {
+    setPrevNoticeResetKey(noticeResetKey);
     setNoticeDismissed(false);
-  }, [streamNotice, episodeId, activeServerId]);
+  }
 
   const handleBuiltinError = useCallback(() => {
     setBuiltinRuntimeError(true);
@@ -142,10 +150,12 @@ export const WatchPlayerContent = ({
 
         {isErrorState && (showErrorBlock || hasBuiltinError) && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-black/80 text-center">
-            <img
+            <Image
               src="/gojo-player.png"
               alt=""
-              className="w-[100px]"
+              width={100}
+              height={100}
+              className="w-[100px] h-auto max-w-[100px]"
               role="presentation"
             />
             <span>This player is currently unavailable.</span>
