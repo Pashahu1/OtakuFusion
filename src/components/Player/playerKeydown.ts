@@ -39,6 +39,9 @@ const KEY_HANDLERS: Record<string, KeyHandler> = {
   [KEY_CODES.ARROW_LEFT]: withPreventDefault((_, art) => {
     art.currentTime = Math.max(art.currentTime - 10, 0);
   }),
+  [KEY_CODES.ESCAPE]: withPreventDefault((_, art) => {
+    if (art.fullscreen) art.fullscreen = false;
+  }),
 };
 
 

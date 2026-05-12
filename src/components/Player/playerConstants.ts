@@ -10,6 +10,7 @@ export const KEY_CODES = {
   ARROW_DOWN: 'arrowdown',
   ARROW_RIGHT: 'arrowright',
   ARROW_LEFT: 'arrowleft',
+  ESCAPE: 'escape',
 } as const;
 
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];

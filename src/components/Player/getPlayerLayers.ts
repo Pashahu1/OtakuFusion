@@ -165,7 +165,7 @@ export function getPlayerLayers(
     },
     {
       name: 'skipIntro',
-      html: '<div class="skip-intro-btn">Skip Intro</div>',
+      html: '<div class="skip-intro-btn">Пропустити інтро</div>',
       style: {
         position: 'absolute',
         bottom: '90px',
@@ -190,7 +190,7 @@ export function getPlayerLayers(
     },
     {
       name: 'skipOutro',
-      html: '<div class="skip-outro-btn">Next Episode</div>',
+      html: '<div class="skip-outro-btn">Наступний епізод</div>',
       style: {
         position: 'absolute',
         bottom: '90px',
@@ -218,6 +218,62 @@ export function getPlayerLayers(
         } else if (outro) {
           this.currentTime = outro.end;
         }
+      },
+    },
+    {
+      name: 'upNext',
+      html: `
+        <div class="of-up-next-inner" style="
+          display:flex;
+          flex-direction:column;
+          gap:10px;
+          padding:16px 18px;
+          border-radius:12px;
+          background:rgba(18,18,22,0.92);
+          border:1px solid rgba(255,255,255,0.12);
+          box-shadow:0 12px 40px rgba(0,0,0,0.55);
+          color:#fff;
+          font-family:system-ui,-apple-system,sans-serif;
+        ">
+          <div style="font-size:13px;font-weight:600;opacity:0.85;letter-spacing:0.02em;">Наступний епізод</div>
+          <div data-upnext-countdown style="font-size:22px;font-weight:800;line-height:1.2;">15 с</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+            <button type="button" data-upnext-play style="
+              flex:1;
+              min-width:108px;
+              padding:9px 14px;
+              border-radius:8px;
+              border:none;
+              cursor:pointer;
+              font-weight:700;
+              font-size:14px;
+              color:#111;
+              background:linear-gradient(135deg,#ffb347,#ff7a18);
+            ">Зараз</button>
+            <button type="button" data-upnext-cancel style="
+              flex:1;
+              min-width:108px;
+              padding:9px 14px;
+              border-radius:8px;
+              border:1px solid rgba(255,255,255,0.25);
+              cursor:pointer;
+              font-weight:600;
+              font-size:14px;
+              color:#f3f3f3;
+              background:rgba(255,255,255,0.06);
+            ">Скасувати</button>
+          </div>
+        </div>
+      `,
+      style: {
+        display: 'none',
+        position: 'absolute',
+        bottom: 'calc(14% + env(safe-area-inset-bottom, 0px))',
+        right: 'max(16px, env(safe-area-inset-right, 0px))',
+        left: 'auto',
+        maxWidth: 'min(340px, 92vw)',
+        zIndex: '10001',
+        pointerEvents: 'auto',
       },
     },
   ];

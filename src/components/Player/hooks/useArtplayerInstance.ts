@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
 
@@ -14,9 +14,12 @@ import {
   updateContinueWatching,
 } from '../updateContinueWatching';
 import {
-  getPreferred720LevelIndex,
+  attachHlsQualityPreferencePersistence,
+  getPreferred1080LevelIndex,
   isHardHttpFailure,
-} from '../playerPlaybackUtils';
+  readHlsQualityPreference,
+  resolveLevelIndexForStoredQuality,
+} from '../playerPlaybackPreferences';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
 
 Artplayer.LOG_VERSION = false;
@@ -72,13 +75,26 @@ export function useArtplayerInstance({
   const episodeIdRef = useRef(episodeId);
   const episodesRef = useRef(episodes);
   const currentEpisodeIndexRef = useRef(currentEpisodeIndex);
-  const playNextRef = useRef(playNext);
+  const playNextPropRef = useRef(playNext);
   const onEpisodeWatchedRef = useRef(onEpisodeWatched);
   const onPlaybackErrorRef = useRef(onPlaybackError);
   const animeInfoRef = useRef(animeInfo);
   const hasTriggeredNextRef = useRef(false);
   const hasMarkedWatchedForOutroRef = useRef(false);
   const userPausedRef = useRef(false);
+  const upNextDismissedRef = useRef(false);
+
+  const streamBootKey = useMemo(() => {
+    const subKey = (subtitles ?? [])
+      .map(
+        (s) =>
+          `${String(s.file ?? '').trim()}\t${String(s.label ?? '').trim()}`
+      )
+      .join('\n');
+    const iKey = intro ? `${intro.start}:${intro.end}` : '·';
+    const oKey = outro ? `${outro.start}:${outro.end}` : '·';
+    return [streamUrl, thumbnail ?? '', iKey, oKey, subKey].join('\f');
+  }, [streamUrl, thumbnail, intro, outro, subtitles]);
 
   useEffect(() => {
     serversRef.current = servers;
@@ -86,7 +102,7 @@ export function useArtplayerInstance({
     episodeIdRef.current = episodeId;
     episodesRef.current = episodes;
     currentEpisodeIndexRef.current = currentEpisodeIndex;
-    playNextRef.current = playNext;
+    playNextPropRef.current = playNext;
     onEpisodeWatchedRef.current = onEpisodeWatched;
     onPlaybackErrorRef.current = onPlaybackError;
     animeInfoRef.current = animeInfo;
@@ -96,10 +112,12 @@ export function useArtplayerInstance({
     hasTriggeredNextRef.current = false;
     hasMarkedWatchedForOutroRef.current = false;
     userPausedRef.current = false;
+    upNextDismissedRef.current = false;
   }, [episodeId, episodes]);
 
   useEffect(() => {
     if (!streamUrl || !artRef.current) return;
+    upNextDismissedRef.current = false;
     const container = artRef.current;
     if (artInstanceRef.current) {
       const prev = artInstanceRef.current;
@@ -146,7 +164,10 @@ export function useArtplayerInstance({
         outro,
         () => currentEpisodeIndexRef.current ?? -1,
         () => episodesRef.current ?? [],
-        playNext,
+        (episodeId: string) => {
+          hasTriggeredNextRef.current = true;
+          playNextPropRef.current(episodeId);
+        },
         userPausedRef
       ),
     });
@@ -255,13 +276,34 @@ export function useArtplayerInstance({
       const idx = currentEpisodeIndexRef.current ?? -1;
       const epId = id != null ? String(id) : '';
       if (epId) onEpisodeWatchedRef.current?.(epId);
+
+      if (hasTriggeredNextRef.current) return;
+
       const next = list?.[idx + 1];
-      if (next) {
-        const nextId = getEpisodeNumberFromId(next.id);
-        if (nextId) playNextRef.current?.(nextId);
+      const info = animeInfoRef.current;
+
+      if (upNextDismissedRef.current) {
+        if (
+          !next &&
+          info?.id &&
+          info.data_id != null &&
+          list &&
+          list.length > 0 &&
+          idx >= 0
+        ) {
+          removeFromContinueWatching(info.id, info.data_id);
+        }
         return;
       }
-      const info = animeInfoRef.current;
+
+      if (next) {
+        const nextId = getEpisodeNumberFromId(next.id);
+        if (nextId) {
+          hasTriggeredNextRef.current = true;
+          playNextPropRef.current(nextId);
+        }
+        return;
+      }
       if (
         info?.id &&
         info.data_id != null &&
@@ -276,13 +318,14 @@ export function useArtplayerInstance({
     art.on('ready', () => {
       setupPlayerReady(
         art,
-        playNextRef,
+        playNextPropRef,
         episodeIdRef,
         thumbnail,
         episodesRef,
         currentEpisodeIndexRef,
         hasMarkedWatchedForOutroRef,
         hasTriggeredNextRef,
+        upNextDismissedRef,
         onEpisodeWatchedRef,
         setActiveServerId,
         userPausedRef,
@@ -303,28 +346,49 @@ export function useArtplayerInstance({
         plugins.artplayerPluginHlsControl?.update?.();
       };
       const hlsInstance = art.hls;
-      const applyDefault720Quality = () => {
+      const applyInitialHlsQuality = () => {
         if (!hlsInstance?.levels?.length) return;
-        const targetLevelIndex = getPreferred720LevelIndex(
-          hlsInstance.levels as Array<{ height?: number }>
+        const stored = readHlsQualityPreference();
+        let idx = resolveLevelIndexForStoredQuality(
+          hlsInstance.levels as Array<{ height?: number }>,
+          stored
         );
-        if (targetLevelIndex < 0) return;
-
-        hlsInstance.currentLevel = targetLevelIndex;
-        hlsInstance.nextLevel = targetLevelIndex;
-        hlsInstance.loadLevel = targetLevelIndex;
+        if (idx < 0 && stored === null) {
+          idx = getPreferred1080LevelIndex(
+            hlsInstance.levels as Array<{ height?: number }>
+          );
+        }
+        if (idx < 0) {
+          hlsInstance.currentLevel = -1;
+          hlsInstance.nextLevel = -1;
+          hlsInstance.loadLevel = -1;
+        } else {
+          hlsInstance.currentLevel = idx;
+          hlsInstance.nextLevel = idx;
+          hlsInstance.loadLevel = idx;
+        }
       };
+
       if (hlsInstance) {
-        hlsInstance.on(Hls.Events.MANIFEST_PARSED, applyDefault720Quality);
-        hlsInstance.on(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
-        hlsInstance.on(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
-        applyDefault720Quality();
-        syncHlsQualityUi();
-        art.on('destroy', () => {
-          hlsInstance.off(Hls.Events.MANIFEST_PARSED, applyDefault720Quality);
+        let detachQualityPersist: (() => void) | null = null;
+        const onDestroyHlsUi = () => {
+          hlsInstance.off(Hls.Events.MANIFEST_PARSED, applyInitialHlsQuality);
           hlsInstance.off(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
           hlsInstance.off(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
-        });
+          detachQualityPersist?.();
+          detachQualityPersist = null;
+        };
+
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, applyInitialHlsQuality);
+        hlsInstance.on(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
+        applyInitialHlsQuality();
+        syncHlsQualityUi();
+        detachQualityPersist = attachHlsQualityPreferencePersistence(
+          hlsInstance,
+          syncHlsQualityUi
+        );
+        art.on('destroy', onDestroyHlsUi);
       }
     });
 
@@ -367,7 +431,7 @@ export function useArtplayerInstance({
           container.innerHTML = '';
       }
     };
-  }, [streamUrl, subtitles, intro, outro]); // eslint-disable-line react-hooks/exhaustive-deps -- episode/anime/playNext via refs; повний список перестворював би Artplayer занадто часто
+  }, [streamBootKey]); // eslint-disable-line react-hooks/exhaustive-deps -- episode/anime/streamInfo через refs; fingerprint зменшує зайві ремоунти
 
   return { artRef };
 }

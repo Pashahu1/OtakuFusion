@@ -2,14 +2,17 @@ import Artplayer from 'artplayer';
 import { SERVER_PRIORITY_ORDER } from '@/shared/data/servers';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { captionIcon, serverIcon } from './PlayerIcons';
-import { ANIKAI_PAGE_REFERER, M3U8_PROXY_URL, PROXY_URL } from './playerConstants';
+import { ANIKAI_PAGE_REFERER, LOGO_HIDE_DELAY_MS, M3U8_PROXY_URL, PROXY_URL } from './playerConstants';
 import { artplayerPluginVttThumbnail } from './artPlayerPluginVttThumbnail';
 import { handlePlayerKeydown } from './playerKeydown';
-import { LOGO_HIDE_DELAY_MS } from './playerConstants';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
+import {
+  readSubtitlePreference,
+  writeSubtitlePreference,
+} from './playerPlaybackPreferences';
 
 function toPlayableAssetUrl(url: string): string {
   const raw = url.trim();
@@ -46,13 +49,14 @@ function toPlayableAssetUrl(url: string): string {
 
 export function setupPlayerReady(
   art: Artplayer,
-  playNextRef: React.RefObject<(episodeId: string) => void>,
+  playNextPropRef: React.RefObject<(episodeId: string) => void>,
   episodeIdRef: React.RefObject<string | null>,
   thumbnail: string | null,
   episodesRef: React.RefObject<EpisodesTypes[] | null>,
   currentEpisodeIndexRef: React.RefObject<number | null | undefined>,
   hasMarkedWatchedForOutroRef: React.RefObject<boolean>,
   hasTriggeredNextRef: React.RefObject<boolean>,
+  upNextDismissedRef: React.RefObject<boolean>,
   onEpisodeWatchedRef: React.RefObject<
     ((episodeId: string) => void) | null | undefined
   >,
@@ -68,16 +72,18 @@ export function setupPlayerReady(
 ) {
   let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
   const goToNextEpisode = () => {
+    if (hasTriggeredNextRef.current) return;
     const id = episodeIdRef.current;
     const list = episodesRef.current;
     const idx = currentEpisodeIndexRef.current ?? -1;
     const epId = id != null ? String(id) : '';
     if (epId) onEpisodeWatchedRef.current?.(epId);
     const next = list?.[idx + 1];
-    if (next) {
-      const nextId = getEpisodeNumberFromId(next.id);
-      if (nextId) playNextRef.current?.(nextId);
-    }
+    if (!next) return;
+    const nextId = getEpisodeNumberFromId(next.id);
+    if (!nextId) return;
+    hasTriggeredNextRef.current = true;
+    playNextPropRef.current?.(nextId);
   };
 
   const tryPlay = () => {
@@ -107,6 +113,26 @@ export function setupPlayerReady(
   const skipIntroBtn = art.layers['skipIntro'];
   const skipOutroBtn = art.layers['skipOutro'];
   const logoLayer = art.layers.siteLogo;
+  const upNextRoot = art.layers['upNext'] as HTMLDivElement | undefined;
+
+  if (upNextRoot && !upNextRoot.dataset.ofUpnextBound) {
+    upNextRoot.dataset.ofUpnextBound = '1';
+    upNextRoot
+      .querySelector('[data-upnext-play]')
+      ?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        goToNextEpisode();
+      });
+    upNextRoot
+      .querySelector('[data-upnext-cancel]')
+      ?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        upNextDismissedRef.current = true;
+        upNextRoot.style.display = 'none';
+      });
+  }
 
   requestAnimationFrame(() => {
     logoLayer.style.opacity = '1';
@@ -149,15 +175,24 @@ export function setupPlayerReady(
     const list = episodesRef.current;
     const idx = currentEpisodeIndexRef.current ?? -1;
     const hasNextEpisode = list != null && list[idx + 1] != null;
-    if (
-      hasNextEpisode &&
-      Number.isFinite(duration) &&
-      duration > 0 &&
-      art.currentTime >= Math.max(0, duration - 2) &&
-      !hasTriggeredNextRef.current
-    ) {
-      hasTriggeredNextRef.current = true;
-      goToNextEpisode();
+    const cdEl = upNextRoot?.querySelector(
+      '[data-upnext-countdown]'
+    ) as HTMLDivElement | null;
+
+    if (!upNextRoot || !hasNextEpisode || !Number.isFinite(duration) || duration <= 0) {
+      if (upNextRoot) upNextRoot.style.display = 'none';
+    } else if (upNextDismissedRef.current) {
+      upNextRoot.style.display = 'none';
+    } else {
+      const tailStart = Math.max(0, duration - 15);
+      if (art.currentTime >= tailStart && art.currentTime < duration) {
+        upNextRoot.style.display = 'flex';
+        const left = Math.max(0, Math.ceil(duration - art.currentTime));
+        if (cdEl) cdEl.textContent = left <= 0 ? '0 с' : `${left} с`;
+        if (left <= 0) goToNextEpisode();
+      } else if (art.currentTime < tailStart) {
+        upNextRoot.style.display = 'none';
+      }
     }
   });
 
@@ -194,10 +229,24 @@ export function setupPlayerReady(
     playableSubtitles.find((sub) =>
       sub.label.toLowerCase().includes('english')
     );
-  const shouldEnableSubtitleByDefault = streamLang !== 'dub';
-  const defaultSubtitle = shouldEnableSubtitleByDefault
-    ? defaultEnglishSub ?? playableSubtitles[0]
-    : null;
+  const subPref = readSubtitlePreference();
+  const streamWantsSub = streamLang !== 'dub';
+  let shouldShowSub = streamWantsSub;
+  if (subPref?.mode === 'off') shouldShowSub = false;
+  if (subPref?.mode === 'on') shouldShowSub = true;
+
+  let defaultSubtitle: (typeof playableSubtitles)[0] | null = null;
+  if (shouldShowSub) {
+    if (subPref?.mode === 'on' && subPref.label.trim()) {
+      const match = playableSubtitles.find(
+        (s) => s.label.trim().toLowerCase() === subPref.label.trim().toLowerCase()
+      );
+      defaultSubtitle = match ?? defaultEnglishSub ?? playableSubtitles[0] ?? null;
+    } else {
+      defaultSubtitle = defaultEnglishSub ?? playableSubtitles[0] ?? null;
+    }
+  }
+
   playableSubtitles.length > 0 &&
     art.setting.add({
       name: 'captions',
@@ -208,11 +257,12 @@ export function setupPlayerReady(
       selector: [
         {
           html: 'Display',
-          switch: shouldEnableSubtitleByDefault && Boolean(defaultSubtitle),
+          switch: shouldShowSub && Boolean(defaultSubtitle),
           onSwitch: function (item) {
             const isEnabled = Boolean(item.switch);
             item.tooltip = isEnabled ? 'Hide' : 'Show';
             art.subtitle.show = isEnabled;
+            if (!isEnabled) writeSubtitlePreference({ mode: 'off' });
             return isEnabled;
           },
         },
@@ -230,11 +280,14 @@ export function setupPlayerReady(
       onSelect: function (item: { html?: string; url?: string }) {
         if (!item.url?.trim()) {
           art.subtitle.show = false;
+          writeSubtitlePreference({ mode: 'off' });
           return item.html ?? 'None';
         }
-        art.subtitle.switch(item.url, { name: item.html ?? 'Subtitle' });
+        const label = item.html?.trim() ?? 'Subtitle';
+        art.subtitle.switch(item.url, { name: label });
         art.subtitle.show = true;
-        return item.html ?? 'Subtitle';
+        writeSubtitlePreference({ mode: 'on', label });
+        return label;
       },
     });
   if (defaultSubtitle) {
