@@ -5,6 +5,7 @@ import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import { resolveWatchStream } from '@/services/resolveWatchStream';
+import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 
 export interface UseWatchStreamReturn {
   streamInfo: StreamingData | null;
@@ -180,6 +181,24 @@ export function useWatchStream(
           signal
         );
         if (signal.aborted) return;
+
+        const resolvedServerLabel = result.stream.server?.trim();
+        if (
+          typeof window !== 'undefined' &&
+          resolvedServerLabel &&
+          resolvedServerLabel !== 'Resolved'
+        ) {
+          try {
+            /**
+             * Глобальна підказка для наступних тайтлів: `GET /api/watch/resolve` читає це як
+             * `preferred_server_hint` і спочатку пробує той самий «дзеркальний» рядок сервера.
+             * Не плутати з link_id — він лише для конкретного епізоду.
+             */
+            localStorage.setItem(STORAGE_SERVER_NAME, resolvedServerLabel);
+          } catch {
+            /* ignore */
+          }
+        }
 
         for (const t of result.stream.tracks ?? []) {
           if (!t.file?.trim()) continue;
