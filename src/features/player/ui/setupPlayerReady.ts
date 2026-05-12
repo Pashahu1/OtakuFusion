@@ -47,6 +47,14 @@ function toPlayableAssetUrl(url: string): string {
   return `${proxyBase}?url=${encoded}&headers=${headers}`;
 }
 
+function scheduleIdle(fn: () => void): void {
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    window.requestIdleCallback(() => fn(), { timeout: 2200 });
+  } else {
+    setTimeout(fn, 1);
+  }
+}
+
 export function setupPlayerReady(
   art: Artplayer,
   playNextPropRef: React.RefObject<(episodeId: string) => void>,
@@ -90,14 +98,13 @@ export function setupPlayerReady(
     if (userPausedRef.current) return;
     if (document.visibilityState === 'visible') art.play().catch(() => {});
   };
-  if (document.visibilityState === 'visible') tryPlay();
+  /** Один виклик play після готовності буфера — без дубля з синхронним play() (підлаги на старті). */
   art.once('video:canplay', tryPlay);
 
   art.on('pause', () => {
     userPausedRef.current = true;
     if (art.video) {
       art.video.pause();
-      art.video.currentTime = art.currentTime;
     }
     if (artRef.current) {
       artRef.current.querySelectorAll('video, audio').forEach((el) => {
@@ -256,12 +263,20 @@ export function setupPlayerReady(
   art.subtitle.style({
     fontSize: (art.width > 500 ? art.width * 0.02 : art.width * 0.03) + 'px',
   });
-  thumbnail &&
-    art.plugins.add(
-      artplayerPluginVttThumbnail({
-        vtt: toPlayableAssetUrl(thumbnail),
-      })
-    );
+  if (thumbnail) {
+    const thumbUrl = toPlayableAssetUrl(thumbnail);
+    scheduleIdle(() => {
+      try {
+        art.plugins.add(
+          artplayerPluginVttThumbnail({
+            vtt: thumbUrl,
+          })
+        );
+      } catch {
+        /* noop */
+      }
+    });
+  }
   const playableSubtitles = (subtitles ?? [])
     .map((sub) => ({
       ...sub,

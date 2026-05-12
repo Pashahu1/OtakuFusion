@@ -42,13 +42,12 @@
 
     @media (max-width: 1023px) {
       flex-direction: column;
-      align-items: stretch;
+      align-items: center;
       justify-content: flex-end;
       transform: none;
       padding-top: 0;
-      padding-bottom: calc(
-        env(safe-area-inset-bottom, 0px) + clamp(2.75rem, 14vh, 7rem)
-      );
+      /* Трохи вище за нижній край + без vh */
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.25rem);
     }
 
     &::before {
@@ -64,6 +63,17 @@
         transparent 100%
       );
       pointer-events: none;
+
+      @media (max-width: 1023px) {
+        width: 100%;
+        max-width: none;
+        background: linear-gradient(
+          to top,
+          rgba(0, 0, 0, 0.94) 0%,
+          rgba(0, 0, 0, 0.68) 48%,
+          transparent 92%
+        );
+      }
     }
   }
 
@@ -79,8 +89,13 @@
 
     @media (max-width: 1023px) {
       width: 100%;
-      max-width: none;
+      max-width: min(100%, 30rem);
+      margin-inline: auto;
       padding-bottom: 0.25rem;
+      padding-left: clamp(16px, 5vw, 32px);
+      padding-right: clamp(16px, 5vw, 32px);
+      text-align: center;
+      align-items: center;
     }
   }
 
@@ -100,6 +115,15 @@
     line-height: 1.4;
     color: rgba(255, 255, 255, 0.95);
     font-weight: 400;
+
+    @media (max-width: 1023px) {
+      min-height: 1.4em;
+    }
+  }
+
+  &__meta--placeholder {
+    color: transparent;
+    user-select: none;
   }
 
   &__description {
@@ -116,7 +140,13 @@
     @media (max-width: 1023px) {
       -webkit-line-clamp: 3;
       line-clamp: 3;
+      min-height: calc(0.9375rem * 1.55 * 3);
     }
+  }
+
+  &__description--placeholder {
+    color: transparent;
+    user-select: none;
   }
 
   &__cta {
@@ -125,19 +155,20 @@
     justify-content: center;
     gap: 8px;
     margin-top: 4px;
+
+    @media (max-width: 1023px) {
+      align-self: center;
+    }
   }
 }
 
-/* Планшет (768–1023px): той самий вертикальний hero, що й на телефоні, але зручніше читати й більший «текстовий» блок */
+/* Планшет (768–1023px): той самий вертикальний hero, що й на телефоні */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .hero__content::before {
-    width: min(78%, 720px);
-    max-width: none;
-  }
-
   .hero__info {
+    max-width: min(100%, 40rem);
+    margin-inline: auto;
     padding-left: clamp(24px, 5vw, 56px);
-    padding-right: clamp(24px, 4vw, 40px);
+    padding-right: clamp(24px, 5vw, 56px);
   }
 
   .hero__title {
@@ -156,9 +187,13 @@
   }
 
   .hero__pagination-slot {
-    --hero-pagination-padding-start: clamp(24px, 5vw, 56px);
-    --hero-pagination-padding-end: clamp(24px, 4vw, 40px);
-    margin-top: clamp(18px, 2.2vh, 26px);
+    display: flex;
+    justify-content: center;
+    padding-left: 16px;
+    padding-right: 16px;
+    --hero-pagination-padding-start: 0px;
+    --hero-pagination-padding-end: 0px;
+    margin-top: 22px;
   }
 
   .hero-zone {
@@ -228,7 +263,13 @@
   }
 
   @media (max-width: 1023px) {
-    margin-top: clamp(14px, 2vh, 20px);
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    padding-left: 16px;
+    padding-right: 16px;
+    --hero-pagination-padding-start: 0px;
+    --hero-pagination-padding-end: 0px;
   }
 }
 
@@ -244,6 +285,12 @@
   gap: 8px;
   pointer-events: none;
   transition: opacity 0.15s ease;
+
+  @media (max-width: 1023px) {
+    position: relative;
+    left: auto;
+    top: auto;
+  }
 }
 
 .hero-pagination-placeholder-dash {

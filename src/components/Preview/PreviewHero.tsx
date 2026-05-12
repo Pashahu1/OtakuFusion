@@ -193,13 +193,24 @@ export const Preview = ({ spotlights, trending }: Props) => {
           <div className="hero__content">
             <div className="hero__info">
               <h1 className="hero__title">{currentAnime.title}</h1>
-              {metaLine && (
+              {metaLine ? (
                 <p className="hero__meta" aria-hidden>
                   {metaLine}
                 </p>
+              ) : (
+                <p className="hero__meta hero__meta--placeholder" aria-hidden>
+                  {'\u00a0'}
+                </p>
               )}
-              {currentAnime.description && (
+              {currentAnime.description ? (
                 <p className="hero__description">{currentAnime.description}</p>
+              ) : (
+                <p
+                  className="hero__description hero__description--placeholder"
+                  aria-hidden
+                >
+                  {'\u00a0'}
+                </p>
               )}
               <Link
                 className="hero__cta bg-brand-orange text-brand-gray-light hover:bg-brand-orange-light hover:text-brand-gray w-full max-w-[300px] rounded-md px-4 py-3 text-center text-base font-medium transition-colors md:py-2.5"

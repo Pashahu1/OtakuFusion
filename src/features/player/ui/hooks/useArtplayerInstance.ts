@@ -336,11 +336,11 @@ export function useArtplayerInstance({
         serversRef,
         activeServerIdRef
       );
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          updateContinueWatching(animeInfo, episodeId, episodeNum);
-        });
+      queueMicrotask(() => {
+        updateContinueWatching(animeInfo, episodeId, episodeNum);
       });
+
+      const storedQualitySnapshot = readHlsQualityPreference();
 
       const plugins = art.plugins as unknown as {
         artplayerPluginHlsControl?: { update?: () => void };
@@ -351,12 +351,10 @@ export function useArtplayerInstance({
       const hlsInstance = art.hls;
       const applyInitialHlsQuality = () => {
         if (!hlsInstance?.levels?.length) return;
-        const stored = readHlsQualityPreference();
-        /** Якщо в localStorage ще немає вибору — лишаємо ABR (-1). Примусовий старт з 1080p
-         * після `startLevel: 0` у playM3u8 давав різке перемикання рівня й підлаги одразу після буферизації. */
+        /** auto (−1), порожньо / best-display → підбираємо рівень під екран; число → фіксована висота. */
         const idx = resolveLevelIndexForStoredQuality(
-          hlsInstance.levels as Array<{ height?: number }>,
-          stored
+          hlsInstance.levels as Array<{ height?: number; bitrate?: number }>,
+          storedQualitySnapshot
         );
         if (idx < 0) {
           hlsInstance.currentLevel = -1;
@@ -386,7 +384,14 @@ export function useArtplayerInstance({
         syncHlsQualityUi();
         detachQualityPersist = attachHlsQualityPreferencePersistence(
           hlsInstance,
-          syncHlsQualityUi
+          syncHlsQualityUi,
+          {
+            muteInitialPersistenceMs:
+              storedQualitySnapshot === null ||
+              storedQualitySnapshot === 'best-display'
+                ? 2800
+                : 0,
+          }
         );
         art.on('destroy', onDestroyHlsUi);
       }
