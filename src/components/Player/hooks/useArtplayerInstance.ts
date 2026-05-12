@@ -337,7 +337,11 @@ export function useArtplayerInstance({
         serversRef,
         activeServerIdRef
       );
-      updateContinueWatching(animeInfo, episodeId, episodeNum);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          updateContinueWatching(animeInfo, episodeId, episodeNum);
+        });
+      });
 
       const plugins = art.plugins as unknown as {
         artplayerPluginHlsControl?: { update?: () => void };

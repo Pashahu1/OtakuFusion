@@ -144,57 +144,99 @@ export function setupPlayerReady(
     logoLayer.style.transform = 'translateY(-10px) scale(0.95)';
   }, LOGO_HIDE_DELAY_MS);
 
-  art.on('video:timeupdate', () => {
-    if (
-      intro &&
-      art.currentTime >= intro.start &&
-      art.currentTime <= intro.end
-    ) {
-      skipIntroBtn.style.display = 'block';
-    } else {
+  let skipIntroVisible: boolean | null = null;
+  let skipOutroVisible: boolean | null = null;
+  let upNextPanelVisible = false;
+  let lastUpNextTick = -1;
+
+  const onTimeUpdate = () => {
+    const t = art.currentTime;
+
+    if (intro) {
+      const show = t >= intro.start && t <= intro.end;
+      if (show !== skipIntroVisible) {
+        skipIntroVisible = show;
+        skipIntroBtn.style.display = show ? 'block' : 'none';
+      }
+    } else if (skipIntroVisible !== false) {
+      skipIntroVisible = false;
       skipIntroBtn.style.display = 'none';
     }
-    if (
-      outro &&
-      outro.start != null &&
-      outro.end != null &&
-      art.currentTime >= outro.start &&
-      art.currentTime <= outro.end
-    ) {
-      skipOutroBtn.style.display = 'block';
-      if (!hasMarkedWatchedForOutroRef.current) {
+
+    if (outro && outro.start != null && outro.end != null) {
+      const show = t >= outro.start && t <= outro.end;
+      if (show !== skipOutroVisible) {
+        skipOutroVisible = show;
+        skipOutroBtn.style.display = show ? 'block' : 'none';
+      }
+      if (show && !hasMarkedWatchedForOutroRef.current) {
         hasMarkedWatchedForOutroRef.current = true;
         const id = episodeIdRef.current;
         const epId = id != null ? String(id) : '';
         if (epId) onEpisodeWatchedRef.current?.(epId);
       }
-    } else {
+    } else if (skipOutroVisible !== false) {
+      skipOutroVisible = false;
       skipOutroBtn.style.display = 'none';
     }
+
     const duration = art.video?.duration ?? art.duration;
     const list = episodesRef.current;
     const idx = currentEpisodeIndexRef.current ?? -1;
     const hasNextEpisode = list != null && list[idx + 1] != null;
-    const cdEl = upNextRoot?.querySelector(
+
+    if (
+      !upNextRoot ||
+      !hasNextEpisode ||
+      !Number.isFinite(duration) ||
+      duration <= 0
+    ) {
+      if (upNextPanelVisible && upNextRoot) {
+        upNextRoot.style.display = 'none';
+        upNextPanelVisible = false;
+        lastUpNextTick = -1;
+      }
+      return;
+    }
+
+    if (upNextDismissedRef.current) {
+      if (upNextPanelVisible) {
+        upNextRoot.style.display = 'none';
+        upNextPanelVisible = false;
+        lastUpNextTick = -1;
+      }
+      return;
+    }
+
+    const tailStart = Math.max(0, duration - 15);
+    if (t < tailStart) {
+      if (upNextPanelVisible) {
+        upNextRoot.style.display = 'none';
+        upNextPanelVisible = false;
+        lastUpNextTick = -1;
+      }
+      return;
+    }
+
+    if (t >= duration) return;
+
+    if (!upNextPanelVisible) {
+      upNextRoot.style.display = 'flex';
+      upNextPanelVisible = true;
+    }
+
+    const left = Math.max(0, Math.ceil(duration - t));
+    const cdEl = upNextRoot.querySelector(
       '[data-upnext-countdown]'
     ) as HTMLDivElement | null;
-
-    if (!upNextRoot || !hasNextEpisode || !Number.isFinite(duration) || duration <= 0) {
-      if (upNextRoot) upNextRoot.style.display = 'none';
-    } else if (upNextDismissedRef.current) {
-      upNextRoot.style.display = 'none';
-    } else {
-      const tailStart = Math.max(0, duration - 15);
-      if (art.currentTime >= tailStart && art.currentTime < duration) {
-        upNextRoot.style.display = 'flex';
-        const left = Math.max(0, Math.ceil(duration - art.currentTime));
-        if (cdEl) cdEl.textContent = left <= 0 ? '0 с' : `${left} с`;
-        if (left <= 0) goToNextEpisode();
-      } else if (art.currentTime < tailStart) {
-        upNextRoot.style.display = 'none';
-      }
+    if (left !== lastUpNextTick && cdEl) {
+      lastUpNextTick = left;
+      cdEl.textContent = left <= 0 ? '0 с' : `${left} с`;
     }
-  });
+    if (left <= 0) goToNextEpisode();
+  };
+
+  art.on('video:timeupdate', onTimeUpdate);
 
   const onKeydown = (event: KeyboardEvent) => {
     handlePlayerKeydown(event, art);
@@ -202,6 +244,10 @@ export function setupPlayerReady(
   document.addEventListener('keydown', onKeydown);
   art.on('destroy', () => {
     document.removeEventListener('keydown', onKeydown);
+    const emitter = art as unknown as {
+      off?: (event: string, handler: () => void) => void;
+    };
+    emitter.off?.('video:timeupdate', onTimeUpdate);
     if (logoHideTimeoutId) {
       clearTimeout(logoHideTimeoutId);
       logoHideTimeoutId = null;
