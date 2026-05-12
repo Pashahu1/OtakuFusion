@@ -1,4 +1,6 @@
 import { animekaiApi } from '@/lib/animekai-api';
+import { getKaiEpisodesFromBff } from '@/lib/kai-episodes-bff';
+import { getKaiServersFromBff } from '@/lib/kai-servers-bff';
 import {
   tryResolveAnimeKaiByAnilistId,
   tryResolveAnimeKaiByMalId,
@@ -163,11 +165,11 @@ export const animekaiClient = {
   },
 
   async getEpisodes(aniId: string, signal?: AbortSignal): Promise<unknown> {
-    return animekaiApi.get(`/api/episodes/${encodeURIComponent(aniId.trim())}`, undefined, signal);
+    return getKaiEpisodesFromBff(aniId, signal);
   },
 
   async getServers(epToken: string, signal?: AbortSignal): Promise<unknown> {
-    return animekaiApi.get(`/api/servers/${encodeURIComponent(epToken.trim())}`, undefined, signal);
+    return getKaiServersFromBff(epToken, signal);
   },
 
   async getSource(linkId: string, signal?: AbortSignal): Promise<AnimeKaiSourceResponse> {

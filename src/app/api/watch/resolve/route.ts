@@ -1,5 +1,5 @@
-import { getEpisodes } from '@/services/getEpisodes';
-import { getServers } from '@/services/getServers';
+import { getAnimeKaiEpisodesCached } from '@/server/kai/episodesCached';
+import { getAnimeKaiServersCached } from '@/server/kai/serversCached';
 import { getStreamInfo } from '@/services/getStreamInfo';
 import {
   resolveAnimeKaiAniId,
@@ -53,7 +53,7 @@ function parsePositiveInt(sp: URLSearchParams, key: string): number | undefined 
 function pickEpisodeByNumber(episodes: EpisodesTypes[], episodeNo: number): EpisodesTypes | null {
   const exact = episodes.find((ep) => ep.episode_no === episodeNo);
   if (exact) return exact;
-  /** `getEpisodes` ставить `data_id` = номеру епізоду — запасний збіг. */
+  /** `episodeMapping` / BFF ставлять `data_id` = номеру епізоду — запасний збіг. */
   return episodes.find((ep) => ep.data_id === episodeNo) ?? null;
 }
 
@@ -232,7 +232,7 @@ async function handleWatchResolve(req: Request): Promise<Response> {
       }
     }
 
-    const episodesResult = await getEpisodes(resolved.ani_id);
+    const episodesResult = await getAnimeKaiEpisodesCached(resolved.ani_id);
     const targetEpisode = pickEpisodeByNumber(episodesResult.episodes, episode);
     if (!targetEpisode?.ep_token?.trim()) {
       return Response.json(
@@ -245,7 +245,7 @@ async function handleWatchResolve(req: Request): Promise<Response> {
       );
     }
 
-    const servers = await getServers(targetEpisode.ep_token);
+    const servers = await getAnimeKaiServersCached(targetEpisode.ep_token);
     if (!servers.length) {
       return Response.json(
         {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getServers } from '@/services/getServers';
+import { getKaiServersFromBff } from '@/lib/kai-servers-bff';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import {
   PREFERRED_SERVERS,
@@ -118,7 +118,7 @@ export function useWatchServers(
 
     const fetchServers = async () => {
       try {
-        const data = await getServers(epToken, signal);
+        const data = await getKaiServersFromBff(epToken, signal);
         if (signal.aborted) return;
 
         const filtered =

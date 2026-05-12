@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getAnimeInfo } from '@/services/getAnimeInfo';
-import { getEpisodes } from '@/services/getEpisodes';
+import { readEpisodeHealth, writeEpisodeHealth } from '@/lib/animekai-local-health';
+import { getKaiEpisodesFromBff } from '@/lib/kai-episodes-bff';
 import { getNextEpisodeSchedule } from '@/services/getNextEpisodeSchedule';
 import { animekaiClient, type AnimeKaiResolvedMapping } from '@/lib/animekai-client';
 import {
@@ -218,7 +219,7 @@ export function useWatchAnime(
           if (cancelled) return;
 
           const [episodesData, catalogHint] = await Promise.all([
-            getEpisodes(ani_id, signal),
+            getKaiEpisodesFromBff(ani_id, signal),
             estimateAnimeKaiCatalogEpisodeCount(searchTerms, signal, resolveHints),
           ]);
 
@@ -229,6 +230,28 @@ export function useWatchAnime(
             expectedEps = catalogHint;
           }
           const list = episodesData.episodes ?? [];
+
+          if (!list.length) {
+            try {
+              localStorage.removeItem(getMappingCacheKey(animeId));
+            } catch {
+              /* ignore */
+            }
+            if (!forceFuzzy && episodeRemapPass === 0) {
+              settleLoading = false;
+              setEpisodeRemapPass((n) => n + 1);
+              return;
+            }
+            setError(
+              'Провайдер повернув порожній список епізодів. Оновіть сторінку або спробуйте пізніше — кеш мапінгу для цього тайтлу скинуто.'
+            );
+            setProviderAnimeId(null);
+            setEpisodes([]);
+            setTotalEpisodes(0);
+            setEpisodeId(null);
+            return;
+          }
+
           const provTotal =
             typeof episodesData.totalEpisodes === 'number' && episodesData.totalEpisodes > 0
               ? episodesData.totalEpisodes
@@ -329,14 +352,7 @@ export function useWatchAnime(
     const hasDubNow = episodes.some((ep) => ep.hasDub === true);
     const currentEpisodeCount = episodes.length;
 
-    const previousKey = `animekai:health:${animeId}`;
-    let previous: { hasDub: boolean; episodeCount: number } | null = null;
-    try {
-      const raw = localStorage.getItem(previousKey);
-      if (raw) previous = JSON.parse(raw) as { hasDub: boolean; episodeCount: number };
-    } catch {
-      previous = null;
-    }
+    const previous = readEpisodeHealth(animeId);
 
     const suspiciousLowCount = currentEpisodeCount <= 3;
     const suspiciousDubDrop = previous?.hasDub === true && !hasDubNow;
@@ -355,14 +371,7 @@ export function useWatchAnime(
       }, 1200);
     }
 
-    try {
-      localStorage.setItem(
-        previousKey,
-        JSON.stringify({ hasDub: hasDubNow, episodeCount: currentEpisodeCount })
-      );
-    } catch {
-      /* ignore */
-    }
+    writeEpisodeHealth(animeId, { hasDub: hasDubNow, episodeCount: currentEpisodeCount });
   }, [animeId, animeInfo, providerAnimeId, episodes]);
 
   useEffect(() => {
