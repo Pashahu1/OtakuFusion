@@ -165,7 +165,7 @@ export function getPlayerLayers(
     },
     {
       name: 'skipIntro',
-      html: '<div class="skip-intro-btn">Пропустити інтро</div>',
+      html: '<div class="skip-intro-btn">Skip Intro</div>',
       style: {
         position: 'absolute',
         bottom: '90px',
@@ -190,7 +190,7 @@ export function getPlayerLayers(
     },
     {
       name: 'skipOutro',
-      html: '<div class="skip-outro-btn">Наступний епізод</div>',
+      html: '<div class="skip-outro-btn">Next Episode</div>',
       style: {
         position: 'absolute',
         bottom: '90px',

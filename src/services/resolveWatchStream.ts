@@ -1,3 +1,5 @@
+import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
+
 export interface WatchResolveParams {
   anilistId?: number;
   malId?: number;
@@ -59,6 +61,11 @@ export async function resolveWatchStream(
   if (params.localAnimeId) query.set('local_anime_id', params.localAnimeId);
   query.set('episode', String(params.episode));
   query.set('lang', params.lang === 'dub' ? 'dub' : 'sub');
+
+  if (typeof window !== 'undefined') {
+    const hint = localStorage.getItem(STORAGE_SERVER_NAME)?.trim();
+    if (hint) query.set('preferred_server_hint', hint);
+  }
 
   const res = await fetch(`/api/watch/resolve?${query.toString()}`, {
     method: 'GET',

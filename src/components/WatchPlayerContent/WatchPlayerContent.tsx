@@ -12,7 +12,6 @@ import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 type WatchPlayerContentProps = {
   animeId: string;
   playerColumnRef: React.RefObject<HTMLDivElement | null>;
-  serverLoading: boolean;
   buffering: boolean;
   streamUrl: string | null;
   subtitles: SubtitleItem[] | null;
@@ -38,7 +37,6 @@ type WatchPlayerContentProps = {
 export const WatchPlayerContent = ({
   animeId,
   playerColumnRef,
-  serverLoading,
   buffering,
   streamUrl,
   subtitles,
@@ -83,13 +81,13 @@ export const WatchPlayerContent = ({
   const hasBuiltinError = builtinRuntimeError;
 
   const isBuiltinReady =
-    !playerShellPending && !serverLoading && !buffering && Boolean(streamUrl);
+    !playerShellPending && !buffering && Boolean(streamUrl);
   const isBuiltinFailed =
-    !playerShellPending && !serverLoading && !buffering && !streamUrl;
+    !playerShellPending && !buffering && !streamUrl;
   const showBuiltinPlayer = !hasBuiltinError && isBuiltinReady;
   const showLoader =
     !hasBuiltinError &&
-    (playerShellPending || serverLoading || buffering);
+    (playerShellPending || buffering);
   const isErrorState = isBuiltinFailed || hasBuiltinError;
 
   /** Лише коли плеєр реально готовий — не показувати amber-блок під час loader / shell. */

@@ -53,7 +53,6 @@ export default function Watch() {
     activeServerId,
     setActiveServerId,
     servers,
-    serverLoading,
     streamNotice,
     playerShellPending,
   } = useWatch(animeId || '', urlEp ?? undefined);
@@ -74,7 +73,6 @@ export default function Watch() {
     episodes,
     urlEp,
     isFirstSet,
-    serverLoading,
     buffering,
     streamUrl,
     playerShellPending,
@@ -119,7 +117,6 @@ export default function Watch() {
           <WatchPlayerContent
             animeId={animeId}
             playerColumnRef={playerColumnRef}
-            serverLoading={serverLoading}
             buffering={buffering}
             streamUrl={streamUrl}
             subtitles={subtitles}

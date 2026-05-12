@@ -5,7 +5,6 @@ export function usePlayerColumnHeightSync(
   playerColumnRef: React.RefObject<HTMLDivElement | null>,
   setEpisodesColumnHeight: (height: number | null) => void,
   streamUrl: string | null,
-  serverLoading: boolean,
   buffering: boolean,
   nextEpisodeSchedule: NextEpisodeScheduleResult | null
 ) {
@@ -37,7 +36,6 @@ export function usePlayerColumnHeightSync(
   }, [
     setEpisodesColumnHeight,
     streamUrl,
-    serverLoading,
     buffering,
     nextEpisodeSchedule?.nextEpisodeSchedule,
     playerColumnRef,

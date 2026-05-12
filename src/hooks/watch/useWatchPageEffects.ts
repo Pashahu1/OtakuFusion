@@ -17,7 +17,6 @@ export const useWatchPageEffects = (
   episodes: EpisodesTypes[] | null,
   urlEp: string | undefined,
   isFirstSetRef: React.RefObject<boolean>,
-  serverLoading: boolean,
   buffering: boolean,
   streamUrl: string | null,
   playerShellPending: boolean,
@@ -47,7 +46,6 @@ export const useWatchPageEffects = (
   useStreamErrorBlockDelay(
     errorBlockTimerRef,
     setShowErrorBlock,
-    serverLoading,
     buffering,
     streamUrl,
     playerShellPending
@@ -56,7 +54,6 @@ export const useWatchPageEffects = (
     playerColumnRef,
     setEpisodesColumnHeight,
     streamUrl,
-    serverLoading,
     buffering,
     nextEpisodeSchedule
   );

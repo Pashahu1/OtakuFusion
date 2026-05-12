@@ -14,6 +14,7 @@ import {
 } from '@/lib/watchResolveProbe';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import { mirrorServerLabel } from '@/shared/data/servers';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
 type WatchLang = 'sub' | 'dub';
@@ -88,6 +89,28 @@ function buildServerCandidateGroups(
     }
   }
   return dedupedGroups;
+}
+
+function findPreferredServerInGroups(
+  groups: ServerInfo[][],
+  hint: string
+): ServerInfo | null {
+  const raw = hint.trim();
+  if (!raw) return null;
+  const hintLower = raw.toLowerCase();
+  const hintMirror = mirrorServerLabel(raw).toLowerCase();
+
+  for (const group of groups) {
+    for (const s of group) {
+      if (s.serverName.trim().toLowerCase() === hintLower) return s;
+    }
+  }
+  for (const group of groups) {
+    for (const s of group) {
+      if (mirrorServerLabel(s.serverName).toLowerCase() === hintMirror) return s;
+    }
+  }
+  return null;
 }
 
 async function tryResolveServerCandidate(
@@ -246,11 +269,35 @@ async function handleWatchResolve(req: Request): Promise<Response> {
       );
     }
 
-    const { candidate, primary } = await resolveFirstWorkingStream(
-      candidateGroups,
-      origin,
-      probeCfg
-    );
+    const preferredHint = url.searchParams.get('preferred_server_hint')?.trim();
+    let resolvedPair: { candidate: ServerInfo; primary: StreamingType };
+    if (preferredHint) {
+      const pref = findPreferredServerInGroups(candidateGroups, preferredHint);
+      if (pref) {
+        try {
+          resolvedPair = await tryResolveServerCandidate(pref, origin, probeCfg);
+        } catch {
+          resolvedPair = await resolveFirstWorkingStream(
+            candidateGroups,
+            origin,
+            probeCfg
+          );
+        }
+      } else {
+        resolvedPair = await resolveFirstWorkingStream(
+          candidateGroups,
+          origin,
+          probeCfg
+        );
+      }
+    } else {
+      resolvedPair = await resolveFirstWorkingStream(
+        candidateGroups,
+        origin,
+        probeCfg
+      );
+    }
+    const { candidate, primary } = resolvedPair;
     const usedLang: WatchLang = candidate.type.toLowerCase() === 'dub' ? 'dub' : 'sub';
     const fallbackApplied =
       (lang === 'dub' && !isDubServer(candidate)) ||

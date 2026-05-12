@@ -9,7 +9,6 @@ import { useWatchStream } from './useWatchStream';
 
 /**
  * Сторінка watch: композиція `useWatchAnime` + `useWatchStream`.
- * Див. також `useKaiPlayback` — той самий API з акцентом на архітектуру AniList ↔ AnimeKai.
  */
 export function useWatch(
   animeId: string,
@@ -92,7 +91,7 @@ export function useWatch(
       (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === episodeId
     );
     return ep?.episode_no ?? null;
-  }, [anime]);
+  }, [anime.episodes, anime.episodeId]);
 
   const error =
     anime.error ?? stream.error ?? null;
@@ -101,7 +100,6 @@ export function useWatch(
     error,
     streamNotice: stream.streamNotice,
     buffering: stream.buffering,
-    serverLoading: false,
     streamInfo: stream.streamInfo,
     animeInfo: anime.animeInfo,
     episodes: anime.episodes,

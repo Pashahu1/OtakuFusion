@@ -12,7 +12,6 @@ export interface UseWatchReturn {
   /** Повідомлення після автоматичного fallback стріму (dub→sub тощо). */
   streamNotice: string | null;
   buffering: boolean;
-  serverLoading: boolean;
   streamInfo: StreamingData | null;
   animeInfo: AnimeData | null;
   episodes: EpisodesTypes[] | null;

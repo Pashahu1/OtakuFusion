@@ -1,5 +1,5 @@
 import Artplayer from 'artplayer';
-import { SERVER_PRIORITY_ORDER } from '@/shared/data/servers';
+import { SERVER_PRIORITY_ORDER, mirrorServerLabel } from '@/shared/data/servers';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { captionIcon, serverIcon } from './PlayerIcons';
 import { ANIKAI_PAGE_REFERER, LOGO_HIDE_DELAY_MS, M3U8_PROXY_URL, PROXY_URL } from './playerConstants';
@@ -303,19 +303,12 @@ export function setupPlayerReady(
   const langServers = serversRef.current ?? null;
   const langActiveId = activeServerIdRef.current ?? null;
 
-  /** Частина після «Sub ·» / «Dub ·» — як у useWatchStream (не порівнювати з сирими «HD-1»). */
-  function mirrorLabel(serverName: string): string {
-    const parts = serverName.split('·');
-    if (parts.length >= 2) return parts.slice(1).join('·').trim();
-    return serverName.trim();
-  }
-
   function pickPreferredInGroup(list: ServerInfo[]): ServerInfo | undefined {
     if (!list.length) return undefined;
     for (const pref of SERVER_PRIORITY_ORDER) {
       const p = pref.toLowerCase();
       const hit = list.find(
-        (s) => mirrorLabel(s.serverName).toLowerCase() === p
+        (s) => mirrorServerLabel(s.serverName).toLowerCase() === p
       );
       if (hit) return hit;
     }
