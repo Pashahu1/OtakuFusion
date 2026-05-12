@@ -32,19 +32,6 @@ function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : 'An error occurred.';
 }
 
-interface ResolveTelemetryPayload {
-  anime_id?: string;
-  local_anime_id?: string;
-  resolved_by?: 'cache' | 'anilist' | 'mal' | 'fuzzy';
-  reason?: string;
-  latency_ms?: number;
-}
-
-function trackResolveEvent(event: string, payload: ResolveTelemetryPayload): void {
-  void event;
-  void payload;
-}
-
 function getMappingCacheKey(localAnimeId: string): string {
   return `animekai:mapping:${localAnimeId}`;
 }
@@ -148,12 +135,29 @@ export function useWatchAnime(
     setTotalEpisodes(null);
     setAnimeInfoLoading(true);
     setError(null);
-    setNextEpisodeSchedule(null);
+    if (episodeRemapPass === 0) {
+      setNextEpisodeSchedule(null);
+    }
 
     const fetchInitial = async () => {
       let settleLoading = true;
       try {
-        const animeData = await getAnimeInfo(animeId);
+        let animeData: Awaited<ReturnType<typeof getAnimeInfo>>;
+        if (episodeRemapPass === 0) {
+          const [info, schedule] = await Promise.all([
+            getAnimeInfo(animeId),
+            getNextEpisodeSchedule(animeId).catch((scheduleErr) => {
+              console.error('Error fetching next episode schedule:', scheduleErr);
+              return null;
+            }),
+          ]);
+          animeData = info;
+          if (!cancelled) {
+            setNextEpisodeSchedule(schedule);
+          }
+        } else {
+          animeData = await getAnimeInfo(animeId);
+        }
         if (cancelled) return;
         setAnimeInfo(animeData?.data ?? null);
         const dataForResolve = animeData?.data;
@@ -163,83 +167,64 @@ export function useWatchAnime(
         }
 
         try {
-          const resolveStartedAt = Date.now();
-          trackResolveEvent('resolve_started', {
-            anime_id: dataForResolve.id,
-            local_anime_id: animeId,
-          });
           const searchTerms = buildAnimeKaiSearchTerms(dataForResolve);
           const keyword = searchTerms[0];
-          let resolvedBy: 'cache' | 'anilist' | 'mal' | 'fuzzy' = 'fuzzy';
+          const resolveHints = buildAnimeKaiResolveHints(dataForResolve);
           let resolved: { ani_id: string; slug: string } | null = null;
           const forceFuzzy = episodeRemapPass > 0;
 
           if (!forceFuzzy) {
             const cached = readVerifiedMapping(animeId);
             if (cached?.ani_id) {
-              resolvedBy = 'cache';
               resolved = { ani_id: cached.ani_id, slug: cached.slug ?? cached.ani_id };
             }
           }
 
           if (!resolved && !forceFuzzy) {
-            const byAnilist = await animekaiClient.resolveByAnilist(
-              dataForResolve.id,
-              animeId,
-              keyword,
-              signal
-            );
-            if (byAnilist?.ani_id && (!byAnilist.status || byAnilist.status === 'verified')) {
-              resolvedBy = 'anilist';
-              resolved = { ani_id: byAnilist.ani_id, slug: byAnilist.slug ?? byAnilist.ani_id };
-            }
-          }
-
-          if (
-            !resolved &&
-            !forceFuzzy &&
-            dataForResolve.mal_id != null &&
-            dataForResolve.mal_id > 0
-          ) {
-            const byMal = await animekaiClient.resolveByMal(
-              dataForResolve.mal_id,
-              animeId,
-              keyword,
-              signal
-            );
-            if (byMal?.ani_id && (!byMal.status || byMal.status === 'verified')) {
-              resolvedBy = 'mal';
-              resolved = { ani_id: byMal.ani_id, slug: byMal.slug ?? byMal.ani_id };
+            const hasMal = dataForResolve.mal_id != null && dataForResolve.mal_id > 0;
+            if (hasMal) {
+              const malId = dataForResolve.mal_id as number;
+              const [byAnilist, byMal] = await Promise.all([
+                animekaiClient.resolveByAnilist(
+                  dataForResolve.id,
+                  animeId,
+                  keyword,
+                  signal
+                ),
+                animekaiClient.resolveByMal(malId, animeId, keyword, signal),
+              ]);
+              if (byAnilist?.ani_id && (!byAnilist.status || byAnilist.status === 'verified')) {
+                resolved = { ani_id: byAnilist.ani_id, slug: byAnilist.slug ?? byAnilist.ani_id };
+              } else if (byMal?.ani_id && (!byMal.status || byMal.status === 'verified')) {
+                resolved = { ani_id: byMal.ani_id, slug: byMal.slug ?? byMal.ani_id };
+              }
+            } else {
+              const byAnilist = await animekaiClient.resolveByAnilist(
+                dataForResolve.id,
+                animeId,
+                keyword,
+                signal
+              );
+              if (byAnilist?.ani_id && (!byAnilist.status || byAnilist.status === 'verified')) {
+                resolved = { ani_id: byAnilist.ani_id, slug: byAnilist.slug ?? byAnilist.ani_id };
+              }
             }
           }
 
           if (!resolved) {
-            resolved = await resolveAnimeKaiAniId(
-              searchTerms,
-              signal,
-              buildAnimeKaiResolveHints(dataForResolve)
-            );
-            resolvedBy = 'fuzzy';
+            resolved = await resolveAnimeKaiAniId(searchTerms, signal, resolveHints);
           }
           const { ani_id } = resolved;
           if (cancelled) return;
-          trackResolveEvent('resolve_success', {
-            anime_id: dataForResolve.id,
-            local_anime_id: animeId,
-            resolved_by: resolvedBy,
-            latency_ms: Date.now() - resolveStartedAt,
-          });
 
-          const episodesData = await getEpisodes(ani_id, signal);
+          const [episodesData, catalogHint] = await Promise.all([
+            getEpisodes(ani_id, signal),
+            estimateAnimeKaiCatalogEpisodeCount(searchTerms, signal, resolveHints),
+          ]);
 
           if (cancelled) return;
 
           let expectedEps = parseExpectedEpisodesFromAnimeData(dataForResolve);
-          const catalogHint = await estimateAnimeKaiCatalogEpisodeCount(
-            searchTerms,
-            signal,
-            buildAnimeKaiResolveHints(dataForResolve)
-          );
           if (typeof catalogHint === 'number' && catalogHint > expectedEps) {
             expectedEps = catalogHint;
           }
@@ -264,11 +249,6 @@ export function useWatchAnime(
             } catch {
               /* ignore */
             }
-            trackResolveEvent('resolve_episode_remapping', {
-              anime_id: dataForResolve.id,
-              local_anime_id: animeId,
-              reason: `expected_${expectedEps}_provider_best_${Math.max(maxEpisodeNumberFromList(list), provTotal)}`,
-            });
             setEpisodeRemapPass((n) => n + 1);
             return;
           }
@@ -281,11 +261,6 @@ export function useWatchAnime(
           setProviderAnimeId(ani_id);
 
           if (truncatedVsAnilist && episodeRemapPass >= 1) {
-            trackResolveEvent('resolve_episode_mismatch_after_remap', {
-              anime_id: dataForResolve.id,
-              local_anime_id: animeId,
-              reason: `anilist_${expectedEps}_provider_${Math.max(maxEpisodeNumberFromList(list), provTotal)}`,
-            });
             if (healthcheckDebounceRef.current) clearTimeout(healthcheckDebounceRef.current);
             healthcheckDebounceRef.current = setTimeout(() => {
               void animekaiClient.healthcheckMapping({
@@ -330,11 +305,6 @@ export function useWatchAnime(
           setEpisodes([]);
           setTotalEpisodes(0);
           setEpisodeId(null);
-          trackResolveEvent('resolve_failed', {
-            anime_id: dataForResolve.id,
-            local_anime_id: animeId,
-            reason: getErrorMessage(episodesError),
-          });
         }
       } catch (err) {
         if (cancelled || signal.aborted) return;
@@ -413,24 +383,6 @@ export function useWatchAnime(
     );
     if (valid) setEpisodeId(initialEpisodeId);
   }, [animeId, initialEpisodeId, episodes, animeInfoLoading]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const fetchSchedule = async () => {
-      try {
-        const data = await getNextEpisodeSchedule(animeId);
-        if (!cancelled) setNextEpisodeSchedule(data);
-      } catch (err) {
-        if (!cancelled) {
-          console.error('Error fetching next episode schedule:', err);
-        }
-      }
-    };
-    fetchSchedule();
-    return () => {
-      cancelled = true;
-    };
-  }, [animeId]);
 
   return {
     animeInfo,
