@@ -15,7 +15,6 @@ import {
 } from '../updateContinueWatching';
 import {
   attachHlsQualityPreferencePersistence,
-  getPreferred1080LevelIndex,
   isHardHttpFailure,
   readHlsQualityPreference,
   resolveLevelIndexForStoredQuality,
@@ -353,15 +352,12 @@ export function useArtplayerInstance({
       const applyInitialHlsQuality = () => {
         if (!hlsInstance?.levels?.length) return;
         const stored = readHlsQualityPreference();
-        let idx = resolveLevelIndexForStoredQuality(
+        /** Якщо в localStorage ще немає вибору — лишаємо ABR (-1). Примусовий старт з 1080p
+         * після `startLevel: 0` у playM3u8 давав різке перемикання рівня й підлаги одразу після буферизації. */
+        const idx = resolveLevelIndexForStoredQuality(
           hlsInstance.levels as Array<{ height?: number }>,
           stored
         );
-        if (idx < 0 && stored === null) {
-          idx = getPreferred1080LevelIndex(
-            hlsInstance.levels as Array<{ height?: number }>
-          );
-        }
         if (idx < 0) {
           hlsInstance.currentLevel = -1;
           hlsInstance.nextLevel = -1;
