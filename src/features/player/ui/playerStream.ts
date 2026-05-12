@@ -99,40 +99,47 @@ export function playM3u8(
     // інакше довго тримаємося низької сходинки й потім різко стрибаємо вгору.
     const hls = new Hls({
       /**
-       * Обмежуємо ретраї, щоб при 4xx не було сотень/тисяч XHR.
-       * Далі перемикання на інший стрім обробляє наш fallback у React.
+       * Через власний m3u8-проксі сегменти часто йдуть повільніше: мало ретраїв + короткий таймаут
+       * дають «сіра смуга завмерла одразу після playhead» — hls.js перестає підвантажувати далі.
+       * Ретраї обмежені, щоб при жорсткому 4xx не зациклити тисячі XHR (fallback лишається в React).
        */
-      manifestLoadingMaxRetry: 1,
-      levelLoadingMaxRetry: 1,
-      fragLoadingMaxRetry: 1,
-      manifestLoadingRetryDelay: 300,
-      levelLoadingRetryDelay: 300,
-      fragLoadingRetryDelay: 300,
-      manifestLoadingTimeOut: 10000,
-      levelLoadingTimeOut: 10000,
-      fragLoadingTimeOut: 15000,
+      manifestLoadingMaxRetry: 2,
+      levelLoadingMaxRetry: 3,
+      fragLoadingMaxRetry: 5,
+      fragLoadingMaxRetryTimeout: 120000,
+      manifestLoadingRetryDelay: 400,
+      levelLoadingRetryDelay: 400,
+      fragLoadingRetryDelay: 400,
+      manifestLoadingTimeOut: 15000,
+      levelLoadingTimeOut: 28000,
+      fragLoadingTimeOut: 45000,
       /**
-       * VoD: ціль у секундах уперед. На 1080p реальний горизонт часто обмежує maxBufferSize (байти),
-       * тому тримаємо помітно вище дефолту hls.js (~30с).
+       * VoD: ціль у секундах уперед від playhead. Разом із maxBufferSize задає, скільки «наперед»
+       * тримаємо (орієнтовно десятки секунд — кілька хв залежно від бітрейту).
        */
-      maxBufferLength: 240,
-      maxMaxBufferLength: 1200,
+      maxBufferLength: 120,
+      maxMaxBufferLength: 900,
       /**
-       * Жорсткий ліміт буфера в байтах: при високому бітрейті (1080p) саме він раніше спрацьовує,
-       * ніж maxBufferLength — від того й коротка помаранчева смуга на прогресі.
-       * ~256 MiB дає порядку 2–4 хв запасу залежно від якості джерела.
+       * Жорсткий ліміт буфера в байтах: при 1080p часто спрацьовує раніше за maxBufferLength.
        */
       maxBufferSize: 256 * 1024 * 1024,
+      /** Дозволяємо невеликі дірки між сегментами, щоб рідше «застрягати» без appends. */
+      maxBufferHole: 0.85,
       lowLatencyMode: false,
-      // Explicit: стартуємо завантаження одразу після ініціалізації,
-      // навіть якщо artplayer ще не почав відтворювати (autoplay: false).
-      autoStartLoad: false,
+      /** true: починаємо тягнути плейлист/сегменти щойно готові медіа + маніфест (менше гонки з play). */
+      autoStartLoad: true,
       /** -1: вибір початкового рівня відповідає евристиці ABR (не завжди найнижчий індекс). */
       startLevel: -1,
       startFragPrefetch: true,
-      // Якщо стається starvation, HLS буде довше "намагатися" без різкого голодування.
-      maxStarvationDelay: 10,
-      maxLoadingDelay: 10,
+      maxStarvationDelay: 12,
+      maxLoadingDelay: 12,
+      /**
+       * Стартовий оцінювач бітрейту (б/с): занадто низький → ABR «боїться» наперед і буфер росте повільно
+       * на початку, особливо через проксі. 5 Mbps — розумний компроміс для 1080p VoD.
+       */
+      abrEwmaDefaultEstimate: 5_000_000,
+      /** Менше тримаємо позад playhead — трохи більше бюджету на фрагменти вперед на слабких пристроях. */
+      backBufferLength: 45,
     });
     hls.loadSource(url);
     hls.attachMedia(video);
