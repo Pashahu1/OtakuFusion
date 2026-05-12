@@ -26,6 +26,8 @@ interface WatchResolveOptions {
   animeInfo: AnimeData | null;
   providerAnimeId?: string | null;
   preferredLang: 'sub' | 'dub';
+  /** Після успішного резолву — синхронізувати перемикач Sub/Dub із реальною доріжкою (`stream.lang`). */
+  onPlaybackLangResolved?: (lang: 'sub' | 'dub') => void;
 }
 
 /** Відомі коди помилок GET /api/watch/resolve на бекенді AnimeKai (не з нашого коду). */
@@ -165,21 +167,41 @@ export function useWatchStream(
         }
 
         const tracks = [] as VideoTrack[];
-        const result = await resolveWatchStream(
-          {
-            anilistId: animeInfo.id?.trim() ? Number(animeInfo.id) : undefined,
-            malId:
-              typeof animeInfo.mal_id === 'number' && animeInfo.mal_id > 0
-                ? animeInfo.mal_id
-                : undefined,
-            keyword: animeInfo.title,
-            localAnimeId: watchResolveOptions.animeId,
-            providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
-            episode: episodeNumber,
-            lang: watchResolveOptions.preferredLang,
-          },
-          signal
-        );
+        const resolveParams = {
+          anilistId: animeInfo.id?.trim() ? Number(animeInfo.id) : undefined,
+          malId:
+            typeof animeInfo.mal_id === 'number' && animeInfo.mal_id > 0
+              ? animeInfo.mal_id
+              : undefined,
+          keyword: animeInfo.title,
+          localAnimeId: watchResolveOptions.animeId,
+          providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
+          episode: episodeNumber,
+          lang: watchResolveOptions.preferredLang,
+        };
+
+        const hadServerHint =
+          typeof window !== 'undefined' &&
+          Boolean(localStorage.getItem(STORAGE_SERVER_NAME)?.trim());
+
+        let result: Awaited<ReturnType<typeof resolveWatchStream>>;
+        try {
+          result = await resolveWatchStream(resolveParams, signal);
+        } catch (firstErr) {
+          if (signal.aborted) return;
+          /**
+           * Після іншого тайтлу підказка `preferred_server_hint` інколи вказує на недійсне дзеркало
+           * для нового каталогу — перший resolve падає, повтор без підказки проходить.
+           */
+          if (!hadServerHint) throw firstErr;
+          try {
+            localStorage.removeItem(STORAGE_SERVER_NAME);
+          } catch {
+            /* ignore */
+          }
+          result = await resolveWatchStream(resolveParams, signal);
+        }
+
         if (signal.aborted) return;
 
         const resolvedServerLabel = result.stream.server?.trim();
@@ -234,7 +256,20 @@ export function useWatchStream(
         setThumbnail(getThumbnailTrack(tracks));
         setIntro(parseSegment(result.stream.intro));
         setOutro(parseSegment(result.stream.outro));
-        setStreamNotice(null);
+
+        if (resolveParams.lang !== result.stream.lang) {
+          watchResolveOptions.onPlaybackLangResolved?.(result.stream.lang);
+        }
+
+        if (result.fallback.applied && result.fallback.from && result.fallback.to) {
+          const fromLabel = result.fallback.from === 'dub' ? 'англійська озвучка' : 'японська (саб)';
+          const toLabel = result.fallback.to === 'dub' ? 'англійська озвучка' : 'японська (саб)';
+          setStreamNotice(
+            `${fromLabel} недоступна для цього епізоду — відтворюється ${toLabel}.`
+          );
+        } else {
+          setStreamNotice(null);
+        }
       } catch (err) {
         if (signal.aborted) return;
         if (err instanceof Error && err.name === 'AbortError') return;

@@ -57,8 +57,8 @@ export const WatchPlayerContent = ({
   streamNotice,
   playerShellPending,
 }: WatchPlayerContentProps) => {
-  const streamKey = `${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
-  const noticeResetKey = `${streamNotice ?? ''}:${episodeId ?? ''}:${activeServerId ?? ''}`;
+  const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
+  const noticeResetKey = `${animeId}:${streamNotice ?? ''}:${episodeId ?? ''}:${activeServerId ?? ''}`;
 
   const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
   const [prevStreamKey, setPrevStreamKey] = useState(streamKey);

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
@@ -56,6 +56,25 @@ export function useWatch(
     [activeServerId]
   );
 
+  const currentEpisodeHasDub = useMemo(() => {
+    const ep = anime.episodes?.find(
+      (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === anime.episodeId
+    );
+    return ep?.hasDub === true;
+  }, [anime.episodes, anime.episodeId]);
+
+  useEffect(() => {
+    if (!hasAnyDub && activeServerId === '2') {
+      setActiveServerId('1');
+    }
+  }, [hasAnyDub, activeServerId]);
+
+  useEffect(() => {
+    if (activeServerId === '2' && anime.episodeId && currentEpisodeHasDub === false) {
+      setActiveServerId('1');
+    }
+  }, [activeServerId, anime.episodeId, currentEpisodeHasDub]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_SERVER_TYPE, preferredLang);
@@ -71,6 +90,10 @@ export function useWatch(
     return base;
   }, [hasAnyDub]);
 
+  const onPlaybackLangResolved = useCallback((lang: 'sub' | 'dub') => {
+    setActiveServerId(lang === 'dub' ? '2' : '1');
+  }, []);
+
   const watchResolveOptions = useMemo(
     () => ({
       animeId,
@@ -78,8 +101,16 @@ export function useWatch(
       animeInfo: anime.animeInfo,
       providerAnimeId: anime.providerAnimeId,
       preferredLang,
+      onPlaybackLangResolved,
     }),
-    [anime.animeInfo, anime.episodeId, anime.providerAnimeId, animeId, preferredLang]
+    [
+      anime.animeInfo,
+      anime.episodeId,
+      anime.providerAnimeId,
+      animeId,
+      preferredLang,
+      onPlaybackLangResolved,
+    ]
   );
 
   const stream = useWatchStream(watchResolveOptions);
