@@ -129,7 +129,6 @@ export function useWatch(
 
   return {
     error,
-    streamNotice: stream.streamNotice,
     buffering: stream.buffering,
     streamInfo: stream.streamInfo,
     animeInfo: anime.animeInfo,

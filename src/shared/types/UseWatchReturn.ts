@@ -9,8 +9,6 @@ import type { AnimeData } from './animeDetailsTypes';
 
 export interface UseWatchReturn {
   error: string | null;
-  /** Повідомлення після автоматичного fallback стріму (dub→sub тощо). */
-  streamNotice: string | null;
   buffering: boolean;
   streamInfo: StreamingData | null;
   animeInfo: AnimeData | null;

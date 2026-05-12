@@ -85,6 +85,7 @@ export function Card({
       style={{ fontFamily: 'var(--font-sans)' }}
     >
       <Link
+        prefetch
         href={`/watch/${anime.id}`}
         className="absolute inset-0 z-0 block outline-none focus-visible:z-[5] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)] focus-visible:ring-inset"
         aria-label={`Watch ${anime.title}`}

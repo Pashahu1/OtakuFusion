@@ -13,7 +13,7 @@ export function EmptyState({
   fullPage = false,
 }: EmptyStateProps) {
   return (
-    <section className="mx-auto w-full max-w-[1800px] space-y-6 bg-[#111] px-4 py-8 md:px-6 lg:px-10 xl:max-w-[2000px] 2xl:max-w-[2400px]">
+    <section className="w-full space-y-6 bg-[#111] px-4 py-8 md:px-6 lg:px-10">
       <div
         className={`flex flex-col items-center justify-center text-center ${fullPage ? 'h-screen' : 'py-10'}`}
       >

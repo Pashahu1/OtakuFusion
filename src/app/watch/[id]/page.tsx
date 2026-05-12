@@ -52,7 +52,6 @@ export default function Watch() {
     activeServerId,
     setActiveServerId,
     servers,
-    streamNotice,
     playerShellPending,
   } = useWatch(animeId || '', urlEp ?? undefined);
 
@@ -133,7 +132,6 @@ export default function Watch() {
             activeServerId={activeServerId}
             setActiveServerId={setActiveServerId}
             showErrorBlock={showErrorBlock}
-            streamNotice={streamNotice}
             playerShellPending={playerShellPending}
           />
 

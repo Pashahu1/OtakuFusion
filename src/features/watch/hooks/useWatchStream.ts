@@ -16,8 +16,6 @@ export interface UseWatchStreamReturn {
   intro: Segment | null;
   outro: Segment | null;
   error: string | null;
-  /** Нефатальне повідомлення (наприклад dub недоступний — відтворюється sub). */
-  streamNotice: string | null;
 }
 
 interface WatchResolveOptions {
@@ -130,7 +128,6 @@ export function useWatchStream(
   const [intro, setIntro] = useState<Segment | null>(null);
   const [outro, setOutro] = useState<Segment | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [streamNotice, setStreamNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!watchResolveOptions?.animeInfo || !watchResolveOptions.episodeId) {
@@ -142,7 +139,6 @@ export function useWatchStream(
       setOutro(null);
       setBuffering(false);
       setError(null);
-      setStreamNotice(null);
       return;
     }
 
@@ -157,7 +153,6 @@ export function useWatchStream(
     setThumbnail(null);
     setIntro(null);
     setOutro(null);
-    setStreamNotice(null);
 
     void (async () => {
       try {
@@ -260,22 +255,11 @@ export function useWatchStream(
         if (resolveParams.lang !== result.stream.lang) {
           watchResolveOptions.onPlaybackLangResolved?.(result.stream.lang);
         }
-
-        if (result.fallback.applied && result.fallback.from && result.fallback.to) {
-          const fromLabel = result.fallback.from === 'dub' ? 'англійська озвучка' : 'японська (саб)';
-          const toLabel = result.fallback.to === 'dub' ? 'англійська озвучка' : 'японська (саб)';
-          setStreamNotice(
-            `${fromLabel} недоступна для цього епізоду — відтворюється ${toLabel}.`
-          );
-        } else {
-          setStreamNotice(null);
-        }
       } catch (err) {
         if (signal.aborted) return;
         if (err instanceof Error && err.name === 'AbortError') return;
         console.error('Error resolving watch stream:', err);
         setError(getErrorMessage(err));
-        setStreamNotice(null);
       } finally {
         if (!signal.aborted) setBuffering(false);
       }
@@ -293,6 +277,5 @@ export function useWatchStream(
     intro,
     outro,
     error,
-    streamNotice,
   };
 }

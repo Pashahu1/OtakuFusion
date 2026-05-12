@@ -24,9 +24,14 @@ export function readWatchProbeConfig(): WatchProbeConfig {
     process.env.WATCH_PROBE_SKIP_VARIANT === '1' ||
     process.env.WATCH_PROBE_SKIP_VARIANT === 'true';
 
+  /**
+   * Дефолти трохи агресивніші за «максимально обережні», щоб швидше відсікати мертві дзеркала
+   * під час watch/resolve (інші сайти часто взагалі не роблять такий probe на сервері).
+   * Підкрутити: WATCH_PROBE_MASTER_MS, WATCH_PROBE_VARIANT_MS, WATCH_PROBE_SKIP_VARIANT.
+   */
   return {
-    masterMs: clampMs(masterRaw, 4500),
-    variantMs: clampMs(variantRaw, 3500),
+    masterMs: clampMs(masterRaw, 3200),
+    variantMs: clampMs(variantRaw, 2400),
     skipVariant: skip,
   };
 }

@@ -29,7 +29,6 @@ type WatchPlayerContentProps = {
   activeServerId: string | null;
   setActiveServerId: (id: string | null) => void;
   showErrorBlock: boolean;
-  streamNotice: string | null;
   /** Дані для стріму ще підвантажуються — не показувати помилку плеєра. */
   playerShellPending: boolean;
 };
@@ -54,24 +53,15 @@ export const WatchPlayerContent = ({
   setActiveServerId,
   showErrorBlock,
   episodeNum,
-  streamNotice,
   playerShellPending,
 }: WatchPlayerContentProps) => {
   const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
-  const noticeResetKey = `${animeId}:${streamNotice ?? ''}:${episodeId ?? ''}:${activeServerId ?? ''}`;
 
   const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
   const [prevStreamKey, setPrevStreamKey] = useState(streamKey);
   if (streamKey !== prevStreamKey) {
     setPrevStreamKey(streamKey);
     setBuiltinRuntimeError(false);
-  }
-
-  const [noticeDismissed, setNoticeDismissed] = useState(false);
-  const [prevNoticeResetKey, setPrevNoticeResetKey] = useState(noticeResetKey);
-  if (noticeResetKey !== prevNoticeResetKey) {
-    setPrevNoticeResetKey(noticeResetKey);
-    setNoticeDismissed(false);
   }
 
   const handleBuiltinError = useCallback(() => {
@@ -90,33 +80,11 @@ export const WatchPlayerContent = ({
     (playerShellPending || buffering);
   const isErrorState = isBuiltinFailed || hasBuiltinError;
 
-  /** Лише коли плеєр реально готовий — не показувати amber-блок під час loader / shell. */
-  const showStreamNotice =
-    Boolean(streamNotice) &&
-    !noticeDismissed &&
-    isBuiltinReady &&
-    !hasBuiltinError;
-
   return (
     <div
       ref={playerColumnRef}
       className="watch-player flex w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1199px]:order-1 min-[1200px]:h-[675px] md:max-[1199px]:col-span-2"
     >
-      {showStreamNotice && streamNotice ? (
-        <div
-          role="status"
-          className="mb-2 flex items-start justify-between gap-3 rounded-lg border border-amber-500/35 bg-amber-950/40 px-3 py-2 text-sm text-amber-100/95"
-        >
-          <span className="min-w-0 leading-snug">{streamNotice}</span>
-          <button
-            type="button"
-            onClick={() => setNoticeDismissed(true)}
-            className="shrink-0 rounded px-2 py-0.5 text-xs text-amber-200/90 underline-offset-2 hover:underline"
-          >
-            OK
-          </button>
-        </div>
-      ) : null}
       <div className="player relative h-full w-full shrink-0 overflow-hidden rounded-xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.45)] min-[1401px]:h-full min-[1200px]:max-[1400px]:h-[40vw] max-[1199px]:h-[48vw] md:max-[1199px]:max-h-[520px] max-md:h-[58vw] max-[600px]:h-[65vw]">
         {showLoader && (
           <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center bg-black">
