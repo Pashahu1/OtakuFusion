@@ -2,6 +2,7 @@ import { animekaiApi } from '@/lib/animekai-api';
 import {
   tryResolveAnimeKaiByAnilistId,
   tryResolveAnimeKaiByMalId,
+  tryResolveAnimeKaiBySlug,
 } from '@/services/animekaiResolve';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { AnimeKaiSourceResponse } from '@/shared/types/AnimeKaiSourceTypes';
@@ -62,6 +63,12 @@ function parseResolvedCandidate(input: unknown): AnimeKaiResolvedMapping | null 
   );
 }
 
+function looksLikeAnimeKaiCatalogSlug(raw: string): boolean {
+  const s = raw.trim().toLowerCase();
+  if (s.length < 4 || s.length > 160) return false;
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(s);
+}
+
 async function postInternal<TReq extends object>(
   path: string,
   body: TReq,
@@ -106,7 +113,19 @@ export const animekaiClient = {
     if (localAnimeId?.trim()) q.set('local_anime_id', localAnimeId.trim());
     if (keyword?.trim()) q.set('keyword', keyword.trim());
     const raw = await animekaiApi.get<unknown>(`/api/search?${q.toString()}`, undefined, signal);
-    return parseResolvedCandidate(raw);
+    const parsed = parseResolvedCandidate(raw);
+    if (parsed?.ani_id) return parsed;
+    if (keyword?.trim() && looksLikeAnimeKaiCatalogSlug(keyword)) {
+      const bySlug = await tryResolveAnimeKaiBySlug(keyword.trim(), signal);
+      if (bySlug) {
+        return {
+          ani_id: bySlug.ani_id,
+          slug: bySlug.slug,
+          status: 'verified',
+        };
+      }
+    }
+    return null;
   },
 
   async resolveByMal(
@@ -128,7 +147,19 @@ export const animekaiClient = {
     if (localAnimeId?.trim()) q.set('local_anime_id', localAnimeId.trim());
     if (keyword?.trim()) q.set('keyword', keyword.trim());
     const raw = await animekaiApi.get<unknown>(`/api/search?${q.toString()}`, undefined, signal);
-    return parseResolvedCandidate(raw);
+    const parsed = parseResolvedCandidate(raw);
+    if (parsed?.ani_id) return parsed;
+    if (keyword?.trim() && looksLikeAnimeKaiCatalogSlug(keyword)) {
+      const bySlug = await tryResolveAnimeKaiBySlug(keyword.trim(), signal);
+      if (bySlug) {
+        return {
+          ani_id: bySlug.ani_id,
+          slug: bySlug.slug,
+          status: 'verified',
+        };
+      }
+    }
+    return null;
   },
 
   async getEpisodes(aniId: string, signal?: AbortSignal): Promise<unknown> {

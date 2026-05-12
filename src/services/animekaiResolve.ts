@@ -129,6 +129,34 @@ export async function tryResolveAnimeKaiByMalId(
   }
 }
 
+/**
+ * Прямий GET `/api/anime/:slug` — коли `/api/anime/anilist|mal/...` дає 404,
+ * але картка доступна за slug з каталогу (Walter API та ін.).
+ */
+export async function tryResolveAnimeKaiBySlug(
+  slug: string,
+  signal?: AbortSignal
+): Promise<{ ani_id: string; slug: string } | null> {
+  const s = slug.trim();
+  if (s.length < 2) return null;
+  try {
+    const detail = await animekaiApi.get<AnimeKaiAnimeResponse>(
+      `/api/anime/${encodeURIComponent(s)}`,
+      undefined,
+      signal
+    );
+    if (detail.success === false) return null;
+    if (typeof detail.error === 'string' && detail.error.trim()) return null;
+    const ani_id = detail.ani_id?.trim();
+    if (!ani_id) return null;
+    const outSlug = detail.slug?.trim();
+    return { ani_id, slug: outSlug && outSlug.length > 0 ? outSlug : s };
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null;
+    return null;
+  }
+}
+
 /** Підказки з AniList, щоб відрізнити напр. різні частини JoJo в одному пошуку. */
 export interface AnimeKaiResolveHints {
   format?: string | null;
@@ -635,6 +663,50 @@ function detailMatchesAnilistExpectation(
   return false;
 }
 
+/**
+ * Другий прохід після суворого скору пошуку: бекенд інколи не віддає anilist_id у `/api/anime/:slug`,
+ * тоді достатньо узгодженої кількості епізодів + слабшого збігу назви.
+ */
+function detailMatchesAnilistExpectationLoose(
+  detail: AnimeKaiAnimeResponse,
+  mergedHit: AnimeKaiSearchHit,
+  terms: string[],
+  hints?: AnimeKaiResolveHints
+): boolean {
+  if (
+    hints?.anilistId != null &&
+    detail.anilist_id != null &&
+    Number.isFinite(detail.anilist_id) &&
+    detail.anilist_id > 0 &&
+    detail.anilist_id !== hints.anilistId
+  ) {
+    return false;
+  }
+  if (
+    hints?.malId != null &&
+    detail.mal_id != null &&
+    Number.isFinite(detail.mal_id) &&
+    detail.mal_id > 0 &&
+    detail.mal_id !== hints.malId
+  ) {
+    return false;
+  }
+  const t = scoreSearchHit(mergedHit, terms);
+  const h = hintScore(mergedHit, hints);
+  const de = episodesFromAnimeDetail(detail);
+  if (
+    hints?.episodeCount != null &&
+    de != null &&
+    Math.abs(de - hints.episodeCount) <= 2 &&
+    (t >= 1 || h >= 8)
+  ) {
+    return true;
+  }
+  if (t >= 2 && h >= 4) return true;
+  if (t >= 1 && h >= 10) return true;
+  return false;
+}
+
 /** Кандидати з одного search, від кращого скору до гіршого (обмежено detail-запитами). */
 function orderSearchHitsByScore(
   results: AnimeKaiSearchHit[],
@@ -695,32 +767,44 @@ export async function resolveAnimeKaiAniId(
     }
 
     const results = Array.isArray(data.results) ? data.results : [];
-    if (pickBestSearchHit(results, terms, hints) == null) continue;
-
     const ordered = orderSearchHitsByScore(results, terms, hints);
-    let triedDetail = 0;
+    if (!ordered.length) continue;
 
+    const detailCache = new Map<string, AnimeKaiAnimeResponse | null>();
+
+    async function fetchAnimeDetail(
+      slug: string
+    ): Promise<AnimeKaiAnimeResponse | null> {
+      if (detailCache.has(slug)) {
+        const c = detailCache.get(slug);
+        return c === undefined ? null : c;
+      }
+      try {
+        const d = await animekaiApi.get<AnimeKaiAnimeResponse>(
+          `/api/anime/${encodeURIComponent(slug)}`,
+          undefined,
+          signal
+        );
+        detailCache.set(slug, d);
+        return d;
+      } catch {
+        detailCache.set(slug, null);
+        return null;
+      }
+    }
+
+    let triedDetail = 0;
     for (const hit of ordered) {
       if (triedDetail >= MAX_ANIME_DETAIL_TRIES_PER_KEYWORD) break;
       const slug = hit.slug?.trim();
       if (!slug) continue;
-
       const t0 = scoreSearchHit(hit, terms);
       const h0 = hintScore(hit, hints);
       if (!isConfidentMatch(t0, h0, true)) continue;
 
       triedDetail++;
-      let detail: AnimeKaiAnimeResponse;
-      try {
-        detail = await animekaiApi.get<AnimeKaiAnimeResponse>(
-          `/api/anime/${encodeURIComponent(slug)}`,
-          undefined,
-          signal
-        );
-      } catch {
-        continue;
-      }
-
+      const detail = await fetchAnimeDetail(slug);
+      if (!detail) continue;
       if (typeof detail.error === 'string' && detail.error.trim()) {
         continue;
       }
@@ -733,6 +817,59 @@ export async function resolveAnimeKaiAniId(
       }
 
       return { ani_id, slug };
+    }
+
+    const MAX_LOOSE_PASS = 12;
+    let looseAttempts = 0;
+    for (const hit of ordered) {
+      const slug = hit.slug?.trim();
+      if (!slug) continue;
+
+      const t0 = scoreSearchHit(hit, terms);
+      const h0 = hintScore(hit, hints);
+      const confident = isConfidentMatch(t0, h0, true);
+      const hadCached = detailCache.has(slug);
+
+      let detail: AnimeKaiAnimeResponse | null = null;
+      if (hadCached) {
+        detail = detailCache.get(slug) ?? null;
+      } else {
+        if (looseAttempts >= MAX_LOOSE_PASS) continue;
+        looseAttempts++;
+        detail = await fetchAnimeDetail(slug);
+      }
+
+      if (!detail) continue;
+      if (typeof detail.error === 'string' && detail.error.trim()) {
+        continue;
+      }
+
+      const ani_id = detail.ani_id?.trim();
+      if (!ani_id) continue;
+
+      const mergedHit: AnimeKaiSearchHit = {
+        ...hit,
+        title: detail.title?.trim() || hit.title,
+        japanese_title: detail.japanese_title?.trim() || hit.japanese_title,
+        type: detail.type?.trim() || hit.type,
+      };
+
+      const strictOk = detailMatchesAnilistExpectation(
+        detail,
+        hit,
+        terms,
+        hints
+      );
+      const looseOk = detailMatchesAnilistExpectationLoose(
+        detail,
+        mergedHit,
+        terms,
+        hints
+      );
+
+      if (strictOk || looseOk) {
+        return { ani_id, slug };
+      }
     }
   }
 
