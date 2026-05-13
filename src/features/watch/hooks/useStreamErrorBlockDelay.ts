@@ -13,7 +13,7 @@ export function useStreamErrorBlockDelay(
     if (isErrorState) {
       errorBlockTimerRef.current = setTimeout(
         () => setShowErrorBlock(true),
-        400
+        900
       );
     } else {
       if (errorBlockTimerRef.current) {

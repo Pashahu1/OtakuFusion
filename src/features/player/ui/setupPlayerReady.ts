@@ -105,8 +105,40 @@ export function setupPlayerReady(
     if (userPausedRef.current) return;
     if (document.visibilityState === 'visible') art.play().catch(() => {});
   };
-  /** Один виклик play після готовності буфера — без дубля з синхронним play() (підлаги на старті). */
-  art.once('video:canplay', tryPlay);
+
+  const MIN_BUFFER_AHEAD_SEC = 0.7;
+  const MAX_BUFFER_WAIT_MS = 2800;
+  const bufferWaitStarted =
+    typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+  const tryPlayWhenBuffered = () => {
+    if (userPausedRef.current) return;
+    const v = art.video;
+    if (!v) {
+      tryPlay();
+      return;
+    }
+    let ahead = 0;
+    try {
+      const buf = v.buffered;
+      if (buf.length > 0) {
+        ahead = buf.end(buf.length - 1) - v.currentTime;
+      }
+    } catch {
+      /* noop */
+    }
+    const elapsed =
+      (typeof performance !== 'undefined' ? performance.now() : Date.now()) -
+      bufferWaitStarted;
+    if (ahead >= MIN_BUFFER_AHEAD_SEC || elapsed >= MAX_BUFFER_WAIT_MS) {
+      tryPlay();
+      return;
+    }
+    requestAnimationFrame(tryPlayWhenBuffered);
+  };
+
+  /** Після canplay чекаємо трохи буфера перед play — менше мікрозависань на старті HLS. */
+  art.once('video:canplay', tryPlayWhenBuffered);
 
   art.on('pause', () => {
     userPausedRef.current = true;

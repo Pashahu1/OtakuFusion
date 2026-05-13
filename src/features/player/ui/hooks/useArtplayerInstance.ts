@@ -45,6 +45,7 @@ export interface UseArtplayerInstanceParams {
   setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
   anilibertyAlias: PlayerProps['anilibertyAlias'];
   onPlaybackError: PlayerProps['onPlaybackError'];
+  onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
 }
 
 /**
@@ -72,6 +73,7 @@ export function useArtplayerInstance({
   setWatchStreamProvider,
   anilibertyAlias,
   onPlaybackError,
+  onPlaybackSurfaceReady,
 }: UseArtplayerInstanceParams) {
   const artRef = useRef<HTMLDivElement>(null);
   const artInstanceRef = useRef<Artplayer | null>(null);
@@ -83,6 +85,7 @@ export function useArtplayerInstance({
   const playNextPropRef = useRef(playNext);
   const onEpisodeWatchedRef = useRef(onEpisodeWatched);
   const onPlaybackErrorRef = useRef(onPlaybackError);
+  const onPlaybackSurfaceReadyRef = useRef(onPlaybackSurfaceReady);
   const animeInfoRef = useRef(animeInfo);
   const hasTriggeredNextRef = useRef(false);
   const hasMarkedWatchedForOutroRef = useRef(false);
@@ -112,6 +115,7 @@ export function useArtplayerInstance({
     playNextPropRef.current = playNext;
     onEpisodeWatchedRef.current = onEpisodeWatched;
     onPlaybackErrorRef.current = onPlaybackError;
+    onPlaybackSurfaceReadyRef.current = onPlaybackSurfaceReady;
     animeInfoRef.current = animeInfo;
   });
 
@@ -146,6 +150,8 @@ export function useArtplayerInstance({
 
     const headers = getStreamHeaders(streamInfo, streamUrl);
     const fullURL = getStreamFullUrl(streamUrl, headers);
+    let surfaceReadyTimer: number | null = null;
+
     const art = new Artplayer({
       url: fullURL,
       container,
@@ -402,17 +408,37 @@ export function useArtplayerInstance({
               storedQualitySnapshot === null ||
               storedQualitySnapshot === 'best-display' ||
               storedQualitySnapshot === 'auto'
-                ? 2800
+                ? 2200
                 : 0,
           }
         );
         art.on('destroy', onDestroyHlsUi);
       }
+
+      let surfaceReported = false;
+      const reportSurfaceOnce = () => {
+        if (surfaceReported) return;
+        surfaceReported = true;
+        if (surfaceReadyTimer != null) {
+          window.clearTimeout(surfaceReadyTimer);
+          surfaceReadyTimer = null;
+        }
+        queueMicrotask(() => {
+          onPlaybackSurfaceReadyRef.current?.();
+        });
+      };
+      art.once('video:playing', reportSurfaceOnce);
+      art.once('video:canplaythrough', reportSurfaceOnce);
+      surfaceReadyTimer = window.setTimeout(reportSurfaceOnce, 7200);
     });
 
     artInstanceRef.current = art;
 
     return () => {
+      if (surfaceReadyTimer != null) {
+        window.clearTimeout(surfaceReadyTimer);
+        surfaceReadyTimer = null;
+      }
       const instanceToDestroy = artInstanceRef.current === art ? art : null;
       if (instanceToDestroy) {
         artInstanceRef.current = null;

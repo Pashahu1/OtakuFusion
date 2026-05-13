@@ -72,14 +72,20 @@ export const WatchPlayerContent = ({
   const anilibertyAvailable = Boolean(anilibertyAlias?.trim());
 
   const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
+  const [playerSurfaceReady, setPlayerSurfaceReady] = useState(false);
   const [prevStreamKey, setPrevStreamKey] = useState(streamKey);
   if (streamKey !== prevStreamKey) {
     setPrevStreamKey(streamKey);
     setBuiltinRuntimeError(false);
+    setPlayerSurfaceReady(false);
   }
 
   const handleBuiltinError = useCallback(() => {
     setBuiltinRuntimeError(true);
+  }, []);
+
+  const handlePlaybackSurfaceReady = useCallback(() => {
+    setPlayerSurfaceReady(true);
   }, []);
 
   const hasBuiltinError = builtinRuntimeError;
@@ -91,7 +97,9 @@ export const WatchPlayerContent = ({
   const showBuiltinPlayer = !hasBuiltinError && isBuiltinReady;
   const showLoader =
     !hasBuiltinError &&
-    (playerShellPending || buffering);
+    (playerShellPending ||
+      buffering ||
+      (Boolean(streamUrl) && !playerSurfaceReady));
   const isErrorState = isBuiltinFailed || hasBuiltinError;
 
   return (
@@ -128,6 +136,7 @@ export const WatchPlayerContent = ({
             setWatchStreamProvider={setWatchStreamProvider}
             anilibertyAlias={anilibertyAlias}
             onPlaybackError={handleBuiltinError}
+            onPlaybackSurfaceReady={handlePlaybackSurfaceReady}
           />
         )}
 

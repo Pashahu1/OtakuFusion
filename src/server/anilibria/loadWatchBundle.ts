@@ -146,6 +146,7 @@ function strictReleaseAcceptsAnilist(
   if (shouldDropAnilibriaHit(data, hit)) return false;
   if (shouldRejectSnkBahamutCollateral(data, hit)) return false;
   if (shouldRejectNarutoOriginalWrongEdition(data, hit)) return false;
+  if (shouldRejectMushokuNoEiyuuCollateral(data, hit)) return false;
 
   const s = scoreAnilibriaSearchHit(hit, data);
   const minPost = isAnilistOneShotTitle(data) ? MIN_ANILIBRIA_POST_RELEASE_ONESHOT : MIN_ANILIBRIA_POST_RELEASE_SCORE;
@@ -299,6 +300,20 @@ function shouldRejectNarutoOriginalWrongEdition(data: AnimeData, hit: AnilibriaS
   );
 }
 
+/**
+ * Пошук AniLibria за Mushoku Tensei часто повертає інший реліз «Mushoku no Eiyuu»;
+ * у каталозі може не бути цільового тайтла — тоді краще not_found, ніж підміна епізодів.
+ */
+function shouldRejectMushokuNoEiyuuCollateral(data: AnimeData, hit: AnilibriaSearchHit): boolean {
+  const alias = (hit.alias ?? '').toLowerCase();
+  if (!alias.includes('mushoku-no-eiyuu')) return false;
+  const romaji = normalizeComparableTitle(data.romaji_title || '');
+  if (romaji.includes('mushoku') && romaji.includes('tensei')) return true;
+  const eng = normalizeComparableTitle(data.title || '');
+  if (eng.includes('jobless') || eng.includes('reincarnation')) return true;
+  return false;
+}
+
 function formatAndEpisodeScore(data: AnimeData, hit: AnilibriaSearchHit): number {
   let score = 0;
   const aniFmt = normalizeAnilibriaFormat(data.showType);
@@ -371,6 +386,14 @@ function buildAnilistSearchQueries(data: AnimeData): string[] {
   };
 
   push(data.romaji_title);
+  const romajiHead = data.romaji_title?.split(':')[0]?.trim();
+  if (
+    romajiHead &&
+    romajiHead.length >= 6 &&
+    romajiHead.toLowerCase() !== (data.romaji_title ?? '').trim().toLowerCase()
+  ) {
+    push(romajiHead);
+  }
   /** «Attack on Titan» дає хибні збіги (напр. «…2nd attack» у російській назві). */
   const titleNorm = normalizeComparableTitle(data.title);
   if (!(titleNorm.includes('attack') && titleNorm.includes('titan'))) {
@@ -452,7 +475,8 @@ async function collectAnilibriaSearchHitsFromAnime(
     (h) =>
       !shouldDropAnilibriaHit(data, h) &&
       !shouldRejectSnkBahamutCollateral(data, h) &&
-      !shouldRejectNarutoOriginalWrongEdition(data, h)
+      !shouldRejectNarutoOriginalWrongEdition(data, h) &&
+      !shouldRejectMushokuNoEiyuuCollateral(data, h)
   );
   if (!hits.length) {
     return { ok: false, error: 'anilibria_not_found' };
@@ -679,7 +703,7 @@ const MATCH_CACHE_SECONDS = 5 * 60;
 
 const cachedMatch = unstable_cache(
   async (anilistId: string) => loadAnilibriaMatchAliasUncached(anilistId),
-  ['anilibria-match-alias', 'v8-movies-oneshot'],
+  ['anilibria-match-alias', 'v9-mushoku-collateral'],
   { revalidate: MATCH_CACHE_SECONDS }
 );
 
@@ -760,7 +784,7 @@ const BUNDLE_CACHE_SECONDS = 5 * 60;
 
 const cachedBundle = unstable_cache(
   async (anilistId: string) => loadAnilibriaWatchBundleUncached(anilistId),
-  ['anilibria-watch-bundle', 'v8-movies-oneshot'],
+  ['anilibria-watch-bundle', 'v9-mushoku-collateral'],
   { revalidate: BUNDLE_CACHE_SECONDS }
 );
 

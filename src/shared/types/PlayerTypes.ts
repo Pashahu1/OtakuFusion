@@ -32,5 +32,7 @@ export interface PlayerProps {
   /** Alias AniLiberty для пункту Language; епізоди з AnimeKai. */
   anilibertyAlias: string | null;
   onPlaybackError?: () => void;
+  /** Перший стабільний кадр / відтворення — щоб оболонка могла прибрати лоадер без бліку. */
+  onPlaybackSurfaceReady?: () => void;
 }
 
