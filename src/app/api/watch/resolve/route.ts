@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { getAnimeKaiEpisodesCached } from '@/server/kai/episodesCached';
 import { getAnimeKaiServersCached } from '@/server/kai/serversCached';
 import { getStreamInfo } from '@/services/getStreamInfo';
@@ -28,6 +29,44 @@ function canonicalResolveKey(reqUrl: URL): string {
   );
   const sp = new URLSearchParams(entries);
   return `${reqUrl.pathname}?${sp.toString()}`;
+}
+
+interface WatchResolveOutcome {
+  status: number;
+  body: Record<string, unknown>;
+}
+
+function outcomeToResponse(out: WatchResolveOutcome): Response {
+  const headers: Record<string, string> =
+    out.status === 200
+      ? { 'Cache-Control': 'private, max-age=12, stale-while-revalidate=24' }
+      : { 'Cache-Control': 'no-store' };
+  return Response.json(out.body, { status: out.status, headers });
+}
+
+/** Кеш даних успішного резолву між запитами (Next `unstable_cache`). У dev вимкнено, якщо не `WATCH_RESOLVE_CACHE=1`. */
+function isWatchResolveDataCacheEnabled(): boolean {
+  if (process.env.WATCH_RESOLVE_CACHE === '0') return false;
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.WATCH_RESOLVE_CACHE !== '1'
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function watchResolveCacheRevalidateSec(): number {
+  const n = Number(process.env.WATCH_RESOLVE_CACHE_SECONDS);
+  if (Number.isFinite(n) && n >= 5 && n <= 300) return Math.floor(n);
+  return 30;
+}
+
+class WatchResolveNonOkError extends Error {
+  constructor(public readonly outcome: WatchResolveOutcome) {
+    super('watch_resolve_non_ok');
+    this.name = 'WatchResolveNonOkError';
+  }
 }
 
 function getNormalizedLang(sp: URLSearchParams): WatchLang {
@@ -173,23 +212,23 @@ function extractKeyword(sp: URLSearchParams): string | undefined {
   return undefined;
 }
 
-async function handleWatchResolve(req: Request): Promise<Response> {
+async function computeWatchResolveOutcome(req: Request): Promise<WatchResolveOutcome> {
   const startedAt = Date.now();
   const url = new URL(req.url);
   const lang = getNormalizedLang(url.searchParams);
   const episode = parseEpisodeNumber(url.searchParams);
 
   if (episode == null) {
-    return Response.json(
-      {
+    return {
+      status: 400,
+      body: {
         success: false,
         error: 'episode is required and must be a positive integer',
       },
-      { status: 400 }
-    );
+    };
   }
 
-  const probeCfg = readWatchProbeConfig();
+  const probeCfg = readWatchProbeConfig(lang);
   const origin = url.origin;
 
   try {
@@ -218,14 +257,14 @@ async function handleWatchResolve(req: Request): Promise<Response> {
 
       if (!resolved) {
         if (!terms.length) {
-          return Response.json(
-            {
+          return {
+            status: 400,
+            body: {
               success: false,
               error:
                 'Cannot resolve anime: provide ani_id, anilist_id, mal_id, or keyword/local_anime_id.',
             },
-            { status: 400 }
-          );
+          };
         }
         resolved = await resolveAnimeKaiAniId(terms);
         resolvedBy = 'fuzzy_last_resort';
@@ -235,38 +274,38 @@ async function handleWatchResolve(req: Request): Promise<Response> {
     const episodesResult = await getAnimeKaiEpisodesCached(resolved.ani_id);
     const targetEpisode = pickEpisodeByNumber(episodesResult.episodes, episode);
     if (!targetEpisode?.ep_token?.trim()) {
-      return Response.json(
-        {
+      return {
+        status: 404,
+        body: {
           success: false,
           error: 'episode_not_found',
           reason: `Episode ${episode} is missing or has no ep_token`,
         },
-        { status: 404 }
-      );
+      };
     }
 
     const servers = await getAnimeKaiServersCached(targetEpisode.ep_token);
     if (!servers.length) {
-      return Response.json(
-        {
+      return {
+        status: 404,
+        body: {
           success: false,
           error: 'no_servers',
           reason: 'No servers found for this episode token',
         },
-        { status: 404 }
-      );
+      };
     }
 
     const candidateGroups = buildServerCandidateGroups(servers, lang);
     if (candidateGroups.every((group) => group.length === 0)) {
-      return Response.json(
-        {
+      return {
+        status: 404,
+        body: {
           success: false,
           error: 'no_working_source',
           reason: 'no_candidate_servers',
         },
-        { status: 404 }
-      );
+      };
     }
 
     const preferredHint = url.searchParams.get('preferred_server_hint')?.trim();
@@ -303,12 +342,12 @@ async function handleWatchResolve(req: Request): Promise<Response> {
       (lang === 'dub' && !isDubServer(candidate)) ||
       (lang === 'sub' && isDubServer(candidate));
 
-    const body = {
-      success: true as const,
+    const body: Record<string, unknown> = {
+      success: true,
       resolved_anime: {
         ani_id: resolved.ani_id,
         slug: resolved.slug,
-        status: 'verified' as const,
+        status: 'verified',
         resolved_by: resolvedBy,
       },
       episode: {
@@ -338,20 +377,56 @@ async function handleWatchResolve(req: Request): Promise<Response> {
       },
     };
 
-    return Response.json(body, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'private, max-age=12, stale-while-revalidate=24',
-      },
-    });
+    return { status: 200, body };
   } catch (error) {
-    return Response.json(
-      {
+    return {
+      status: 502,
+      body: {
         success: false,
         error: error instanceof Error ? error.message : 'watch_resolve_failed',
       },
-      { status: 502 }
-    );
+    };
+  }
+}
+
+async function handleWatchResolve(req: Request): Promise<Response> {
+  if (!isWatchResolveDataCacheEnabled()) {
+    return outcomeToResponse(await computeWatchResolveOutcome(req));
+  }
+
+  const url = new URL(req.url);
+  const cacheKey = canonicalResolveKey(url);
+
+  const fetchCached = unstable_cache(
+    async () => {
+      const o = await computeWatchResolveOutcome(req);
+      if (o.status !== 200) throw new WatchResolveNonOkError(o);
+      return o.body;
+    },
+    ['watch-resolve-data-v1', cacheKey],
+    { revalidate: watchResolveCacheRevalidateSec() }
+  );
+
+  try {
+    const body = await fetchCached();
+    const prevDebug = body.debug;
+    const nextBody: Record<string, unknown> =
+      typeof prevDebug === 'object' && prevDebug !== null && !Array.isArray(prevDebug)
+        ? {
+            ...body,
+            debug: {
+              ...(prevDebug as Record<string, unknown>),
+              latency_ms: 0,
+              cache_hit: true,
+            },
+          }
+        : { ...body, debug: { latency_ms: 0, cache_hit: true } };
+    return outcomeToResponse({ status: 200, body: nextBody });
+  } catch (err) {
+    if (err instanceof WatchResolveNonOkError) {
+      return outcomeToResponse(err.outcome);
+    }
+    throw err;
   }
 }
 

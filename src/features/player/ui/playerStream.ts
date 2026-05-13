@@ -79,12 +79,47 @@ export function getStreamFullUrl(
   headers: Record<string, string>
 ): string {
   if (!M3U8_PROXY_URL) return streamUrl;
+
+  const suffixes = readHlsDirectHostSuffixes();
+  if (suffixes.length > 0) {
+    try {
+      const host = new URL(streamUrl).hostname.toLowerCase();
+      if (hostMatchesHlsDirectSuffix(host, suffixes)) {
+        return streamUrl;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
     M3U8_PROXY_URL +
     encodeURIComponent(streamUrl) +
     '&headers=' +
     encodeURIComponent(JSON.stringify(headers))
   );
+}
+
+function readHlsDirectHostSuffixes(): string[] {
+  const raw =
+    typeof process !== 'undefined'
+      ? process.env.NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES?.trim()
+      : '';
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function hostMatchesHlsDirectSuffix(hostname: string, suffixes: string[]): boolean {
+  for (const suf of suffixes) {
+    if (!suf) continue;
+    if (hostname === suf) return true;
+    if (suf.startsWith('.') && hostname.endsWith(suf)) return true;
+    if (hostname.endsWith(`.${suf}`)) return true;
+  }
+  return false;
 }
 
 export function playM3u8(

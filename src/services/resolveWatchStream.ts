@@ -69,7 +69,8 @@ export async function resolveWatchStream(
 
   const res = await fetch(`/api/watch/resolve?${query.toString()}`, {
     method: 'GET',
-    cache: 'no-store',
+    /** HTTP `Cache-Control` з route + серверний unstable_cache; `no-store` прибирає весь виграш у браузері. */
+    cache: 'default',
     signal,
     headers: { accept: 'application/json' },
   });

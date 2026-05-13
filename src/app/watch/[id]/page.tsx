@@ -10,6 +10,7 @@ import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkele
 import { WatchInfoPanel } from '@/components/WatchInfoPanel/WatchInfoPanel';
 import { WatchPlayerContent } from '@/components/WatchPlayerContent/WatchPlayerContent';
 import { onEpisodeWatched as markWatchedInStorage } from '@/helper/WatchedEpisodes';
+import { StreamOriginPreconnect } from '@/features/watch/ui/StreamOriginPreconnect';
 
 export default function Watch() {
   const searchParams = useSearchParams();
@@ -94,6 +95,7 @@ export default function Watch() {
 
   return (
     <div className="relative flex h-fit w-full flex-col items-center justify-center">
+      <StreamOriginPreconnect streamUrl={streamUrl} />
       <div className="relative w-full px-4 sm:px-5 md:px-6 min-[1200px]:px-8 xl:px-10">
         <div className="watch-layout relative z-10 mt-16 grid w-full gap-4 pb-[50px] max-md:mt-[50px] min-[1200px]:mt-32 min-[1200px]:grid-cols-[minmax(280px,28%)_1fr_minmax(240px,22%)] max-[1199px]:grid-cols-1 md:max-[1199px]:grid-cols-2">
           <div
