@@ -12,65 +12,74 @@ export default function PrivacyPolicyPage() {
         <div className="bg-[var(--color-brand-gray-light)] border border-zinc-800 rounded-2xl shadow-xl p-6 md:p-10 flex flex-col gap-10">
           <p className="text-[var(--color-brand-text-secondary)] text-lg">
             <span className="font-semibold text-[var(--color-brand-orange)]">
-              Effective Date:
-            </span>
-            August 2025
+              Effective date:
+            </span>{' '}
+            May 2026
           </p>
           <p className="text-[var(--color-brand-text-primary)] text-lg leading-relaxed">
-            At
-            <span className="font-semibold text-[var(--color-brand-orange)]">
-              OtakuFusion
-            </span>
-            , we respect your privacy. This page explains how we collect, use,
-            and protect your information while you enjoy anime on our platform.
+            <span className="font-semibold text-[var(--color-brand-orange)]">OtakuFusion</span> is an{' '}
+            <strong>educational and portfolio project</strong>. It is built to demonstrate software
+            engineering skills (UI, APIs, integrations). It is{' '}
+            <strong>not a commercial product</strong>, not sold as a streaming service, and may be
+            incomplete, experimental, or taken offline at any time. This policy describes privacy in
+            that limited context.
           </p>
 
           <div className="flex flex-col gap-10">
             <Section
-              title="1. Information We Collect"
+              title="1. What this project is (and is not)"
               items={[
-                'Anonymous analytics data (pages visited, device type, browser type).',
-                'Cookies or similar technologies for basic site functionality.',
+                'Personal learning, coursework, and/or portfolio use only unless clearly stated otherwise.',
+                'No guarantee of availability, accuracy of metadata, or fitness for any particular purpose.',
+                'Streaming or third-party integrations, if enabled, are technical demonstrations; their providers have their own terms and privacy policies.',
               ]}
             />
             <Section
-              title="2. How We Use Your Information"
+              title="2. Information we may collect"
               items={[
-                'Improving site performance and user experience.',
-                'Monitoring and preventing misuse or technical issues.',
-                'Delivering relevant content and updates.',
+                'Basic account or authentication data you choose to provide (e.g. email), only if such features exist in the deployed build.',
+                'Anonymous or aggregated analytics (e.g. pages viewed, device or browser type) if analytics are enabled.',
+                'Cookies or similar technologies needed for sessions, preferences, or analytics.',
               ]}
             />
             <Section
-              title="3. Third-Party Services"
-              text="We may use minimal ads or analytics services. Any third-party service we use must comply with privacy standards."
+              title="3. How we use information"
+              items={[
+                'Operating and improving the demo application.',
+                'Debugging, security, and preventing obvious misuse of a non-production deployment.',
+                'No sale of personal data as part of this educational project.',
+              ]}
             />
             <Section
-              title="4. Cookies"
-              text="OtakuFusion uses cookies only for essential functionality and analytics. You may disable cookies, but some features may not work correctly."
+              title="4. Third-party services"
+              text="The app may call external APIs (for example metadata or media-related endpoints). Those services process data under their own policies. Use of this project does not override their rules."
             />
             <Section
-              title="5. Data Security"
-              text="We take reasonable measures to protect your data. However, no method of internet transmission is 100% secure."
+              title="5. Cookies"
+              text="Cookies may be used for essential functionality and, if configured, analytics. You can restrict cookies in your browser; some features may then not work."
             />
             <Section
-              title="6. Third-Party Links"
-              text="Our site may contain links to external websites. We are not responsible for their privacy practices."
+              title="6. Data security"
+              text="Reasonable care may be taken to protect data, but no method of transmission over the internet is fully secure. A portfolio or student deployment should not be treated like a regulated production platform."
             />
             <Section
-              title="7. Children’s Privacy"
-              text="OtakuFusion is not directed to children under 13. We do not knowingly collect personal information from children."
+              title="7. Third-party links"
+              text="The site may link to external sites. We are not responsible for their content or privacy practices."
             />
             <Section
-              title="8. Changes to This Policy"
-              text="We may update this Privacy Policy from time to time. The 'Effective Date' will always reflect the latest version."
+              title="8. Children’s privacy"
+              text="This project is not directed at children under 13, and we do not knowingly collect personal information from children as part of this educational build."
             />
             <Section
-              title="9. Contact Us"
+              title="9. Changes to this policy"
+              text="This policy may be updated as the project evolves. The effective date above reflects the latest version shown on this page."
+            />
+            <Section
+              title="10. Contact"
               text={
                 (
                   <>
-                    If you have any questions, feel free to contact us at:{' '}
+                    Questions about this policy or the project:{' '}
                     <span className="font-semibold text-[var(--color-brand-orange)]">
                       maks.chudin567@gmail.com
                     </span>
