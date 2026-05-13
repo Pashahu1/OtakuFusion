@@ -74,42 +74,33 @@ export function getStreamHeaders(
   return headers;
 }
 
-export function getStreamFullUrl(
-  streamUrl: string,
-  headers: Record<string, string>
-): string {
-  if (!M3U8_PROXY_URL) return streamUrl;
-
-  const suffixes = readHlsDirectHostSuffixes();
-  if (suffixes.length > 0) {
-    try {
-      const host = new URL(streamUrl).hostname.toLowerCase();
-      if (hostMatchesHlsDirectSuffix(host, suffixes)) {
-        return streamUrl;
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-
-  return (
-    M3U8_PROXY_URL +
-    encodeURIComponent(streamUrl) +
-    '&headers=' +
-    encodeURIComponent(JSON.stringify(headers))
-  );
-}
+/** Домени HLS, які безпечніше тягнути з клієнта напряму (не через /api/m3u8-proxy) — інакше кожен сегмент б’є по Vercel Fast Origin Transfer. */
+const HLS_DIRECT_HOST_SUFFIXES_BUILTIN = [
+  'libria.fun',
+  'anilibria.top',
+  'anilibria.tv',
+  'anilibria.su',
+] as const;
 
 function readHlsDirectHostSuffixes(): string[] {
   const raw =
     typeof process !== 'undefined'
       ? process.env.NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES?.trim()
       : '';
-  if (!raw) return [];
-  return raw
-    .split(',')
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
+  const fromEnv = raw
+    ? raw
+        .split(',')
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean)
+    : [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const s of [...HLS_DIRECT_HOST_SUFFIXES_BUILTIN, ...fromEnv]) {
+    if (seen.has(s)) continue;
+    seen.add(s);
+    out.push(s);
+  }
+  return out;
 }
 
 function hostMatchesHlsDirectSuffix(hostname: string, suffixes: string[]): boolean {
@@ -120,6 +111,38 @@ function hostMatchesHlsDirectSuffix(hostname: string, suffixes: string[]): boole
     if (hostname.endsWith(`.${suf}`)) return true;
   }
   return false;
+}
+
+/** Пряме завантаження з браузера (CORS дозволений) — головний плейлист, субтитри, прев’ю. */
+export function isHlsDirectHostUrl(streamUrl: string): boolean {
+  const raw = streamUrl.trim();
+  if (!raw || !/^https?:\/\//i.test(raw)) return false;
+  const suffixes = readHlsDirectHostSuffixes();
+  if (!suffixes.length) return false;
+  try {
+    const host = new URL(raw).hostname.toLowerCase();
+    return hostMatchesHlsDirectSuffix(host, suffixes);
+  } catch {
+    return false;
+  }
+}
+
+export function getStreamFullUrl(
+  streamUrl: string,
+  headers: Record<string, string>
+): string {
+  if (!M3U8_PROXY_URL) return streamUrl;
+
+  if (isHlsDirectHostUrl(streamUrl)) {
+    return streamUrl;
+  }
+
+  return (
+    M3U8_PROXY_URL +
+    encodeURIComponent(streamUrl) +
+    '&headers=' +
+    encodeURIComponent(JSON.stringify(headers))
+  );
 }
 
 export function playM3u8(
@@ -169,10 +192,10 @@ export function playM3u8(
       maxStarvationDelay: 12,
       maxLoadingDelay: 12,
       /**
-       * Стартовий оцінювач бітрейту (б/с): занадто низький → ABR «боїться» наперед і буфер росте повільно
-       * на початку, особливо через проксі. 5 Mbps — розумний компроміс для 1080p VoD.
+       * Стартовий оцінювач бітрейту (б/с). Занижений відносно 1080p, щоб до застосування cap у плеєрі
+       * рідше підхоплювався найвищий рівень одразу після парсу маніфесту.
        */
-      abrEwmaDefaultEstimate: 5_000_000,
+      abrEwmaDefaultEstimate: 2_000_000,
       /** Менше тримаємо позад playhead — трохи більше бюджету на фрагменти вперед на слабких пристроях. */
       backBufferLength: 45,
     });

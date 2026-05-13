@@ -3,6 +3,7 @@ import { SERVER_PRIORITY_ORDER, mirrorServerLabel } from '@/shared/data/servers'
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { captionIcon, serverIcon } from './PlayerIcons';
 import { ANIKAI_PAGE_REFERER, LOGO_HIDE_DELAY_MS, M3U8_PROXY_URL, PROXY_URL } from './playerConstants';
+import { isHlsDirectHostUrl } from './playerStream';
 import { artplayerPluginVttThumbnail } from './artPlayerPluginVttThumbnail';
 import { handlePlayerKeydown } from './playerKeydown';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
@@ -20,6 +21,8 @@ function toPlayableAssetUrl(url: string): string {
   if (!raw) return raw;
   if (raw.startsWith('blob:') || raw.startsWith('data:')) return raw;
   if (!/^https?:\/\//i.test(raw)) return raw;
+  /** Той самий список, що й для головного HLS — інакше субтитри/прев’ю б’ють по проксі й множать 403. */
+  if (isHlsDirectHostUrl(raw)) return raw;
   const proxyBase = (PROXY_URL || M3U8_PROXY_URL || '/api/m3u8-proxy?url=').trim();
   if (!proxyBase) return raw;
   const encoded = encodeURIComponent(raw);

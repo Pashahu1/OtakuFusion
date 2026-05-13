@@ -3,7 +3,7 @@ import Hls from 'hls.js';
 const HLS_QUALITY_KEY = 'otakufusion:player:hls-quality';
 const SUBTITLE_PREF_KEY = 'otakufusion:player:subtitle';
 
-/** Збережений вибір якості HLS (рядок у localStorage або порожньо = режим за замовчуванням). */
+/** Збережений вибір якості HLS: `auto` (ABR лише до 720p), `best-display`, конкретна висота, або порожньо — старт ~720p. */
 export type HlsQualityPreference =
   | 'auto'
   | 'best-display'
@@ -58,6 +58,25 @@ export function getBestLevelIndexForDisplay(
   return ranked[ranked.length - 1].index;
 }
 
+/** Найвища сходинка не вище 720p; якщо в маніфесті лише вищі — найнижча з доступних. */
+export function getPreferred720LevelIndex(
+  levels: Array<{ height?: number }>
+): number {
+  if (!levels.length) return -1;
+  const withHeight = levels
+    .map((level, index) => ({ index, height: Number(level.height ?? 0) }))
+    .filter((item) => Number.isFinite(item.height) && item.height > 0);
+  if (!withHeight.length) return levels.length - 1;
+
+  const atOrBelow720 = withHeight
+    .filter((item) => item.height <= 720)
+    .sort((a, b) => b.height - a.height);
+  if (atOrBelow720.length) return atOrBelow720[0].index;
+
+  const above720 = withHeight.sort((a, b) => a.height - b.height);
+  return above720[0].index;
+}
+
 /** Дефолтний рівень якості (найвищий не вище 1080p), якщо в localStorage ще немає вибору. */
 export function getPreferred1080LevelIndex(
   levels: Array<{ height?: number }>
@@ -104,15 +123,16 @@ export function writeHlsQualityPreference(pref: HlsQualityPreference): void {
   }
 }
 
-/** Індекс рівня або -1 для ABR (auto). */
+/** Індекс рівня; `auto` більше не повертає −1 — лише cap до 720p (див. `resolveLevelIndexForStoredQuality`). */
 export function resolveLevelIndexForStoredQuality(
   levels: Array<{ height?: number; bitrate?: number }>,
   pref: HlsQualityPreference | null
 ): number {
   if (!levels.length) return -1;
-  if (pref === 'auto') return -1;
-  /** Порожнє сховище або явний режим — найкраща сходинка під поточний екран. */
-  if (pref === null || pref === 'best-display') {
+  if (pref === 'auto' || pref === null) {
+    return getPreferred720LevelIndex(levels);
+  }
+  if (pref === 'best-display') {
     return getBestLevelIndexForDisplay(levels);
   }
 
@@ -182,21 +202,32 @@ export function attachHlsQualityPreferencePersistence(
     const idx = hls.currentLevel;
     const h = idx >= 0 ? Number(hls.levels[idx]?.height ?? 0) : 0;
 
-    if (stored === 'best-display' || stored === null) {
-      const expected = getBestLevelIndexForDisplay(
-        hls.levels as Array<{ height?: number; bitrate?: number }>
-      );
+    if (stored === 'best-display' || stored === null || stored === 'auto') {
+      const levelsArr = hls.levels as Array<{ height?: number; bitrate?: number }>;
+      const expected =
+        stored === 'best-display'
+          ? getBestLevelIndexForDisplay(levelsArr)
+          : getPreferred720LevelIndex(levelsArr);
       if (
         idx === expected &&
         Number.isFinite(h) &&
         h > 0 &&
         idx >= 0
       ) {
-        writeHlsQualityPreference('best-display');
+        if (stored === 'best-display') {
+          writeHlsQualityPreference('best-display');
+        } else if (stored === 'auto') {
+          writeHlsQualityPreference('auto');
+        }
         onAfterPersist?.();
         return;
       }
       if (Number.isFinite(h) && h > 0 && idx >= 0) {
+        /** Дефолт/`auto`: не записуємо у LS 1080 через короткий ABR-сплеск до застосування cap. */
+        if ((stored === null || stored === 'auto') && h > 720) {
+          onAfterPersist?.();
+          return;
+        }
         writeHlsQualityPreference({ height: h });
       }
       onAfterPersist?.();

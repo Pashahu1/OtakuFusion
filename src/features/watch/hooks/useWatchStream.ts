@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
@@ -21,10 +20,17 @@ export interface UseWatchStreamReturn {
   errorCode: string | null;
 }
 
+/** Лише поля, від яких залежить GET /api/watch/resolve — без `tvInfo.has_sub` тощо, щоб не дублювати резолв після мерджу епізодів. */
+export interface WatchStreamAnimeMeta {
+  id: string;
+  mal_id: number | null;
+  title: string;
+}
+
 interface WatchResolveOptions {
   animeId: string;
   episodeId: string | null;
-  animeInfo: AnimeData | null;
+  streamAnime: WatchStreamAnimeMeta | null;
   providerAnimeId?: string | null;
   preferredLang: 'sub' | 'dub';
   /** Після успішного резолву — синхронізувати перемикач Sub/Dub із реальною доріжкою (`stream.lang`). */
@@ -57,6 +63,10 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
     'Could not load AniLiberty data (release or episode lookup).',
   anilibria_missing_alias:
     'Internal error: missing AniLiberty release alias. Refresh the page.',
+  anilibria_release_unavailable:
+    'AniLiberty release metadata could not be loaded after match. Try again later or use AnimeKai.',
+  anilibria_match_rejected:
+    'AniLiberty match failed stricter checks (title vs release / episode catalog). Use AnimeKai, or set ANILIBRIA_ANILIST_ALIAS_JSON if you have the correct release alias.',
   episode_out_of_range: 'Invalid episode number for AniLiberty.',
   'lang must be sub or dub':
     'Invalid stream language parameter. Refresh the page or toggle sub/dub.',
@@ -153,7 +163,7 @@ export function useWatchStream(
   const [errorCode, setErrorCode] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!watchResolveOptions?.animeInfo || !watchResolveOptions.episodeId) {
+    if (!watchResolveOptions?.streamAnime || !watchResolveOptions.episodeId) {
       setStreamInfo(null);
       setStreamUrl(null);
       setSubtitles([]);
@@ -166,7 +176,7 @@ export function useWatchStream(
       return;
     }
 
-    const animeInfo = watchResolveOptions.animeInfo;
+    const streamAnime = watchResolveOptions.streamAnime;
     const controller = new AbortController();
     const { signal } = controller;
     setError(null);
@@ -183,7 +193,14 @@ export function useWatchStream(
     if (provider === 'anilibria') {
       const matchDone = watchResolveOptions.anilibertyMatchDone;
       const alias = watchResolveOptions.anilibertyAlias?.trim();
-      if (!matchDone || !alias) {
+      if (!matchDone) {
+        /** Чекаємо `/api/anilibria/match` — ефект перезапуститься, коли `anilibertyMatchDone` стане `true`. */
+        return () => controller.abort();
+      }
+      if (!alias) {
+        setBuffering(false);
+        setErrorCode('anilibria_not_found');
+        setError(getErrorMessage(new Error('anilibria_not_found')));
         return () => controller.abort();
       }
     }
@@ -252,12 +269,12 @@ export function useWatchStream(
 
         const tracks = [] as VideoTrack[];
         const resolveParams = {
-          anilistId: animeInfo.id?.trim() ? Number(animeInfo.id) : undefined,
+          anilistId: streamAnime.id?.trim() ? Number(streamAnime.id) : undefined,
           malId:
-            typeof animeInfo.mal_id === 'number' && animeInfo.mal_id > 0
-              ? animeInfo.mal_id
+            typeof streamAnime.mal_id === 'number' && streamAnime.mal_id > 0
+              ? streamAnime.mal_id
               : undefined,
-          keyword: animeInfo.title,
+          keyword: streamAnime.title,
           localAnimeId: watchResolveOptions.animeId,
           providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
           episode: episodeNumber,

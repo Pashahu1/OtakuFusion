@@ -7,7 +7,7 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
 import { useWatchAnime } from './useWatchAnime';
-import { useWatchStream } from './useWatchStream';
+import { useWatchStream, type WatchStreamAnimeMeta } from './useWatchStream';
 
 /**
  * Сторінка watch: композиція `useWatchAnime` + `useWatchStream`.
@@ -39,6 +39,10 @@ export function useWatch(
   const playerShellPending =
     anime.animeInfoLoading ||
     anime.episodes === null ||
+    /** Поки немає обраного епізоду, але список уже є — чекаємо URL/`?ep=`/continue; інакше один кадр «немає стріму». */
+    (anime.episodeId == null &&
+      Array.isArray(anime.episodes) &&
+      anime.episodes.length > 0) ||
     (Boolean(anime.episodeId) &&
       Array.isArray(anime.episodes) &&
       anime.episodes.length > 0 &&
@@ -55,14 +59,20 @@ export function useWatch(
   const [activeServerId, setActiveServerId] = useState<string | null>(() =>
     getPersistedServerId()
   );
-  const [prevAnimeId, setPrevAnimeId] = useState(animeId);
-  if (animeId !== prevAnimeId) {
-    setPrevAnimeId(animeId);
-    /**
-     * Новий тайтл — підтягуємо глобальний вибір (Sub/Dub) з localStorage без setState в ефекті.
-     */
+
+  useEffect(() => {
     setActiveServerId(getPersistedServerId());
-  }
+  }, [animeId]);
+
+  const streamAnimeMeta = useMemo((): WatchStreamAnimeMeta | null => {
+    const a = anime.animeInfo;
+    if (!a) return null;
+    return {
+      id: a.id,
+      mal_id: a.mal_id ?? null,
+      title: a.title,
+    };
+  }, [anime.animeInfo?.id, anime.animeInfo?.mal_id, anime.animeInfo?.title]);
 
   const hasAnyDub = useMemo(
     () => Boolean(anime.episodes?.some((e) => e.hasDub === true)),
@@ -130,7 +140,7 @@ export function useWatch(
     () => ({
       animeId,
       episodeId: anime.episodeId,
-      animeInfo: anime.animeInfo,
+      streamAnime: streamAnimeMeta,
       providerAnimeId: anime.providerAnimeId,
       preferredLang,
       onPlaybackLangResolved,
@@ -140,7 +150,7 @@ export function useWatch(
       streamRecoveryNonce,
     }),
     [
-      anime.animeInfo,
+      streamAnimeMeta,
       anime.episodeId,
       anime.providerAnimeId,
       anime.anilibertyAlias,

@@ -351,11 +351,8 @@ export function useArtplayerInstance({
         updateContinueWatching(animeInfo, episodeId, episodeNum);
       });
 
-      /** AniLiberty: маніфест часто має «OP» тощо — не тягнемо глобальний best-display/sub, стартуємо з ABR (Auto). */
-      const storedQualitySnapshot =
-        watchStreamProvider === 'anilibria'
-          ? ('auto' as const)
-          : readHlsQualityPreference();
+      /** Якість: з LS або дефолт ~720p (`null`); `best-display` — підбір під екран; AniLiberty теж дотримується цього (раніше примусово `auto`). */
+      const storedQualitySnapshot = readHlsQualityPreference();
 
       const plugins = art.plugins as unknown as {
         artplayerPluginHlsControl?: { update?: () => void };
@@ -366,7 +363,7 @@ export function useArtplayerInstance({
       const hlsInstance = art.hls;
       const applyInitialHlsQuality = () => {
         if (!hlsInstance?.levels?.length) return;
-        /** auto (−1), порожньо / best-display → підбираємо рівень під екран; число → фіксована висота. */
+        /** auto (−1); порожній LS → ~720p; `best-display` → під екран; число → фіксована висота. */
         const idx = resolveLevelIndexForStoredQuality(
           hlsInstance.levels as Array<{ height?: number; bitrate?: number }>,
           storedQualitySnapshot
@@ -403,7 +400,8 @@ export function useArtplayerInstance({
           {
             muteInitialPersistenceMs:
               storedQualitySnapshot === null ||
-              storedQualitySnapshot === 'best-display'
+              storedQualitySnapshot === 'best-display' ||
+              storedQualitySnapshot === 'auto'
                 ? 2800
                 : 0,
           }

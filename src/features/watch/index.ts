@@ -8,5 +8,6 @@ export type { WatchStreamProvider } from '@/lib/watch-provider';
 export {
   useWatchStream,
   type UseWatchStreamReturn,
+  type WatchStreamAnimeMeta,
 } from './hooks/useWatchStream';
 export { useWatchPageEffects } from './hooks/useWatchPageEffects';

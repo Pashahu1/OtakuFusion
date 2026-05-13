@@ -93,7 +93,61 @@ interface AnilibriaReleaseWithEpisodes {
   id?: number;
   alias?: string;
   name?: { main?: string | null; english?: string | null; alternative?: string | null };
+  year?: number;
+  type?: { value?: string | null; description?: string | null };
+  episodes_total?: number | null;
   episodes?: AnilibriaEpisodeRaw[];
+}
+
+/** Повний реліз для пост-скорингу (ті самі поля, що й у пошуковому хіті, де це можливо). */
+function searchHitFromRelease(
+  release: AnilibriaReleaseWithEpisodes,
+  alias: string,
+  playableEpisodeCount: number
+): AnilibriaSearchHit {
+  return {
+    id: release.id,
+    alias,
+    name: release.name,
+    year: typeof release.year === 'number' && Number.isFinite(release.year) ? release.year : undefined,
+    type: release.type,
+    episodes_total: playableEpisodeCount,
+  };
+}
+
+/**
+ * Пост-перевірка після пошуку: повний реліз + той самий скоринг, що й для хітів.
+ * Поріг трохи вищий за пошуковий (32), але нижче за попередню версію — для нових/коротких
+ * тайтлів AniList часто дає неповні епізоди/рік, і занадто жорсткий бал ховав валідний Libria.
+ * Додаткове правило лише для явного розриву «дуже довгий серіал на AniList vs мало епізодів на Libria».
+ */
+const MIN_ANILIBRIA_POST_RELEASE_SCORE = 38;
+const MIN_ANILIBRIA_LONG_CATALOG_MATCH_SCORE = 68;
+
+function strictReleaseAcceptsAnilist(
+  data: AnimeData,
+  release: AnilibriaReleaseWithEpisodes,
+  alias: string
+): boolean {
+  const raw = release.episodes;
+  if (!Array.isArray(raw) || raw.length === 0) return false;
+  const libCount = sortAnilibriaEpisodes(raw).length;
+  if (libCount < 1) return false;
+
+  const hit = searchHitFromRelease(release, alias, libCount);
+  if (shouldDropAnilibriaHit(data, hit)) return false;
+  if (shouldRejectSnkBahamutCollateral(data, hit)) return false;
+  if (shouldRejectNarutoOriginalWrongEdition(data, hit)) return false;
+
+  const s = scoreAnilibriaSearchHit(hit, data);
+  if (s < MIN_ANILIBRIA_POST_RELEASE_SCORE) return false;
+
+  const expected = parseAnilistEpisodeTotalHint(data);
+  if (expected != null && expected >= 96 && libCount > 0 && libCount <= 40) {
+    if (libCount * 3 < expected && s < MIN_ANILIBRIA_LONG_CATALOG_MATCH_SCORE) return false;
+  }
+
+  return true;
 }
 
 function normalizeComparableTitle(input: string): string {
@@ -505,9 +559,11 @@ function pickBestAnilibriaSearchHit(hits: AnilibriaSearchHit[], data: AnimeData)
   return best;
 }
 
-async function resolveAnilibriaAliasForAnimeData(
-  data: AnimeData
-): Promise<{ ok: true; alias: string } | { ok: false; error: string }> {
+type AnilibriaResolveOk = { ok: true; alias: string; release: AnilibriaReleaseWithEpisodes };
+type AnilibriaResolveErr = { ok: false; error: string };
+type AnilibriaResolveResult = AnilibriaResolveOk | AnilibriaResolveErr;
+
+async function resolveAnilibriaAliasForAnimeData(data: AnimeData): Promise<AnilibriaResolveResult> {
   const collected = await collectAnilibriaSearchHitsFromAnime(data);
   if (!collected.ok) {
     return { ok: false, error: collected.error };
@@ -520,7 +576,16 @@ async function resolveAnilibriaAliasForAnimeData(
   if (!alias) {
     return { ok: false, error: 'anilibria_missing_alias' };
   }
-  return { ok: true, alias };
+
+  const release = await fetchReleaseByAlias(alias);
+  if (!release) {
+    return { ok: false, error: 'anilibria_release_unavailable' };
+  }
+  if (!strictReleaseAcceptsAnilist(data, release, alias)) {
+    return { ok: false, error: 'anilibria_match_rejected' };
+  }
+
+  return { ok: true, alias, release };
 }
 
 export interface AnilibriaWatchBundleOk {
@@ -574,14 +639,16 @@ async function loadAnilibriaMatchAliasUncached(anilistId: string): Promise<Anili
     return { ok: false, error: 'no_anilist_data' };
   }
 
-  return resolveAnilibriaAliasForAnimeData(data);
+  const resolved = await resolveAnilibriaAliasForAnimeData(data);
+  if (!resolved.ok) return resolved;
+  return { ok: true, alias: resolved.alias };
 }
 
 const MATCH_CACHE_SECONDS = 5 * 60;
 
 const cachedMatch = unstable_cache(
   async (anilistId: string) => loadAnilibriaMatchAliasUncached(anilistId),
-  ['anilibria-match-alias', 'v4-anilist-meta'],
+  ['anilibria-match-alias', 'v7-post-release-relaxed'],
   { revalidate: MATCH_CACHE_SECONDS }
 );
 
@@ -600,8 +667,11 @@ async function fetchReleaseByAlias(alias: string): Promise<AnilibriaReleaseWithE
   }
 }
 
-async function finalizeAnilibriaWatchBundle(alias: string): Promise<AnilibriaWatchBundle> {
-  const release = await fetchReleaseByAlias(alias);
+async function finalizeAnilibriaWatchBundle(
+  alias: string,
+  prefetchedRelease: AnilibriaReleaseWithEpisodes | null = null
+): Promise<AnilibriaWatchBundle> {
+  const release = prefetchedRelease ?? (await fetchReleaseByAlias(alias));
   const rawEpisodes = release?.episodes;
   if (!Array.isArray(rawEpisodes) || rawEpisodes.length === 0) {
     return { ok: false, error: 'anilibria_no_episodes' };
@@ -652,14 +722,14 @@ async function loadAnilibriaWatchBundleUncached(anilistId: string): Promise<Anil
   if (!matched.ok) {
     return { ok: false, error: matched.error };
   }
-  return finalizeAnilibriaWatchBundle(matched.alias);
+  return finalizeAnilibriaWatchBundle(matched.alias, matched.release);
 }
 
 const BUNDLE_CACHE_SECONDS = 5 * 60;
 
 const cachedBundle = unstable_cache(
   async (anilistId: string) => loadAnilibriaWatchBundleUncached(anilistId),
-  ['anilibria-watch-bundle', 'v4-anilist-meta'],
+  ['anilibria-watch-bundle', 'v7-post-release-relaxed'],
   { revalidate: BUNDLE_CACHE_SECONDS }
 );
 
