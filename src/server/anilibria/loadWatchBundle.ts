@@ -13,6 +13,12 @@ import { anilibriaFetchText } from './http';
 
 const ANILIBRIA_SEARCH_INCLUDE = 'id,alias,name,year,type,episodes_total';
 
+/**
+ * AniLiberty (anilibria.top API) — власний каталог релізів; прямого AniList id у публічному пошуку немає.
+ * Перевірка інтеграції: `GET /app/search/releases?query=<title>` порівняти `alias` + `year` + `type` з AniList;
+ * повний реліз: `GET /anime/releases/<alias>?include=episodes` — фактичний список HLS-епізодів (для фільмів зазвичай 1).
+ */
+
 /** Рідкісні жанри дають додаткові «голки» для скорингу; загальні — лише шум. */
 const ANILIST_GENRE_STOP = new Set(
   [
@@ -122,6 +128,8 @@ function searchHitFromRelease(
  * Додаткове правило лише для явного розриву «дуже довгий серіал на AniList vs мало епізодів на Libria».
  */
 const MIN_ANILIBRIA_POST_RELEASE_SCORE = 38;
+/** Для фільмів / one-shot — титул + рік важливіші за жорсткий тип у API Libria; лишаємо поріг ближче до пошукового. */
+const MIN_ANILIBRIA_POST_RELEASE_ONESHOT = 33;
 const MIN_ANILIBRIA_LONG_CATALOG_MATCH_SCORE = 68;
 
 function strictReleaseAcceptsAnilist(
@@ -140,10 +148,11 @@ function strictReleaseAcceptsAnilist(
   if (shouldRejectNarutoOriginalWrongEdition(data, hit)) return false;
 
   const s = scoreAnilibriaSearchHit(hit, data);
-  if (s < MIN_ANILIBRIA_POST_RELEASE_SCORE) return false;
+  const minPost = isAnilistOneShotTitle(data) ? MIN_ANILIBRIA_POST_RELEASE_ONESHOT : MIN_ANILIBRIA_POST_RELEASE_SCORE;
+  if (s < minPost) return false;
 
   const expected = parseAnilistEpisodeTotalHint(data);
-  if (expected != null && expected >= 96 && libCount > 0 && libCount <= 40) {
+  if (!isAnilistOneShotTitle(data) && expected != null && expected >= 96 && libCount > 0 && libCount <= 40) {
     if (libCount * 3 < expected && s < MIN_ANILIBRIA_LONG_CATALOG_MATCH_SCORE) return false;
   }
 
@@ -191,9 +200,16 @@ function parseAnilistEpisodeTotalHint(data: AnimeData): number | null {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
 }
 
+/** Фільм / OVA / спешл / односерійник — м’якші правила типу та пост-скору (Libria часто дає «TV» + 1 епізод). */
+function isAnilistOneShotTitle(data: AnimeData): boolean {
+  const fmt = normalizeAnilibriaFormat(data.showType);
+  if (fmt === 'MOVIE' || fmt === 'OVA' || fmt === 'SPECIAL' || fmt === 'ONA') return true;
+  const hint = parseAnilistEpisodeTotalHint(data);
+  return hint === 1;
+}
+
 /**
  * Відсікаємо очевидні промахи: ТВ-серіал (багато еп.) vs фільм, chibi/spin-off для довгих ТВ.
- * Прямого AniList-id у публічному пошуку AniLiberty немає — орієнтуємось на тип і метадані.
  */
 function shouldDropAnilibriaHit(data: AnimeData, hit: AnilibriaSearchHit): boolean {
   const aniFmt = normalizeAnilibriaFormat(data.showType);
@@ -287,12 +303,27 @@ function formatAndEpisodeScore(data: AnimeData, hit: AnilibriaSearchHit): number
   let score = 0;
   const aniFmt = normalizeAnilibriaFormat(data.showType);
   const libFmt = normalizeAnilibriaFormat(hit.type?.value);
+  const movieKind = new Set(['MOVIE', 'OVA', 'SPECIAL', 'ONA']);
+  const aniM = movieKind.has(aniFmt);
+  const libM = movieKind.has(libFmt);
+
   if (aniFmt === libFmt) score += 260;
-  else {
-    const movieLike = new Set(['MOVIE']);
-    const aniM = movieLike.has(aniFmt);
-    const libM = movieLike.has(libFmt);
-    if (aniM !== libM) score -= 380;
+  else if (aniM && libM) {
+    score += 200;
+  } else if (aniM && !libM) {
+    const want = parseAnilistEpisodeTotalHint(data);
+    const got =
+      typeof hit.episodes_total === 'number' && Number.isFinite(hit.episodes_total)
+        ? hit.episodes_total
+        : null;
+    const oneShotLib = got != null && got <= 2;
+    const oneShotWant = want == null || want <= 2;
+    if (oneShotWant && oneShotLib) score += 40;
+    else score -= 320;
+  } else if (!aniM && libM) {
+    score -= 380;
+  } else {
+    score -= 120;
   }
 
   const want = parseAnilistEpisodeTotalHint(data);
@@ -648,7 +679,7 @@ const MATCH_CACHE_SECONDS = 5 * 60;
 
 const cachedMatch = unstable_cache(
   async (anilistId: string) => loadAnilibriaMatchAliasUncached(anilistId),
-  ['anilibria-match-alias', 'v7-post-release-relaxed'],
+  ['anilibria-match-alias', 'v8-movies-oneshot'],
   { revalidate: MATCH_CACHE_SECONDS }
 );
 
@@ -729,7 +760,7 @@ const BUNDLE_CACHE_SECONDS = 5 * 60;
 
 const cachedBundle = unstable_cache(
   async (anilistId: string) => loadAnilibriaWatchBundleUncached(anilistId),
-  ['anilibria-watch-bundle', 'v7-post-release-relaxed'],
+  ['anilibria-watch-bundle', 'v8-movies-oneshot'],
   { revalidate: BUNDLE_CACHE_SECONDS }
 );
 

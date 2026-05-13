@@ -133,6 +133,11 @@ function isSubServer(server: ServerInfo): boolean {
   return server.type.toLowerCase() === 'sub' && !isSoftsubServer(server);
 }
 
+function serverMatchesRequestedLang(server: ServerInfo, requestedLang: WatchLang): boolean {
+  if (requestedLang === 'dub') return isDubServer(server);
+  return !isDubServer(server);
+}
+
 function buildServerCandidateGroups(
   servers: ServerInfo[],
   requestedLang: WatchLang
@@ -157,7 +162,8 @@ function buildServerCandidateGroups(
 
 function findPreferredServerInGroups(
   groups: ServerInfo[][],
-  hint: string
+  hint: string,
+  requestedLang: WatchLang
 ): ServerInfo | null {
   const raw = hint.trim();
   if (!raw) return null;
@@ -166,11 +172,13 @@ function findPreferredServerInGroups(
 
   for (const group of groups) {
     for (const s of group) {
+      if (!serverMatchesRequestedLang(s, requestedLang)) continue;
       if (s.serverName.trim().toLowerCase() === hintLower) return s;
     }
   }
   for (const group of groups) {
     for (const s of group) {
+      if (!serverMatchesRequestedLang(s, requestedLang)) continue;
       if (mirrorServerLabel(s.serverName).toLowerCase() === hintMirror) return s;
     }
   }
@@ -339,7 +347,7 @@ async function computeWatchResolveOutcome(
     const preferredHint = url.searchParams.get('preferred_server_hint')?.trim();
     let resolvedPair: { candidate: ServerInfo; primary: StreamingType };
     if (preferredHint) {
-      const pref = findPreferredServerInGroups(candidateGroups, preferredHint);
+      const pref = findPreferredServerInGroups(candidateGroups, preferredHint, lang);
       if (pref) {
         try {
           resolvedPair = await tryResolveServerCandidate(pref, origin, probeCfg);
@@ -437,7 +445,7 @@ async function handleWatchResolve(req: Request): Promise<Response> {
         if (o.status !== 200) throw new WatchResolveNonOkError(o);
         return o.body;
       },
-      ['watch-resolve-data-v1', cacheKey, publicOrigin],
+      ['watch-resolve-data-v2', cacheKey, publicOrigin],
       { revalidate: watchResolveCacheRevalidateSec() }
     );
 
