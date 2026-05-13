@@ -8,12 +8,18 @@ import {
   type AnilibriaEpisodeRaw,
 } from '@/services/anilibria/episodeMapping';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
+import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { anilibriaFetchText } from './http';
+
+const ANILIBRIA_SEARCH_INCLUDE = 'id,alias,name,year,type,episodes_total';
 
 interface AnilibriaSearchHit {
   id?: number;
   alias?: string;
   name?: { main?: string | null; english?: string | null; alternative?: string | null };
+  year?: number;
+  type?: { value?: string | null; description?: string | null };
+  episodes_total?: number | null;
 }
 
 interface AnilibriaReleaseWithEpisodes {
@@ -49,6 +55,104 @@ function jaccardTokens(a: string[], b: string[]): number {
   }
   const uni = A.size + B.size - inter;
   return uni ? inter / uni : 0;
+}
+
+function normalizeAnilibriaFormat(value: string | null | undefined): string {
+  const v = (value ?? '').trim().toUpperCase();
+  if (v === 'TV_SHORT' || v === 'TV_SHORTS') return 'TV';
+  return v || 'TV';
+}
+
+function parseAnilistEpisodeTotalHint(data: AnimeData): number | null {
+  const raw = data.animeInfo?.tvInfo?.episodeTotal?.trim();
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+}
+
+/**
+ * Відсікаємо очевидні промахи: ТВ-серіал (багато еп.) vs фільм, chibi/spin-off для довгих ТВ.
+ * Прямого AniList-id у публічному пошуку AniLiberty немає — орієнтуємось на тип і метадані.
+ */
+function shouldDropAnilibriaHit(data: AnimeData, hit: AnilibriaSearchHit): boolean {
+  const aniFmt = normalizeAnilibriaFormat(data.showType);
+  const libFmt = normalizeAnilibriaFormat(hit.type?.value);
+  const epsHint = parseAnilistEpisodeTotalHint(data);
+  const alias = (hit.alias ?? '').toLowerCase();
+  const libEp =
+    typeof hit.episodes_total === 'number' && Number.isFinite(hit.episodes_total)
+      ? hit.episodes_total
+      : null;
+
+  if (aniFmt === 'TV' && libFmt === 'MOVIE' && epsHint != null && epsHint >= 3) {
+    return true;
+  }
+  if (aniFmt === 'TV' && libFmt === 'MOVIE' && epsHint != null && epsHint >= 2) {
+    if (alias.includes('netflix') || alias.includes('live-action')) return true;
+  }
+  if (aniFmt === 'TV' && libFmt === 'TV' && epsHint != null && epsHint >= 10) {
+    const spinoff = [
+      'chuugakkou',
+      'chugakkou',
+      'chibi',
+      'puchi',
+      'petit',
+      'junior-high',
+      'middle-school',
+      'gakuen',
+      'spin-off',
+      'sp-off',
+      '-sd',
+      'chimi',
+    ];
+    if (spinoff.some((p) => alias.includes(p))) return true;
+  }
+  if (aniFmt === 'TV' && libFmt === 'TV' && epsHint != null && epsHint >= 20 && libEp != null && libEp <= 3) {
+    if (!alias.includes('recap') && !alias.includes('summary')) return true;
+  }
+  return false;
+}
+
+function formatAndEpisodeScore(data: AnimeData, hit: AnilibriaSearchHit): number {
+  let score = 0;
+  const aniFmt = normalizeAnilibriaFormat(data.showType);
+  const libFmt = normalizeAnilibriaFormat(hit.type?.value);
+  if (aniFmt === libFmt) score += 260;
+  else {
+    const movieLike = new Set(['MOVIE']);
+    const aniM = movieLike.has(aniFmt);
+    const libM = movieLike.has(libFmt);
+    if (aniM !== libM) score -= 380;
+  }
+
+  const want = parseAnilistEpisodeTotalHint(data);
+  const got =
+    typeof hit.episodes_total === 'number' && Number.isFinite(hit.episodes_total)
+      ? hit.episodes_total
+      : null;
+  if (want != null && got != null) {
+    const diff = Math.abs(want - got);
+    if (diff === 0) score += 220;
+    else if (want >= 10 && got <= 2) score -= 320;
+    else if (want <= 3 && got >= 12) score -= 160;
+    else if (diff <= 1) score += 140;
+    else if (diff <= Math.max(3, Math.ceil(want * 0.12))) score += 90;
+    else score -= Math.min(180, diff * 5);
+  }
+
+  return score;
+}
+
+function yearSoftBonus(data: AnimeData, hit: AnilibriaSearchHit): number {
+  const py = data.animeInfo?.Premiered?.trim();
+  if (!py || typeof hit.year !== 'number') return 0;
+  const want = Number(py);
+  if (!Number.isFinite(want)) return 0;
+  const d = Math.abs(want - hit.year);
+  if (d === 0) return 45;
+  if (d <= 1) return 28;
+  if (d <= 2) return 12;
+  return 0;
 }
 
 /** Кілька рядків пошуку: romaji + англ. + native + синоніми — перший результат AniLiberty часто не той реліз. */
@@ -93,12 +197,9 @@ function buildAnilistSearchQueries(data: {
   return out.slice(0, 8);
 }
 
-async function collectAnilibriaSearchHitsFromAnime(data: {
-  romaji_title?: string;
-  title: string;
-  japanese_title: string;
-  animeInfo?: { Japanese?: string; Synonyms?: string };
-}): Promise<
+async function collectAnilibriaSearchHitsFromAnime(
+  data: AnimeData
+): Promise<
   | { ok: true; hits: AnilibriaSearchHit[] }
   | { ok: false; error: string }
 > {
@@ -114,7 +215,7 @@ async function collectAnilibriaSearchHitsFromAnime(data: {
   for (const q of queries) {
     const searchParams = new URLSearchParams({
       query: q,
-      include: 'id,alias,name',
+      include: ANILIBRIA_SEARCH_INCLUDE,
     });
     const searchRes = await anilibriaFetchText(`/app/search/releases?${searchParams.toString()}`);
     if (!searchRes.ok) {
@@ -143,7 +244,13 @@ async function collectAnilibriaSearchHitsFromAnime(data: {
     return { ok: false, error: 'anilibria_not_found' };
   }
 
-  return { ok: true, hits: [...byAlias.values()] };
+  const merged = [...byAlias.values()];
+  const hits = merged.filter((h) => !shouldDropAnilibriaHit(data, h));
+  if (!hits.length) {
+    return { ok: false, error: 'anilibria_not_found' };
+  }
+
+  return { ok: true, hits };
 }
 
 function collectAnilistTitleSignals(data: {
@@ -172,15 +279,37 @@ function collectAnilistTitleSignals(data: {
   return [...new Set(bag.filter(Boolean))];
 }
 
-function scoreAnilibriaSearchHit(
-  hit: AnilibriaSearchHit,
-  data: {
-    romaji_title?: string;
-    title: string;
-    japanese_title: string;
-    animeInfo?: { Japanese?: string; Synonyms?: string };
+function extraneousEnglishTokenPenalty(hit: AnilibriaSearchHit, data: AnimeData): number {
+  const english = hit.name?.english?.trim();
+  if (!english) return 0;
+  const hitTok = tokenizeComparable(english).filter((t) => t.length > 3);
+  const needleTok = new Set(
+    collectAnilistTitleSignals(data).filter((t) => t.length > 3)
+  );
+  if (!hitTok.length || !needleTok.size) return 0;
+  let extra = 0;
+  for (const t of hitTok) {
+    if (needleTok.has(t)) continue;
+    const partial = [...needleTok].some((n) => n.includes(t) || t.includes(n));
+    if (!partial) extra += 1;
   }
-): number {
+  return -extra * 52;
+}
+
+function aliasDistractorPenalty(hit: AnilibriaSearchHit, data: AnimeData): number {
+  const alias = (hit.alias ?? '').toLowerCase();
+  if (!alias) return 0;
+  const aniFmt = normalizeAnilibriaFormat(data.showType);
+  const epsHint = parseAnilistEpisodeTotalHint(data);
+  let pen = 0;
+  if (aniFmt === 'TV' && epsHint != null && epsHint >= 6) {
+    if (alias.includes('netflix')) pen -= 220;
+    if (alias.includes('live-action')) pen -= 220;
+  }
+  return pen;
+}
+
+function scoreAnilibriaSearchHit(hit: AnilibriaSearchHit, data: AnimeData): number {
   const english = hit.name?.english?.trim();
   const alternative = hit.name?.alternative?.trim();
   const main = hit.name?.main?.trim();
@@ -222,20 +351,18 @@ function scoreAnilibriaSearchHit(
     best += jaccardTokens(tokenizeComparable(engNorm), tokenizeComparable(romajiNorm)) * 90;
   }
 
-  return best;
+  return (
+    best +
+    formatAndEpisodeScore(data, hit) +
+    yearSoftBonus(data, hit) +
+    extraneousEnglishTokenPenalty(hit, data) +
+    aliasDistractorPenalty(hit, data)
+  );
 }
 
 const MIN_ANILIBRIA_MATCH_SCORE = 32;
 
-function pickBestAnilibriaSearchHit(
-  hits: AnilibriaSearchHit[],
-  data: {
-    romaji_title?: string;
-    title: string;
-    japanese_title: string;
-    animeInfo?: { Japanese?: string; Synonyms?: string };
-  }
-): AnilibriaSearchHit | null {
+function pickBestAnilibriaSearchHit(hits: AnilibriaSearchHit[], data: AnimeData): AnilibriaSearchHit | null {
   if (!hits.length) return null;
   let best: AnilibriaSearchHit | null = null;
   let bestScore = -1;
@@ -250,12 +377,9 @@ function pickBestAnilibriaSearchHit(
   return best;
 }
 
-async function resolveAnilibriaAliasForAnimeData(data: {
-  romaji_title?: string;
-  title: string;
-  japanese_title: string;
-  animeInfo?: { Japanese?: string; Synonyms?: string };
-}): Promise<{ ok: true; alias: string } | { ok: false; error: string }> {
+async function resolveAnilibriaAliasForAnimeData(
+  data: AnimeData
+): Promise<{ ok: true; alias: string } | { ok: false; error: string }> {
   const collected = await collectAnilibriaSearchHitsFromAnime(data);
   if (!collected.ok) {
     return { ok: false, error: collected.error };
@@ -324,7 +448,7 @@ const MATCH_CACHE_SECONDS = 5 * 60;
 
 const cachedMatch = unstable_cache(
   async (anilistId: string) => loadAnilibriaMatchAliasUncached(anilistId),
-  ['anilibria-match-alias'],
+  ['anilibria-match-alias', 'v3-anilist-meta'],
   { revalidate: MATCH_CACHE_SECONDS }
 );
 
@@ -395,7 +519,7 @@ const BUNDLE_CACHE_SECONDS = 5 * 60;
 
 const cachedBundle = unstable_cache(
   async (anilistId: string) => loadAnilibriaWatchBundleUncached(anilistId),
-  ['anilibria-watch-bundle'],
+  ['anilibria-watch-bundle', 'v3-anilist-meta'],
   { revalidate: BUNDLE_CACHE_SECONDS }
 );
 
