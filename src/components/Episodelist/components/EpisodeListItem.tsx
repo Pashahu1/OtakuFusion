@@ -5,7 +5,6 @@ import type { Ref } from 'react';
 
 interface EpisodeListItemProps {
   item: EpisodesTypes;
-  listIndex: number;
   episodeNumber: string;
   isActive: boolean;
   isSearched: boolean;
@@ -16,7 +15,6 @@ interface EpisodeListItemProps {
 
 export function EpisodeListItem({
   item,
-  listIndex,
   episodeNumber,
   isActive,
   isSearched,
@@ -71,7 +69,7 @@ export function EpisodeListItem({
                 : 'bg-white/[0.07] text-[12px] font-semibold text-white/50'
             }`}
           >
-            {listIndex}
+            {item.episode_no}
           </span>
         </div>
 

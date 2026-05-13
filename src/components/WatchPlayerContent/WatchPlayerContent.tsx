@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import Image from 'next/image';
 import { Player } from '@/features/player';
 import { BouncingLoader } from '../ui/Bouncingloader/Bouncingloader';
+import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
@@ -31,6 +32,11 @@ type WatchPlayerContentProps = {
   showErrorBlock: boolean;
   /** Дані для стріму ще підвантажуються — не показувати помилку плеєра. */
   playerShellPending: boolean;
+  watchStreamProvider: WatchStreamProvider;
+  setWatchStreamProvider: (provider: WatchStreamProvider) => void;
+  anilibertyAlias: string | null;
+  showStreamRecovery: boolean;
+  onStreamRecoveryChoice: (choice: 'japanese' | 'english' | 'aniliberty') => void;
 };
 
 export const WatchPlayerContent = ({
@@ -54,8 +60,16 @@ export const WatchPlayerContent = ({
   showErrorBlock,
   episodeNum,
   playerShellPending,
+  watchStreamProvider,
+  setWatchStreamProvider,
+  anilibertyAlias,
+  showStreamRecovery,
+  onStreamRecoveryChoice,
 }: WatchPlayerContentProps) => {
-  const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
+  const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${watchStreamProvider}:${streamUrl ?? ''}`;
+
+  const hasAnyDub = Boolean(episodes?.some((e) => e.hasDub === true));
+  const anilibertyAvailable = Boolean(anilibertyAlias?.trim());
 
   const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
   const [prevStreamKey, setPrevStreamKey] = useState(streamKey);
@@ -94,7 +108,7 @@ export const WatchPlayerContent = ({
 
         {showBuiltinPlayer && (
           <Player
-            key={`${animeId}:${episodeId ?? ''}:${streamUrl}`}
+            key={`${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${streamUrl}`}
             streamUrl={streamUrl as string}
             subtitles={subtitles}
             intro={intro}
@@ -110,12 +124,16 @@ export const WatchPlayerContent = ({
             servers={servers}
             activeServerId={activeServerId}
             setActiveServerId={setActiveServerId}
+            watchStreamProvider={watchStreamProvider}
+            setWatchStreamProvider={setWatchStreamProvider}
+            anilibertyAlias={anilibertyAlias}
             onPlaybackError={handleBuiltinError}
           />
         )}
 
-        {isErrorState && (showErrorBlock || hasBuiltinError) && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-black/80 text-center">
+        {isErrorState &&
+          (showErrorBlock || hasBuiltinError || showStreamRecovery) && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center">
             <Image
               src="/gojo-player.png"
               alt=""
@@ -126,6 +144,33 @@ export const WatchPlayerContent = ({
             />
             <span>This player is currently unavailable.</span>
             <span>Please try another episode or server.</span>
+            {showStreamRecovery ? (
+              <div className="mt-2 flex max-w-md flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-center">
+                <button
+                  type="button"
+                  className="rounded-lg border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#f47521]/45 hover:bg-[#f47521]/10"
+                  onClick={() => onStreamRecoveryChoice('japanese')}
+                >
+                  Japanese (sub)
+                </button>
+                <button
+                  type="button"
+                  disabled={!hasAnyDub}
+                  className="rounded-lg border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#f47521]/45 hover:bg-[#f47521]/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  onClick={() => onStreamRecoveryChoice('english')}
+                >
+                  English (dub)
+                </button>
+                <button
+                  type="button"
+                  disabled={!anilibertyAvailable}
+                  className="rounded-lg border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#f47521]/45 hover:bg-[#f47521]/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  onClick={() => onStreamRecoveryChoice('aniliberty')}
+                >
+                  AniLiberty
+                </button>
+              </div>
+            ) : null}
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { getAnimeInfo } from '@/services/getAnimeInfo';
 import { readEpisodeHealth, writeEpisodeHealth } from '@/lib/animekai-local-health';
 import { getKaiEpisodesFromBff } from '@/lib/kai-episodes-bff';
@@ -12,6 +12,7 @@ import {
 } from '@/services/animekaiResolve';
 import { aggregateCatalogStreamCounts } from '@/shared/utils/catalogStreamCounts';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
+import { mergeKaiEpisodesWithAnilistTitles } from '@/lib/mergeKaiEpisodesWithAnilistTitles';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
@@ -27,6 +28,10 @@ export interface UseWatchAnimeReturn {
   animeInfoLoading: boolean;
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   error: string | null;
+  /** Alias релізу AniLiberty (лише для стріму); епізоди завжди з AnimeKai. */
+  anilibertyAlias: string | null;
+  /** Після першого запиту /api/anilibria/match для поточного тайтлу. */
+  anilibertyMatchDone: boolean;
 }
 
 function getErrorMessage(err: unknown): string {
@@ -110,6 +115,8 @@ export function useWatchAnime(
   const [providerAnimeId, setProviderAnimeId] = useState<string | null>(null);
   const [totalEpisodes, setTotalEpisodes] = useState<number | null>(null);
   const [episodeId, setEpisodeId] = useState<string | null>(null);
+  const [anilibertyAlias, setAnilibertyAlias] = useState<string | null>(null);
+  const [anilibertyMatchDone, setAnilibertyMatchDone] = useState(false);
   const [animeInfoLoading, setAnimeInfoLoading] = useState(false);
   const [nextEpisodeSchedule, setNextEpisodeSchedule] =
     useState<NextEpisodeScheduleResult | null>(null);
@@ -124,6 +131,18 @@ export function useWatchAnime(
     setEpisodeRemapPass(0);
   }, [animeId]);
 
+  useLayoutEffect(() => {
+    setEpisodes(null);
+    setProviderAnimeId(null);
+    setEpisodeId(null);
+    setAnimeInfo(null);
+    setTotalEpisodes(null);
+    setAnimeInfoLoading(true);
+    setAnilibertyAlias(null);
+    setAnilibertyMatchDone(false);
+    setError(null);
+  }, [animeId]);
+
   useEffect(() => {
     const controller = new AbortController();
     const { signal } = controller;
@@ -135,6 +154,8 @@ export function useWatchAnime(
     setAnimeInfo(null);
     setTotalEpisodes(null);
     setAnimeInfoLoading(true);
+    setAnilibertyAlias(null);
+    setAnilibertyMatchDone(false);
     setError(null);
     if (episodeRemapPass === 0) {
       setNextEpisodeSchedule(null);
@@ -296,10 +317,15 @@ export function useWatchAnime(
             }, 600);
           }
 
-          setEpisodes(episodesData.episodes ?? null);
+          const mergedEpisodes = mergeKaiEpisodesWithAnilistTitles(
+            list,
+            dataForResolve.anilistEpisodeTitles
+          );
+
+          setEpisodes(mergedEpisodes);
           setTotalEpisodes(episodesData.totalEpisodes ?? null);
 
-          const counts = aggregateCatalogStreamCounts(list);
+          const counts = aggregateCatalogStreamCounts(mergedEpisodes);
           setAnimeInfo((prev) => {
             if (!prev) return prev;
             return {
@@ -316,8 +342,8 @@ export function useWatchAnime(
           });
           const newEpisodeId =
             initialEpisodeRef.current ??
-            (episodesData.episodes?.length
-              ? (getEpisodeNumberFromId(episodesData.episodes[0].id) ?? null)
+            (mergedEpisodes.length
+              ? (getEpisodeNumberFromId(mergedEpisodes[0].id) ?? null)
               : null);
           setEpisodeId(newEpisodeId ?? null);
         } catch (episodesError) {
@@ -382,6 +408,47 @@ export function useWatchAnime(
     };
   }, []);
 
+  useEffect(() => {
+    if (!animeId.trim()) return;
+    if (animeInfoLoading) {
+      setAnilibertyMatchDone(false);
+      return;
+    }
+    if (!providerAnimeId?.trim() || !episodes?.length) {
+      setAnilibertyAlias(null);
+      setAnilibertyMatchDone(true);
+      return;
+    }
+
+    const ac = new AbortController();
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const mr = await fetch(
+          `/api/anilibria/match?${new URLSearchParams({ anilist_id: animeId })}`,
+          { signal: ac.signal, headers: { accept: 'application/json' } }
+        );
+        const mj = (await mr.json()) as { success?: boolean; alias?: string };
+        if (cancelled) return;
+        const al =
+          mr.ok && mj.success === true && typeof mj.alias === 'string' && mj.alias.trim()
+            ? mj.alias.trim()
+            : null;
+        setAnilibertyAlias(al);
+      } catch {
+        if (!cancelled) setAnilibertyAlias(null);
+      } finally {
+        if (!cancelled) setAnilibertyMatchDone(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      ac.abort();
+    };
+  }, [animeId, animeInfoLoading, providerAnimeId, episodes]);
+
   /** Не зіставляти `?ep=` зі списком, поки йде початкове завантаження — інакше після зміни `animeId` тут ще епізоди *попереднього* тайтлу і URL підтверджує чужий номер. */
   useEffect(() => {
     if (!animeId.trim()) return;
@@ -403,5 +470,7 @@ export function useWatchAnime(
     animeInfoLoading,
     nextEpisodeSchedule,
     error,
+    anilibertyAlias,
+    anilibertyMatchDone,
   };
 }

@@ -54,6 +54,8 @@ interface AniListMedia {
     airingAt?: number | null;
     episode?: number | null;
   } | null;
+  /** Останні стрімінгові епізоди з метаданих AniList (часто Crunchyroll-формат «Episode N - …»). */
+  streamingEpisodes?: Array<{ title?: string | null } | null> | null;
   recommendations?: {
     nodes?: Array<{
       mediaRecommendation?: AniListMedia | null;
@@ -96,6 +98,24 @@ export interface AniListPageParams {
 
 function pickTitle(title?: AniListTitle | null): string {
   return title?.english || title?.romaji || title?.native || 'Unknown title';
+}
+
+/** Будує мапу номер серії → повний рядок заголовку з `streamingEpisodes` (перший збіг на номер). */
+function buildAnilistEpisodeTitleRecord(
+  streaming?: ReadonlyArray<{ title?: string | null } | null> | null
+): Record<string, string> | undefined {
+  if (!Array.isArray(streaming) || !streaming.length) return undefined;
+  const out: Record<string, string> = {};
+  for (const row of streaming) {
+    const raw = row?.title?.trim();
+    if (!raw) continue;
+    const m = raw.match(/^\s*Episode\s+(\d+)\b/i);
+    if (!m) continue;
+    const numKey = m[1];
+    if (out[numKey]) continue;
+    out[numKey] = raw;
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 function toReleaseDate(startDate?: AniListDate | null): string {
@@ -190,6 +210,7 @@ export function mapAniListMediaToAnimeDetails(media: AniListMedia): AnimeResults
     data_id: media.id,
     mal_id: media.idMal ?? null,
     title: base.title,
+    anilistEpisodeTitles: buildAnilistEpisodeTitleRecord(media.streamingEpisodes),
     romaji_title: media.title?.romaji?.trim() || undefined,
     japanese_title: base.japanese_title,
     poster: base.poster,
@@ -483,6 +504,9 @@ export async function getAniListMediaById(id: string): Promise<AniListMedia> {
         nextAiringEpisode {
           airingAt
           episode
+        }
+        streamingEpisodes {
+          title
         }
       }
     }

@@ -5,6 +5,7 @@ import { captionIcon, serverIcon } from './PlayerIcons';
 import { ANIKAI_PAGE_REFERER, LOGO_HIDE_DELAY_MS, M3U8_PROXY_URL, PROXY_URL } from './playerConstants';
 import { artplayerPluginVttThumbnail } from './artPlayerPluginVttThumbnail';
 import { handlePlayerKeydown } from './playerKeydown';
+import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
@@ -76,7 +77,10 @@ export function setupPlayerReady(
   subtitles: SubtitleItem[] | null,
   streamLang: 'sub' | 'dub' | null,
   serversRef: React.RefObject<ServerInfo[] | null>,
-  activeServerIdRef: React.RefObject<string | null>
+  activeServerIdRef: React.RefObject<string | null>,
+  watchStreamProvider: WatchStreamProvider,
+  setWatchStreamProvider: (next: WatchStreamProvider) => void,
+  anilibertyAlias: string | null
 ) {
   let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
   const goToNextEpisode = () => {
@@ -378,68 +382,97 @@ export function setupPlayerReady(
 
   const subList = langServers?.filter((s) => s.type === 'sub') ?? [];
   const dubList = langServers?.filter((s) => s.type === 'dub') ?? [];
-  /** Спочатку рядок, що відповідає активному стріму — меню Language збігається з реальним сервером. */
   const jp =
     subList.find((s) => String(s.data_id) === String(langActiveId)) ??
     pickPreferredInGroup(subList);
   const en =
     dubList.find((s) => String(s.data_id) === String(langActiveId)) ??
     pickPreferredInGroup(dubList);
-  type LangOption = {
+
+  type LangMenuLeaf = {
     html: string;
-    default: boolean;
-    data_id: number;
-    serverName: string;
-    type: string;
+    default?: boolean;
+    data_id?: number;
+    serverName?: string;
+    type?: string;
+    __mode?: 'kai-sub' | 'kai-dub' | 'aniliberty';
   };
-  const languageSelectorRaw: LangOption[] = [
-    jp && {
+
+  const flatLanguage: LangMenuLeaf[] = [];
+
+  if (jp) {
+    flatLanguage.push({
       html: 'Japanese',
-      default: String(jp.data_id) === String(langActiveId),
+      default:
+        watchStreamProvider === 'kai' && String(jp.data_id) === String(langActiveId),
       data_id: jp.data_id,
       serverName: jp.serverName,
       type: jp.type,
-    },
-    en && {
+      __mode: 'kai-sub',
+    });
+  }
+
+  if (en) {
+    flatLanguage.push({
       html: 'English',
-      default: String(en.data_id) === String(langActiveId),
+      default:
+        watchStreamProvider === 'kai' && String(en.data_id) === String(langActiveId),
       data_id: en.data_id,
       serverName: en.serverName,
       type: en.type,
-    },
-  ].filter((x): x is LangOption => Boolean(x));
-  const languageSelector =
-    languageSelectorRaw.length <= 1
-      ? languageSelectorRaw
-      : [...languageSelectorRaw].sort((a, b) =>
-          String(a.data_id) === String(langActiveId)
-            ? -1
-            : String(b.data_id) === String(langActiveId)
-              ? 1
-              : 0
-        );
-  if (languageSelector.length > 0) {
-    const currentLang = langServers?.find(
-      (s) => String(s.data_id) === String(langActiveId)
-    );
+      __mode: 'kai-dub',
+    });
+  }
+
+  if (anilibertyAlias?.trim()) {
+    flatLanguage.push({
+      html: 'AniLiberty',
+      default: watchStreamProvider === 'anilibria',
+      __mode: 'aniliberty',
+    });
+  }
+
+  const langTooltip =
+    watchStreamProvider === 'anilibria'
+      ? 'AniLiberty'
+      : langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type === 'dub'
+        ? 'English'
+        : 'Japanese';
+
+  if (flatLanguage.length > 0) {
     art.setting.add({
       name: 'language',
       icon: serverIcon,
       html: 'Language',
-      tooltip: currentLang
-        ? currentLang.type === 'sub'
-          ? 'Japanese'
-          : 'English'
-        : 'Language',
+      tooltip: langTooltip,
       position: 'right',
-      selector: languageSelector.map((item) => ({
-        html: item.html,
-        default: String(item.data_id) === String(langActiveId),
-        data_id: item.data_id,
-        serverName: item.serverName,
-        type: item.type,
-      })),
+      selector: flatLanguage,
       onSelect: function (item: Record<string, unknown>) {
+        const mode = item.__mode;
+        if (mode === 'aniliberty') {
+          setWatchStreamProvider('anilibria');
+          return typeof item.html === 'string' ? item.html : '';
+        }
+        if (mode === 'kai-sub') {
+          setWatchStreamProvider('kai');
+          const dataId = item.data_id != null ? String(item.data_id) : null;
+          if (dataId) setActiveServerId(dataId);
+          if (typeof item.serverName === 'string')
+            localStorage.setItem('server_name', item.serverName);
+          if (typeof item.type === 'string')
+            localStorage.setItem('server_type', item.type);
+          return typeof item.html === 'string' ? item.html : '';
+        }
+        if (mode === 'kai-dub') {
+          setWatchStreamProvider('kai');
+          const dataId = item.data_id != null ? String(item.data_id) : null;
+          if (dataId) setActiveServerId(dataId);
+          if (typeof item.serverName === 'string')
+            localStorage.setItem('server_name', item.serverName);
+          if (typeof item.type === 'string')
+            localStorage.setItem('server_type', item.type);
+          return typeof item.html === 'string' ? item.html : '';
+        }
         const dataId = item.data_id != null ? String(item.data_id) : null;
         if (dataId) setActiveServerId(dataId);
         if (typeof item.serverName === 'string')

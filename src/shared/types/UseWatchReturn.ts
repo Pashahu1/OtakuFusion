@@ -7,6 +7,8 @@ import type { SubtitleItem } from './PlayerTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
 import type { AnimeData } from './animeDetailsTypes';
 
+import type { WatchStreamProvider } from '@/lib/watch-provider';
+
 export interface UseWatchReturn {
   error: string | null;
   buffering: boolean;
@@ -31,4 +33,11 @@ export interface UseWatchReturn {
   activeEpisodeNum: number | null;
   activeServerId: string | null;
   setActiveServerId: Dispatch<SetStateAction<string | null>>;
+  watchStreamProvider: WatchStreamProvider;
+  setWatchStreamProvider: (provider: WatchStreamProvider) => void;
+  anilibertyAlias: string | null;
+  streamErrorCode: string | null;
+  /** Показати кнопки Japanese / English / AniLiberty після збою стріму. */
+  showStreamRecovery: boolean;
+  onStreamRecoveryChoice: (choice: 'japanese' | 'english' | 'aniliberty') => void;
 }

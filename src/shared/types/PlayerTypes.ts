@@ -1,3 +1,4 @@
+import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { AnimeData } from './animeDetailsTypes';
 import type { EpisodesTypes } from './EpisodesListTypes';
 import type { ServerInfo } from './GlobalAnimeTypes';
@@ -26,6 +27,10 @@ export interface PlayerProps {
   servers: ServerInfo[] | null;
   activeServerId: string | null;
   setActiveServerId: (id: string | null) => void;
+  watchStreamProvider: WatchStreamProvider;
+  setWatchStreamProvider: (provider: WatchStreamProvider) => void;
+  /** Alias AniLiberty для пункту Language; епізоди з AnimeKai. */
+  anilibertyAlias: string | null;
   onPlaybackError?: () => void;
 }
 

@@ -1,6 +1,6 @@
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { EpisodeFindInput } from './components/EpisodeFindInput';
 import { EpisodeListToolbar } from './components/EpisodeListToolbar';
 import { EpisodeGridItem } from './components/EpisodeGridItem';
@@ -55,6 +55,13 @@ export function Episodelist({
   const { listContainerRef, activeEpisodeRef } =
     useEpisodelistScroll(activeEpisodeId);
 
+  const visibleEpisodesInRange = useMemo(() => {
+    const [start, end] = selectedRange;
+    return episodes.filter(
+      (e) => e.episode_no >= start && e.episode_no <= end
+    );
+  }, [episodes, selectedRange]);
+
   const handleEpisodeSelect = useCallback(
     (episodeNumber: string) => {
       onEpisodeClick(episodeNumber);
@@ -98,9 +105,7 @@ export function Episodelist({
       <EpisodelistScrollArea listContainerRef={listContainerRef}>
         <div className={gridClassName}>
           {totalEpisodes > 30
-            ? episodes
-                .slice(selectedRange[0] - 1, selectedRange[1])
-                .map((item, index) => {
+            ? visibleEpisodesInRange.map((item) => {
                   const episodeNumber =
                     getEpisodeNumberFromId(item?.id) ?? '';
                   const isActive =
@@ -115,7 +120,7 @@ export function Episodelist({
                     <EpisodeGridItem
                       key={item?.id}
                       item={item}
-                      displayNumber={index + selectedRange[0]}
+                      displayNumber={item.episode_no}
                       episodeNumber={episodeNumber}
                       isActive={isActive}
                       isSearched={isSearched}
@@ -125,7 +130,7 @@ export function Episodelist({
                     />
                   );
                 })
-            : episodes?.map((item, index) => {
+            : episodes?.map((item) => {
                 const episodeNumber =
                   getEpisodeNumberFromId(item?.id) ?? '';
                 const isActive =
@@ -140,7 +145,6 @@ export function Episodelist({
                   <EpisodeListItem
                     key={item?.id}
                     item={item}
-                    listIndex={index + 1}
                     episodeNumber={episodeNumber}
                     isActive={isActive}
                     isSearched={isSearched}

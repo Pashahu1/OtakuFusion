@@ -53,6 +53,11 @@ export default function Watch() {
     setActiveServerId,
     servers,
     playerShellPending,
+    watchStreamProvider,
+    setWatchStreamProvider,
+    anilibertyAlias,
+    showStreamRecovery,
+    onStreamRecoveryChoice,
   } = useWatch(animeId || '', urlEp ?? undefined);
 
   const hasAppliedSavedEpisodeRef = useRef(false);
@@ -133,6 +138,11 @@ export default function Watch() {
             setActiveServerId={setActiveServerId}
             showErrorBlock={showErrorBlock}
             playerShellPending={playerShellPending}
+            watchStreamProvider={watchStreamProvider}
+            setWatchStreamProvider={setWatchStreamProvider}
+            anilibertyAlias={anilibertyAlias}
+            showStreamRecovery={showStreamRecovery}
+            onStreamRecoveryChoice={onStreamRecoveryChoice}
           />
 
           <WatchInfoPanel

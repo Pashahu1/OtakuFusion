@@ -16,6 +16,11 @@ export interface AnimeData {
   data_id: number;
   mal_id: number | null;
   title: string;
+  /**
+   * Назви серій з AniList `streamingEpisodes` (ключ — номер серії як рядок).
+   * Покриття часткове; рядки на кшталт «Episode 12 - …» зіставляються за номером.
+   */
+  anilistEpisodeTitles?: Record<string, string>;
   /** AniList `title.romaji` — для зіставлення з AnimeKai надійніше за англ. локалізацію. */
   romaji_title?: string;
   japanese_title: string;

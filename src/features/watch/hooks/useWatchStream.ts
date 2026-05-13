@@ -4,6 +4,7 @@ import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
+import type { WatchStreamProvider } from '@/lib/watch-provider';
 import { resolveWatchStream } from '@/services/resolveWatchStream';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 
@@ -16,6 +17,8 @@ export interface UseWatchStreamReturn {
   intro: Segment | null;
   outro: Segment | null;
   error: string | null;
+  /** Сирий код помилки резолву (до локалізації) — для UI відновлення стріму. */
+  errorCode: string | null;
 }
 
 interface WatchResolveOptions {
@@ -26,22 +29,41 @@ interface WatchResolveOptions {
   preferredLang: 'sub' | 'dub';
   /** Після успішного резолву — синхронізувати перемикач Sub/Dub із реальною доріжкою (`stream.lang`). */
   onPlaybackLangResolved?: (lang: 'sub' | 'dub') => void;
+  watchStreamProvider: WatchStreamProvider;
+  anilibertyAlias: string | null;
+  /** Поки `false` — не резолвити AniLiberty (очікуємо `/api/anilibria/match`). */
+  anilibertyMatchDone: boolean;
+  /** Інкремент після вибору в UI відновлення — повторний резолв навіть без зміни провайдера. */
+  streamRecoveryNonce: number;
 }
 
-/** Відомі коди помилок GET /api/watch/resolve на бекенді AnimeKai (не з нашого коду). */
+/** Known error codes from GET /api/watch/resolve (AnimeKai backend). */
 const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   'no_working_source|sub_not_available':
-    'AnimeKai / резолвер не віддав робочий саб для цього епізоду (sub_not_available). Спробуйте Dub, інший епізод або пізніше — зазвичай це зміна сайту, лінків або зовнішнього розшифрування, а не вашого коду.',
+    'AnimeKai could not return a working sub stream for this episode (sub_not_available). Try dub, another episode, or later — the site, links, or decryption may have changed.',
   'no_working_source|dub_not_available':
-    'Для цього епізоду не знайдено робочого дубу (dub_not_available). Спробуйте Sub або інший епізод.',
+    'No working dub stream was found for this episode (dub_not_available). Try sub or another episode.',
   no_working_source:
-    'Бекенд не зміг отримати робоче відео (HLS): джерело на AnimeKai недоступне, зламане шифрування або змінився сайт. Спробуйте інший епізод, перемкніть Sub/Dub або повторіть пізніше.',
+    'Could not get working HLS video: the AnimeKai source may be down, encrypted differently, or the site changed. Try another episode, switch sub/dub, or retry later.',
+  anilibria_not_found:
+    'No AniLiberty release matched this title from AniList. Try AnimeKai or another title.',
+  anilibria_no_episodes:
+    'This AniLiberty release has no playable episodes yet or the list is empty.',
+  anilibria_no_hls:
+    'AniLiberty did not return an HLS URL for this episode. Try another episode or AnimeKai.',
+  anilibria_stream_failed:
+    'Could not load video from AniLiberty. Try again later or switch to AnimeKai.',
+  anilibria_bundle_failed:
+    'Could not load AniLiberty data (release or episode lookup).',
+  anilibria_missing_alias:
+    'Internal error: missing AniLiberty release alias. Refresh the page.',
+  episode_out_of_range: 'Invalid episode number for AniLiberty.',
   'lang must be sub or dub':
-    'Некоректний параметр мови стріму. Оновіть сторінку або перемкніть Sub/Dub.',
+    'Invalid stream language parameter. Refresh the page or toggle sub/dub.',
 };
 
 function getErrorMessage(err: unknown): string {
-  if (!(err instanceof Error)) return 'Сталася помилка.';
+  if (!(err instanceof Error)) return 'Something went wrong.';
   const key = err.message.trim();
   return (
     WATCH_RESOLVE_UPSTREAM_HINTS[key] ??
@@ -128,6 +150,7 @@ export function useWatchStream(
   const [intro, setIntro] = useState<Segment | null>(null);
   const [outro, setOutro] = useState<Segment | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (!watchResolveOptions?.animeInfo || !watchResolveOptions.episodeId) {
@@ -139,6 +162,7 @@ export function useWatchStream(
       setOutro(null);
       setBuffering(false);
       setError(null);
+      setErrorCode(null);
       return;
     }
 
@@ -146,6 +170,7 @@ export function useWatchStream(
     const controller = new AbortController();
     const { signal } = controller;
     setError(null);
+    setErrorCode(null);
     setBuffering(true);
     setStreamInfo(null);
     setStreamUrl(null);
@@ -154,11 +179,75 @@ export function useWatchStream(
     setIntro(null);
     setOutro(null);
 
+    const provider = watchResolveOptions.watchStreamProvider ?? 'kai';
+    if (provider === 'anilibria') {
+      const matchDone = watchResolveOptions.anilibertyMatchDone;
+      const alias = watchResolveOptions.anilibertyAlias?.trim();
+      if (!matchDone || !alias) {
+        return () => controller.abort();
+      }
+    }
+
     void (async () => {
       try {
         const episodeNumber = Number(watchResolveOptions.episodeId);
         if (!Number.isFinite(episodeNumber) || episodeNumber <= 0) {
           throw new Error('Invalid episode number.');
+        }
+
+        if (provider === 'anilibria') {
+          const alias = watchResolveOptions.anilibertyAlias?.trim();
+          if (!alias) {
+            throw new Error('anilibria_missing_alias');
+          }
+          const streamRes = await fetch(
+            `/api/anilibria/stream?${new URLSearchParams({
+              alias,
+              episode: String(Math.floor(episodeNumber)),
+            })}`,
+            { signal, headers: { accept: 'application/json' } }
+          );
+          let body: {
+            success?: boolean;
+            url?: string;
+            intro?: { start: number; end: number } | null;
+            outro?: { start: number; end: number } | null;
+            error?: string;
+          };
+          try {
+            body = (await streamRes.json()) as typeof body;
+          } catch {
+            throw new Error('anilibria_stream_failed');
+          }
+          if (!streamRes.ok || body.success !== true || !body.url?.trim()) {
+            const er =
+              typeof body.error === 'string' && body.error.trim()
+                ? body.error.trim()
+                : 'anilibria_stream_failed';
+            throw new Error(er);
+          }
+          const url = body.url.trim();
+          if (signal.aborted) return;
+          setStreamInfo({
+            streamingLink: [
+              {
+                id: 1,
+                type: 'sub',
+                link: { file: url, type: 'hls' },
+                tracks: [],
+                intro: parseSegment(body.intro) ?? { start: 0, end: 0 },
+                outro: parseSegment(body.outro) ?? { start: 0, end: 0 },
+                server: 'AniLiberty',
+              },
+            ],
+            servers: [],
+          });
+          setStreamUrl(url);
+          setSubtitles([]);
+          setThumbnail(null);
+          setIntro(parseSegment(body.intro));
+          setOutro(parseSegment(body.outro));
+          return;
         }
 
         const tracks = [] as VideoTrack[];
@@ -227,6 +316,8 @@ export function useWatchStream(
           });
         }
 
+        if (signal.aborted) return;
+
         setStreamInfo({
           streamingLink: [
             {
@@ -259,6 +350,11 @@ export function useWatchStream(
         if (signal.aborted) return;
         if (err instanceof Error && err.name === 'AbortError') return;
         console.error('Error resolving watch stream:', err);
+        const raw =
+          err instanceof Error && typeof err.message === 'string'
+            ? err.message.trim()
+            : 'unknown';
+        setErrorCode(raw);
         setError(getErrorMessage(err));
       } finally {
         if (!signal.aborted) setBuffering(false);
@@ -277,5 +373,6 @@ export function useWatchStream(
     intro,
     outro,
     error,
+    errorCode,
   };
 }

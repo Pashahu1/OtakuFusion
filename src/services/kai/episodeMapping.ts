@@ -31,7 +31,8 @@ function toSafeEpisodeNumber(value: number | string): number {
   return Math.floor(parsed);
 }
 
-function resolveEpisodeNumber(episode: AnimeKaiEpisode, indexInResponse: number): number {
+/** Номер серії з полів API; без «угадайки» за індексом у масиві (порядок відповіді може бути не хронологічним). */
+function explicitEpisodeNumberFromFields(episode: AnimeKaiEpisode): number | null {
   const candidates: unknown[] = [
     episode.number,
     episode.episode,
@@ -45,7 +46,7 @@ function resolveEpisodeNumber(episode: AnimeKaiEpisode, indexInResponse: number)
     const n = toSafeEpisodeNumber(c as number | string);
     if (n >= 1) return n;
   }
-  return indexInResponse + 1;
+  return null;
 }
 
 function isExplicitTrue(v: unknown): boolean {
@@ -78,7 +79,17 @@ export function mapAnimeKaiEpisodesResponseToResult(
     throw new Error(data.error.trim());
   }
 
-  const episodesRaw = Array.isArray(data.episodes) ? data.episodes : [];
+  const episodesRaw = Array.isArray(data.episodes) ? [...data.episodes] : [];
+  const hasAnyExplicit = episodesRaw.some((e) => explicitEpisodeNumberFromFields(e) != null);
+  episodesRaw.sort((a, b) => {
+    const na = explicitEpisodeNumberFromFields(a);
+    const nb = explicitEpisodeNumberFromFields(b);
+    if (na != null && nb != null) return na - nb;
+    if (na != null) return -1;
+    if (nb != null) return 1;
+    return 0;
+  });
+
   const episodeMap = new Map<
     number,
     {
@@ -98,7 +109,16 @@ export function mapAnimeKaiEpisodesResponseToResult(
 
   for (let i = 0; i < episodesRaw.length; i++) {
     const episode = episodesRaw[i];
-    const episodeNumber = resolveEpisodeNumber(episode, i);
+    const explicitNo = explicitEpisodeNumberFromFields(episode);
+    const episodeNumber =
+      explicitNo != null
+        ? explicitNo
+        : hasAnyExplicit
+          ? null
+          : i + 1;
+    if (episodeNumber == null || !Number.isFinite(episodeNumber) || episodeNumber <= 0) {
+      continue;
+    }
     const token = episode.token?.trim() ?? '';
     if (!token) continue;
 

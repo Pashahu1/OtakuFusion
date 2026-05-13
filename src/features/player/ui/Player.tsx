@@ -23,6 +23,9 @@ export function Player({
   servers = null,
   activeServerId = null,
   setActiveServerId = () => {},
+  watchStreamProvider,
+  setWatchStreamProvider,
+  anilibertyAlias,
   onPlaybackError,
 }: PlayerProps) {
   const currentEpisodeIndex =
@@ -49,6 +52,9 @@ export function Player({
     servers,
     activeServerId,
     setActiveServerId,
+    watchStreamProvider,
+    setWatchStreamProvider,
+    anilibertyAlias,
     onPlaybackError,
   });
 

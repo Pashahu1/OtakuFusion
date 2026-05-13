@@ -4,6 +4,7 @@
  */
 export { useWatch } from './hooks/useWatch';
 export { useWatchAnime, type UseWatchAnimeReturn } from './hooks/useWatchAnime';
+export type { WatchStreamProvider } from '@/lib/watch-provider';
 export {
   useWatchStream,
   type UseWatchStreamReturn,

@@ -41,6 +41,9 @@ export interface UseArtplayerInstanceParams {
   servers: PlayerProps['servers'];
   activeServerId: PlayerProps['activeServerId'];
   setActiveServerId: PlayerProps['setActiveServerId'];
+  watchStreamProvider: PlayerProps['watchStreamProvider'];
+  setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
+  anilibertyAlias: PlayerProps['anilibertyAlias'];
   onPlaybackError: PlayerProps['onPlaybackError'];
 }
 
@@ -65,6 +68,9 @@ export function useArtplayerInstance({
   servers,
   activeServerId,
   setActiveServerId,
+  watchStreamProvider,
+  setWatchStreamProvider,
+  anilibertyAlias,
   onPlaybackError,
 }: UseArtplayerInstanceParams) {
   const artRef = useRef<HTMLDivElement>(null);
@@ -92,8 +98,10 @@ export function useArtplayerInstance({
       .join('\n');
     const iKey = intro ? `${intro.start}:${intro.end}` : '·';
     const oKey = outro ? `${outro.start}:${outro.end}` : '·';
-    return [streamUrl, thumbnail ?? '', iKey, oKey, subKey].join('\f');
-  }, [streamUrl, thumbnail, intro, outro, subtitles]);
+    return [streamUrl, thumbnail ?? '', iKey, oKey, subKey, watchStreamProvider, anilibertyAlias ?? ''].join(
+      '\f'
+    );
+  }, [streamUrl, thumbnail, intro, outro, subtitles, watchStreamProvider, anilibertyAlias]);
 
   useEffect(() => {
     serversRef.current = servers;
@@ -334,13 +342,20 @@ export function useArtplayerInstance({
         subtitles,
         streamInfo?.streamingLink?.[0]?.type ?? null,
         serversRef,
-        activeServerIdRef
+        activeServerIdRef,
+        watchStreamProvider,
+        setWatchStreamProvider,
+        anilibertyAlias
       );
       queueMicrotask(() => {
         updateContinueWatching(animeInfo, episodeId, episodeNum);
       });
 
-      const storedQualitySnapshot = readHlsQualityPreference();
+      /** AniLiberty: маніфест часто має «OP» тощо — не тягнемо глобальний best-display/sub, стартуємо з ABR (Auto). */
+      const storedQualitySnapshot =
+        watchStreamProvider === 'anilibria'
+          ? ('auto' as const)
+          : readHlsQualityPreference();
 
       const plugins = art.plugins as unknown as {
         artplayerPluginHlsControl?: { update?: () => void };
