@@ -69,6 +69,31 @@ class WatchResolveNonOkError extends Error {
   }
 }
 
+/**
+ * Після `unstable_cache` у проді `instanceof` інколи не збігається з класом; також Next може обгорнути помилку.
+ */
+function extractWatchResolveNonOkOutcome(err: unknown): WatchResolveOutcome | null {
+  if (err instanceof WatchResolveNonOkError) {
+    return err.outcome;
+  }
+  if (typeof err !== 'object' || err === null) return null;
+  const rec = err as Record<string, unknown>;
+  const outcome = rec.outcome;
+  if (!outcome || typeof outcome !== 'object' || Array.isArray(outcome)) return null;
+  const o = outcome as Record<string, unknown>;
+  const status = o.status;
+  const body = o.body;
+  if (
+    typeof status === 'number' &&
+    body !== null &&
+    typeof body === 'object' &&
+    !Array.isArray(body)
+  ) {
+    return { status, body: body as Record<string, unknown> };
+  }
+  return null;
+}
+
 function getNormalizedLang(sp: URLSearchParams): WatchLang {
   const raw = sp.get('lang') ?? sp.get('language');
   return raw?.trim().toLowerCase() === 'dub' ? 'dub' : 'sub';
@@ -212,7 +237,10 @@ function extractKeyword(sp: URLSearchParams): string | undefined {
   return undefined;
 }
 
-async function computeWatchResolveOutcome(req: Request): Promise<WatchResolveOutcome> {
+async function computeWatchResolveOutcome(
+  req: Request,
+  options?: { publicOrigin: string }
+): Promise<WatchResolveOutcome> {
   const startedAt = Date.now();
   const url = new URL(req.url);
   const lang = getNormalizedLang(url.searchParams);
@@ -229,7 +257,7 @@ async function computeWatchResolveOutcome(req: Request): Promise<WatchResolveOut
   }
 
   const probeCfg = readWatchProbeConfig(lang);
-  const origin = url.origin;
+  const origin = options?.publicOrigin ?? url.origin;
 
   try {
     const explicitAniId = url.searchParams.get('ani_id')?.trim();
@@ -396,18 +424,23 @@ async function handleWatchResolve(req: Request): Promise<Response> {
 
   const url = new URL(req.url);
   const cacheKey = canonicalResolveKey(url);
-
-  const fetchCached = unstable_cache(
-    async () => {
-      const o = await computeWatchResolveOutcome(req);
-      if (o.status !== 200) throw new WatchResolveNonOkError(o);
-      return o.body;
-    },
-    ['watch-resolve-data-v1', cacheKey],
-    { revalidate: watchResolveCacheRevalidateSec() }
-  );
+  const publicOrigin = url.origin;
 
   try {
+    const fetchCached = unstable_cache(
+      async () => {
+        const replayHref = new URL(cacheKey, 'https://watch-resolve.replay');
+        const syntheticReq = new Request(replayHref);
+        const o = await computeWatchResolveOutcome(syntheticReq, {
+          publicOrigin,
+        });
+        if (o.status !== 200) throw new WatchResolveNonOkError(o);
+        return o.body;
+      },
+      ['watch-resolve-data-v1', cacheKey, publicOrigin],
+      { revalidate: watchResolveCacheRevalidateSec() }
+    );
+
     const body = await fetchCached();
     const prevDebug = body.debug;
     const nextBody: Record<string, unknown> =
@@ -423,32 +456,45 @@ async function handleWatchResolve(req: Request): Promise<Response> {
         : { ...body, debug: { latency_ms: 0, cache_hit: true } };
     return outcomeToResponse({ status: 200, body: nextBody });
   } catch (err) {
-    if (err instanceof WatchResolveNonOkError) {
-      return outcomeToResponse(err.outcome);
+    const nonOk = extractWatchResolveNonOkOutcome(err);
+    if (nonOk) {
+      return outcomeToResponse(nonOk);
     }
-    throw err;
+    console.error('[watch/resolve] unstable_cache path failed, uncached fallback', err);
+    return outcomeToResponse(await computeWatchResolveOutcome(req));
   }
 }
 
 export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const episode = parseEpisodeNumber(url.searchParams);
+  try {
+    const url = new URL(req.url);
+    const episode = parseEpisodeNumber(url.searchParams);
 
-  if (episode == null) {
+    if (episode == null) {
+      return Response.json(
+        {
+          success: false,
+          error: 'episode is required and must be a positive integer',
+        },
+        { status: 400 }
+      );
+    }
+
+    const key = canonicalResolveKey(url);
+    let pending = inflightResolve.get(key);
+    if (!pending) {
+      pending = handleWatchResolve(req).finally(() => inflightResolve.delete(key));
+      inflightResolve.set(key, pending);
+    }
+    return await pending;
+  } catch (err) {
+    console.error('[watch/resolve] GET fatal', err);
     return Response.json(
       {
         success: false,
-        error: 'episode is required and must be a positive integer',
+        error: err instanceof Error ? err.message : 'watch_resolve_fatal',
       },
-      { status: 400 }
+      { status: 500, headers: { 'Cache-Control': 'no-store' } }
     );
   }
-
-  const key = canonicalResolveKey(url);
-  let pending = inflightResolve.get(key);
-  if (!pending) {
-    pending = handleWatchResolve(req).finally(() => inflightResolve.delete(key));
-    inflightResolve.set(key, pending);
-  }
-  return pending;
 }
