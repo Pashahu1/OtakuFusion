@@ -130,7 +130,6 @@ function searchHitFromRelease(
 const MIN_ANILIBRIA_POST_RELEASE_SCORE = 38;
 /** Для фільмів / one-shot — титул + рік важливіші за жорсткий тип у API Libria; лишаємо поріг ближче до пошукового. */
 const MIN_ANILIBRIA_POST_RELEASE_ONESHOT = 33;
-const MIN_ANILIBRIA_LONG_CATALOG_MATCH_SCORE = 68;
 
 function strictReleaseAcceptsAnilist(
   data: AnimeData,
@@ -151,11 +150,6 @@ function strictReleaseAcceptsAnilist(
   const s = scoreAnilibriaSearchHit(hit, data);
   const minPost = isAnilistOneShotTitle(data) ? MIN_ANILIBRIA_POST_RELEASE_ONESHOT : MIN_ANILIBRIA_POST_RELEASE_SCORE;
   if (s < minPost) return false;
-
-  const expected = parseAnilistEpisodeTotalHint(data);
-  if (!isAnilistOneShotTitle(data) && expected != null && expected >= 96 && libCount > 0 && libCount <= 40) {
-    if (libCount * 3 < expected && s < MIN_ANILIBRIA_LONG_CATALOG_MATCH_SCORE) return false;
-  }
 
   return true;
 }
@@ -217,10 +211,6 @@ function shouldDropAnilibriaHit(data: AnimeData, hit: AnilibriaSearchHit): boole
   const libFmt = normalizeAnilibriaFormat(hit.type?.value);
   const epsHint = parseAnilistEpisodeTotalHint(data);
   const alias = (hit.alias ?? '').toLowerCase();
-  const libEp =
-    typeof hit.episodes_total === 'number' && Number.isFinite(hit.episodes_total)
-      ? hit.episodes_total
-      : null;
 
   if (aniFmt === 'TV' && libFmt === 'MOVIE' && epsHint != null && epsHint >= 3) {
     return true;
@@ -244,9 +234,6 @@ function shouldDropAnilibriaHit(data: AnimeData, hit: AnilibriaSearchHit): boole
       'chimi',
     ];
     if (spinoff.some((p) => alias.includes(p))) return true;
-  }
-  if (aniFmt === 'TV' && libFmt === 'TV' && epsHint != null && epsHint >= 20 && libEp != null && libEp <= 3) {
-    if (!alias.includes('recap') && !alias.includes('summary')) return true;
   }
   return false;
 }
@@ -326,34 +313,17 @@ function formatAndEpisodeScore(data: AnimeData, hit: AnilibriaSearchHit): number
   else if (aniM && libM) {
     score += 200;
   } else if (aniM && !libM) {
-    const want = parseAnilistEpisodeTotalHint(data);
     const got =
       typeof hit.episodes_total === 'number' && Number.isFinite(hit.episodes_total)
         ? hit.episodes_total
         : null;
     const oneShotLib = got != null && got <= 2;
-    const oneShotWant = want == null || want <= 2;
-    if (oneShotWant && oneShotLib) score += 40;
+    if (oneShotLib) score += 40;
     else score -= 320;
   } else if (!aniM && libM) {
     score -= 380;
   } else {
     score -= 120;
-  }
-
-  const want = parseAnilistEpisodeTotalHint(data);
-  const got =
-    typeof hit.episodes_total === 'number' && Number.isFinite(hit.episodes_total)
-      ? hit.episodes_total
-      : null;
-  if (want != null && got != null) {
-    const diff = Math.abs(want - got);
-    if (diff === 0) score += 220;
-    else if (want >= 10 && got <= 2) score -= 320;
-    else if (want <= 3 && got >= 12) score -= 160;
-    else if (diff <= 1) score += 140;
-    else if (diff <= Math.max(3, Math.ceil(want * 0.12))) score += 90;
-    else score -= Math.min(180, diff * 5);
   }
 
   return score;
@@ -703,7 +673,7 @@ const MATCH_CACHE_SECONDS = 5 * 60;
 
 const cachedMatch = unstable_cache(
   async (anilistId: string) => loadAnilibriaMatchAliasUncached(anilistId),
-  ['anilibria-match-alias', 'v9-mushoku-collateral'],
+  ['anilibria-match-alias', 'v10-no-episode-count-guard'],
   { revalidate: MATCH_CACHE_SECONDS }
 );
 
@@ -784,7 +754,7 @@ const BUNDLE_CACHE_SECONDS = 5 * 60;
 
 const cachedBundle = unstable_cache(
   async (anilistId: string) => loadAnilibriaWatchBundleUncached(anilistId),
-  ['anilibria-watch-bundle', 'v9-mushoku-collateral'],
+  ['anilibria-watch-bundle', 'v10-no-episode-count-guard'],
   { revalidate: BUNDLE_CACHE_SECONDS }
 );
 

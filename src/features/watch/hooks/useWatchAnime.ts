@@ -7,9 +7,9 @@ import { animekaiClient, type AnimeKaiResolvedMapping } from '@/lib/animekai-cli
 import {
   buildAnimeKaiSearchTerms,
   buildAnimeKaiResolveHints,
-  estimateAnimeKaiCatalogEpisodeCount,
   resolveAnimeKaiAniId,
 } from '@/services/animekaiResolve';
+import { alignKaiEpisodesToAnilistSeasonStart } from '@/lib/alignKaiEpisodesToAnilistSeason';
 import { aggregateCatalogStreamCounts } from '@/shared/utils/catalogStreamCounts';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { mergeKaiEpisodesWithAnilistTitles } from '@/lib/mergeKaiEpisodesWithAnilistTitles';
@@ -40,38 +40,6 @@ function getErrorMessage(err: unknown): string {
 
 function getMappingCacheKey(localAnimeId: string): string {
   return `animekai:mapping:${localAnimeId}`;
-}
-
-/** Очікуваний тотал епізодів з AniList — `tvInfo.episodeTotal`. */
-function parseExpectedEpisodesFromAnimeData(data: AnimeData): number {
-  const raw = data.animeInfo?.tvInfo?.episodeTotal?.trim();
-  if (!raw) return 0;
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
-}
-
-function maxEpisodeNumberFromList(list: EpisodesTypes[]): number {
-  if (!list.length) return 0;
-  return Math.max(...list.map((e) => e.episode_no));
-}
-
-/**
- * Кешований ani_id інколи вказує на «короткий» запис (наприклад лише dub-пакет), тоді як у AniList повний серіал.
- * Один раз скидаємо кеш і перезапускаємо резолв без localStorage.
- */
-function shouldRemapStaleCacheByEpisodeCount(params: {
-  expectedFromAnilist: number;
-  providerEpisodes: EpisodesTypes[];
-  providerTotalEpisodes: number;
-}): boolean {
-  const { expectedFromAnilist, providerEpisodes, providerTotalEpisodes } = params;
-  if (expectedFromAnilist < 24) return false;
-  const maxNo = maxEpisodeNumberFromList(providerEpisodes);
-  const len = providerEpisodes.length;
-  const best = Math.max(maxNo, len, providerTotalEpisodes);
-  if (best <= 0) return false;
-  const gap = expectedFromAnilist - best;
-  return best < expectedFromAnilist * 0.45 && gap >= 50;
 }
 
 function readVerifiedMapping(localAnimeId: string): AnimeKaiResolvedMapping | null {
@@ -239,17 +207,10 @@ export function useWatchAnime(
           const { ani_id } = resolved;
           if (cancelled) return;
 
-          const [episodesData, catalogHint] = await Promise.all([
-            getKaiEpisodesFromBff(ani_id, signal),
-            estimateAnimeKaiCatalogEpisodeCount(searchTerms, signal, resolveHints),
-          ]);
+          const episodesData = await getKaiEpisodesFromBff(ani_id, signal);
 
           if (cancelled) return;
 
-          let expectedEps = parseExpectedEpisodesFromAnimeData(dataForResolve);
-          if (typeof catalogHint === 'number' && catalogHint > expectedEps) {
-            expectedEps = catalogHint;
-          }
           const list = episodesData.episodes ?? [];
 
           if (!list.length) {
@@ -273,30 +234,6 @@ export function useWatchAnime(
             return;
           }
 
-          const provTotal =
-            typeof episodesData.totalEpisodes === 'number' && episodesData.totalEpisodes > 0
-              ? episodesData.totalEpisodes
-              : list.length;
-
-          const truncatedVsAnilist =
-            expectedEps > 0 &&
-            shouldRemapStaleCacheByEpisodeCount({
-              expectedFromAnilist: expectedEps,
-              providerEpisodes: list,
-              providerTotalEpisodes: provTotal,
-            });
-
-          if (truncatedVsAnilist && episodeRemapPass === 0) {
-            settleLoading = false;
-            try {
-              localStorage.removeItem(getMappingCacheKey(animeId));
-            } catch {
-              /* ignore */
-            }
-            setEpisodeRemapPass((n) => n + 1);
-            return;
-          }
-
           writeVerifiedMapping(animeId, {
             ani_id,
             slug: resolved.slug,
@@ -304,26 +241,20 @@ export function useWatchAnime(
           });
           setProviderAnimeId(ani_id);
 
-          if (truncatedVsAnilist && episodeRemapPass >= 1) {
-            if (healthcheckDebounceRef.current) clearTimeout(healthcheckDebounceRef.current);
-            healthcheckDebounceRef.current = setTimeout(() => {
-              void animekaiClient.healthcheckMapping({
-                local_anime_id: animeId,
-                anilist_id: dataForResolve.id,
-                mal_id: dataForResolve.mal_id ?? undefined,
-                ani_id,
-                reason: 'episode_count_mismatch_anilist',
-              });
-            }, 600);
-          }
-
           const mergedEpisodes = mergeKaiEpisodesWithAnilistTitles(
-            list,
+            alignKaiEpisodesToAnilistSeasonStart(
+              list,
+              dataForResolve.anilistEpisodeTitles
+            ),
             dataForResolve.anilistEpisodeTitles
           );
 
           setEpisodes(mergedEpisodes);
-          setTotalEpisodes(episodesData.totalEpisodes ?? null);
+          setTotalEpisodes(
+            mergedEpisodes.length > 0
+              ? mergedEpisodes.length
+              : episodesData.totalEpisodes ?? null
+          );
 
           const counts = aggregateCatalogStreamCounts(mergedEpisodes);
           setAnimeInfo((prev) => {
@@ -380,9 +311,8 @@ export function useWatchAnime(
 
     const previous = readEpisodeHealth(animeId);
 
-    const suspiciousLowCount = currentEpisodeCount <= 3;
     const suspiciousDubDrop = previous?.hasDub === true && !hasDubNow;
-    if (suspiciousLowCount || suspiciousDubDrop) {
+    if (suspiciousDubDrop) {
       if (healthcheckDebounceRef.current) {
         clearTimeout(healthcheckDebounceRef.current);
       }
@@ -392,7 +322,7 @@ export function useWatchAnime(
           anilist_id: animeInfo.id,
           mal_id: animeInfo.mal_id ?? undefined,
           ani_id: providerAnimeId,
-          reason: suspiciousLowCount ? 'episodes_too_low' : 'dub_disappeared',
+          reason: 'dub_disappeared',
         });
       }, 1200);
     }
