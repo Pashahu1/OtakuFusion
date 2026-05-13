@@ -13,6 +13,73 @@ import { anilibriaFetchText } from './http';
 
 const ANILIBRIA_SEARCH_INCLUDE = 'id,alias,name,year,type,episodes_total';
 
+/** Рідкісні жанри дають додаткові «голки» для скорингу; загальні — лише шум. */
+const ANILIST_GENRE_STOP = new Set(
+  [
+    'action',
+    'adventure',
+    'comedy',
+    'drama',
+    'fantasy',
+    'sci-fi',
+    'sci fi',
+    'romance',
+    'slice of life',
+    'supernatural',
+    'thriller',
+    'mystery',
+    'horror',
+    'mecha',
+    'sports',
+    'music',
+    'psychological',
+    'school',
+    'shounen',
+    'shoujo',
+    'seinen',
+    'josei',
+    'kids',
+    'ecchi',
+    'harem',
+    'martial arts',
+    'military',
+    'parody',
+    'samurai',
+    'super power',
+    'vampire',
+    'demons',
+  ].map((s) => s.toLowerCase())
+);
+
+let anilibriaAliasOverrideCache: Map<string, string> | null = null;
+
+function readAnilibriaAnilistAliasOverrides(): Map<string, string> {
+  if (anilibriaAliasOverrideCache) return anilibriaAliasOverrideCache;
+  const raw = process.env.ANILIBRIA_ANILIST_ALIAS_JSON?.trim();
+  if (!raw) {
+    anilibriaAliasOverrideCache = new Map();
+    return anilibriaAliasOverrideCache;
+  }
+  try {
+    const o = JSON.parse(raw) as Record<string, unknown>;
+    const m = new Map<string, string>();
+    for (const [k, v] of Object.entries(o)) {
+      const id = String(k).trim();
+      const alias = typeof v === 'string' ? v.trim() : '';
+      if (/^\d+$/.test(id) && alias) m.set(id, alias);
+    }
+    anilibriaAliasOverrideCache = m;
+    return m;
+  } catch {
+    anilibriaAliasOverrideCache = new Map();
+    return anilibriaAliasOverrideCache;
+  }
+}
+
+function getManualAnilibriaAliasForAnilistId(anilistId: string): string | null {
+  return readAnilibriaAnilistAliasOverrides().get(anilistId.trim()) ?? null;
+}
+
 interface AnilibriaSearchHit {
   id?: number;
   alias?: string;
@@ -113,6 +180,55 @@ function shouldDropAnilibriaHit(data: AnimeData, hit: AnilibriaSearchHit): boole
   return false;
 }
 
+/** Для перевірок «чи це той самий франшизний тайтл», а не Shingeki no Bahamut тощо. */
+function combinedHitHaystack(hit: AnilibriaSearchHit): string {
+  const parts = [hit.alias, hit.name?.english, hit.name?.main, hit.name?.alternative];
+  return normalizeComparableTitle(parts.filter(Boolean).join(' '));
+}
+
+function isAttackOnTitanFamilyByAnilist(data: AnimeData): boolean {
+  const romaji = normalizeComparableTitle(data.romaji_title || '');
+  if (romaji.includes('kyojin')) return true;
+  const eng = normalizeComparableTitle(data.title);
+  return eng.includes('attack') && eng.includes('titan');
+}
+
+/**
+ * Пошук AniLiberty за «Shingeki no Kyojin» часто повертає лише Bahamut / спін-офи.
+ * Вимагаємо маркер основного IP (кирилиця «титан», romaji kyojin, attack/titan…).
+ */
+function shouldRejectSnkBahamutCollateral(data: AnimeData, hit: AnilibriaSearchHit): boolean {
+  if (!isAttackOnTitanFamilyByAnilist(data)) return false;
+  const h = combinedHitHaystack(hit);
+  if (h.includes('kyojin')) return false;
+  if (h.includes('titan') || h.includes('titans')) return false;
+  if (h.includes('attack')) return false;
+  if (h.includes('giant') || h.includes('giants')) return false;
+  if (h.includes('титан') || h.includes('атака')) return false;
+  return true;
+}
+
+function isLikelyNarutoOriginalSeries(data: AnimeData): boolean {
+  const hint = parseAnilistEpisodeTotalHint(data);
+  if (hint == null || hint < 180 || hint > 280) return false;
+  const romaji = (data.romaji_title || '').toLowerCase();
+  if (romaji.includes('shippu')) return false;
+  if (normalizeComparableTitle(data.title) !== 'naruto') return false;
+  return true;
+}
+
+function shouldRejectNarutoOriginalWrongEdition(data: AnimeData, hit: AnilibriaSearchHit): boolean {
+  if (!isLikelyNarutoOriginalSeries(data)) return false;
+  const h = combinedHitHaystack(hit);
+  return (
+    h.includes('shippuuden') ||
+    h.includes('shippuden') ||
+    h.includes('boruto') ||
+    h.includes('uragannye') ||
+    h.includes('疾風')
+  );
+}
+
 function formatAndEpisodeScore(data: AnimeData, hit: AnilibriaSearchHit): number {
   let score = 0;
   const aniFmt = normalizeAnilibriaFormat(data.showType);
@@ -156,12 +272,7 @@ function yearSoftBonus(data: AnimeData, hit: AnilibriaSearchHit): number {
 }
 
 /** Кілька рядків пошуку: romaji + англ. + native + синоніми — перший результат AniLiberty часто не той реліз. */
-function buildAnilistSearchQueries(data: {
-  romaji_title?: string;
-  title: string;
-  japanese_title: string;
-  animeInfo?: { Japanese?: string; Synonyms?: string };
-}): string[] {
+function buildAnilistSearchQueries(data: AnimeData): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   const push = (raw?: string | null) => {
@@ -175,14 +286,21 @@ function buildAnilistSearchQueries(data: {
   };
 
   push(data.romaji_title);
-  push(data.title);
+  /** «Attack on Titan» дає хибні збіги (напр. «…2nd attack» у російській назві). */
+  const titleNorm = normalizeComparableTitle(data.title);
+  if (!(titleNorm.includes('attack') && titleNorm.includes('titan'))) {
+    push(data.title);
+  }
   push(data.japanese_title);
   push(data.animeInfo?.Japanese);
 
   const syn = data.animeInfo?.Synonyms?.trim();
   if (syn) {
-    const parts = syn.split(',').map((p) => p.trim()).filter((p) => p.length > 3);
-    for (const p of parts.slice(0, 4)) {
+    const parts = syn
+      .split(',')
+      .map((p) => p.trim())
+      .filter((p) => p.length >= 2 && p.length <= 160);
+    for (const p of parts.slice(0, 14)) {
       push(p);
     }
   }
@@ -194,7 +312,7 @@ function buildAnilistSearchQueries(data: {
     push(slug);
   }
 
-  return out.slice(0, 8);
+  return out.slice(0, 14);
 }
 
 async function collectAnilibriaSearchHitsFromAnime(
@@ -245,7 +363,12 @@ async function collectAnilibriaSearchHitsFromAnime(
   }
 
   const merged = [...byAlias.values()];
-  const hits = merged.filter((h) => !shouldDropAnilibriaHit(data, h));
+  const hits = merged.filter(
+    (h) =>
+      !shouldDropAnilibriaHit(data, h) &&
+      !shouldRejectSnkBahamutCollateral(data, h) &&
+      !shouldRejectNarutoOriginalWrongEdition(data, h)
+  );
   if (!hits.length) {
     return { ok: false, error: 'anilibria_not_found' };
   }
@@ -253,12 +376,7 @@ async function collectAnilibriaSearchHitsFromAnime(
   return { ok: true, hits };
 }
 
-function collectAnilistTitleSignals(data: {
-  romaji_title?: string;
-  title: string;
-  japanese_title: string;
-  animeInfo?: { Japanese?: string; Synonyms?: string };
-}): string[] {
+function collectAnilistTitleSignals(data: AnimeData): string[] {
   const bag: string[] = [];
   const push = (raw?: string | null) => {
     const t = raw?.trim();
@@ -274,6 +392,16 @@ function collectAnilistTitleSignals(data: {
   if (syn) {
     for (const p of syn.split(',')) {
       push(p.trim());
+    }
+  }
+  const genres = data.animeInfo?.Genres;
+  if (Array.isArray(genres)) {
+    for (const g of genres) {
+      const raw = typeof g === 'string' ? g.trim() : '';
+      if (raw.length < 4) continue;
+      const gn = normalizeComparableTitle(raw);
+      if (ANILIST_GENRE_STOP.has(gn)) continue;
+      push(raw);
     }
   }
   return [...new Set(bag.filter(Boolean))];
@@ -429,6 +557,11 @@ async function loadAnilibriaMatchAliasUncached(anilistId: string): Promise<Anili
     return { ok: false, error: 'invalid_anilist_id' };
   }
 
+  const manualAlias = getManualAnilibriaAliasForAnilistId(idTrim);
+  if (manualAlias) {
+    return { ok: true, alias: manualAlias };
+  }
+
   let animeResults: Awaited<ReturnType<typeof getAnimeInfo>>;
   try {
     animeResults = await getAnimeInfo(idTrim);
@@ -448,7 +581,7 @@ const MATCH_CACHE_SECONDS = 5 * 60;
 
 const cachedMatch = unstable_cache(
   async (anilistId: string) => loadAnilibriaMatchAliasUncached(anilistId),
-  ['anilibria-match-alias', 'v3-anilist-meta'],
+  ['anilibria-match-alias', 'v4-anilist-meta'],
   { revalidate: MATCH_CACHE_SECONDS }
 );
 
@@ -467,30 +600,7 @@ async function fetchReleaseByAlias(alias: string): Promise<AnilibriaReleaseWithE
   }
 }
 
-async function loadAnilibriaWatchBundleUncached(anilistId: string): Promise<AnilibriaWatchBundle> {
-  const idTrim = anilistId.trim();
-  if (!/^\d+$/.test(idTrim)) {
-    return { ok: false, error: 'invalid_anilist_id' };
-  }
-
-  let animeResults: Awaited<ReturnType<typeof getAnimeInfo>>;
-  try {
-    animeResults = await getAnimeInfo(idTrim);
-  } catch {
-    return { ok: false, error: 'anilist_fetch_failed' };
-  }
-
-  const data = animeResults?.data;
-  if (!data) {
-    return { ok: false, error: 'no_anilist_data' };
-  }
-
-  const matched = await resolveAnilibriaAliasForAnimeData(data);
-  if (!matched.ok) {
-    return { ok: false, error: matched.error };
-  }
-  const alias = matched.alias;
-
+async function finalizeAnilibriaWatchBundle(alias: string): Promise<AnilibriaWatchBundle> {
   const release = await fetchReleaseByAlias(alias);
   const rawEpisodes = release?.episodes;
   if (!Array.isArray(rawEpisodes) || rawEpisodes.length === 0) {
@@ -515,11 +625,41 @@ async function loadAnilibriaWatchBundleUncached(anilistId: string): Promise<Anil
   };
 }
 
+async function loadAnilibriaWatchBundleUncached(anilistId: string): Promise<AnilibriaWatchBundle> {
+  const idTrim = anilistId.trim();
+  if (!/^\d+$/.test(idTrim)) {
+    return { ok: false, error: 'invalid_anilist_id' };
+  }
+
+  const manualAlias = getManualAnilibriaAliasForAnilistId(idTrim);
+  if (manualAlias) {
+    return finalizeAnilibriaWatchBundle(manualAlias);
+  }
+
+  let animeResults: Awaited<ReturnType<typeof getAnimeInfo>>;
+  try {
+    animeResults = await getAnimeInfo(idTrim);
+  } catch {
+    return { ok: false, error: 'anilist_fetch_failed' };
+  }
+
+  const data = animeResults?.data;
+  if (!data) {
+    return { ok: false, error: 'no_anilist_data' };
+  }
+
+  const matched = await resolveAnilibriaAliasForAnimeData(data);
+  if (!matched.ok) {
+    return { ok: false, error: matched.error };
+  }
+  return finalizeAnilibriaWatchBundle(matched.alias);
+}
+
 const BUNDLE_CACHE_SECONDS = 5 * 60;
 
 const cachedBundle = unstable_cache(
   async (anilistId: string) => loadAnilibriaWatchBundleUncached(anilistId),
-  ['anilibria-watch-bundle', 'v3-anilist-meta'],
+  ['anilibria-watch-bundle', 'v4-anilist-meta'],
   { revalidate: BUNDLE_CACHE_SECONDS }
 );
 
