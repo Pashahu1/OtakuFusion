@@ -24,6 +24,29 @@ import type { PlayerProps } from '@/shared/types/PlayerTypes';
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
 
+/** Після зриву HLS `art.duration` скидається, а текст у `.art-progress-tip` може лишатися — прибираємо «спалах» тривалості. */
+function resetArtplayerProgressHoverUi(art: Artplayer) {
+  try {
+    const $player = art.template?.$player;
+    if (!$player) return;
+    $player.classList.remove('art-progress-hover');
+    const tip = $player.querySelector('.art-progress-tip');
+    if (tip) tip.textContent = '00:00';
+  } catch {
+    /* noop */
+  }
+}
+
+/** У dev за замовчуванням відкладаємо створення Hls на наступний macrotask — обхід подвійного mount Strict Mode. */
+function readPlayerDeferStrictInit(): boolean {
+  if (typeof process === 'undefined' || process.env.NODE_ENV !== 'development') {
+    return false;
+  }
+  const raw = process.env.NEXT_PUBLIC_PLAYER_DEFER_STRICT_INIT?.trim().toLowerCase();
+  if (raw === '0' || raw === 'false') return false;
+  return true;
+}
+
 export interface UseArtplayerInstanceParams {
   streamUrl: string;
   subtitles: PlayerProps['subtitles'];
@@ -41,9 +64,8 @@ export interface UseArtplayerInstanceParams {
   servers: PlayerProps['servers'];
   activeServerId: PlayerProps['activeServerId'];
   setActiveServerId: PlayerProps['setActiveServerId'];
-  watchStreamProvider: PlayerProps['watchStreamProvider'];
-  setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
-  anilibertyAlias: PlayerProps['anilibertyAlias'];
+  /** Перемикання рядка з `/api/watch/resolve` (`sources` → кілька `streamingLink`). */
+  onSelectStreamSourceIndex?: PlayerProps['onSelectStreamSourceIndex'];
   onPlaybackError: PlayerProps['onPlaybackError'];
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
 }
@@ -69,9 +91,7 @@ export function useArtplayerInstance({
   servers,
   activeServerId,
   setActiveServerId,
-  watchStreamProvider,
-  setWatchStreamProvider,
-  anilibertyAlias,
+  onSelectStreamSourceIndex,
   onPlaybackError,
   onPlaybackSurfaceReady,
 }: UseArtplayerInstanceParams) {
@@ -101,10 +121,8 @@ export function useArtplayerInstance({
       .join('\n');
     const iKey = intro ? `${intro.start}:${intro.end}` : '·';
     const oKey = outro ? `${outro.start}:${outro.end}` : '·';
-    return [streamUrl, thumbnail ?? '', iKey, oKey, subKey, watchStreamProvider, anilibertyAlias ?? ''].join(
-      '\f'
-    );
-  }, [streamUrl, thumbnail, intro, outro, subtitles, watchStreamProvider, anilibertyAlias]);
+    return [streamUrl, thumbnail ?? '', iKey, oKey, subKey].join('\f');
+  }, [streamUrl, thumbnail, intro, outro, subtitles]);
 
   useEffect(() => {
     serversRef.current = servers;
@@ -128,6 +146,19 @@ export function useArtplayerInstance({
 
   useEffect(() => {
     if (!streamUrl || !artRef.current) return;
+    /**
+     * Strict Mode (dev): перший pass ефекту знімається до того, як спрацює відкладений init —
+     * без цього Hls встигає підписатися до MSE й дає bufferAddCodec / bufferAppend на «фейковому» unmount.
+     * Вимкнути: NEXT_PUBLIC_PLAYER_DEFER_STRICT_INIT=0
+     */
+    let effectActive = true;
+    let initTimer: number | null = null;
+    let surfaceReadyTimer: number | null = null;
+    let suppressPlaybackError = false;
+    let createdPlayer: Artplayer | undefined;
+
+    const deferStrictInit = readPlayerDeferStrictInit();
+
     upNextDismissedRef.current = false;
     const container = artRef.current;
     if (artInstanceRef.current) {
@@ -148,11 +179,37 @@ export function useArtplayerInstance({
 
     container.innerHTML = '';
 
-    const headers = getStreamHeaders(streamInfo, streamUrl);
-    const fullURL = getStreamFullUrl(streamUrl, headers);
-    let surfaceReadyTimer: number | null = null;
+    const runPlayerInit = (): void => {
+      if (!effectActive || !artRef.current) return;
 
-    const art = new Artplayer({
+      const headers = getStreamHeaders(streamInfo, streamUrl);
+      const fullURL = getStreamFullUrl(streamUrl, headers);
+
+      /** Під час destroy/remount Hls/video часто шлють шумні події — не показувати «unavailable». */
+      suppressPlaybackError = false;
+
+      let hasReportedError = false;
+      let hlsRecoverNetworkTried = false;
+      /** 0 = ще не пробували; 1 = recoverMediaError; 2 = swapAudioCodec + recoverMediaError */
+      let hlsMediaRecoveryStep = 0;
+      let art: Artplayer;
+      const reportError = () => {
+        if (!effectActive || suppressPlaybackError || hasReportedError) return;
+        hasReportedError = true;
+        resetArtplayerProgressHoverUi(art);
+        try {
+          if (art.hls) {
+            art.hls.stopLoad();
+            art.hls.destroy();
+            art.hls = null;
+          }
+        } catch {
+          /* noop */
+        }
+        onPlaybackErrorRef.current?.();
+      };
+
+    art = new Artplayer({
       url: fullURL,
       container,
       type: 'm3u8',
@@ -165,7 +222,8 @@ export function useArtplayerInstance({
       fullscreen: true,
       mutex: true,
       playsInline: true,
-      lock: true,
+      /** false: `lock` на мобільних/емуляції інколи заважає старту відтворення (Chrome + HLS). */
+      lock: false,
       airplay: true,
       autoOrientation: true,
       fastForward: true,
@@ -181,89 +239,122 @@ export function useArtplayerInstance({
           hasTriggeredNextRef.current = true;
           playNextPropRef.current(episodeId);
         },
-        userPausedRef
+        userPausedRef,
+        (hls, _art) => {
+          hls.on(
+            Hls.Events.ERROR,
+            (_evt: unknown, data: {
+              fatal?: boolean;
+              type?: string;
+              response?: { code?: number };
+            }) => {
+              if (!effectActive) return;
+              if (
+                typeof process !== 'undefined' &&
+                process.env.NODE_ENV === 'development'
+              ) {
+                const d = data as {
+                  details?: unknown;
+                  reason?: unknown;
+                  fatal?: unknown;
+                };
+                const http = (data as { response?: { code?: number } }).response?.code;
+                const payload: Record<string, unknown> = {
+                  type: data?.type,
+                  fatal: data?.fatal,
+                  details: d.details,
+                };
+                if (http != null) payload.http = http;
+                if (d.reason != null && d.reason !== '') payload.reason = d.reason;
+                /** Нефатальні append-спроби (часто серія подій) — debug; фатальні MSE — warn, щоб у dev було видно причину при всіх HTTP 200. */
+                const detailsStr = String(d.details ?? '');
+                const isNoisyMseDetails =
+                  detailsStr === 'bufferAddCodecError' ||
+                  detailsStr === 'bufferAppendError';
+                const isMseNoise =
+                  data?.type === Hls.ErrorTypes.MEDIA_ERROR && isNoisyMseDetails;
+                const log =
+                  isMseNoise && !data?.fatal ? console.debug : console.warn;
+                log('[OtakuFusion][Hls]', payload);
+              }
+              if (
+                data?.type === Hls.ErrorTypes.NETWORK_ERROR &&
+                isHardHttpFailure(data)
+              ) {
+                reportError();
+                return;
+              }
+              if (data?.fatal && hls) {
+                if (
+                  data.type === Hls.ErrorTypes.NETWORK_ERROR &&
+                  !hlsRecoverNetworkTried
+                ) {
+                  hlsRecoverNetworkTried = true;
+                  try {
+                    hls.startLoad();
+                    return;
+                  } catch {
+                    /* fall through to reportError */
+                  }
+                }
+                if (data.type === Hls.ErrorTypes.MEDIA_ERROR && hlsMediaRecoveryStep < 2) {
+                  hlsMediaRecoveryStep += 1;
+                  try {
+                    if (hlsMediaRecoveryStep === 1) {
+                      hls.recoverMediaError();
+                    } else {
+                      hls.swapAudioCodec();
+                      hls.recoverMediaError();
+                    }
+                    return;
+                  } catch {
+                    /* fall through */
+                  }
+                }
+                reportError();
+                return;
+              }
+            }
+          );
+        },
+        (hls) => {
+          const storedQualitySnapshot = readHlsQualityPreference();
+          const applyInitialLevelOnce = () => {
+            hls.off(Hls.Events.MANIFEST_PARSED, applyInitialLevelOnce);
+            try {
+              if (!hls.levels?.length) return;
+              const idx = resolveLevelIndexForStoredQuality(
+                hls.levels as Array<{ height?: number; bitrate?: number }>,
+                storedQualitySnapshot
+              );
+              if (idx < 0) {
+                hls.currentLevel = 0;
+                hls.nextLevel = 0;
+                hls.loadLevel = 0;
+              } else {
+                hls.currentLevel = idx;
+                hls.nextLevel = idx;
+                hls.loadLevel = idx;
+              }
+            } finally {
+              try {
+                hls.startLoad();
+              } catch {
+                /* noop */
+              }
+            }
+          };
+          hls.on(Hls.Events.MANIFEST_PARSED, applyInitialLevelOnce);
+        }
       ),
     });
 
-    let hasStartedPlaying = false;
-    let hasReportedError = false;
-    let hlsRecoverNetworkTried = false;
-    let hlsRecoverMediaTried = false;
-    const reportError = () => {
-      if (hasReportedError) return;
-      hasReportedError = true;
-      try {
-        if (art.hls) {
-          art.hls.stopLoad();
-          art.hls.destroy();
-          art.hls = null;
-        }
-      } catch {
-        /* noop */
-      }
-      onPlaybackErrorRef.current?.();
-    };
-    art.on('video:playing', () => {
-      hasStartedPlaying = true;
+    art.on('video:error', () => {
+      if (!effectActive || suppressPlaybackError) return;
+      const code = art.video?.error?.code;
+      if (code === MediaError.MEDIA_ERR_ABORTED) return;
+      reportError();
     });
-    art.on('video:canplay', () => {
-      hasStartedPlaying = true;
-    });
-
-    if (art.hls) {
-      art.hls.on(
-        Hls.Events.ERROR,
-        (_evt: unknown, data: {
-          fatal?: boolean;
-          type?: string;
-          response?: { code?: number };
-        }) => {
-          if (
-            data?.type === Hls.ErrorTypes.NETWORK_ERROR &&
-            isHardHttpFailure(data)
-          ) {
-            reportError();
-            return;
-          }
-          if (data?.fatal && art.hls) {
-            if (
-              data.type === Hls.ErrorTypes.NETWORK_ERROR &&
-              !hlsRecoverNetworkTried
-            ) {
-              hlsRecoverNetworkTried = true;
-              try {
-                art.hls.startLoad();
-                return;
-              } catch {
-                /* fall through to reportError */
-              }
-            }
-            if (
-              data.type === Hls.ErrorTypes.MEDIA_ERROR &&
-              !hlsRecoverMediaTried
-            ) {
-              hlsRecoverMediaTried = true;
-              try {
-                art.hls.recoverMediaError();
-                return;
-              } catch {
-                /* fall through */
-              }
-            }
-            reportError();
-            return;
-          }
-          if (
-            !hasStartedPlaying &&
-            data?.type === Hls.ErrorTypes.NETWORK_ERROR
-          ) {
-            reportError();
-          }
-        }
-      );
-    }
-    art.on('video:error', reportError);
-    art.on('error', reportError);
 
     art.on('resize', () => {
       if (
@@ -349,15 +440,15 @@ export function useArtplayerInstance({
         streamInfo?.streamingLink?.[0]?.type ?? null,
         serversRef,
         activeServerIdRef,
-        watchStreamProvider,
-        setWatchStreamProvider,
-        anilibertyAlias
+        streamInfo ?? null,
+        streamUrl,
+        onSelectStreamSourceIndex ?? null
       );
       queueMicrotask(() => {
         updateContinueWatching(animeInfo, episodeId, episodeNum);
       });
 
-      /** Якість: з LS або дефолт ~720p (`null`); `best-display` — підбір під екран; AniLiberty теж дотримується цього (раніше примусово `auto`). */
+      /** UI якості: початковий рівень уже виставлено в `MANIFEST_PARSED` (onM3u8HlsBeforeLoad). */
       const storedQualitySnapshot = readHlsQualityPreference();
 
       const plugins = art.plugins as unknown as {
@@ -367,38 +458,18 @@ export function useArtplayerInstance({
         plugins.artplayerPluginHlsControl?.update?.();
       };
       const hlsInstance = art.hls;
-      const applyInitialHlsQuality = () => {
-        if (!hlsInstance?.levels?.length) return;
-        /** auto (−1); порожній LS → ~720p; `best-display` → під екран; число → фіксована висота. */
-        const idx = resolveLevelIndexForStoredQuality(
-          hlsInstance.levels as Array<{ height?: number; bitrate?: number }>,
-          storedQualitySnapshot
-        );
-        if (idx < 0) {
-          hlsInstance.currentLevel = -1;
-          hlsInstance.nextLevel = -1;
-          hlsInstance.loadLevel = -1;
-        } else {
-          hlsInstance.currentLevel = idx;
-          hlsInstance.nextLevel = idx;
-          hlsInstance.loadLevel = idx;
-        }
-      };
 
       if (hlsInstance) {
         let detachQualityPersist: (() => void) | null = null;
         const onDestroyHlsUi = () => {
-          hlsInstance.off(Hls.Events.MANIFEST_PARSED, applyInitialHlsQuality);
-          hlsInstance.off(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
           hlsInstance.off(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
+          hlsInstance.off(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
           detachQualityPersist?.();
           detachQualityPersist = null;
         };
 
-        hlsInstance.on(Hls.Events.MANIFEST_PARSED, applyInitialHlsQuality);
-        hlsInstance.on(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
         hlsInstance.on(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);
-        applyInitialHlsQuality();
+        hlsInstance.on(Hls.Events.LEVEL_SWITCHED, syncHlsQualityUi);
         syncHlsQualityUi();
         detachQualityPersist = attachHlsQualityPreferencePersistence(
           hlsInstance,
@@ -429,17 +500,38 @@ export function useArtplayerInstance({
       };
       art.once('video:playing', reportSurfaceOnce);
       art.once('video:canplaythrough', reportSurfaceOnce);
+      art.once('video:loadedmetadata', reportSurfaceOnce);
       surfaceReadyTimer = window.setTimeout(reportSurfaceOnce, 7200);
     });
 
-    artInstanceRef.current = art;
+      artInstanceRef.current = art;
+      createdPlayer = art;
+    };
+
+    if (deferStrictInit) {
+      initTimer = window.setTimeout(() => {
+        initTimer = null;
+        runPlayerInit();
+      }, 0);
+    } else {
+      runPlayerInit();
+    }
 
     return () => {
+      effectActive = false;
+      suppressPlaybackError = true;
+      if (initTimer != null) {
+        window.clearTimeout(initTimer);
+        initTimer = null;
+      }
       if (surfaceReadyTimer != null) {
         window.clearTimeout(surfaceReadyTimer);
         surfaceReadyTimer = null;
       }
-      const instanceToDestroy = artInstanceRef.current === art ? art : null;
+      const instanceToDestroy =
+        createdPlayer && artInstanceRef.current === createdPlayer
+          ? createdPlayer
+          : null;
       if (instanceToDestroy) {
         artInstanceRef.current = null;
         try {

@@ -1,8 +1,6 @@
 import { useCallback, useState } from 'react';
-import Image from 'next/image';
 import { Player } from '@/features/player';
 import { BouncingLoader } from '../ui/Bouncingloader/Bouncingloader';
-import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
@@ -29,14 +27,14 @@ type WatchPlayerContentProps = {
   servers: ServerInfo[] | null;
   activeServerId: string | null;
   setActiveServerId: (id: string | null) => void;
+  /** Індекс рядка якості з `watch/resolve.sources` (декілька `streamingLink`). */
+  activeStreamSourceIndex: number;
+  setActiveStreamSourceIndex: (index: number) => void;
   showErrorBlock: boolean;
   /** Дані для стріму ще підвантажуються — не показувати помилку плеєра. */
   playerShellPending: boolean;
-  watchStreamProvider: WatchStreamProvider;
-  setWatchStreamProvider: (provider: WatchStreamProvider) => void;
-  anilibertyAlias: string | null;
   showStreamRecovery: boolean;
-  onStreamRecoveryChoice: (choice: 'japanese' | 'english' | 'aniliberty') => void;
+  onStreamRecoveryChoice: (choice: 'japanese' | 'english') => void;
 };
 
 export const WatchPlayerContent = ({
@@ -57,35 +55,27 @@ export const WatchPlayerContent = ({
   servers,
   activeServerId,
   setActiveServerId,
+  activeStreamSourceIndex,
+  setActiveStreamSourceIndex,
   showErrorBlock,
   episodeNum,
   playerShellPending,
-  watchStreamProvider,
-  setWatchStreamProvider,
-  anilibertyAlias,
   showStreamRecovery,
   onStreamRecoveryChoice,
 }: WatchPlayerContentProps) => {
-  const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${watchStreamProvider}:${streamUrl ?? ''}`;
+  const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${activeStreamSourceIndex}:${streamUrl ?? ''}`;
 
   const hasAnyDub = Boolean(episodes?.some((e) => e.hasDub === true));
-  const anilibertyAvailable = Boolean(anilibertyAlias?.trim());
 
   const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
-  const [playerSurfaceReady, setPlayerSurfaceReady] = useState(false);
   const [prevStreamKey, setPrevStreamKey] = useState(streamKey);
   if (streamKey !== prevStreamKey) {
     setPrevStreamKey(streamKey);
     setBuiltinRuntimeError(false);
-    setPlayerSurfaceReady(false);
   }
 
   const handleBuiltinError = useCallback(() => {
     setBuiltinRuntimeError(true);
-  }, []);
-
-  const handlePlaybackSurfaceReady = useCallback(() => {
-    setPlayerSurfaceReady(true);
   }, []);
 
   const hasBuiltinError = builtinRuntimeError;
@@ -95,12 +85,15 @@ export const WatchPlayerContent = ({
   const isBuiltinFailed =
     !playerShellPending && !buffering && !streamUrl;
   const showBuiltinPlayer = !hasBuiltinError && isBuiltinReady;
+  const isErrorState = isBuiltinFailed || hasBuiltinError;
+  /**
+   * Після появи `streamUrl` вбудований плеєр має показувати власний стан (Artplayer/Hls).
+   * Не тримаємо зовнішній лоадер до `playing` — він лишався через `!playerSurfaceReady` і міг перекривати/блокувати кліки.
+   */
   const showLoader =
     !hasBuiltinError &&
-    (playerShellPending ||
-      buffering ||
-      (Boolean(streamUrl) && !playerSurfaceReady));
-  const isErrorState = isBuiltinFailed || hasBuiltinError;
+    !isErrorState &&
+    (playerShellPending || buffering || !streamUrl);
 
   return (
     <div
@@ -109,14 +102,15 @@ export const WatchPlayerContent = ({
     >
       <div className="player relative h-full w-full shrink-0 overflow-hidden rounded-xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.45)] min-[1401px]:h-full min-[1200px]:max-[1400px]:h-[40vw] max-[1199px]:h-[48vw] md:max-[1199px]:max-h-[520px] max-md:h-[58vw] max-[600px]:h-[65vw]">
         {showLoader && (
-          <div className="bg-opacity-50 absolute inset-0 flex items-center justify-center bg-black">
+          <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-black/50">
             <BouncingLoader />
           </div>
         )}
 
         {showBuiltinPlayer && (
+          <div className="relative z-[2] h-full w-full min-h-0">
           <Player
-            key={`${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${streamUrl}`}
+            key={`${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${activeStreamSourceIndex}:${streamUrl}`}
             streamUrl={streamUrl as string}
             subtitles={subtitles}
             intro={intro}
@@ -132,24 +126,22 @@ export const WatchPlayerContent = ({
             servers={servers}
             activeServerId={activeServerId}
             setActiveServerId={setActiveServerId}
-            watchStreamProvider={watchStreamProvider}
-            setWatchStreamProvider={setWatchStreamProvider}
-            anilibertyAlias={anilibertyAlias}
+            onSelectStreamSourceIndex={setActiveStreamSourceIndex}
             onPlaybackError={handleBuiltinError}
-            onPlaybackSurfaceReady={handlePlaybackSurfaceReady}
           />
+          </div>
         )}
 
         {isErrorState &&
           (showErrorBlock || hasBuiltinError || showStreamRecovery) && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center">
-            <Image
+          <div className="absolute inset-0 z-[15] flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center">
+            <img
               src="/gojo-player.png"
               alt=""
               width={100}
               height={100}
-              className="w-[100px] h-auto max-w-[100px]"
-              role="presentation"
+              decoding="async"
+              className="mx-auto block max-h-[100px] max-w-[100px] object-contain"
             />
             <span>This player is currently unavailable.</span>
             <span>Please try another episode or server.</span>
@@ -169,14 +161,6 @@ export const WatchPlayerContent = ({
                   onClick={() => onStreamRecoveryChoice('english')}
                 >
                   English (dub)
-                </button>
-                <button
-                  type="button"
-                  disabled={!anilibertyAvailable}
-                  className="rounded-lg border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#f47521]/45 hover:bg-[#f47521]/10 disabled:cursor-not-allowed disabled:opacity-40"
-                  onClick={() => onStreamRecoveryChoice('aniliberty')}
-                >
-                  AniLiberty
                 </button>
               </div>
             ) : null}

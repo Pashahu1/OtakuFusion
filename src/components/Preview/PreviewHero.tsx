@@ -240,7 +240,8 @@ export const Preview = ({ spotlights, trending }: Props) => {
               <div
                 ref={setPaginationNode}
                 className="hero__pagination-container"
-                aria-hidden
+                role="group"
+                aria-label="Spotlight slides navigation"
               />
             </div>
           </div>

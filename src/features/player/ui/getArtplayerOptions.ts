@@ -1,4 +1,6 @@
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
+import type Artplayer from 'artplayer';
+import type Hls from 'hls.js';
 import { artplayerPluginUploadSubtitle } from './artplayerPluginUploadSubtitle';
 import artplayerPluginChapter from './artPlayerPluginChapter';
 import { createChapters } from './playerChapters';
@@ -27,7 +29,13 @@ export function getArtplayerOptions(
   getCurrentEpisodeIndex: () => number,
   getEpisodes: () => EpisodesTypes[],
   playNext: (episodeId: string) => void,
-  userPausedRef: React.RefObject<boolean>
+  userPausedRef: React.RefObject<boolean>,
+  /** Підписка на Hls після інстансування (Artplayer відкладає виклик customType). */
+  onM3u8HlsInstance?: (hls: InstanceType<typeof Hls>, art: Artplayer) => void,
+  /**
+   * До першого `loadSource`: `MANIFEST_PARSED` → фікс рівня → `startLoad()` (див. `autoStartLoad` у `playM3u8`).
+   */
+  onM3u8HlsBeforeLoad?: (hls: InstanceType<typeof Hls>) => void
 ) {
   return {
     plugins: [
@@ -72,7 +80,16 @@ export function getArtplayerOptions(
       fullscreenOff: fullScreenOffIcon,
     },
     customType: {
-      m3u8: playM3u8,
+      m3u8(
+        video: HTMLVideoElement,
+        url: string,
+        art: Artplayer
+      ) {
+        playM3u8(video, url, art, {
+          onHlsBeforeLoad: onM3u8HlsBeforeLoad,
+          onHlsInstance: (hls) => onM3u8HlsInstance?.(hls, art),
+        });
+      },
     },
   };
 }
