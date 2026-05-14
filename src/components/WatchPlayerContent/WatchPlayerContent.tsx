@@ -7,6 +7,7 @@ import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import type { WatchStreamProvider } from '@/lib/watch-provider';
 
 type WatchPlayerContentProps = {
   animeId: string;
@@ -27,14 +28,14 @@ type WatchPlayerContentProps = {
   servers: ServerInfo[] | null;
   activeServerId: string | null;
   setActiveServerId: (id: string | null) => void;
-  /** Індекс рядка якості з `watch/resolve.sources` (декілька `streamingLink`). */
-  activeStreamSourceIndex: number;
-  setActiveStreamSourceIndex: (index: number) => void;
+  watchStreamProvider: WatchStreamProvider;
+  setWatchStreamProvider: (p: WatchStreamProvider) => void;
+  anilibertyAlias: string | null;
   showErrorBlock: boolean;
   /** Дані для стріму ще підвантажуються — не показувати помилку плеєра. */
   playerShellPending: boolean;
   showStreamRecovery: boolean;
-  onStreamRecoveryChoice: (choice: 'japanese' | 'english') => void;
+  onStreamRecoveryChoice: (choice: 'japanese' | 'english' | 'aniliberty') => void;
 };
 
 export const WatchPlayerContent = ({
@@ -55,15 +56,16 @@ export const WatchPlayerContent = ({
   servers,
   activeServerId,
   setActiveServerId,
-  activeStreamSourceIndex,
-  setActiveStreamSourceIndex,
+  watchStreamProvider,
+  setWatchStreamProvider,
+  anilibertyAlias,
   showErrorBlock,
   episodeNum,
   playerShellPending,
   showStreamRecovery,
   onStreamRecoveryChoice,
 }: WatchPlayerContentProps) => {
-  const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${activeStreamSourceIndex}:${streamUrl ?? ''}`;
+  const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
 
   const hasAnyDub = Boolean(episodes?.some((e) => e.hasDub === true));
 
@@ -110,7 +112,7 @@ export const WatchPlayerContent = ({
         {showBuiltinPlayer && (
           <div className="relative z-[2] h-full w-full min-h-0">
           <Player
-            key={`${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${activeStreamSourceIndex}:${streamUrl}`}
+            key={`${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl}`}
             streamUrl={streamUrl as string}
             subtitles={subtitles}
             intro={intro}
@@ -126,7 +128,9 @@ export const WatchPlayerContent = ({
             servers={servers}
             activeServerId={activeServerId}
             setActiveServerId={setActiveServerId}
-            onSelectStreamSourceIndex={setActiveStreamSourceIndex}
+            watchStreamProvider={watchStreamProvider}
+            setWatchStreamProvider={setWatchStreamProvider}
+            anilibertyAlias={anilibertyAlias}
             onPlaybackError={handleBuiltinError}
           />
           </div>

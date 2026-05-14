@@ -64,8 +64,9 @@ export interface UseArtplayerInstanceParams {
   servers: PlayerProps['servers'];
   activeServerId: PlayerProps['activeServerId'];
   setActiveServerId: PlayerProps['setActiveServerId'];
-  /** Перемикання рядка з `/api/watch/resolve` (`sources` → кілька `streamingLink`). */
-  onSelectStreamSourceIndex?: PlayerProps['onSelectStreamSourceIndex'];
+  watchStreamProvider: PlayerProps['watchStreamProvider'];
+  setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
+  anilibertyAlias: PlayerProps['anilibertyAlias'];
   onPlaybackError: PlayerProps['onPlaybackError'];
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
 }
@@ -91,7 +92,9 @@ export function useArtplayerInstance({
   servers,
   activeServerId,
   setActiveServerId,
-  onSelectStreamSourceIndex,
+  watchStreamProvider,
+  setWatchStreamProvider,
+  anilibertyAlias,
   onPlaybackError,
   onPlaybackSurfaceReady,
 }: UseArtplayerInstanceParams) {
@@ -420,6 +423,9 @@ export function useArtplayerInstance({
     });
 
     art.on('ready', () => {
+      const rawLang = streamInfo?.streamingLink?.[0]?.type;
+      const streamLang =
+        rawLang === 'dub' || rawLang === 'sub' ? rawLang : null;
       setupPlayerReady(
         art,
         playNextPropRef,
@@ -437,12 +443,12 @@ export function useArtplayerInstance({
         intro,
         outro,
         subtitles,
-        streamInfo?.streamingLink?.[0]?.type ?? null,
+        streamLang,
         serversRef,
         activeServerIdRef,
-        streamInfo ?? null,
-        streamUrl,
-        onSelectStreamSourceIndex ?? null
+        watchStreamProvider,
+        setWatchStreamProvider,
+        anilibertyAlias
       );
       queueMicrotask(() => {
         updateContinueWatching(animeInfo, episodeId, episodeNum);

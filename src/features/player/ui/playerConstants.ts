@@ -27,6 +27,10 @@ export const M3U8_PROXY_URL = '/api/m3u8-proxy?url=';
 /** Резерв, якщо немає embed_url у відповіді source. */
 export const ANIKAI_PAGE_REFERER = 'https://anikai.to/';
 
+/** Резервний Referer/Origin для HLS, коли немає `request_headers` з API (Animepahe / kwik / сторонні CDN). */
+export const HLS_CDN_FALLBACK_REFERER = 'https://animepahe.ru/';
+export const HLS_CDN_FALLBACK_ORIGIN = 'https://animepahe.ru';
+
 export const DEFAULT_REFERER = 'https://megacloud.club/';
 export const PLAYER_THEME_COLOR = '#ff640a';
 
