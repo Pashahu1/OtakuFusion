@@ -1,4 +1,3 @@
-import type { Segment } from './VideoSegmentsTypes';
 import type { VideoTrack } from './VideoTrackTypes';
 
 export interface AnimePlayerType {
@@ -6,8 +5,6 @@ export interface AnimePlayerType {
     Referer: string;
   };
   tracks: VideoTrack[];
-  intro?: Segment;
-  outro?: Segment;
   sources: Source[];
   anilistID: number;
   malID: number;

@@ -46,8 +46,6 @@ export default function Watch() {
     streamUrl,
     subtitles,
     thumbnail,
-    intro,
-    outro,
     episodeId,
     setEpisodeId,
     activeServerId,
@@ -124,8 +122,6 @@ export default function Watch() {
             buffering={buffering}
             streamUrl={streamUrl}
             subtitles={subtitles}
-            intro={intro}
-            outro={outro}
             thumbnail={thumbnail}
             episodeId={episodeId}
             episodes={episodes}

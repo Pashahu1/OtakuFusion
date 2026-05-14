@@ -51,8 +51,6 @@ export interface UseArtplayerInstanceParams {
   streamUrl: string;
   subtitles: PlayerProps['subtitles'];
   thumbnail: PlayerProps['thumbnail'];
-  intro: PlayerProps['intro'];
-  outro: PlayerProps['outro'];
   episodeId: PlayerProps['episodeId'];
   episodes: PlayerProps['episodes'];
   currentEpisodeIndex: number;
@@ -78,8 +76,6 @@ export function useArtplayerInstance({
   streamUrl,
   subtitles,
   thumbnail,
-  intro,
-  outro,
   episodeId,
   episodes,
   currentEpisodeIndex,
@@ -109,7 +105,6 @@ export function useArtplayerInstance({
   const onPlaybackSurfaceReadyRef = useRef(onPlaybackSurfaceReady);
   const animeInfoRef = useRef(animeInfo);
   const hasTriggeredNextRef = useRef(false);
-  const hasMarkedWatchedForOutroRef = useRef(false);
   const userPausedRef = useRef(false);
   const upNextDismissedRef = useRef(false);
 
@@ -120,10 +115,8 @@ export function useArtplayerInstance({
           `${String(s.file ?? '').trim()}\t${String(s.label ?? '').trim()}`
       )
       .join('\n');
-    const iKey = intro ? `${intro.start}:${intro.end}` : '·';
-    const oKey = outro ? `${outro.start}:${outro.end}` : '·';
-    return [streamUrl, thumbnail ?? '', iKey, oKey, subKey].join('\f');
-  }, [streamUrl, thumbnail, intro, outro, subtitles]);
+    return [streamUrl, thumbnail ?? '', subKey].join('\f');
+  }, [streamUrl, thumbnail, subtitles]);
 
   useEffect(() => {
     serversRef.current = servers;
@@ -140,7 +133,6 @@ export function useArtplayerInstance({
 
   useEffect(() => {
     hasTriggeredNextRef.current = false;
-    hasMarkedWatchedForOutroRef.current = false;
     userPausedRef.current = false;
     upNextDismissedRef.current = false;
   }, [episodeId, episodes]);
@@ -232,14 +224,6 @@ export function useArtplayerInstance({
       subtitleOffset: true,
       theme: PLAYER_THEME_COLOR,
       ...getArtplayerOptions(
-        intro,
-        outro,
-        () => currentEpisodeIndexRef.current ?? -1,
-        () => episodesRef.current ?? [],
-        (episodeId: string) => {
-          hasTriggeredNextRef.current = true;
-          playNextPropRef.current(episodeId);
-        },
         userPausedRef,
         (hls, _art) => {
           hls.on(
@@ -431,15 +415,12 @@ export function useArtplayerInstance({
         thumbnail,
         episodesRef,
         currentEpisodeIndexRef,
-        hasMarkedWatchedForOutroRef,
         hasTriggeredNextRef,
         upNextDismissedRef,
         onEpisodeWatchedRef,
         setActiveServerId,
         userPausedRef,
         artRef,
-        intro,
-        outro,
         subtitles,
         streamLang,
         serversRef,

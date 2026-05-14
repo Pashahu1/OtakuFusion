@@ -151,8 +151,6 @@ function buildAnimePaheStreamCandidates(
         type: row.isDub === true ? ('dub' as const) : ('sub' as const),
         link: { file, type: 'hls' },
         tracks: [],
-        intro: { start: 0, end: 0 },
-        outro: { start: 0, end: 0 },
         server: row.quality?.trim() || 'Animepahe',
         request_headers: Object.keys(headers).length ? headers : undefined,
       });
@@ -292,8 +290,6 @@ async function computeWatchResolveOutcome(
         server: primary.server,
         request_headers: buildProbeHeaders(primary),
         tracks: primary.tracks ?? [],
-        intro: primary.intro ?? { start: 0, end: 0 },
-        outro: primary.outro ?? { start: 0, end: 0 },
       },
       fallback: {
         applied: fallbackApplied,

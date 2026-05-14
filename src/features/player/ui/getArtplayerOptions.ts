@@ -3,7 +3,6 @@ import type Artplayer from 'artplayer';
 import type Hls from 'hls.js';
 import { artplayerPluginUploadSubtitle } from './artplayerPluginUploadSubtitle';
 import artplayerPluginChapter from './artPlayerPluginChapter';
-import { createChapters } from './playerChapters';
 import { SUBTITLE_DEFAULT_STYLE } from './playerConstants';
 
 import {
@@ -19,16 +18,9 @@ import {
   volumeIcon,
 } from './PlayerIcons';
 import { playM3u8 } from './playerStream';
-import type { Segment } from '@/shared/types/VideoSegmentsTypes';
-import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { getPlayerLayers } from './getPlayerLayers';
 
 export function getArtplayerOptions(
-  intro: Segment | null,
-  outro: Segment | null,
-  getCurrentEpisodeIndex: () => number,
-  getEpisodes: () => EpisodesTypes[],
-  playNext: (episodeId: string) => void,
   userPausedRef: React.RefObject<boolean>,
   /** Підписка на Hls після інстансування (Artplayer відкладає виклик customType). */
   onM3u8HlsInstance?: (hls: InstanceType<typeof Hls>, art: Artplayer) => void,
@@ -52,21 +44,14 @@ export function getArtplayerOptions(
       }),
       artplayerPluginUploadSubtitle(),
       artplayerPluginChapter({
-        chapters: createChapters(intro, outro),
+        chapters: [],
       }),
     ],
     subtitle: {
       style: SUBTITLE_DEFAULT_STYLE,
       escape: false,
     },
-    layers: getPlayerLayers(
-      getCurrentEpisodeIndex,
-      getEpisodes,
-      playNext,
-      userPausedRef,
-      intro,
-      outro
-    ),
+    layers: getPlayerLayers(userPausedRef),
     icons: {
       play: playIcon,
       pause: pauseIcon,

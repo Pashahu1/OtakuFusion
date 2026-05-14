@@ -35,7 +35,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/app/watch/[id]/page.tsx",
-    "src/features/player/ui/getChapterStyle.ts",
     "src/features/player/ui/artplayerPluginUploadSubtitle.ts",
     "src/features/player/ui/pluginChapterStyle.ts",
     "src/config/logoTitle.ts",

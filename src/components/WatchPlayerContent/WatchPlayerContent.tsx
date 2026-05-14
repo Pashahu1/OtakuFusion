@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { Player } from '@/features/player';
 import { BouncingLoader } from '../ui/Bouncingloader/Bouncingloader';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
-import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
@@ -15,8 +14,6 @@ type WatchPlayerContentProps = {
   buffering: boolean;
   streamUrl: string | null;
   subtitles: SubtitleItem[] | null;
-  intro: Segment | null;
-  outro: Segment | null;
   thumbnail: string | null;
   episodeId: string | null;
   episodes: EpisodesTypes[] | null;
@@ -43,8 +40,6 @@ export const WatchPlayerContent = ({
   buffering,
   streamUrl,
   subtitles,
-  intro,
-  outro,
   thumbnail,
   episodeId,
   episodes,
@@ -113,8 +108,6 @@ export const WatchPlayerContent = ({
             key={`${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl}`}
             streamUrl={streamUrl as string}
             subtitles={subtitles}
-            intro={intro}
-            outro={outro}
             thumbnail={thumbnail}
             episodeId={episodeId}
             episodes={episodes}

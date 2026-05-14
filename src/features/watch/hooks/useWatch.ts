@@ -196,8 +196,6 @@ export function useWatch(
     setIsFullOverview,
     subtitles: stream.subtitles.length ? stream.subtitles : null,
     thumbnail: stream.thumbnail,
-    intro: stream.intro,
-    outro: stream.outro,
     episodeId: anime.episodeId,
     setEpisodeId: anime.setEpisodeId,
     activeEpisodeNum,

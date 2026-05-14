@@ -12,6 +12,14 @@ import type { AnimeData, AnimeResults } from '@/shared/types/animeDetailsTypes';
 
 const ANILIST_GRAPHQL_URL = 'https://graphql.anilist.co';
 
+/** У браузері AniList не віддає CORS на сторонні origin — йдемо через `/api/anilist/graphql`. */
+function getAnilistGraphqlFetchUrl(): string {
+  if (typeof window !== 'undefined') {
+    return '/api/anilist/graphql';
+  }
+  return ANILIST_GRAPHQL_URL;
+}
+
 interface AniListTitle {
   romaji?: string | null;
   english?: string | null;
@@ -301,14 +309,17 @@ export async function anilistRequest<TData>(
   query: string,
   variables?: Record<string, unknown>
 ): Promise<TData> {
-  const response = await fetch(ANILIST_GRAPHQL_URL, {
+  const url = getAnilistGraphqlFetchUrl();
+  const isBrowser = typeof window !== 'undefined';
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
     body: JSON.stringify({ query, variables }),
-    next: { revalidate: 900 },
+    ...(isBrowser ? {} : { next: { revalidate: 900 } }),
   });
 
   if (!response.ok) {

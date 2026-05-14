@@ -187,7 +187,7 @@ export function artplayerPluginChapter(
           typeof process !== 'undefined' &&
           process.env.NODE_ENV === 'development'
         ) {
-          console.warn('[artplayerPluginChapter] invalid intro/outro, skipped:', e);
+          console.warn('[artplayerPluginChapter] invalid chapters, skipped:', e);
         }
       }
     }

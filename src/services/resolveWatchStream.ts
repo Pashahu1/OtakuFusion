@@ -30,8 +30,6 @@ export interface WatchResolveResponse {
     server: string;
     request_headers?: Record<string, string>;
     tracks: Array<{ file: string; kind?: string; label?: string; default?: boolean }>;
-    intro: { start: number; end: number } | number[];
-    outro: { start: number; end: number } | number[];
   };
   fallback: {
     applied: boolean;

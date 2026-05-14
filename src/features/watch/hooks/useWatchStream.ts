@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
-import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import { resolveWatchStream } from '@/services/resolveWatchStream';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
@@ -13,8 +12,6 @@ export interface UseWatchStreamReturn {
   buffering: boolean;
   subtitles: SubtitleItem[];
   thumbnail: string | null;
-  intro: Segment | null;
-  outro: Segment | null;
   error: string | null;
   errorCode: string | null;
 }
@@ -56,21 +53,6 @@ function getErrorMessage(err: unknown): string {
       ? WATCH_RESOLVE_UPSTREAM_HINTS[key.split('|')[0] ?? ''] ?? key
       : key)
   );
-}
-
-function parseSegment(input: { start: number; end: number } | number[] | null | undefined): Segment | null {
-  if (!input) return null;
-  if (Array.isArray(input)) {
-    if (input.length < 2) return null;
-    const start = Number(input[0]);
-    const end = Number(input[1]);
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
-    return { start, end };
-  }
-  const start = Number(input.start);
-  const end = Number(input.end);
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
-  return { start, end };
 }
 
 function parseSubtitleTracks(
@@ -134,8 +116,6 @@ export function useWatchStream(
   const [buffering, setBuffering] = useState(true);
   const [subtitles, setSubtitles] = useState<SubtitleItem[]>([]);
   const [thumbnail, setThumbnail] = useState<string | null>(null);
-  const [intro, setIntro] = useState<Segment | null>(null);
-  const [outro, setOutro] = useState<Segment | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
 
@@ -145,8 +125,6 @@ export function useWatchStream(
       setStreamUrl(null);
       setSubtitles([]);
       setThumbnail(null);
-      setIntro(null);
-      setOutro(null);
       setBuffering(false);
       setError(null);
       setErrorCode(null);
@@ -163,8 +141,6 @@ export function useWatchStream(
     setStreamUrl(null);
     setSubtitles([]);
     setThumbnail(null);
-    setIntro(null);
-    setOutro(null);
 
     void (async () => {
       try {
@@ -239,8 +215,6 @@ export function useWatchStream(
               type: result.stream.lang,
               link: { file: result.stream.url, type: 'hls' },
               tracks,
-              intro: parseSegment(result.stream.intro) ?? { start: 0, end: 0 },
-              outro: parseSegment(result.stream.outro) ?? { start: 0, end: 0 },
               server: result.stream.server || 'Resolved',
               request_headers: result.stream.request_headers,
             },
@@ -254,8 +228,6 @@ export function useWatchStream(
         );
         setSubtitles(subtitleItems);
         setThumbnail(getThumbnailTrack(tracks));
-        setIntro(parseSegment(result.stream.intro));
-        setOutro(parseSegment(result.stream.outro));
 
         if (resolveParams.lang !== result.stream.lang) {
           watchResolveOptions.onPlaybackLangResolved?.(result.stream.lang);
@@ -284,8 +256,6 @@ export function useWatchStream(
     buffering,
     subtitles,
     thumbnail,
-    intro,
-    outro,
     error,
     errorCode,
   };

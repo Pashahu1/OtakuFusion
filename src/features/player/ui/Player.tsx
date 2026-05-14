@@ -1,6 +1,5 @@
 'use client';
 
-import { useChapterStyles } from '@/hooks/useChapterStyles';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 
@@ -11,8 +10,6 @@ export function Player({
   streamUrl,
   subtitles,
   thumbnail,
-  intro,
-  outro,
   episodeId,
   episodes,
   playNext,
@@ -33,14 +30,10 @@ export function Player({
       (episode) => getEpisodeNumberFromId(episode.id) === episodeId
     ) ?? -1;
 
-  useChapterStyles(streamUrl, intro, outro);
-
   const { artRef } = useArtplayerInstance({
     streamUrl,
     subtitles,
     thumbnail,
-    intro,
-    outro,
     episodeId,
     episodes,
     currentEpisodeIndex,

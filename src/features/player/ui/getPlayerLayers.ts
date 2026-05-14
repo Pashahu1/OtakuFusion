@@ -1,20 +1,11 @@
-import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
-import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import Artplayer from 'artplayer';
 import { backwardIcon, forwardIcon } from './PlayerIcons';
 
-export function getPlayerLayers(
-  getCurrentEpisodeIndex: () => number,
-  getEpisodes: () => EpisodesTypes[],
-  playNext: (episodeId: string) => void,
-  userPausedRef: React.RefObject<boolean>,
-  intro: Segment | null,
-  outro: Segment | null,
-) {
+export function getPlayerLayers(userPausedRef: React.RefObject<boolean>) {
   return [
     {
       name: 'siteLogo',
+      disable: Artplayer.utils.isMobile,
       html: `
           <div style="
             display:flex;
@@ -162,63 +153,6 @@ export function getPlayerLayers(
         transition: 'opacity 0.5s ease-in-out',
       },
       disable: !Artplayer.utils.isMobile,
-    },
-    {
-      name: 'skipIntro',
-      html: '<div class="skip-intro-btn">Skip Intro</div>',
-      style: {
-        position: 'absolute',
-        bottom: '90px',
-        right: '30px',
-        padding: '10px 18px',
-        background: 'rgba(40, 40, 40, 0.55)',
-        backdropFilter: 'blur(6px)',
-        color: '#fff',
-        fontSize: '14px',
-        fontWeight: '600',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        display: 'none',
-        zIndex: '9999',
-        transition: 'all 0.25s ease',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-        border: '1px solid rgba(255,255,255,0.1)',
-      },
-      click: function (this: Artplayer) {
-        if (intro) this.currentTime = intro.end;
-      },
-    },
-    {
-      name: 'skipOutro',
-      html: '<div class="skip-outro-btn">Next Episode</div>',
-      style: {
-        position: 'absolute',
-        bottom: '90px',
-        right: '30px',
-        padding: '10px 18px',
-        background: 'rgba(40, 40, 40, 0.55)',
-        backdropFilter: 'blur(6px)',
-        color: '#fff',
-        fontSize: '14px',
-        fontWeight: '600',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        display: 'none',
-        zIndex: '9999',
-        transition: 'all 0.25s ease',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-        border: '1px solid rgba(255,255,255,0.1)',
-      },
-      click: function (this: Artplayer) {
-        const idx = getCurrentEpisodeIndex() ?? -1;
-        const next = getEpisodes()?.[idx + 1];
-        if (next) {
-          const nextId = getEpisodeNumberFromId(next.id);
-          if (nextId) playNext(nextId);
-        } else if (outro) {
-          this.currentTime = outro.end;
-        }
-      },
     },
     {
       name: 'upNext',

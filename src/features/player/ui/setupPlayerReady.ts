@@ -9,7 +9,6 @@ import { handlePlayerKeydown } from './playerKeydown';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type { Segment } from '@/shared/types/VideoSegmentsTypes';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import {
   readSubtitlePreference,
@@ -66,7 +65,6 @@ export function setupPlayerReady(
   thumbnail: string | null,
   episodesRef: React.RefObject<EpisodesTypes[] | null>,
   currentEpisodeIndexRef: React.RefObject<number | null | undefined>,
-  hasMarkedWatchedForOutroRef: React.RefObject<boolean>,
   hasTriggeredNextRef: React.RefObject<boolean>,
   upNextDismissedRef: React.RefObject<boolean>,
   onEpisodeWatchedRef: React.RefObject<
@@ -75,8 +73,6 @@ export function setupPlayerReady(
   setActiveServerId: (id: string | null) => void,
   userPausedRef: React.RefObject<boolean>,
   artRef: React.RefObject<HTMLDivElement | null>,
-  intro: Segment | null,
-  outro: Segment | null,
   subtitles: SubtitleItem[] | null,
   streamLang: 'sub' | 'dub' | null,
   serversRef: React.RefObject<ServerInfo[] | null>,
@@ -155,9 +151,7 @@ export function setupPlayerReady(
     userPausedRef.current = false;
   });
 
-  const skipIntroBtn = art.layers['skipIntro'];
-  const skipOutroBtn = art.layers['skipOutro'];
-  const logoLayer = art.layers.siteLogo;
+  const logoLayer = art.layers.siteLogo as HTMLElement | undefined;
   const upNextRoot = art.layers['upNext'] as HTMLDivElement | undefined;
 
   if (upNextRoot && !upNextRoot.dataset.ofUpnextBound) {
@@ -180,50 +174,22 @@ export function setupPlayerReady(
   }
 
   requestAnimationFrame(() => {
+    if (!logoLayer) return;
     logoLayer.style.opacity = '1';
     logoLayer.style.transform = 'translateY(0) scale(1)';
   });
 
   logoHideTimeoutId = setTimeout(() => {
+    if (!logoLayer) return;
     logoLayer.style.opacity = '0';
     logoLayer.style.transform = 'translateY(-10px) scale(0.95)';
   }, LOGO_HIDE_DELAY_MS);
 
-  let skipIntroVisible: boolean | null = null;
-  let skipOutroVisible: boolean | null = null;
   let upNextPanelVisible = false;
   let lastUpNextTick = -1;
 
   const onTimeUpdate = () => {
     const t = art.currentTime;
-
-    if (intro) {
-      const show = t >= intro.start && t <= intro.end;
-      if (show !== skipIntroVisible) {
-        skipIntroVisible = show;
-        skipIntroBtn.style.display = show ? 'block' : 'none';
-      }
-    } else if (skipIntroVisible !== false) {
-      skipIntroVisible = false;
-      skipIntroBtn.style.display = 'none';
-    }
-
-    if (outro && outro.start != null && outro.end != null) {
-      const show = t >= outro.start && t <= outro.end;
-      if (show !== skipOutroVisible) {
-        skipOutroVisible = show;
-        skipOutroBtn.style.display = show ? 'block' : 'none';
-      }
-      if (show && !hasMarkedWatchedForOutroRef.current) {
-        hasMarkedWatchedForOutroRef.current = true;
-        const id = episodeIdRef.current;
-        const epId = id != null ? String(id) : '';
-        if (epId) onEpisodeWatchedRef.current?.(epId);
-      }
-    } else if (skipOutroVisible !== false) {
-      skipOutroVisible = false;
-      skipOutroBtn.style.display = 'none';
-    }
 
     const duration = art.video?.duration ?? art.duration;
     const list = episodesRef.current;

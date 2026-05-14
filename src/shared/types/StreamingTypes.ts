@@ -1,4 +1,3 @@
-import type { Segment } from "./VideoSegmentsTypes";
 import type { VideoTrack } from "./VideoTrackTypes";
 
 export interface StreamingData {
@@ -14,8 +13,6 @@ export type StreamingType = {
     type: string;
   };
   tracks: VideoTrack[];
-  intro: Segment;
-  outro: Segment;
   server: string;
   iframe?: string;
   request_headers?: Record<string, string>;
