@@ -66,7 +66,6 @@ export interface UseArtplayerInstanceParams {
   setActiveServerId: PlayerProps['setActiveServerId'];
   watchStreamProvider: PlayerProps['watchStreamProvider'];
   setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
-  anilibertyAlias: PlayerProps['anilibertyAlias'];
   onPlaybackError: PlayerProps['onPlaybackError'];
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
 }
@@ -94,7 +93,6 @@ export function useArtplayerInstance({
   setActiveServerId,
   watchStreamProvider,
   setWatchStreamProvider,
-  anilibertyAlias,
   onPlaybackError,
   onPlaybackSurfaceReady,
 }: UseArtplayerInstanceParams) {
@@ -447,8 +445,7 @@ export function useArtplayerInstance({
         serversRef,
         activeServerIdRef,
         watchStreamProvider,
-        setWatchStreamProvider,
-        anilibertyAlias
+        setWatchStreamProvider
       );
       queueMicrotask(() => {
         updateContinueWatching(animeInfo, episodeId, episodeNum);

@@ -82,8 +82,7 @@ export function setupPlayerReady(
   serversRef: React.RefObject<ServerInfo[] | null>,
   activeServerIdRef: React.RefObject<string | null>,
   watchStreamProvider: WatchStreamProvider,
-  setWatchStreamProvider: (next: WatchStreamProvider) => void,
-  anilibertyAlias: string | null
+  setWatchStreamProvider: (next: WatchStreamProvider) => void
 ) {
   let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
   const goToNextEpisode = () => {
@@ -430,7 +429,7 @@ export function setupPlayerReady(
     data_id?: number;
     serverName?: string;
     type?: string;
-    __mode?: 'kai-sub' | 'kai-dub' | 'aniliberty';
+    __mode?: 'animepahe-sub' | 'animepahe-dub';
   };
 
   const flatLanguage: LangMenuLeaf[] = [];
@@ -439,11 +438,11 @@ export function setupPlayerReady(
     flatLanguage.push({
       html: 'Japanese',
       default:
-        watchStreamProvider === 'kai' && String(jp.data_id) === String(langActiveId),
+        watchStreamProvider === 'animepahe' && String(jp.data_id) === String(langActiveId),
       data_id: jp.data_id,
       serverName: jp.serverName,
       type: jp.type,
-      __mode: 'kai-sub',
+      __mode: 'animepahe-sub',
     });
   }
 
@@ -451,28 +450,18 @@ export function setupPlayerReady(
     flatLanguage.push({
       html: 'English',
       default:
-        watchStreamProvider === 'kai' && String(en.data_id) === String(langActiveId),
+        watchStreamProvider === 'animepahe' && String(en.data_id) === String(langActiveId),
       data_id: en.data_id,
       serverName: en.serverName,
       type: en.type,
-      __mode: 'kai-dub',
-    });
-  }
-
-  if (anilibertyAlias?.trim()) {
-    flatLanguage.push({
-      html: 'AniLiberty',
-      default: watchStreamProvider === 'anilibria',
-      __mode: 'aniliberty',
+      __mode: 'animepahe-dub',
     });
   }
 
   const langTooltip =
-    watchStreamProvider === 'anilibria'
-      ? 'AniLiberty'
-      : langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type === 'dub'
-        ? 'English'
-        : 'Japanese';
+    langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type === 'dub'
+      ? 'English'
+      : 'Japanese';
 
   if (flatLanguage.length > 0) {
     art.setting.add({
@@ -484,12 +473,8 @@ export function setupPlayerReady(
       selector: flatLanguage,
       onSelect: function (item: Record<string, unknown>) {
         const mode = item.__mode;
-        if (mode === 'aniliberty') {
-          setWatchStreamProvider('anilibria');
-          return typeof item.html === 'string' ? item.html : '';
-        }
-        if (mode === 'kai-sub') {
-          setWatchStreamProvider('kai');
+        if (mode === 'animepahe-sub') {
+          setWatchStreamProvider('animepahe');
           const dataId = item.data_id != null ? String(item.data_id) : null;
           if (dataId) setActiveServerId(dataId);
           if (typeof item.serverName === 'string')
@@ -498,8 +483,8 @@ export function setupPlayerReady(
             localStorage.setItem('server_type', item.type);
           return typeof item.html === 'string' ? item.html : '';
         }
-        if (mode === 'kai-dub') {
-          setWatchStreamProvider('kai');
+        if (mode === 'animepahe-dub') {
+          setWatchStreamProvider('animepahe');
           const dataId = item.data_id != null ? String(item.data_id) : null;
           if (dataId) setActiveServerId(dataId);
           if (typeof item.serverName === 'string')

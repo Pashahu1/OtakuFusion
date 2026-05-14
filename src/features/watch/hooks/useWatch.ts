@@ -9,9 +9,6 @@ import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
 import { useWatchAnime } from './useWatchAnime';
 import { useWatchStream, type WatchStreamAnimeMeta } from './useWatchStream';
 
-/**
- * Сторінка watch: композиція `useWatchAnime` + `useWatchStream`.
- */
 export function useWatch(
   animeId: string,
   initialEpisodeId: string | undefined
@@ -19,7 +16,7 @@ export function useWatch(
   const [isFullOverview, setIsFullOverview] = useState(false);
   const [streamRecoveryNonce, setStreamRecoveryNonce] = useState(0);
   const [watchStreamProvider, setWatchStreamProviderState] =
-    useState<WatchStreamProvider>('kai');
+    useState<WatchStreamProvider>('animepahe');
 
   useEffect(() => {
     setWatchStreamProviderState(readWatchStreamProvider());
@@ -39,7 +36,6 @@ export function useWatch(
   const playerShellPending =
     anime.animeInfoLoading ||
     anime.episodes === null ||
-    /** Поки немає обраного епізоду, але список уже є — чекаємо URL/`?ep=`/continue; інакше один кадр «немає стріму». */
     (anime.episodeId == null &&
       Array.isArray(anime.episodes) &&
       anime.episodes.length > 0) ||
@@ -104,20 +100,6 @@ export function useWatch(
   }, [activeServerId, anime.episodeId, currentEpisodeHasDub]);
 
   useEffect(() => {
-    if (!anime.anilibertyMatchDone) return;
-    if (watchStreamProvider !== 'anilibria') return;
-    if (anime.anilibertyAlias) return;
-    setWatchStreamProvider('kai');
-    setActiveServerId('1');
-  }, [
-    anime.anilibertyMatchDone,
-    anime.anilibertyAlias,
-    watchStreamProvider,
-    setWatchStreamProvider,
-    setActiveServerId,
-  ]);
-
-  useEffect(() => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_SERVER_TYPE, preferredLang);
   }, [preferredLang]);
@@ -145,16 +127,12 @@ export function useWatch(
       preferredLang,
       onPlaybackLangResolved,
       watchStreamProvider,
-      anilibertyAlias: anime.anilibertyAlias,
-      anilibertyMatchDone: anime.anilibertyMatchDone,
       streamRecoveryNonce,
     }),
     [
       streamAnimeMeta,
       anime.episodeId,
       anime.providerAnimeId,
-      anime.anilibertyAlias,
-      anime.anilibertyMatchDone,
       animeId,
       preferredLang,
       onPlaybackLangResolved,
@@ -166,18 +144,13 @@ export function useWatch(
   const stream = useWatchStream(watchResolveOptions);
 
   const onStreamRecoveryChoice = useCallback(
-    (choice: 'japanese' | 'english' | 'aniliberty') => {
+    (choice: 'japanese' | 'english') => {
       if (choice === 'english' && !hasAnyDub) return;
-      if (choice === 'aniliberty' && !anime.anilibertyAlias?.trim()) return;
-      if (choice === 'aniliberty') {
-        setWatchStreamProvider('anilibria');
-      } else {
-        setWatchStreamProvider('kai');
-        setActiveServerId(choice === 'english' ? '2' : '1');
-      }
+      setWatchStreamProvider('animepahe');
+      setActiveServerId(choice === 'english' ? '2' : '1');
       setStreamRecoveryNonce((n) => n + 1);
     },
-    [hasAnyDub, anime.anilibertyAlias, setWatchStreamProvider, setActiveServerId]
+    [hasAnyDub, setWatchStreamProvider, setActiveServerId]
   );
 
   const showStreamRecovery = useMemo(
@@ -205,8 +178,7 @@ export function useWatch(
     return ep?.episode_no ?? null;
   }, [anime.episodes, anime.episodeId]);
 
-  const error =
-    anime.error ?? stream.error ?? null;
+  const error = anime.error ?? stream.error ?? null;
 
   return {
     error,
@@ -233,7 +205,6 @@ export function useWatch(
     setActiveServerId,
     watchStreamProvider,
     setWatchStreamProvider,
-    anilibertyAlias: anime.anilibertyAlias,
     streamErrorCode: stream.errorCode,
     showStreamRecovery,
     onStreamRecoveryChoice,

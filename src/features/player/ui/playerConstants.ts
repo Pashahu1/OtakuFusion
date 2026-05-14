@@ -19,7 +19,7 @@ export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
 export const PROXY_URL = '';
 
 /**
- * AnimeKai віддає прямі m3u8; CDN часто дає 403 з Referer localhost — same-origin проксі.
+ * HLS часто вимагає коректний Referer — same-origin проксі.
  * (Раніше можна було перевизначити через `NEXT_PUBLIC_M3U8_PROXY_URL` / `direct`.)
  */
 export const M3U8_PROXY_URL = '/api/m3u8-proxy?url=';

@@ -1,25 +1,20 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { getAnimeInfo } from '@/services/getAnimeInfo';
-import { readEpisodeHealth, writeEpisodeHealth } from '@/lib/animekai-local-health';
-import { getKaiEpisodesFromBff } from '@/lib/kai-episodes-bff';
+import { postAnimepaheCatalog, type AnimepaheCatalogBffOk } from '@/lib/animepahe-catalog-bff';
+import { getAnimePaheEpisodesFromBff } from '@/lib/animepahe-episodes-bff';
 import { getNextEpisodeSchedule } from '@/services/getNextEpisodeSchedule';
-import { animekaiClient, type AnimeKaiResolvedMapping } from '@/lib/animekai-client';
-import {
-  buildAnimeKaiSearchTerms,
-  buildAnimeKaiResolveHints,
-  resolveAnimeKaiAniId,
-} from '@/services/animekaiResolve';
 import { alignKaiEpisodesToAnilistSeasonStart } from '@/lib/alignKaiEpisodesToAnilistSeason';
 import { aggregateCatalogStreamCounts } from '@/shared/utils/catalogStreamCounts';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { mergeKaiEpisodesWithAnilistTitles } from '@/lib/mergeKaiEpisodesWithAnilistTitles';
+import { patchEpisodesSeriesDub } from '@/services/animepahe/patchEpisodesSeriesDub';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
 
 export interface UseWatchAnimeReturn {
   animeInfo: AnimeData | null;
-  /** AnimeKai ani_id (внутрішній), після резолву з AniList. */
+  /** Ідентифікатор серії в каталозі Animepahe (Crysoline). */
   providerAnimeId: string | null;
   episodes: EpisodesTypes[] | null;
   totalEpisodes: number | null;
@@ -28,10 +23,6 @@ export interface UseWatchAnimeReturn {
   animeInfoLoading: boolean;
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   error: string | null;
-  /** Alias релізу AniLiberty (лише для стріму); епізоди завжди з AnimeKai. */
-  anilibertyAlias: string | null;
-  /** Після першого запиту /api/anilibria/match для поточного тайтлу. */
-  anilibertyMatchDone: boolean;
 }
 
 function getErrorMessage(err: unknown): string {
@@ -39,39 +30,59 @@ function getErrorMessage(err: unknown): string {
 }
 
 function getMappingCacheKey(localAnimeId: string): string {
-  return `animekai:mapping:${localAnimeId}`;
+  return `animepahe:mapping:${localAnimeId}`;
 }
 
-function readVerifiedMapping(localAnimeId: string): AnimeKaiResolvedMapping | null {
+interface VerifiedPaheMapping {
+  paheId: string;
+  hasSeriesDub?: boolean;
+}
+
+function readVerifiedMapping(localAnimeId: string): VerifiedPaheMapping | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(getMappingCacheKey(localAnimeId));
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as AnimeKaiResolvedMapping;
-    if (!parsed || typeof parsed.ani_id !== 'string' || !parsed.ani_id.trim()) return null;
-    if (parsed.status && parsed.status !== 'verified') return null;
-    return parsed;
+    const parsed = JSON.parse(raw) as { paheId?: string; hasSeriesDub?: boolean };
+    if (!parsed || typeof parsed.paheId !== 'string' || !parsed.paheId.trim()) return null;
+    return {
+      paheId: parsed.paheId.trim(),
+      hasSeriesDub: parsed.hasSeriesDub === true ? true : undefined,
+    };
   } catch {
     return null;
   }
 }
 
-function writeVerifiedMapping(localAnimeId: string, mapping: AnimeKaiResolvedMapping): void {
+function writeVerifiedMapping(
+  localAnimeId: string,
+  paheId: string,
+  hasSeriesDub?: boolean
+): void {
   if (typeof window === 'undefined') return;
-  if (mapping.status && mapping.status !== 'verified') return;
   try {
-    localStorage.setItem(
-      getMappingCacheKey(localAnimeId),
-      JSON.stringify({
-        ani_id: mapping.ani_id,
-        slug: mapping.slug,
-        status: mapping.status ?? 'verified',
-        confidence: mapping.confidence,
-      })
-    );
+    const payload: { paheId: string; hasSeriesDub?: boolean } = {
+      paheId: paheId.trim(),
+    };
+    if (hasSeriesDub === true) payload.hasSeriesDub = true;
+    localStorage.setItem(getMappingCacheKey(localAnimeId), JSON.stringify(payload));
   } catch {
     /* ignore */
   }
+}
+
+function catalogBodyFromAnimeData(data: AnimeData, anilistKey: string) {
+  return {
+    anilistId: anilistKey,
+    title: data.title,
+    romaji_title: data.romaji_title,
+    japanese_title: data.japanese_title,
+    showType: data.showType,
+    premiered: data.animeInfo?.Premiered,
+    episodeTotal: data.animeInfo?.tvInfo?.episodeTotal,
+    mal_id: data.mal_id ?? null,
+    synonyms: data.animeInfo?.Synonyms,
+  };
 }
 
 export function useWatchAnime(
@@ -83,14 +94,11 @@ export function useWatchAnime(
   const [providerAnimeId, setProviderAnimeId] = useState<string | null>(null);
   const [totalEpisodes, setTotalEpisodes] = useState<number | null>(null);
   const [episodeId, setEpisodeId] = useState<string | null>(null);
-  const [anilibertyAlias, setAnilibertyAlias] = useState<string | null>(null);
-  const [anilibertyMatchDone, setAnilibertyMatchDone] = useState(false);
   const [animeInfoLoading, setAnimeInfoLoading] = useState(false);
   const [nextEpisodeSchedule, setNextEpisodeSchedule] =
     useState<NextEpisodeScheduleResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const initialEpisodeRef = useRef(initialEpisodeId);
-  const healthcheckDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   initialEpisodeRef.current = initialEpisodeId;
 
   const [episodeRemapPass, setEpisodeRemapPass] = useState(0);
@@ -106,8 +114,6 @@ export function useWatchAnime(
     setAnimeInfo(null);
     setTotalEpisodes(null);
     setAnimeInfoLoading(true);
-    setAnilibertyAlias(null);
-    setAnilibertyMatchDone(false);
     setError(null);
   }, [animeId]);
 
@@ -122,8 +128,6 @@ export function useWatchAnime(
     setAnimeInfo(null);
     setTotalEpisodes(null);
     setAnimeInfoLoading(true);
-    setAnilibertyAlias(null);
-    setAnilibertyMatchDone(false);
     setError(null);
     if (episodeRemapPass === 0) {
       setNextEpisodeSchedule(null);
@@ -157,61 +161,51 @@ export function useWatchAnime(
         }
 
         try {
-          const searchTerms = buildAnimeKaiSearchTerms(dataForResolve);
-          const keyword = searchTerms[0];
-          const resolveHints = buildAnimeKaiResolveHints(dataForResolve);
-          let resolved: { ani_id: string; slug: string } | null = null;
           const forceFuzzy = episodeRemapPass > 0;
+          const catalogPayload = catalogBodyFromAnimeData(dataForResolve, animeId);
+
+          let paheId: string | null = null;
+          let list: EpisodesTypes[] = [];
+          let freshCatalog: AnimepaheCatalogBffOk | null = null;
 
           if (!forceFuzzy) {
             const cached = readVerifiedMapping(animeId);
-            if (cached?.ani_id) {
-              resolved = { ani_id: cached.ani_id, slug: cached.slug ?? cached.ani_id };
-            }
-          }
-
-          if (!resolved && !forceFuzzy) {
-            const hasMal = dataForResolve.mal_id != null && dataForResolve.mal_id > 0;
-            if (hasMal) {
-              const malId = dataForResolve.mal_id as number;
-              const [byAnilist, byMal] = await Promise.all([
-                animekaiClient.resolveByAnilist(
-                  dataForResolve.id,
-                  animeId,
-                  keyword,
-                  signal
-                ),
-                animekaiClient.resolveByMal(malId, animeId, keyword, signal),
-              ]);
-              if (byAnilist?.ani_id && (!byAnilist.status || byAnilist.status === 'verified')) {
-                resolved = { ani_id: byAnilist.ani_id, slug: byAnilist.slug ?? byAnilist.ani_id };
-              } else if (byMal?.ani_id && (!byMal.status || byMal.status === 'verified')) {
-                resolved = { ani_id: byMal.ani_id, slug: byMal.slug ?? byMal.ani_id };
-              }
-            } else {
-              const byAnilist = await animekaiClient.resolveByAnilist(
-                dataForResolve.id,
-                animeId,
-                keyword,
-                signal
-              );
-              if (byAnilist?.ani_id && (!byAnilist.status || byAnilist.status === 'verified')) {
-                resolved = { ani_id: byAnilist.ani_id, slug: byAnilist.slug ?? byAnilist.ani_id };
+            if (cached?.paheId) {
+              try {
+                const cachedEp = await getAnimePaheEpisodesFromBff(cached.paheId, signal);
+                if (!cancelled && !signal.aborted && (cachedEp.episodes?.length ?? 0) > 0) {
+                  paheId = cached.paheId.trim();
+                  list = patchEpisodesSeriesDub(
+                    cachedEp.episodes ?? [],
+                    cached.hasSeriesDub === true
+                  );
+                }
+              } catch {
+                paheId = null;
+                list = [];
               }
             }
           }
 
-          if (!resolved) {
-            resolved = await resolveAnimeKaiAniId(searchTerms, signal, resolveHints);
+          if (!paheId || !list.length) {
+            const catalog = await postAnimepaheCatalog(catalogPayload, signal);
+
+            if (cancelled || signal.aborted) return;
+
+            if (!catalog.success) {
+              throw new Error(catalog.error);
+            }
+
+            if (!catalog.paheId?.trim()) {
+              throw new Error('animepahe_catalog_bad_shape');
+            }
+
+            freshCatalog = catalog;
+            paheId = catalog.paheId.trim();
+            list = catalog.episodes ?? [];
           }
-          const { ani_id } = resolved;
-          if (cancelled) return;
 
-          const episodesData = await getKaiEpisodesFromBff(ani_id, signal);
-
-          if (cancelled) return;
-
-          const list = episodesData.episodes ?? [];
+          if (cancelled || signal.aborted) return;
 
           if (!list.length) {
             try {
@@ -225,7 +219,7 @@ export function useWatchAnime(
               return;
             }
             setError(
-              'Провайдер повернув порожній список епізодів. Оновіть сторінку або спробуйте пізніше — кеш мапінгу для цього тайтлу скинуто.'
+              'Animepahe повернув порожній список епізодів. Оновіть сторінку або спробуйте пізніше.'
             );
             setProviderAnimeId(null);
             setEpisodes([]);
@@ -234,12 +228,10 @@ export function useWatchAnime(
             return;
           }
 
-          writeVerifiedMapping(animeId, {
-            ani_id,
-            slug: resolved.slug,
-            status: 'verified',
-          });
-          setProviderAnimeId(ani_id);
+          if (freshCatalog) {
+            writeVerifiedMapping(animeId, paheId, freshCatalog.hasSeriesDub === true);
+          }
+          setProviderAnimeId(paheId);
 
           const mergedEpisodes = mergeKaiEpisodesWithAnilistTitles(
             alignKaiEpisodesToAnilistSeasonStart(
@@ -250,11 +242,7 @@ export function useWatchAnime(
           );
 
           setEpisodes(mergedEpisodes);
-          setTotalEpisodes(
-            mergedEpisodes.length > 0
-              ? mergedEpisodes.length
-              : episodesData.totalEpisodes ?? null
-          );
+          setTotalEpisodes(mergedEpisodes.length > 0 ? mergedEpisodes.length : null);
 
           const counts = aggregateCatalogStreamCounts(mergedEpisodes);
           setAnimeInfo((prev) => {
@@ -279,7 +267,7 @@ export function useWatchAnime(
           setEpisodeId(newEpisodeId ?? null);
         } catch (episodesError) {
           if (cancelled || signal.aborted) return;
-          console.warn('[useWatchAnime] AnimeKai episodes:', episodesError);
+          console.warn('[useWatchAnime] Animepahe catalog:', episodesError);
           setError(getErrorMessage(episodesError));
           setProviderAnimeId(null);
           setEpisodes([]);
@@ -303,84 +291,6 @@ export function useWatchAnime(
   }, [animeId, episodeRemapPass]);
 
   useEffect(() => {
-    if (!animeInfo || !providerAnimeId || !episodes?.length) return;
-    if (typeof window === 'undefined') return;
-
-    const hasDubNow = episodes.some((ep) => ep.hasDub === true);
-    const currentEpisodeCount = episodes.length;
-
-    const previous = readEpisodeHealth(animeId);
-
-    const suspiciousDubDrop = previous?.hasDub === true && !hasDubNow;
-    if (suspiciousDubDrop) {
-      if (healthcheckDebounceRef.current) {
-        clearTimeout(healthcheckDebounceRef.current);
-      }
-      healthcheckDebounceRef.current = setTimeout(() => {
-        void animekaiClient.healthcheckMapping({
-          local_anime_id: animeId,
-          anilist_id: animeInfo.id,
-          mal_id: animeInfo.mal_id ?? undefined,
-          ani_id: providerAnimeId,
-          reason: 'dub_disappeared',
-        });
-      }, 1200);
-    }
-
-    writeEpisodeHealth(animeId, { hasDub: hasDubNow, episodeCount: currentEpisodeCount });
-  }, [animeId, animeInfo, providerAnimeId, episodes]);
-
-  useEffect(() => {
-    return () => {
-      if (healthcheckDebounceRef.current) {
-        clearTimeout(healthcheckDebounceRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!animeId.trim()) return;
-    if (animeInfoLoading) {
-      setAnilibertyMatchDone(false);
-      return;
-    }
-    if (!providerAnimeId?.trim() || !episodes?.length) {
-      setAnilibertyAlias(null);
-      setAnilibertyMatchDone(true);
-      return;
-    }
-
-    const ac = new AbortController();
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const mr = await fetch(
-          `/api/anilibria/match?${new URLSearchParams({ anilist_id: animeId })}`,
-          { signal: ac.signal, headers: { accept: 'application/json' } }
-        );
-        const mj = (await mr.json()) as { success?: boolean; alias?: string };
-        if (cancelled) return;
-        const al =
-          mr.ok && mj.success === true && typeof mj.alias === 'string' && mj.alias.trim()
-            ? mj.alias.trim()
-            : null;
-        setAnilibertyAlias(al);
-      } catch {
-        if (!cancelled) setAnilibertyAlias(null);
-      } finally {
-        if (!cancelled) setAnilibertyMatchDone(true);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      ac.abort();
-    };
-  }, [animeId, animeInfoLoading, providerAnimeId, episodes]);
-
-  /** Не зіставляти `?ep=` зі списком, поки йде початкове завантаження — інакше після зміни `animeId` тут ще епізоди *попереднього* тайтлу і URL підтверджує чужий номер. */
-  useEffect(() => {
     if (!animeId.trim()) return;
     if (animeInfoLoading) return;
     if (!initialEpisodeId || !episodes?.length) return;
@@ -400,7 +310,5 @@ export function useWatchAnime(
     animeInfoLoading,
     nextEpisodeSchedule,
     error,
-    anilibertyAlias,
-    anilibertyMatchDone,
   };
 }

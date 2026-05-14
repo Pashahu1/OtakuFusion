@@ -87,7 +87,7 @@ export type ServerInfo = {
   data_id: number;
   server_id: number;
   serverName: string;
-  /** AnimeKai — GET /api/source/<link_id> */
+  /** Опційний ідентифікатор джерела (залежить від провайдера). */
   link_id?: string;
 };
 

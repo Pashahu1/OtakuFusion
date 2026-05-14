@@ -30,12 +30,11 @@ type WatchPlayerContentProps = {
   setActiveServerId: (id: string | null) => void;
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (p: WatchStreamProvider) => void;
-  anilibertyAlias: string | null;
   showErrorBlock: boolean;
   /** Дані для стріму ще підвантажуються — не показувати помилку плеєра. */
   playerShellPending: boolean;
   showStreamRecovery: boolean;
-  onStreamRecoveryChoice: (choice: 'japanese' | 'english' | 'aniliberty') => void;
+  onStreamRecoveryChoice: (choice: 'japanese' | 'english') => void;
 };
 
 export const WatchPlayerContent = ({
@@ -58,7 +57,6 @@ export const WatchPlayerContent = ({
   setActiveServerId,
   watchStreamProvider,
   setWatchStreamProvider,
-  anilibertyAlias,
   showErrorBlock,
   episodeNum,
   playerShellPending,
@@ -130,7 +128,6 @@ export const WatchPlayerContent = ({
             setActiveServerId={setActiveServerId}
             watchStreamProvider={watchStreamProvider}
             setWatchStreamProvider={setWatchStreamProvider}
-            anilibertyAlias={anilibertyAlias}
             onPlaybackError={handleBuiltinError}
           />
           </div>

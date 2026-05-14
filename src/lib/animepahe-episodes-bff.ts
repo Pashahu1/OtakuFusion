@@ -1,21 +1,18 @@
 import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
 
-/**
- * Список епізодів AnimeKai через власний BFF (кеш на сервері, без прямого виклику AnimeKai з браузера).
- */
-export async function getKaiEpisodesFromBff(
-  aniId: string,
+export async function getAnimePaheEpisodesFromBff(
+  paheId: string,
   signal?: AbortSignal
 ): Promise<GetEpisodesResult> {
-  const trimmed = aniId.trim();
+  const trimmed = paheId.trim();
   if (!trimmed) {
     return { episodes: [], totalEpisodes: 0 };
   }
 
   const q = new URLSearchParams();
-  q.set('ani_id', trimmed);
+  q.set('pahe_id', trimmed);
 
-  const res = await fetch(`/api/kai/episodes?${q.toString()}`, {
+  const res = await fetch(`/api/animepahe/episodes?${q.toString()}`, {
     method: 'GET',
     cache: 'no-store',
     signal,
@@ -27,19 +24,19 @@ export async function getKaiEpisodesFromBff(
   try {
     json = text.trim() ? JSON.parse(text) : null;
   } catch {
-    throw new Error('kai_episodes_invalid_json');
+    throw new Error('animepahe_episodes_invalid_json');
   }
 
   if (!res.ok) {
     const err =
       json && typeof json === 'object' && typeof (json as { error?: unknown }).error === 'string'
         ? (json as { error: string }).error
-        : `kai_episodes_${res.status}`;
+        : `animepahe_episodes_${res.status}`;
     throw new Error(err);
   }
 
   if (!json || typeof json !== 'object') {
-    throw new Error('kai_episodes_empty');
+    throw new Error('animepahe_episodes_empty');
   }
 
   return json as GetEpisodesResult;

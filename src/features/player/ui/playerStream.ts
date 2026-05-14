@@ -1,3 +1,4 @@
+/** Animepahe (Crysoline): сумісність плейлистів часто зривається на hls.js > 1.5.x — див. pinned у package.json. */
 import Hls from 'hls.js';
 import Artplayer from 'artplayer';
 import { buildM3u8ProxyPlaylistUrl } from '@/lib/m3u8ProxyPublicBase';

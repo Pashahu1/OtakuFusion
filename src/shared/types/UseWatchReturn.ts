@@ -35,9 +35,8 @@ export interface UseWatchReturn {
   setActiveServerId: Dispatch<SetStateAction<string | null>>;
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (provider: WatchStreamProvider) => void;
-  anilibertyAlias: string | null;
   streamErrorCode: string | null;
-  /** Показати кнопки Japanese / English / AniLiberty після збою стріму. */
+  /** Показати кнопки Japanese / English після збою стріму. */
   showStreamRecovery: boolean;
-  onStreamRecoveryChoice: (choice: 'japanese' | 'english' | 'aniliberty') => void;
+  onStreamRecoveryChoice: (choice: 'japanese' | 'english') => void;
 }

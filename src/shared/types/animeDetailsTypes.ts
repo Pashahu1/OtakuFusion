@@ -21,7 +21,7 @@ export interface AnimeData {
    * Покриття часткове; рядки на кшталт «Episode 12 - …» зіставляються за номером.
    */
   anilistEpisodeTitles?: Record<string, string>;
-  /** AniList `title.romaji` — для зіставлення з AnimeKai надійніше за англ. локалізацію. */
+  /** AniList `title.romaji` — для зіставлення з джерелами каталогу надійніше за англ. локалізацію. */
   romaji_title?: string;
   japanese_title: string;
   poster: string;

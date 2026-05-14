@@ -29,8 +29,6 @@ export interface PlayerProps {
   setActiveServerId: (id: string | null) => void;
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (provider: WatchStreamProvider) => void;
-  /** Alias AniLiberty для пункту Language; епізоди з AnimeKai. */
-  anilibertyAlias: string | null;
   onPlaybackError?: () => void;
   /** Перший стабільний кадр / відтворення — щоб оболонка могла прибрати лоадер без бліку. */
   onPlaybackSurfaceReady?: () => void;

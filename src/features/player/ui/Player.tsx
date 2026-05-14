@@ -25,7 +25,6 @@ export function Player({
   setActiveServerId = () => {},
   watchStreamProvider,
   setWatchStreamProvider,
-  anilibertyAlias,
   onPlaybackError,
   onPlaybackSurfaceReady,
 }: PlayerProps) {
@@ -55,7 +54,6 @@ export function Player({
     setActiveServerId,
     watchStreamProvider,
     setWatchStreamProvider,
-    anilibertyAlias,
     onPlaybackError,
     onPlaybackSurfaceReady,
   });

@@ -26,17 +26,6 @@ const PublicEnvSchema = z.object({
     )
     .transform((v) => v?.replace(/\/+$/, ''))
     .optional(),
-  NEXT_PUBLIC_ANIMEKAI_API_URL: z
-    .preprocess((v) => {
-      const t = toTrimmedNonEmptyString(v);
-      return t ?? 'https://animekai.fly.dev';
-    }, z.string().min(1))
-    .transform((v) => v.replace(/\/+$/, '')),
-  /** Якщо true — спочатку GET /api/anime/anilist/{id}, потім /api/anime/mal/{mal_id} (бекенд AnimeKai). */
-  NEXT_PUBLIC_ANIMEKAI_ANILIST_RESOLVE: z
-    .preprocess((v) => v === 'true' || v === '1', z.boolean())
-    .optional()
-    .default(false),
 });
 
 export const publicEnv = PublicEnvSchema.parse({
@@ -44,9 +33,6 @@ export const publicEnv = PublicEnvSchema.parse({
   NEXT_PUBLIC_PROXY_URL: process.env.NEXT_PUBLIC_PROXY_URL,
   NEXT_PUBLIC_M3U8_PROXY_URL: process.env.NEXT_PUBLIC_M3U8_PROXY_URL,
   NEXT_PUBLIC_STREAM_API_URL: process.env.NEXT_PUBLIC_STREAM_API_URL,
-  NEXT_PUBLIC_ANIMEKAI_API_URL: process.env.NEXT_PUBLIC_ANIMEKAI_API_URL,
-  NEXT_PUBLIC_ANIMEKAI_ANILIST_RESOLVE:
-    process.env.NEXT_PUBLIC_ANIMEKAI_ANILIST_RESOLVE,
 });
 
 export type PublicEnv = typeof publicEnv;

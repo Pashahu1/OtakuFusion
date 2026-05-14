@@ -56,7 +56,6 @@ export default function Watch() {
     playerShellPending,
     watchStreamProvider,
     setWatchStreamProvider,
-    anilibertyAlias,
     showStreamRecovery,
     onStreamRecoveryChoice,
   } = useWatch(animeId || '', urlEp ?? undefined);
@@ -142,7 +141,6 @@ export default function Watch() {
             playerShellPending={playerShellPending}
             watchStreamProvider={watchStreamProvider}
             setWatchStreamProvider={setWatchStreamProvider}
-            anilibertyAlias={anilibertyAlias}
             showStreamRecovery={showStreamRecovery}
             onStreamRecoveryChoice={onStreamRecoveryChoice}
           />

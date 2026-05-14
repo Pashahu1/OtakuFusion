@@ -1,8 +1,8 @@
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 
 /**
- * Агрегує наявність сабів/дубу по списку епізодів каталогу (AnimeKai API).
- * Логіка узгоджена з мапінгом епізодів AnimeKai: саб за замовчуванням true, якщо API явно не заборонив.
+ * Агрегує наявність сабів/дубу по списку епізодів каталогу перегляду.
+ * Саб за замовчуванням true, якщо запис явно не заборонив.
  */
 export function aggregateCatalogStreamCounts(episodes: EpisodesTypes[]): {
   has_sub: number;

@@ -1,12 +1,10 @@
 import { unstable_cache } from 'next/cache';
-import { getAnimeKaiEpisodesCached } from '@/server/kai/episodesCached';
-import { getAnimeKaiServersCached } from '@/server/kai/serversCached';
-import { getStreamInfo } from '@/services/getStreamInfo';
-import {
-  resolveAnimeKaiAniId,
-  tryResolveAnimeKaiByAnilistId,
-  tryResolveAnimeKaiByMalId,
-} from '@/services/animekaiResolve';
+import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
+import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
+import type {
+  CrysolineAnimepaheSourceRow,
+  CrysolineAnimepaheSourcesPayload,
+} from '@/server/crysoline/animepaheClient';
 import {
   buildProbeHeaders,
   isPlayableViaProxy,
@@ -14,13 +12,10 @@ import {
   type WatchProbeConfig,
 } from '@/lib/watchResolveProbe';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
-import { mirrorServerLabel } from '@/shared/data/servers';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
 type WatchLang = 'sub' | 'dub';
 
-/** Одночасні однакові GET з різних вкладок — один прохід резолву на інстанс. */
 const inflightResolve = new Map<string, Promise<Response>>();
 
 function canonicalResolveKey(reqUrl: URL): string {
@@ -44,7 +39,6 @@ function outcomeToResponse(out: WatchResolveOutcome): Response {
   return Response.json(out.body, { status: out.status, headers });
 }
 
-/** Кеш даних успішного резолву між запитами (Next `unstable_cache`). У dev вимкнено, якщо не `WATCH_RESOLVE_CACHE=1`. */
 function isWatchResolveDataCacheEnabled(): boolean {
   if (process.env.WATCH_RESOLVE_CACHE === '0') return false;
   if (
@@ -69,9 +63,6 @@ class WatchResolveNonOkError extends Error {
   }
 }
 
-/**
- * Після `unstable_cache` у проді `instanceof` інколи не збігається з класом; також Next може обгорнути помилку.
- */
 function extractWatchResolveNonOkOutcome(err: unknown): WatchResolveOutcome | null {
   if (err instanceof WatchResolveNonOkError) {
     return err.outcome;
@@ -105,144 +96,107 @@ function parseEpisodeNumber(sp: URLSearchParams): number | null {
   return Math.floor(value);
 }
 
-function parsePositiveInt(sp: URLSearchParams, key: string): number | undefined {
-  const raw = sp.get(key)?.trim();
-  if (!raw) return undefined;
-  if (!/^\d+$/.test(raw)) return undefined;
-  const value = Number(raw);
-  if (!Number.isFinite(value) || value <= 0) return undefined;
-  return value;
-}
-
 function pickEpisodeByNumber(episodes: EpisodesTypes[], episodeNo: number): EpisodesTypes | null {
   const exact = episodes.find((ep) => ep.episode_no === episodeNo);
   if (exact) return exact;
-  /** `episodeMapping` / BFF ставлять `data_id` = номеру епізоду — запасний збіг. */
   return episodes.find((ep) => ep.data_id === episodeNo) ?? null;
 }
 
-function isSoftsubServer(server: ServerInfo): boolean {
-  return server.serverName.trim().toLowerCase().startsWith('softsub');
+function mergeRootHeaders(
+  root: Record<string, string> | undefined
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!root) return out;
+  for (const [k, v] of Object.entries(root)) {
+    if (typeof k !== 'string' || !k.trim()) continue;
+    if (typeof v !== 'string' || !v.trim()) continue;
+    out[k.trim()] = v.trim();
+  }
+  return out;
 }
 
-function isDubServer(server: ServerInfo): boolean {
-  return server.type.toLowerCase() === 'dub';
+function resolutionRank(quality: string | undefined): number {
+  const q = (quality ?? '').toLowerCase();
+  const m = q.match(/(\d{3,4})p/);
+  return m ? parseInt(m[1], 10) : 0;
 }
 
-function isSubServer(server: ServerInfo): boolean {
-  return server.type.toLowerCase() === 'sub' && !isSoftsubServer(server);
-}
-
-function serverMatchesRequestedLang(server: ServerInfo, requestedLang: WatchLang): boolean {
-  if (requestedLang === 'dub') return isDubServer(server);
-  return !isDubServer(server);
-}
-
-function buildServerCandidateGroups(
-  servers: ServerInfo[],
+function buildAnimePaheStreamCandidates(
+  payload: CrysolineAnimepaheSourcesPayload,
   requestedLang: WatchLang
-): ServerInfo[][] {
-  const dub = servers.filter((server) => isDubServer(server));
-  const softsub = servers.filter((server) => isSoftsubServer(server));
-  const sub = servers.filter((server) => isSubServer(server));
-  const ordered =
-    requestedLang === 'dub' ? [dub, softsub, sub] : [sub, softsub, dub];
-  const unique = new Set<string>();
-  const dedupedGroups: ServerInfo[][] = [[], [], []];
-  for (let i = 0; i < ordered.length; i++) {
-    for (const server of ordered[i]) {
-      const key = `${server.type}|${server.server_id}|${server.link_id ?? ''}|${server.serverName}`;
-      if (unique.has(key)) continue;
-      unique.add(key);
-      dedupedGroups[i].push(server);
-    }
-  }
-  return dedupedGroups;
-}
-
-function findPreferredServerInGroups(
-  groups: ServerInfo[][],
-  hint: string,
-  requestedLang: WatchLang
-): ServerInfo | null {
-  const raw = hint.trim();
-  if (!raw) return null;
-  const hintLower = raw.toLowerCase();
-  const hintMirror = mirrorServerLabel(raw).toLowerCase();
-
-  for (const group of groups) {
-    for (const s of group) {
-      if (!serverMatchesRequestedLang(s, requestedLang)) continue;
-      if (s.serverName.trim().toLowerCase() === hintLower) return s;
-    }
-  }
-  for (const group of groups) {
-    for (const s of group) {
-      if (!serverMatchesRequestedLang(s, requestedLang)) continue;
-      if (mirrorServerLabel(s.serverName).toLowerCase() === hintMirror) return s;
-    }
-  }
-  return null;
-}
-
-async function tryResolveServerCandidate(
-  candidate: ServerInfo,
-  origin: string,
-  probeCfg: WatchProbeConfig
-): Promise<{ candidate: ServerInfo; primary: StreamingType }> {
-  const streamData = await getStreamInfo(
-    candidate,
-    candidate.type.toLowerCase() === 'dub' ? 'dub' : 'sub'
+): StreamingType[] {
+  const rootHeaders = mergeRootHeaders(payload.headers);
+  const sources = Array.isArray(payload.sources) ? payload.sources : [];
+  const filtered = sources.filter((s: CrysolineAnimepaheSourceRow) => {
+    const isDub = s.isDub === true;
+    if (requestedLang === 'dub') return isDub;
+    return !isDub;
+  });
+  const list = filtered.length ? filtered : sources;
+  const sorted = [...list].sort(
+    (a, b) => resolutionRank(b.quality) - resolutionRank(a.quality)
   );
-  const links = streamData.streamingLink ?? [];
-  if (!links.length) {
-    throw new Error('source_missing_url');
-  }
-  const withFile = links.filter((link) => link?.link?.file?.trim());
-  if (!withFile.length) {
-    throw new Error('source_missing_url');
-  }
-
-  try {
-    const primary = await Promise.any(
-      withFile.map(async (link) => {
-        const ok = await isPlayableViaProxy(origin, link, probeCfg);
-        if (!ok) throw new Error('not_playable');
-        return link;
-      })
+  const out: StreamingType[] = [];
+  let nid = 0;
+  for (const row of sorted) {
+    const headers = { ...rootHeaders };
+    const fileUrls = [row.proxy, row.url].filter(
+      (u): u is string => typeof u === 'string' && u.trim().length > 0
     );
-    return { candidate, primary };
-  } catch {
-    throw new Error('source_not_playable_via_proxy');
-  }
-}
-
-async function resolveFirstWorkingStream(
-  candidateGroups: ServerInfo[][],
-  origin: string,
-  probeCfg: WatchProbeConfig
-) {
-  let lastError: unknown = null;
-  for (const group of candidateGroups) {
-    if (!group.length) continue;
-    const tasks = group.map((candidate) =>
-      tryResolveServerCandidate(candidate, origin, probeCfg)
-    );
-    try {
-      return await Promise.any(tasks);
-    } catch (error) {
-      lastError = error;
+    const uniq = [...new Set(fileUrls.map((u) => u.trim()))];
+    for (const file of uniq) {
+      nid += 1;
+      out.push({
+        id: nid,
+        type: row.isDub === true ? ('dub' as const) : ('sub' as const),
+        link: { file, type: 'hls' },
+        tracks: [],
+        intro: { start: 0, end: 0 },
+        outro: { start: 0, end: 0 },
+        server: row.quality?.trim() || 'Animepahe',
+        request_headers: Object.keys(headers).length ? headers : undefined,
+      });
     }
   }
-  throw lastError ?? new Error('no_working_source');
+  return out;
 }
 
-function extractKeyword(sp: URLSearchParams): string | undefined {
-  const keyword = sp.get('keyword')?.trim();
-  if (keyword && keyword.length >= 2) return keyword;
-  const localAnimeId = sp.get('local_anime_id')?.trim();
-  if (localAnimeId && localAnimeId.length >= 2) return localAnimeId;
-  return undefined;
+function prioritizeByServerHint(
+  candidates: StreamingType[],
+  hint: string | null | undefined
+): StreamingType[] {
+  const raw = hint?.trim();
+  if (!raw) return candidates;
+  const h = raw.toLowerCase();
+  const match = candidates.filter((c) => c.server.toLowerCase().includes(h));
+  const rest = candidates.filter((c) => !c.server.toLowerCase().includes(h));
+  return [...match, ...rest];
+}
+
+async function tryResolveStreamingCandidate(
+  stream: StreamingType,
+  origin: string,
+  probeCfg: WatchProbeConfig
+): Promise<StreamingType> {
+  const ok = await isPlayableViaProxy(origin, stream, probeCfg);
+  if (!ok) throw new Error('not_playable');
+  return stream;
+}
+
+async function resolveFirstWorkingAnimePaheCandidate(
+  candidates: StreamingType[],
+  origin: string,
+  probeCfg: WatchProbeConfig
+): Promise<StreamingType> {
+  let lastErr: unknown = null;
+  for (const c of candidates) {
+    try {
+      return await tryResolveStreamingCandidate(c, origin, probeCfg);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr ?? new Error('no_working_source');
 }
 
 async function computeWatchResolveOutcome(
@@ -267,130 +221,70 @@ async function computeWatchResolveOutcome(
   const probeCfg = readWatchProbeConfig(lang);
   const origin = options?.publicOrigin ?? url.origin;
 
+  const paheSeriesId = url.searchParams.get('ani_id')?.trim();
+  if (!paheSeriesId) {
+    return {
+      status: 400,
+      body: {
+        success: false,
+        error: 'ani_id is required (Animepahe series id from catalog)',
+      },
+    };
+  }
+
   try {
-    const explicitAniId = url.searchParams.get('ani_id')?.trim();
-    const anilistId = parsePositiveInt(url.searchParams, 'anilist_id');
-    const malId = parsePositiveInt(url.searchParams, 'mal_id');
-    const keyword = extractKeyword(url.searchParams);
-    const terms = keyword ? [keyword] : [];
-    let resolvedBy: 'cache' | 'direct_anilist' | 'direct_mal' | 'fuzzy_last_resort' =
-      'fuzzy_last_resort';
-    let resolved: { ani_id: string; slug: string } | null =
-      explicitAniId && explicitAniId.length > 0
-        ? { ani_id: explicitAniId, slug: explicitAniId }
-        : null;
-
-    if (resolved) {
-      resolvedBy = 'cache';
-    } else {
-      resolved = anilistId != null ? await tryResolveAnimeKaiByAnilistId(String(anilistId)) : null;
-      if (!resolved && malId != null) {
-        resolved = await tryResolveAnimeKaiByMalId(malId);
-        resolvedBy = 'direct_mal';
-      } else if (resolved && anilistId != null) {
-        resolvedBy = 'direct_anilist';
-      }
-
-      if (!resolved) {
-        if (!terms.length) {
-          return {
-            status: 400,
-            body: {
-              success: false,
-              error:
-                'Cannot resolve anime: provide ani_id, anilist_id, mal_id, or keyword/local_anime_id.',
-            },
-          };
-        }
-        resolved = await resolveAnimeKaiAniId(terms);
-        resolvedBy = 'fuzzy_last_resort';
-      }
-    }
-
-    const episodesResult = await getAnimeKaiEpisodesCached(resolved.ani_id);
+    const episodesResult = await getAnimePaheEpisodesCached(paheSeriesId);
     const targetEpisode = pickEpisodeByNumber(episodesResult.episodes, episode);
-    if (!targetEpisode?.ep_token?.trim()) {
+    const epHash = targetEpisode?.ep_token?.trim();
+    if (!epHash) {
       return {
         status: 404,
         body: {
           success: false,
           error: 'episode_not_found',
-          reason: `Episode ${episode} is missing or has no ep_token`,
+          reason: `Episode ${episode} is missing in Animepahe catalog`,
         },
       };
     }
 
-    const servers = await getAnimeKaiServersCached(targetEpisode.ep_token);
-    if (!servers.length) {
-      return {
-        status: 404,
-        body: {
-          success: false,
-          error: 'no_servers',
-          reason: 'No servers found for this episode token',
-        },
-      };
-    }
-
-    const candidateGroups = buildServerCandidateGroups(servers, lang);
-    if (candidateGroups.every((group) => group.length === 0)) {
+    const sourcesPayload = await getAnimePaheSourcesCached(paheSeriesId, epHash);
+    let candidates = buildAnimePaheStreamCandidates(sourcesPayload, lang);
+    if (!candidates.length) {
       return {
         status: 404,
         body: {
           success: false,
           error: 'no_working_source',
-          reason: 'no_candidate_servers',
+          reason: 'animepahe_sources_empty',
         },
       };
     }
 
     const preferredHint = url.searchParams.get('preferred_server_hint')?.trim();
-    let resolvedPair: { candidate: ServerInfo; primary: StreamingType };
-    if (preferredHint) {
-      const pref = findPreferredServerInGroups(candidateGroups, preferredHint, lang);
-      if (pref) {
-        try {
-          resolvedPair = await tryResolveServerCandidate(pref, origin, probeCfg);
-        } catch {
-          resolvedPair = await resolveFirstWorkingStream(
-            candidateGroups,
-            origin,
-            probeCfg
-          );
-        }
-      } else {
-        resolvedPair = await resolveFirstWorkingStream(
-          candidateGroups,
-          origin,
-          probeCfg
-        );
-      }
-    } else {
-      resolvedPair = await resolveFirstWorkingStream(
-        candidateGroups,
-        origin,
-        probeCfg
-      );
-    }
-    const { candidate, primary } = resolvedPair;
-    const usedLang: WatchLang = candidate.type.toLowerCase() === 'dub' ? 'dub' : 'sub';
-    const fallbackApplied =
-      (lang === 'dub' && !isDubServer(candidate)) ||
-      (lang === 'sub' && isDubServer(candidate));
+    candidates = prioritizeByServerHint(candidates, preferredHint);
+
+    const primary = await resolveFirstWorkingAnimePaheCandidate(
+      candidates,
+      origin,
+      probeCfg
+    );
+
+    const usedLang: WatchLang = primary.type === 'dub' ? 'dub' : 'sub';
+    const fallbackApplied = lang !== usedLang;
 
     const body: Record<string, unknown> = {
       success: true,
       resolved_anime: {
-        ani_id: resolved.ani_id,
-        slug: resolved.slug,
+        ani_id: paheSeriesId,
+        slug: paheSeriesId,
         status: 'verified',
-        resolved_by: resolvedBy,
+        resolved_by: 'cache',
       },
       episode: {
         number: episode,
-        ep_token: targetEpisode.ep_token,
-        hasSub: Boolean(targetEpisode.hasSub ?? true),
-        hasDub: Boolean(targetEpisode.hasDub ?? false),
+        ep_token: epHash,
+        hasSub: Boolean(targetEpisode?.hasSub ?? true),
+        hasDub: Boolean(targetEpisode?.hasDub ?? false),
       },
       stream: {
         url: primary.link.file,
@@ -445,7 +339,7 @@ async function handleWatchResolve(req: Request): Promise<Response> {
         if (o.status !== 200) throw new WatchResolveNonOkError(o);
         return o.body;
       },
-      ['watch-resolve-data-v2', cacheKey, publicOrigin],
+      ['watch-resolve-data-v3-animepahe', cacheKey, publicOrigin],
       { revalidate: watchResolveCacheRevalidateSec() }
     );
 

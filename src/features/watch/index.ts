@@ -1,5 +1,5 @@
 /**
- * Фіча «перегляд»: AniList-метадані + AnimeKai (резолв, епізоди, стрім).
+ * Фіча «перегляд»: AniList-метадані + Animepahe через Crysoline (каталог і стрім).
  * Хуки лежать у `hooks/`; сторінка `app/watch/[id]` імпортує звідси або з `@/hooks/*` (реекспорт).
  */
 export { useWatch } from './hooks/useWatch';
