@@ -266,15 +266,15 @@ export function useArtplayerInstance({
                 };
                 if (http != null) payload.http = http;
                 if (d.reason != null && d.reason !== '') payload.reason = d.reason;
-                /** Нефатальні append-спроби (часто серія подій) — debug; фатальні MSE — warn, щоб у dev було видно причину при всіх HTTP 200. */
+                /** Відомі MSE-шумові події (owocdn / fMP4) — debug, щоб не засмічувати консоль; мережа — warn. */
                 const detailsStr = String(d.details ?? '');
                 const isNoisyMseDetails =
                   detailsStr === 'bufferAddCodecError' ||
                   detailsStr === 'bufferAppendError';
-                const isMseNoise =
-                  data?.type === Hls.ErrorTypes.MEDIA_ERROR && isNoisyMseDetails;
                 const log =
-                  isMseNoise && !data?.fatal ? console.debug : console.warn;
+                  data?.type === Hls.ErrorTypes.MEDIA_ERROR && isNoisyMseDetails
+                    ? console.debug
+                    : console.warn;
                 log('[OtakuFusion][Hls]', payload);
               }
               if (
