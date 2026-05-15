@@ -9,8 +9,8 @@ import {
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import { writeWatchStreamProvider } from '@/lib/watch-provider';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
-import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
+import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
 import { useWatchAnime } from './useWatchAnime';
@@ -168,6 +168,15 @@ export function useWatch(
     [anime.episodeId, currentEpisodeHasDub, hasAnyDub]
   );
 
+  const episodeEpToken = useMemo(() => {
+    if (!anime.episodeId || !anime.episodes?.length) return null;
+    const ep = anime.episodes.find(
+      (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === anime.episodeId
+    );
+    const token = ep?.ep_token?.trim();
+    return token || null;
+  }, [anime.episodes, anime.episodeId]);
+
   const watchResolveOptions = useMemo(
     () => ({
       animeId,
@@ -177,6 +186,7 @@ export function useWatch(
         watchStreamProvider === 'aniliberty'
           ? anime.anilibertyCatalogProviderId
           : anime.animepaheCatalogProviderId,
+      episodeEpToken,
       preferredLang: resolverLang,
       onPlaybackLangResolved,
       watchStreamProvider,
@@ -188,6 +198,7 @@ export function useWatch(
       anime.episodeId,
       anime.animepaheCatalogProviderId,
       anime.anilibertyCatalogProviderId,
+      episodeEpToken,
       animeId,
       watchStreamProvider,
       resolverLang,

@@ -28,6 +28,7 @@ interface WatchResolveOptions {
   episodeId: string | null;
   streamAnime: WatchStreamAnimeMeta | null;
   providerAnimeId?: string | null;
+  episodeEpToken?: string | null;
   preferredLang: 'sub' | 'dub';
   onPlaybackLangResolved?: (lang: 'sub' | 'dub') => void;
   watchStreamProvider: WatchStreamProvider;
@@ -212,6 +213,7 @@ export function useWatchStream(
           keyword: streamAnime.title,
           localAnimeId: watchResolveOptions.animeId,
           providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
+          episodeEpToken: watchResolveOptions.episodeEpToken?.trim() || undefined,
           episode: episodeNumber,
           lang: preferredLang,
           streamProvider:
@@ -316,6 +318,7 @@ export function useWatchStream(
     watchResolveOptions?.animeId,
     watchResolveOptions?.episodeId,
     watchResolveOptions?.providerAnimeId,
+    watchResolveOptions?.episodeEpToken,
     watchResolveOptions?.preferredLang,
     watchResolveOptions?.watchStreamProvider,
     watchResolveOptions?.streamLangRevision,

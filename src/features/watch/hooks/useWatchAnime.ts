@@ -34,6 +34,8 @@ export interface UseWatchAnimeReturn {
   error: string | null;
   /** Пункт Anilibria в меню плеєра лише після підтвердженого пошуку (не порожній каталог). */
   anilibertyLanguageMenuEligible: boolean;
+  /** М’яка зміна Animepahe ↔ Anilibria — список епізодів не скидається. */
+  providerCatalogPending: boolean;
 }
 
 function getErrorMessage(err: unknown): string {
@@ -113,6 +115,32 @@ function writeVerifiedLibertyMapping(localAnimeId: string, libertyId: string): v
   }
 }
 
+/** Префетч Anilibria mapping + меню Language ще до перемикання провайдера. */
+function prefetchAnilibertyMapping(
+  dataForResolve: AnimeData,
+  localAnimeId: string,
+  signal: AbortSignal,
+  isCancelled: () => boolean,
+  onEligible: () => void
+): void {
+  if (readVerifiedLibertyMapping(localAnimeId)?.libertyId) {
+    onEligible();
+    return;
+  }
+  const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
+  void (async () => {
+    try {
+      const alt = await postAnilibertyCatalog(catalogPayload, signal);
+      if (isCancelled() || signal.aborted) return;
+      if (!alt.success || !alt.libertyId?.trim()) return;
+      writeVerifiedLibertyMapping(localAnimeId, alt.libertyId.trim());
+      onEligible();
+    } catch {
+      /* тихий префетч */
+    }
+  })();
+}
+
 function catalogBodyFromAnimeData(data: AnimeData, anilistKey: string) {
   return {
     anilistId: anilistKey,
@@ -145,6 +173,7 @@ export function useWatchAnime(
     useState<NextEpisodeScheduleResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [anilibertyLanguageMenuEligible, setAnilibertyLanguageMenuEligible] = useState(false);
+  const [providerCatalogPending, setProviderCatalogPending] = useState(false);
   const initialEpisodeRef = useRef(initialEpisodeId);
   initialEpisodeRef.current = initialEpisodeId;
 
@@ -165,6 +194,7 @@ export function useWatchAnime(
     setAnimeInfoLoading(true);
     setError(null);
     setAnilibertyLanguageMenuEligible(false);
+    setProviderCatalogPending(false);
   }, [animeId]);
 
   const animeInfoRef = useRef(animeInfo);
@@ -232,43 +262,25 @@ export function useWatchAnime(
       }
 
       if (!forceFuzzy) {
-        const catalogPayload = catalogBodyFromAnimeData(dataForResolve, animeId);
-        void (async () => {
-          try {
-            if (cancelled || signal.aborted) return;
-            if (watchStreamProvider === 'animepahe') {
-              if (readVerifiedLibertyMapping(animeId)?.libertyId) {
-                if (!cancelled) setAnilibertyLanguageMenuEligible(true);
-                return;
-              }
-              const alt = await postAnilibertyCatalog(catalogPayload, signal);
+        prefetchAnilibertyMapping(dataForResolve, animeId, signal, () => cancelled, () => {
+          if (!cancelled) setAnilibertyLanguageMenuEligible(true);
+        });
+        if (watchStreamProvider === 'aniliberty') {
+          const catalogPayload = catalogBodyFromAnimeData(dataForResolve, animeId);
+          void (async () => {
+            try {
               if (cancelled || signal.aborted) return;
-              if (!alt.success || !alt.libertyId?.trim()) {
-                if (!cancelled) {
-                  if (!alt.success && alt.error === 'aniliberty_catalog_not_found') {
-                    setAnilibertyCatalogProviderId(null);
-                  }
-                  setAnilibertyLanguageMenuEligible(false);
-                }
-                return;
-              }
-              writeVerifiedLibertyMapping(animeId, alt.libertyId.trim());
-              if (!cancelled) {
-                setAnilibertyCatalogProviderId(alt.libertyId.trim());
-                setAnilibertyLanguageMenuEligible(true);
-              }
-            } else {
               if (readVerifiedPaheMapping(animeId)?.paheId) return;
               const alt = await postAnimepaheCatalog(catalogPayload, signal);
               if (cancelled || signal.aborted) return;
               if (!alt.success || !alt.paheId?.trim()) return;
               writeVerifiedPaheMapping(animeId, alt.paheId.trim(), alt.hasSeriesDub === true);
               if (!cancelled) setAnimepaheCatalogProviderId(alt.paheId.trim());
+            } catch {
+              /* тихий префетч */
             }
-          } catch {
-            if (!cancelled) setAnilibertyLanguageMenuEligible(false);
-          }
-        })();
+          })();
+        }
       }
 
       const mergedEpisodes = applyAnilistEpisodeDisplayTitles(
@@ -470,7 +482,7 @@ export function useWatchAnime(
       }
 
       const settleLoading = { current: false };
-      setEpisodes(null);
+      setProviderCatalogPending(true);
       setError(null);
       const preserveEpisodeNum = episodeIdRef.current;
 
@@ -490,6 +502,8 @@ export function useWatchAnime(
           setEpisodes([]);
           setTotalEpisodes(0);
           setEpisodeId(null);
+        } finally {
+          if (!cancelled) setProviderCatalogPending(false);
         }
       })();
 
@@ -538,6 +552,10 @@ export function useWatchAnime(
           setError('No anime data available.');
           return;
         }
+
+        prefetchAnilibertyMapping(dataForResolve, animeId, signal, () => cancelled, () => {
+          if (!cancelled) setAnilibertyLanguageMenuEligible(true);
+        });
 
         try {
           const forceFuzzy = episodeRemapPass > 0;
@@ -603,5 +621,6 @@ export function useWatchAnime(
     nextEpisodeSchedule,
     error,
     anilibertyLanguageMenuEligible,
+    providerCatalogPending,
   };
 }

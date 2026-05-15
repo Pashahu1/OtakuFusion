@@ -23,6 +23,8 @@ export interface WatchResolveParams {
   anilistId?: number;
   malId?: number;
   providerAniId?: string;
+  /** Anilibria episode uuid з каталогу — пропускає повторний fetch списку епізодів на resolve. */
+  episodeEpToken?: string;
   episode: number;
   lang: 'sub' | 'dub';
   keyword?: string;
@@ -83,6 +85,8 @@ export async function resolveWatchStream(
   if (params.anilistId != null) query.set('anilist_id', String(params.anilistId));
   if (params.malId != null) query.set('mal_id', String(params.malId));
   if (params.providerAniId?.trim()) query.set('ani_id', params.providerAniId.trim());
+  const epToken = params.episodeEpToken?.trim();
+  if (epToken) query.set('ep_token', epToken);
   if (params.keyword) {
     const keyword = normalizeKeyword(params.keyword);
     if (keyword) query.set('keyword', keyword);

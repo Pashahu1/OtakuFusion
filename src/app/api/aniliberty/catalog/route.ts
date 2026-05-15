@@ -1,15 +1,11 @@
 import { z } from 'zod';
-import { crysolineAnilibertySearch } from '@/server/crysoline/anilibertyClient';
-import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
 import { getCrysolineApiKey } from '@/server/crysoline/config';
 import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
+import { resolveAnilibertyLibertyIdCached } from '@/server/aniliberty/catalogMatchCached';
 import {
-  buildAnimepaheSearchQueryQueue,
   buildAnimepaheSearchTermsFromFields,
-  normalizeCatalogSearchQuery,
   type AnimepaheCatalogHints,
 } from '@/services/animepahe/catalogHints';
-import { pickBestAnilibertySearchHit } from '@/services/aniliberty/pickAnilibertySearchHit';
 import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
 
 const BodySchema = z.object({
@@ -52,9 +48,6 @@ function hintsFromBody(b: z.infer<typeof BodySchema>): AnimepaheCatalogHints {
   };
 }
 
-const MAX_SEARCH_QUERIES = 3;
-const MERGED_HITS_SOFT_CAP = 10;
-
 export async function POST(req: Request) {
   try {
     getCrysolineApiKey();
@@ -91,51 +84,22 @@ export async function POST(req: Request) {
     japanese_title: body.japanese_title,
     synonyms: body.synonyms,
   });
-  const queue = buildAnimepaheSearchQueryQueue(baseTerms);
-  if (!queue.length) {
+  if (!baseTerms.length) {
     return Response.json(
       { success: false, error: 'aniliberty_no_search_terms' },
       { status: 400, headers: { 'Cache-Control': 'no-store' } }
     );
   }
 
-  const merged = new Map<number, CrysolineAnilibertySearchRow>();
-  const termsForScore = baseTerms;
-
   try {
-    for (let i = 0; i < Math.min(queue.length, MAX_SEARCH_QUERIES); i++) {
-      const q = normalizeCatalogSearchQuery(queue[i]);
-      if (q.length < 2) continue;
-      const hits = await crysolineAnilibertySearch(q);
-      for (const h of hits) {
-        if (typeof h?.id === 'number' && Number.isFinite(h.id) && !merged.has(h.id)) {
-          merged.set(h.id, h);
-        }
-      }
-      if (merged.size >= MERGED_HITS_SOFT_CAP) break;
+    const libertyId = await resolveAnilibertyLibertyIdCached(body, hints, baseTerms);
+    if (!libertyId) {
+      return Response.json(
+        { success: false, error: 'aniliberty_catalog_not_found' },
+        { status: 404, headers: { 'Cache-Control': 'no-store' } }
+      );
     }
-  } catch (e) {
-    return Response.json(
-      {
-        success: false,
-        error: e instanceof Error ? e.message : 'aniliberty_search_failed',
-      },
-      { status: 502, headers: { 'Cache-Control': 'no-store' } }
-    );
-  }
 
-  const pool = [...merged.values()];
-  const best = pickBestAnilibertySearchHit(pool, hints, termsForScore);
-  if (best == null || !Number.isFinite(best.id)) {
-    return Response.json(
-      { success: false, error: 'aniliberty_catalog_not_found' },
-      { status: 404, headers: { 'Cache-Control': 'no-store' } }
-    );
-  }
-
-  const libertyId = String(Math.floor(best.id));
-
-  try {
     const rows = await getAnilibertyEpisodesCached(libertyId);
     const { episodes, totalEpisodes } = mapCrysolineAnilibertyEpisodes(rows);
     if (!episodes.length) {
@@ -157,7 +121,7 @@ export async function POST(req: Request) {
     return Response.json(
       {
         success: false,
-        error: e instanceof Error ? e.message : 'aniliberty_episodes_failed',
+        error: e instanceof Error ? e.message : 'aniliberty_catalog_failed',
       },
       { status: 502, headers: { 'Cache-Control': 'no-store' } }
     );

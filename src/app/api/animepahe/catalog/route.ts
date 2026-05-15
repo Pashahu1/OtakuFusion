@@ -1,17 +1,11 @@
 import { z } from 'zod';
-import {
-  crysolineAnimepaheSearch,
-  type CrysolineAnimepaheSearchRow,
-} from '@/server/crysoline/animepaheClient';
 import { getCrysolineApiKey } from '@/server/crysoline/config';
 import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
+import { resolveAnimepahePaheIdCached } from '@/server/animepahe/catalogMatchCached';
 import {
-  buildAnimepaheSearchQueryQueue,
   buildAnimepaheSearchTermsFromFields,
-  normalizeCatalogSearchQuery,
   type AnimepaheCatalogHints,
 } from '@/services/animepahe/catalogHints';
-import { pickBestAnimepaheSearchHit } from '@/services/animepahe/pickAnimepaheSearchHit';
 import { enrichEpisodesWithSeriesDubIfNeeded } from '@/server/animepahe/dubProbe';
 
 const BodySchema = z.object({
@@ -56,9 +50,6 @@ function hintsFromBody(
   };
 }
 
-const MAX_SEARCH_QUERIES = 3;
-const MERGED_HITS_SOFT_CAP = 10;
-
 export async function POST(req: Request) {
   try {
     getCrysolineApiKey();
@@ -95,43 +86,10 @@ export async function POST(req: Request) {
     japanese_title: body.japanese_title,
     synonyms: body.synonyms,
   });
-  const queue = buildAnimepaheSearchQueryQueue(baseTerms);
-  if (!queue.length) {
+  if (!baseTerms.length) {
     return Response.json(
       { success: false, error: 'animepahe_no_search_terms' },
       { status: 400, headers: { 'Cache-Control': 'no-store' } }
-    );
-  }
-
-  const merged = new Map<string, CrysolineAnimepaheSearchRow>();
-  const termsForScore = baseTerms;
-
-  try {
-    for (let i = 0; i < Math.min(queue.length, MAX_SEARCH_QUERIES); i++) {
-      const q = normalizeCatalogSearchQuery(queue[i]);
-      if (q.length < 2) continue;
-      const hits = await crysolineAnimepaheSearch(q);
-      for (const h of hits) {
-        if (h?.id && !merged.has(h.id)) merged.set(h.id, h);
-      }
-      if (merged.size >= MERGED_HITS_SOFT_CAP) break;
-    }
-  } catch (e) {
-    return Response.json(
-      {
-        success: false,
-        error: e instanceof Error ? e.message : 'animepahe_search_failed',
-      },
-      { status: 502, headers: { 'Cache-Control': 'no-store' } }
-    );
-  }
-
-  const pool = [...merged.values()];
-  const best = pickBestAnimepaheSearchHit(pool, hints, termsForScore);
-  if (!best?.id?.trim()) {
-    return Response.json(
-      { success: false, error: 'animepahe_catalog_not_found' },
-      { status: 404, headers: { 'Cache-Control': 'no-store' } }
     );
   }
 
@@ -140,16 +98,24 @@ export async function POST(req: Request) {
     process.env.ANIMEPAHE_SKIP_SERIES_DUB_PROBE === 'true';
 
   try {
-    const { episodes, totalEpisodes } = await getAnimePaheEpisodesCached(best.id);
+    const paheId = await resolveAnimepahePaheIdCached(body, hints, baseTerms);
+    if (!paheId) {
+      return Response.json(
+        { success: false, error: 'animepahe_catalog_not_found' },
+        { status: 404, headers: { 'Cache-Control': 'no-store' } }
+      );
+    }
+
+    const { episodes, totalEpisodes } = await getAnimePaheEpisodesCached(paheId);
     const episodesOut = skipDubProbe
       ? episodes
-      : await enrichEpisodesWithSeriesDubIfNeeded(best.id.trim(), episodes);
+      : await enrichEpisodesWithSeriesDubIfNeeded(paheId, episodes);
     const hasSeriesDub =
       !skipDubProbe && episodesOut.some((e) => e.hasDub === true);
     return Response.json(
       {
         success: true,
-        paheId: best.id.trim(),
+        paheId,
         episodes: episodesOut,
         totalEpisodes,
         hasSeriesDub,

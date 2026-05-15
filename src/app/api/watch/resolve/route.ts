@@ -530,15 +530,20 @@ async function computeAnilibertyWatchResolveOutcome(params: {
   origin: string;
   seriesId: string;
   preferredHint: string | null;
+  /** Якщо клієнт уже має `ep_token` з каталогу — не тягнемо повний список епізодів з Crysoline. */
+  epTokenOverride?: string | null;
 }): Promise<WatchResolveOutcome> {
-  const { startedAt, episode, origin, seriesId, preferredHint } = params;
+  const { startedAt, episode, origin, seriesId, preferredHint, epTokenOverride } = params;
   const probeCfg = readWatchProbeConfig('sub');
 
   try {
-    const rows = await getAnilibertyEpisodesCached(seriesId);
-    const { episodes } = mapCrysolineAnilibertyEpisodes(rows);
-    const targetEpisode = pickEpisodeByNumber(episodes, episode);
-    const epToken = targetEpisode?.ep_token?.trim();
+    let epToken = epTokenOverride?.trim() ?? '';
+    if (!epToken) {
+      const rows = await getAnilibertyEpisodesCached(seriesId);
+      const { episodes } = mapCrysolineAnilibertyEpisodes(rows);
+      const targetEpisode = pickEpisodeByNumber(episodes, episode);
+      epToken = targetEpisode?.ep_token?.trim() ?? '';
+    }
     if (!epToken) {
       return {
         status: 404,
@@ -676,12 +681,14 @@ async function computeWatchResolveOutcome(
   }
 
   if (provider === 'aniliberty') {
+    const epTokenOverride = url.searchParams.get('ep_token')?.trim() || null;
     return computeAnilibertyWatchResolveOutcome({
       startedAt,
       episode,
       origin,
       seriesId,
       preferredHint,
+      epTokenOverride,
     });
   }
 
