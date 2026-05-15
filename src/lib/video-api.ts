@@ -1,12 +1,17 @@
-import { publicEnv } from '@/lib/env.public';
 import { ApiError } from '@/lib/errors/ApiError';
+import { getPublicAppOrigin } from '@/lib/public-app-origin';
 
 export interface VideoApiResponse<T> {
   results: T;
 }
 
 function getVideoApiBaseUrl(): string {
-  return publicEnv.NEXT_PUBLIC_STREAM_API_URL || publicEnv.NEXT_PUBLIC_API_URL;
+  const raw = process.env.NEXT_PUBLIC_STREAM_API_URL;
+  if (typeof raw === 'string') {
+    const t = raw.trim();
+    if (t) return t.replace(/\/+$/, '');
+  }
+  return getPublicAppOrigin();
 }
 
 export const videoApiUrl = {

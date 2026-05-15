@@ -61,15 +61,17 @@ cp .env.example .env
 
 Edit `.env`. **Required for a minimal run:**
 
-- `NEXT_PUBLIC_API_URL` — base URL of your anime/streaming API
 - `MONGODB_URI` — MongoDB connection string
 - `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` — strong random strings (e.g. `openssl rand -base64 32`)
 - Set `NEXT_JWT_ACCESS_SECRET` and `NEXT_JWT_REFRESH_SECRET` to the same values as above (used by login/me routes)
 - `SMTP_*` — SMTP credentials for verification emails
 
+Recommended:
+
+- `NEXT_PUBLIC_SITE_URL` — canonical site URL (used for server-side `fetch` to this app and metadata; on Vercel, `VERCEL_URL` is used as fallback if unset)
+
 Optional:
 
-- `NEXT_PUBLIC_SITE_URL` — canonical site URL (defaults in code if unset)
 - `NEXT_PUBLIC_PROXY_URL`, `NEXT_PUBLIC_M3U8_PROXY_URL` — if your player needs a proxy for streams
 - `CLOUDINARY_*` — for profile avatar uploads
 

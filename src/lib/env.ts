@@ -27,10 +27,6 @@ const requiredPositiveInt = z.preprocess((v) => {
 }, z.number().int().positive());
 
 const EnvSchema = z.object({
-  NEXT_PUBLIC_API_URL: z
-    .string()
-    .min(1)
-    .transform((v) => v.replace(/\/+$/, '')),
   MONGODB_URI: requiredTrimmedString,
  
   NEXT_JWT_ACCESS_SECRET: requiredTrimmedString,
@@ -53,7 +49,6 @@ const EnvSchema = z.object({
 });
 
 const rawEnv = {
-  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   MONGODB_URI: process.env.MONGODB_URI,
   NEXT_JWT_ACCESS_SECRET:
     process.env.NEXT_JWT_ACCESS_SECRET ?? process.env.JWT_ACCESS_SECRET,

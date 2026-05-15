@@ -1,5 +1,5 @@
 import { ApiError } from './errors/ApiError';
-import { publicEnv } from '@/lib/env.public';
+import { getPublicAppOrigin } from '@/lib/public-app-origin';
 export interface ApiResponse<T> {
   results: T;
 }
@@ -10,7 +10,12 @@ export const apiUrl = {
     revalidate?: number,
     signal?: AbortSignal
   ): Promise<T> => {
-    const res = await fetch(`${publicEnv.NEXT_PUBLIC_API_URL}${endpoint}`, {
+    const base = getPublicAppOrigin();
+    const url =
+      endpoint.startsWith('http://') || endpoint.startsWith('https://')
+        ? endpoint
+        : `${base}${endpoint}`;
+    const res = await fetch(url, {
       ...(typeof revalidate === 'number'
         ? { next: { revalidate } }
         : { cache: 'no-store' as RequestCache }),
