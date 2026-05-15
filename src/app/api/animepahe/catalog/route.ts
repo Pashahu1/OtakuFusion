@@ -8,6 +8,7 @@ import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
 import {
   buildAnimepaheSearchQueryQueue,
   buildAnimepaheSearchTermsFromFields,
+  normalizeCatalogSearchQuery,
   type AnimepaheCatalogHints,
 } from '@/services/animepahe/catalogHints';
 import { pickBestAnimepaheSearchHit } from '@/services/animepahe/pickAnimepaheSearchHit';
@@ -107,7 +108,8 @@ export async function POST(req: Request) {
 
   try {
     for (let i = 0; i < Math.min(queue.length, MAX_SEARCH_QUERIES); i++) {
-      const q = queue[i];
+      const q = normalizeCatalogSearchQuery(queue[i]);
+      if (q.length < 2) continue;
       const hits = await crysolineAnimepaheSearch(q);
       for (const h of hits) {
         if (h?.id && !merged.has(h.id)) merged.set(h.id, h);

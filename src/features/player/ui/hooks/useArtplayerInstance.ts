@@ -9,6 +9,7 @@ import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { getStreamFullUrl, getStreamHeaders } from '../playerStream';
 import { getArtplayerOptions } from '../getArtplayerOptions';
 import { setupPlayerReady } from '../setupPlayerReady';
+import { attachStreamQualityMenu } from '../attachStreamQualityMenu';
 import {
   clampChaptersToDuration,
   skipSegmentsToChapterItems,
@@ -71,6 +72,7 @@ export interface UseArtplayerInstanceParams {
   setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
   onPlaybackError: PlayerProps['onPlaybackError'];
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
+  anilibertyLanguageMenuEligible: PlayerProps['anilibertyLanguageMenuEligible'];
 }
 
 /**
@@ -96,6 +98,7 @@ export function useArtplayerInstance({
   setWatchStreamProvider,
   onPlaybackError,
   onPlaybackSurfaceReady,
+  anilibertyLanguageMenuEligible,
 }: UseArtplayerInstanceParams) {
   const artRef = useRef<HTMLDivElement>(null);
   const artInstanceRef = useRef<Artplayer | null>(null);
@@ -121,14 +124,18 @@ export function useArtplayerInstance({
       )
       .join('\n');
     const seg = streamInfo?.skipSegments;
+    const qv = streamInfo?.qualityVariants;
+    const qvKey = qv?.length
+      ? qv.map((q) => `${q.height}:${q.url}`).join('|')
+      : '';
     const segKey = seg
       ? [
           seg.intro ? `${seg.intro.start}-${seg.intro.end}` : '',
           seg.outro ? `${seg.outro.start}-${seg.outro.end}` : '',
         ].join('|')
       : '';
-    return [streamUrl, thumbnail ?? '', subKey, segKey].join('\f');
-  }, [streamUrl, thumbnail, subtitles, streamInfo?.skipSegments]);
+    return [streamUrl, thumbnail ?? '', subKey, segKey, qvKey, anilibertyLanguageMenuEligible ? '1' : '0'].join('\f');
+  }, [streamUrl, thumbnail, subtitles, streamInfo?.skipSegments, streamInfo?.qualityVariants, anilibertyLanguageMenuEligible]);
 
   useEffect(() => {
     serversRef.current = servers;
@@ -189,6 +196,9 @@ export function useArtplayerInstance({
 
       const headers = getStreamHeaders(streamInfo, streamUrl);
       const fullURL = getStreamFullUrl(streamUrl, headers);
+      const useManualStreamQuality = Boolean(
+        streamInfo?.qualityVariants && streamInfo.qualityVariants.length > 1
+      );
 
       /** Під час destroy/remount Hls/video часто шлють шумні події — не показувати «unavailable». */
       suppressPlaybackError = false;
@@ -342,7 +352,8 @@ export function useArtplayerInstance({
             }
           };
           hls.on(Hls.Events.MANIFEST_PARSED, applyInitialLevelOnce);
-        }
+        },
+        useManualStreamQuality
       ),
     });
 
@@ -439,8 +450,10 @@ export function useArtplayerInstance({
         activeServerIdRef,
         watchStreamProvider,
         setWatchStreamProvider,
+        anilibertyLanguageMenuEligible ?? false,
         streamInfo?.skipSegments
       );
+      attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);
       queueMicrotask(() => {
         updateContinueWatching(animeInfo, episodeId, episodeNum);
       });
@@ -477,7 +490,7 @@ export function useArtplayerInstance({
       };
       const hlsInstance = art.hls;
 
-      if (hlsInstance) {
+      if (hlsInstance && !useManualStreamQuality) {
         let detachQualityPersist: (() => void) | null = null;
         const onDestroyHlsUi = () => {
           hlsInstance.off(Hls.Events.MANIFEST_PARSED, syncHlsQualityUi);

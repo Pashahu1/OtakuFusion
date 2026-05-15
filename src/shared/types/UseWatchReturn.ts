@@ -35,5 +35,7 @@ export interface UseWatchReturn {
   streamErrorCode: string | null;
   /** Показати кнопки Japanese / English після збою стріму. */
   showStreamRecovery: boolean;
+  /** Пункт Anilibria в меню плеєра лише після успішного каталогу Anilibria (порожній пошук — приховано). */
+  anilibertyLanguageMenuEligible: boolean;
   onStreamRecoveryChoice: (choice: 'japanese' | 'english') => void;
 }

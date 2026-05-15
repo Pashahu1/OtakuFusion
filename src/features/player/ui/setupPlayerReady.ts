@@ -80,6 +80,8 @@ export function setupPlayerReady(
   activeServerIdRef: React.RefObject<string | null>,
   watchStreamProvider: WatchStreamProvider,
   setWatchStreamProvider: (next: WatchStreamProvider) => void,
+  /** Каталог Anilibria знайшов реліз — показувати пункт у меню Language. */
+  anilibertyLanguageMenuEligible: boolean,
   /** Маркери OP/ED (з Anilibria або злиті в Animepahe-резолві за мапінгом). */
   skipSegments: StreamingData['skipSegments'] | null | undefined
 ) {
@@ -488,9 +490,10 @@ export function setupPlayerReady(
 
   if (jp) {
     flatLanguage.push({
-      html: 'Japanese',
+      html: jp.serverName?.trim() || 'Japanese',
       default:
-        watchStreamProvider === 'animepahe' && String(jp.data_id) === String(langActiveId),
+        watchStreamProvider === 'animepahe' &&
+        String(jp.data_id) === String(langActiveId),
       data_id: jp.data_id,
       serverName: jp.serverName,
       type: jp.type,
@@ -500,9 +503,10 @@ export function setupPlayerReady(
 
   if (en) {
     flatLanguage.push({
-      html: 'English',
+      html: en.serverName?.trim() || 'English',
       default:
-        watchStreamProvider === 'animepahe' && String(en.data_id) === String(langActiveId),
+        watchStreamProvider === 'animepahe' &&
+        String(en.data_id) === String(langActiveId),
       data_id: en.data_id,
       serverName: en.serverName,
       type: en.type,
@@ -510,14 +514,16 @@ export function setupPlayerReady(
     });
   }
 
-  flatLanguage.push({
-    html: 'Anilibria',
-    default: watchStreamProvider === 'aniliberty',
-    __mode: 'aniliberty',
-  });
+  if (anilibertyLanguageMenuEligible) {
+    flatLanguage.push({
+      html: 'Anilibria',
+      default: watchStreamProvider === 'aniliberty',
+      __mode: 'aniliberty',
+    });
+  }
 
   const langTooltip =
-    watchStreamProvider === 'aniliberty'
+    watchStreamProvider === 'aniliberty' && anilibertyLanguageMenuEligible
       ? 'Anilibria'
       : langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type === 'dub'
         ? 'English'

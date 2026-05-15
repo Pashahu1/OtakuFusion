@@ -63,6 +63,12 @@ export interface WatchResolveResponse {
     intro: { start: number; end: number } | null;
     outro: { start: number; end: number } | null;
   };
+  quality_variants?: Array<{
+    height: number;
+    label: string;
+    url: string;
+    request_headers?: Record<string, string>;
+  }>;
 }
 
 function normalizeKeyword(value: string): string {

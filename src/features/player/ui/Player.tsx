@@ -24,6 +24,7 @@ export function Player({
   setWatchStreamProvider,
   onPlaybackError,
   onPlaybackSurfaceReady,
+  anilibertyLanguageMenuEligible = false,
 }: PlayerProps) {
   const currentEpisodeIndex =
     episodes?.findIndex(
@@ -49,6 +50,7 @@ export function Player({
     setWatchStreamProvider,
     onPlaybackError,
     onPlaybackSurfaceReady,
+    anilibertyLanguageMenuEligible,
   });
 
   return <div ref={artRef} className="relative h-full w-full"></div>;

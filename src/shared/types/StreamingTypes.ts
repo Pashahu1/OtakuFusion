@@ -1,5 +1,13 @@
 import type { VideoTrack } from "./VideoTrackTypes";
 
+/** Варіанти якості, коли API віддає окремі HLS на кожну роздільність (Animepahe / Anilibria). */
+export interface StreamQualityVariant {
+  height: number;
+  label: string;
+  url: string;
+  request_headers?: Record<string, string>;
+}
+
 export interface StreamingData {
   streamingLink: StreamingType[];
   servers: StreamServer[];
@@ -8,6 +16,8 @@ export interface StreamingData {
     intro: { start: number; end: number } | null;
     outro: { start: number; end: number } | null;
   };
+  /** Окремі плейлисти за роздільністю з `watch/resolve` (`quality_variants`). */
+  qualityVariants?: StreamQualityVariant[];
 }
 
 export type StreamingType = {

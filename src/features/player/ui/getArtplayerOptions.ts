@@ -27,13 +27,15 @@ export function getArtplayerOptions(
   /**
    * До першого `loadSource`: `MANIFEST_PARSED` → фікс рівня → `startLoad()` (див. `autoStartLoad` у `playM3u8`).
    */
-  onM3u8HlsBeforeLoad?: (hls: InstanceType<typeof Hls>) => void
+  onM3u8HlsBeforeLoad?: (hls: InstanceType<typeof Hls>) => void,
+  /** Окремі плейлисти за роздільністю — вимикаємо ABR-індикатор hls-control (інакше «сміття» в меню). */
+  useManualStreamQuality?: boolean
 ) {
   return {
     plugins: [
       artplayerPluginHlsControl({
         quality: {
-          control: true,
+          control: !useManualStreamQuality,
           /** Лише індикатор у панелі зліва від шестерні — без окремого рядка в меню налаштувань. */
           setting: false,
           getName: (level: { height?: number }) =>

@@ -32,6 +32,8 @@ type WatchPlayerContentProps = {
   playerShellPending: boolean;
   showStreamRecovery: boolean;
   onStreamRecoveryChoice: (choice: 'japanese' | 'english') => void;
+  /** Показувати Anilibria в меню Language лише якщо каталог знайшов реліз. */
+  anilibertyLanguageMenuEligible: boolean;
 };
 
 export const WatchPlayerContent = ({
@@ -57,6 +59,7 @@ export const WatchPlayerContent = ({
   playerShellPending,
   showStreamRecovery,
   onStreamRecoveryChoice,
+  anilibertyLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
   const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
 
@@ -75,20 +78,16 @@ export const WatchPlayerContent = ({
 
   const hasBuiltinError = builtinRuntimeError;
 
-  const isBuiltinReady =
-    !playerShellPending && !buffering && Boolean(streamUrl);
-  const isBuiltinFailed =
-    !playerShellPending && !buffering && !streamUrl;
-  const showBuiltinPlayer = !hasBuiltinError && isBuiltinReady;
-  const isErrorState = isBuiltinFailed || hasBuiltinError;
-  /**
-   * Після появи `streamUrl` вбудований плеєр має показувати власний стан (Artplayer/Hls).
-   * Не тримаємо зовнішній лоадер до `playing` — він лишався через `!playerSurfaceReady` і міг перекривати/блокувати кліки.
-   */
+  const isStreamMissing = !playerShellPending && !buffering && !streamUrl;
+  const allowFatalErrorUi =
+    isStreamMissing && (showErrorBlock || hasBuiltinError || showStreamRecovery);
+  const showBuiltinPlayer = !hasBuiltinError && !isStreamMissing && Boolean(streamUrl);
   const showLoader =
     !hasBuiltinError &&
-    !isErrorState &&
-    (playerShellPending || buffering || !streamUrl);
+    (playerShellPending || buffering || !streamUrl) &&
+    !allowFatalErrorUi;
+  const showErrorOverlay =
+    isStreamMissing && (showErrorBlock || hasBuiltinError || showStreamRecovery);
 
   return (
     <div
@@ -122,12 +121,12 @@ export const WatchPlayerContent = ({
             watchStreamProvider={watchStreamProvider}
             setWatchStreamProvider={setWatchStreamProvider}
             onPlaybackError={handleBuiltinError}
+            anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
           />
           </div>
         )}
 
-        {isErrorState &&
-          (showErrorBlock || hasBuiltinError || showStreamRecovery) && (
+        {showErrorOverlay && (
           <div className="absolute inset-0 z-[15] flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center">
             <img
               src="/gojo-player.png"
@@ -146,7 +145,7 @@ export const WatchPlayerContent = ({
                   className="rounded-lg border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#f47521]/45 hover:bg-[#f47521]/10"
                   onClick={() => onStreamRecoveryChoice('japanese')}
                 >
-                  Japanese (sub)
+                  Japanese
                 </button>
                 <button
                   type="button"
@@ -154,7 +153,7 @@ export const WatchPlayerContent = ({
                   className="rounded-lg border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#f47521]/45 hover:bg-[#f47521]/10 disabled:cursor-not-allowed disabled:opacity-40"
                   onClick={() => onStreamRecoveryChoice('english')}
                 >
-                  English (dub)
+                  English
                 </button>
               </div>
             ) : null}

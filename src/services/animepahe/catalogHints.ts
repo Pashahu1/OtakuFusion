@@ -121,3 +121,15 @@ export function buildAnimepaheSearchQueryQueue(baseTerms: string[]): string[] {
   }
   return out;
 }
+
+/**
+ * Crysoline search чутливий до зайвих пробілів і кінцевої пунктуації
+ * (наприклад «Season 4 .» дає `[]`, а «Season 4» — збіги).
+ */
+export function normalizeCatalogSearchQuery(raw: string): string {
+  let s = raw.trim().normalize('NFKC');
+  s = s.replace(/\s+/g, ' ').trim();
+  s = s.replace(/[\s\u00A0._…·。]+$/gu, '').trim();
+  s = s.replace(/[.:;，、\-–—]+$/gu, '').trim();
+  return s;
+}

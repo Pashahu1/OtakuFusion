@@ -10,6 +10,7 @@ import {
 
 interface StreamInfoForHeaders {
   streamingLink?: Array<{ iframe?: string; request_headers?: Record<string, string> }> | unknown;
+  qualityVariants?: Array<{ url?: string; request_headers?: Record<string, string> }>;
 }
 
 function playlistSuggestsThirdPartyCdn(playlistUrl: string): boolean {
@@ -65,6 +66,26 @@ export function getStreamHeaders(
   playlistUrl?: string | null
 ): Record<string, string> {
   const headers: Record<string, string> = {};
+  const p = playlistUrl?.trim();
+  const variants = streamInfo?.qualityVariants;
+  if (p && Array.isArray(variants)) {
+    const hit = variants.find(
+      (v) =>
+        v &&
+        typeof v === 'object' &&
+        typeof v.url === 'string' &&
+        v.url.trim() === p
+    );
+    const vr = hit?.request_headers;
+    if (vr && typeof vr === 'object' && !Array.isArray(vr)) {
+      for (const [key, value] of Object.entries(vr)) {
+        if (typeof key !== 'string' || !key.trim()) continue;
+        if (typeof value !== 'string' || !value.trim()) continue;
+        headers[key] = value;
+      }
+      if (Object.keys(headers).length > 0) return headers;
+    }
+  }
   const firstLink = pickStreamingLinkForPlaylist(streamInfo, playlistUrl);
   const requestHeaders = firstLink?.request_headers;
   if (requestHeaders && typeof requestHeaders === 'object') {

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
-import type { StreamingData } from '@/shared/types/StreamingTypes';
+import type { StreamingData, StreamQualityVariant } from '@/shared/types/StreamingTypes';
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import { resolveWatchStream } from '@/services/resolveWatchStream';
@@ -14,6 +14,7 @@ export interface UseWatchStreamReturn {
   thumbnail: string | null;
   error: string | null;
   errorCode: string | null;
+  resolveAttempted: boolean;
 }
 
 export interface WatchStreamAnimeMeta {
@@ -31,6 +32,13 @@ interface WatchResolveOptions {
   onPlaybackLangResolved?: (lang: 'sub' | 'dub') => void;
   watchStreamProvider: WatchStreamProvider;
   streamRecoveryNonce: number;
+  /**
+   * Збільшується лише при явній зміні доріжки в UI (Japanese / English).
+   * Не змінювати при авто-синхроні після fallback dub→sub — інакше подвійний resolve.
+   */
+  streamLangRevision: number;
+  /** Зміна коли з’являється факт hasDub на епізоді / серії — окремий повторний resolve. */
+  episodeDubStateKey: string;
 }
 
 const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
@@ -101,6 +109,34 @@ function filterSubtitleTracksByStreamLang(
   return nonEnglishAi.length ? nonEnglishAi : tracks;
 }
 
+function normalizeQualityVariantsFromResolve(
+  raw: unknown
+): StreamingData['qualityVariants'] | undefined {
+  if (!Array.isArray(raw) || raw.length < 2) return undefined;
+  const out: StreamQualityVariant[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) continue;
+    const r = row as Record<string, unknown>;
+    const height = Number(r.height);
+    const url = typeof r.url === 'string' ? r.url.trim() : '';
+    const label = typeof r.label === 'string' ? r.label.trim() : '';
+    const rhRaw = r.request_headers;
+    let request_headers: Record<string, string> | undefined;
+    if (rhRaw && typeof rhRaw === 'object' && !Array.isArray(rhRaw)) {
+      const acc: Record<string, string> = {};
+      for (const [k, v] of Object.entries(rhRaw)) {
+        if (typeof k !== 'string' || !k.trim()) continue;
+        if (typeof v !== 'string' || !v.trim()) continue;
+        acc[k.trim()] = v.trim();
+      }
+      if (Object.keys(acc).length > 0) request_headers = acc;
+    }
+    if (!Number.isFinite(height) || height <= 0 || !url) continue;
+    out.push({ height, label: label || `${height}p`, url, request_headers });
+  }
+  return out.length > 1 ? out : undefined;
+}
+
 function getThumbnailTrack(tracks: VideoTrack[]): string | null {
   const thumbnail = tracks.find(
     (t) =>
@@ -120,6 +156,11 @@ export function useWatchStream(
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  /** Після першого завершення resolve (успіх або помилка) — щоб не показувати recovery «миготінням». */
+  const [resolveAttempted, setResolveAttempted] = useState(false);
+
+  const resolveOptsRef = useRef(watchResolveOptions);
+  resolveOptsRef.current = watchResolveOptions;
 
   useEffect(() => {
     if (!watchResolveOptions?.streamAnime || !watchResolveOptions.episodeId) {
@@ -127,7 +168,8 @@ export function useWatchStream(
       setStreamUrl(null);
       setSubtitles([]);
       setThumbnail(null);
-      setBuffering(false);
+      setBuffering(true);
+      setResolveAttempted(false);
       setError(null);
       setErrorCode(null);
       return;
@@ -138,6 +180,7 @@ export function useWatchStream(
     const { signal } = controller;
     setError(null);
     setErrorCode(null);
+    setResolveAttempted(false);
     setBuffering(true);
     setStreamInfo(null);
     setStreamUrl(null);
@@ -145,6 +188,7 @@ export function useWatchStream(
     setThumbnail(null);
 
     void (async () => {
+      const opts = resolveOptsRef.current;
       try {
         const episodeNumber = Number(watchResolveOptions.episodeId);
         if (!Number.isFinite(episodeNumber) || episodeNumber <= 0) {
@@ -152,6 +196,7 @@ export function useWatchStream(
         }
 
         const tracks = [] as VideoTrack[];
+        const preferredLang = opts?.preferredLang ?? 'sub';
         const resolveParams = {
           anilistId: streamAnime.id?.trim() ? Number(streamAnime.id) : undefined,
           malId:
@@ -162,7 +207,7 @@ export function useWatchStream(
           localAnimeId: watchResolveOptions.animeId,
           providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
           episode: episodeNumber,
-          lang: watchResolveOptions.preferredLang,
+          lang: preferredLang,
           streamProvider:
             watchResolveOptions.watchStreamProvider === 'aniliberty'
               ? ('aniliberty' as const)
@@ -227,6 +272,9 @@ export function useWatchStream(
           ],
           servers: [],
           skipSegments: result.segments,
+          qualityVariants: normalizeQualityVariantsFromResolve(
+            (result as { quality_variants?: unknown }).quality_variants
+          ),
         });
         setStreamUrl(result.stream.url);
         const subtitleItems = filterSubtitleTracksByStreamLang(
@@ -237,7 +285,7 @@ export function useWatchStream(
         setThumbnail(getThumbnailTrack(tracks));
 
         if (resolveParams.lang !== result.stream.lang) {
-          watchResolveOptions.onPlaybackLangResolved?.(result.stream.lang);
+          opts?.onPlaybackLangResolved?.(result.stream.lang);
         }
       } catch (err) {
         if (signal.aborted) return;
@@ -250,12 +298,26 @@ export function useWatchStream(
         setErrorCode(raw);
         setError(getErrorMessage(err));
       } finally {
-        if (!signal.aborted) setBuffering(false);
+        if (!signal.aborted) {
+          setBuffering(false);
+          setResolveAttempted(true);
+        }
       }
     })();
 
     return () => controller.abort();
-  }, [watchResolveOptions]);
+  }, [
+    watchResolveOptions?.animeId,
+    watchResolveOptions?.episodeId,
+    watchResolveOptions?.providerAnimeId,
+    watchResolveOptions?.watchStreamProvider,
+    watchResolveOptions?.streamRecoveryNonce,
+    watchResolveOptions?.streamLangRevision,
+    watchResolveOptions?.episodeDubStateKey,
+    watchResolveOptions?.streamAnime?.id,
+    watchResolveOptions?.streamAnime?.title,
+    watchResolveOptions?.streamAnime?.mal_id,
+  ]);
 
   return {
     streamInfo,
@@ -265,5 +327,6 @@ export function useWatchStream(
     thumbnail,
     error,
     errorCode,
+    resolveAttempted,
   };
 }

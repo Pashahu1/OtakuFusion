@@ -29,5 +29,7 @@ export interface PlayerProps {
   onPlaybackError?: () => void;
   /** Перший стабільний кадр / відтворення — щоб оболонка могла прибрати лоадер без бліку. */
   onPlaybackSurfaceReady?: () => void;
+  /** Якщо false — пункт Anilibria в меню Language не додається. */
+  anilibertyLanguageMenuEligible?: boolean;
 }
 

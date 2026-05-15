@@ -31,19 +31,23 @@ function scoreHit(
   hints: AnimepaheCatalogHints,
   terms: string[]
 ): number {
-  let score = qualityOfMatch(terms, hit);
+  const text = qualityOfMatch(terms, hit);
+  /** Без хоча б одного збігу підрядка з токена запиту — не довіряємо лише року/формату. */
+  if (text < 42) return -Infinity;
+
+  let score = text;
 
   if (hints.seasonYear != null && hit.year === hints.seasonYear) score += 58;
   else if (hints.seasonYear != null && Math.abs(hit.year - hints.seasonYear) === 1) {
     score += 14;
   }
 
-  if (hints.episodeCount != null && hit.totalEpisodes === hints.episodeCount) score += 52;
-  else if (
-    hints.episodeCount != null &&
-    Math.abs(hit.totalEpisodes - hints.episodeCount) <= 2
-  ) {
-    score += 26;
+  if (hints.episodeCount != null && Number.isFinite(hit.totalEpisodes) && hit.totalEpisodes > 0) {
+    const d = Math.abs(hit.totalEpisodes - hints.episodeCount);
+    if (d === 0) score += 52;
+    else if (d <= 2) score += 26;
+    else if (d <= 5) score -= 28;
+    else score -= 72;
   }
 
   const hf = normalizeFormat(hints.format);
@@ -56,20 +60,21 @@ function scoreHit(
   return score;
 }
 
+/** Animepahe search шумніший за Anilibria — трохи вищий поріг і відрив від 2-го місця. */
+const MIN_CONFIDENT_SCORE = 48;
+const MIN_LEAD_OVER_RUNNER_UP = 16;
+
 export function pickBestAnimepaheSearchHit(
   hits: CrysolineAnimepaheSearchRow[],
   hints: AnimepaheCatalogHints,
   terms: string[]
 ): CrysolineAnimepaheSearchRow | null {
   if (!hits.length) return null;
-  let best: CrysolineAnimepaheSearchRow | null = null;
-  let bestScore = -Infinity;
-  for (const h of hits) {
-    const s = scoreHit(h, hints, terms);
-    if (s > bestScore) {
-      bestScore = s;
-      best = h;
-    }
-  }
-  return best;
+  const ranked = hits
+    .map((h) => ({ h, s: scoreHit(h, hints, terms) }))
+    .sort((a, b) => b.s - a.s);
+  const best = ranked[0];
+  if (!best || !Number.isFinite(best.s) || best.s < MIN_CONFIDENT_SCORE) return null;
+  if (ranked.length > 1 && best.s - ranked[1].s < MIN_LEAD_OVER_RUNNER_UP) return null;
+  return best.h;
 }

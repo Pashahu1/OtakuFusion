@@ -133,6 +133,59 @@ function resolutionRank(quality: string | undefined): number {
   return m ? parseInt(m[1], 10) : 0;
 }
 
+function urlLooksLikeCrysolineProxy(file: string): boolean {
+  const u = file.toLowerCase();
+  return u.includes('proxy.crysoline') || u.includes('crysoline.moe/proxy');
+}
+
+/** Одна роздільність — один кандидат; пріоритет проксі Crysoline над прямим CDN. */
+function dedupeStreamingCandidatesByHeight(candidates: StreamingType[]): StreamingType[] {
+  const map = new Map<number, StreamingType>();
+  for (const c of candidates) {
+    const h = resolutionRank(c.server);
+    if (!Number.isFinite(h) || h <= 0) continue;
+    const prev = map.get(h);
+    if (!prev) {
+      map.set(h, c);
+      continue;
+    }
+    const prevProxy = urlLooksLikeCrysolineProxy(prev.link.file);
+    const curProxy = urlLooksLikeCrysolineProxy(c.link.file);
+    if (curProxy && !prevProxy) map.set(h, c);
+  }
+  return [...map.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([, v]) => v);
+}
+
+function qualityVariantsFromCandidates(
+  candidates: StreamingType[]
+): Array<{
+  height: number;
+  label: string;
+  url: string;
+  request_headers: Record<string, string>;
+}> {
+  const rows = dedupeStreamingCandidatesByHeight(candidates);
+  const out: Array<{
+    height: number;
+    label: string;
+    url: string;
+    request_headers: Record<string, string>;
+  }> = [];
+  for (const c of rows) {
+    const h = resolutionRank(c.server);
+    if (!Number.isFinite(h) || h <= 0) continue;
+    out.push({
+      height: h,
+      label: (c.server ?? '').trim() || `${h}p`,
+      url: c.link.file.trim(),
+      request_headers: buildProbeHeaders(c),
+    });
+  }
+  return out;
+}
+
 function buildAnimePaheStreamCandidates(
   payload: CrysolineAnimepaheSourcesPayload,
   requestedLang: WatchLang
@@ -357,6 +410,11 @@ async function computeAnimepaheWatchResolveOutcome(params: {
       },
     };
 
+    const qualityVariants = qualityVariantsFromCandidates(candidates);
+    if (qualityVariants.length > 1) {
+      body.quality_variants = qualityVariants;
+    }
+
     const libertyId = anilibertyReleaseId?.trim() ?? null;
     if (libertyId) {
       try {
@@ -476,6 +534,11 @@ async function computeAnilibertyWatchResolveOutcome(params: {
         requested_lang: 'sub',
       },
     };
+
+    const qualityVariants = qualityVariantsFromCandidates(candidates);
+    if (qualityVariants.length > 1) {
+      body.quality_variants = qualityVariants;
+    }
 
     return { status: 200, body };
   } catch (error) {

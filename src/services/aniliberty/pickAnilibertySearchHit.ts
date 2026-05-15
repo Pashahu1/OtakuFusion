@@ -7,10 +7,12 @@ function normalizeFormat(value: string | null | undefined): string {
 
 function haystack(hit: CrysolineAnilibertySearchRow): string {
   const t = hit.title;
-  return [t?.english, t?.other]
-    .filter((x): x is string => Boolean(x?.trim()))
-    .join(' ')
-    .toLowerCase();
+  const parts = [
+    t?.english,
+    t?.other,
+    hit.metadata?.alias,
+  ].filter((x): x is string => typeof x === 'string' && Boolean(x.trim()));
+  return parts.join(' ').toLowerCase();
 }
 
 function qualityOfMatch(terms: string[], hit: CrysolineAnilibertySearchRow): number {
@@ -58,20 +60,21 @@ function scoreHit(
   return score;
 }
 
+/** Мінімальний сумарний скор; якщо два топ-хіти близькі — не беремо (ризик чужого тайтлу). */
+const MIN_CONFIDENT_SCORE = 40;
+const MIN_LEAD_OVER_RUNNER_UP = 14;
+
 export function pickBestAnilibertySearchHit(
   hits: CrysolineAnilibertySearchRow[],
   hints: AnimepaheCatalogHints,
   terms: string[]
 ): CrysolineAnilibertySearchRow | null {
   if (!hits.length) return null;
-  let best: CrysolineAnilibertySearchRow | null = null;
-  let bestScore = -Infinity;
-  for (const h of hits) {
-    const s = scoreHit(h, hints, terms);
-    if (s > bestScore) {
-      bestScore = s;
-      best = h;
-    }
-  }
-  return best;
+  const ranked = hits
+    .map((h) => ({ h, s: scoreHit(h, hints, terms) }))
+    .sort((a, b) => b.s - a.s);
+  const best = ranked[0];
+  if (!best || best.s < MIN_CONFIDENT_SCORE) return null;
+  if (ranked.length > 1 && best.s - ranked[1].s < MIN_LEAD_OVER_RUNNER_UP) return null;
+  return best.h;
 }

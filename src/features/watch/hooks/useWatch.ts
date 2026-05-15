@@ -1,6 +1,12 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  type SetStateAction,
+} from 'react';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
-import { readWatchStreamProvider, writeWatchStreamProvider } from '@/lib/watch-provider';
+import { writeWatchStreamProvider } from '@/lib/watch-provider';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
@@ -15,21 +21,21 @@ export function useWatch(
 ): UseWatchReturn {
   const [isFullOverview, setIsFullOverview] = useState(false);
   const [streamRecoveryNonce, setStreamRecoveryNonce] = useState(0);
+  const [streamLangRevision, setStreamLangRevision] = useState(0);
   const [watchStreamProvider, setWatchStreamProviderState] =
     useState<WatchStreamProvider>('animepahe');
-
-  useEffect(() => {
-    setWatchStreamProviderState(readWatchStreamProvider());
-  }, []);
-
-  useEffect(() => {
-    setStreamRecoveryNonce(0);
-  }, [animeId]);
 
   const setWatchStreamProvider = useCallback((next: WatchStreamProvider) => {
     setWatchStreamProviderState(next);
     writeWatchStreamProvider(next);
   }, []);
+
+  /** Новий тайтл — завжди Animepahe; Anilibria лише після явного вибору в плеєрі. */
+  useEffect(() => {
+    setStreamRecoveryNonce(0);
+    if (!animeId.trim()) return;
+    setWatchStreamProvider('animepahe');
+  }, [animeId, setWatchStreamProvider]);
 
   const anime = useWatchAnime(animeId, initialEpisodeId, watchStreamProvider);
 
@@ -46,19 +52,16 @@ export function useWatch(
         (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) !== anime.episodeId
       ));
 
-  function getPersistedServerId(): string {
-    if (typeof window === 'undefined') return '2';
-    const savedType = localStorage.getItem(STORAGE_SERVER_TYPE)?.toLowerCase();
-    return savedType === 'sub' ? '1' : '2';
-  }
-
-  const [activeServerId, setActiveServerId] = useState<string | null>(() =>
-    getPersistedServerId()
-  );
+  const [activeServerId, setActiveServerIdRaw] = useState<string | null>('2');
 
   useEffect(() => {
-    setActiveServerId(getPersistedServerId());
+    setActiveServerIdRaw('2');
   }, [animeId]);
+
+  const setActiveServerId = useCallback((value: SetStateAction<string | null>) => {
+    setActiveServerIdRaw(value);
+    setStreamLangRevision((n) => n + 1);
+  }, []);
 
   const streamAnimeMeta = useMemo((): WatchStreamAnimeMeta | null => {
     const a = anime.animeInfo;
@@ -75,11 +78,6 @@ export function useWatch(
     [anime.episodes]
   );
 
-  const preferredLang = useMemo<'sub' | 'dub'>(
-    () => (activeServerId === '2' ? 'dub' : 'sub'),
-    [activeServerId]
-  );
-
   const currentEpisodeHasDub = useMemo(() => {
     const ep = anime.episodes?.find(
       (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === anime.episodeId
@@ -87,57 +85,102 @@ export function useWatch(
     return ep?.hasDub === true;
   }, [anime.episodes, anime.episodeId]);
 
-  useEffect(() => {
-    if (!hasAnyDub && activeServerId === '2') {
-      setActiveServerId('1');
-    }
-  }, [hasAnyDub, activeServerId]);
+  /** Мова для `watch/resolve`: Anilibria лише саб; dub лише якщо є доріжка на епізоді. */
+  const resolverLang = useMemo<'sub' | 'dub'>(() => {
+    if (watchStreamProvider === 'aniliberty') return 'sub';
+    if (activeServerId !== '2') return 'sub';
+    if (!hasAnyDub) return 'sub';
+    if (currentEpisodeHasDub === false) return 'sub';
+    return 'dub';
+  }, [watchStreamProvider, activeServerId, hasAnyDub, currentEpisodeHasDub]);
 
+  const preferredLang = useMemo<'sub' | 'dub'>(
+    () => (activeServerId === '2' ? 'dub' : 'sub'),
+    [activeServerId]
+  );
+
+  /** Dub / Anilibria: один прохід без «другого редіректу» — лише `setActiveServerIdRaw`, без `streamLangRevision`. */
   useEffect(() => {
-    if (activeServerId === '2' && anime.episodeId && currentEpisodeHasDub === false) {
-      setActiveServerId('1');
+    if (watchStreamProvider === 'aniliberty') {
+      if (activeServerId === '2') setActiveServerIdRaw('1');
+      return;
     }
-  }, [activeServerId, anime.episodeId, currentEpisodeHasDub]);
+    if (!hasAnyDub && activeServerId === '2') {
+      setActiveServerIdRaw('1');
+      return;
+    }
+    if (activeServerId === '2' && anime.episodeId && currentEpisodeHasDub === false) {
+      setActiveServerIdRaw('1');
+    }
+  }, [
+    watchStreamProvider,
+    activeServerId,
+    hasAnyDub,
+    anime.episodeId,
+    currentEpisodeHasDub,
+  ]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_SERVER_TYPE, preferredLang);
   }, [preferredLang]);
 
+  /** Завжди ті самі «дзеркала» для меню мови; Anilibria — окремий провайдер у `setupPlayerReady`. */
   const servers = useMemo<ServerInfo[]>(() => {
     const base: ServerInfo[] = [
-      { type: 'sub', data_id: 1, server_id: 1, serverName: 'Sub · Auto' },
+      { type: 'sub', data_id: 1, server_id: 1, serverName: 'Japanese' },
     ];
     if (hasAnyDub) {
-      base.push({ type: 'dub', data_id: 2, server_id: 2, serverName: 'Dub · Auto' });
+      base.push({
+        type: 'dub',
+        data_id: 2,
+        server_id: 2,
+        serverName: 'English',
+      });
     }
     return base;
   }, [hasAnyDub]);
 
   const onPlaybackLangResolved = useCallback((lang: 'sub' | 'dub') => {
-    setActiveServerId(lang === 'dub' ? '2' : '1');
+    setActiveServerIdRaw(lang === 'dub' ? '2' : '1');
   }, []);
+
+  const episodeDubStateKey = useMemo(
+    () =>
+      `${anime.episodeId ?? ''}:${
+        currentEpisodeHasDub === true ? '1' : '0'
+      }:${hasAnyDub ? '1' : '0'}`,
+    [anime.episodeId, currentEpisodeHasDub, hasAnyDub]
+  );
 
   const watchResolveOptions = useMemo(
     () => ({
       animeId,
       episodeId: anime.episodeId,
       streamAnime: streamAnimeMeta,
-      providerAnimeId: anime.providerAnimeId,
-      preferredLang,
+      providerAnimeId:
+        watchStreamProvider === 'aniliberty'
+          ? anime.anilibertyCatalogProviderId
+          : anime.animepaheCatalogProviderId,
+      preferredLang: resolverLang,
       onPlaybackLangResolved,
       watchStreamProvider,
       streamRecoveryNonce,
+      streamLangRevision,
+      episodeDubStateKey,
     }),
     [
       streamAnimeMeta,
       anime.episodeId,
-      anime.providerAnimeId,
+      anime.animepaheCatalogProviderId,
+      anime.anilibertyCatalogProviderId,
       animeId,
-      preferredLang,
-      onPlaybackLangResolved,
       watchStreamProvider,
+      resolverLang,
+      onPlaybackLangResolved,
       streamRecoveryNonce,
+      streamLangRevision,
+      episodeDubStateKey,
     ]
   );
 
@@ -147,20 +190,23 @@ export function useWatch(
     (choice: 'japanese' | 'english') => {
       if (choice === 'english' && !hasAnyDub) return;
       setWatchStreamProvider('animepahe');
-      setActiveServerId(choice === 'english' ? '2' : '1');
+      setActiveServerIdRaw(choice === 'english' ? '2' : '1');
+      setStreamLangRevision((n) => n + 1);
       setStreamRecoveryNonce((n) => n + 1);
     },
-    [hasAnyDub, setWatchStreamProvider, setActiveServerId]
+    [hasAnyDub, setWatchStreamProvider]
   );
 
   const showStreamRecovery = useMemo(
     () =>
+      stream.resolveAttempted &&
       !anime.error &&
       !playerShellPending &&
       !stream.buffering &&
       !stream.streamUrl &&
       Boolean(anime.episodes?.length),
     [
+      stream.resolveAttempted,
       anime.error,
       playerShellPending,
       stream.buffering,
@@ -206,5 +252,6 @@ export function useWatch(
     streamErrorCode: stream.errorCode,
     showStreamRecovery,
     onStreamRecoveryChoice,
+    anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
   };
 }

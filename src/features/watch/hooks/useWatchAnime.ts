@@ -17,7 +17,13 @@ import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes'
 
 export interface UseWatchAnimeReturn {
   animeInfo: AnimeData | null;
-  /** Ідентифікатор серії в каталозі провайдера (Animepahe `pahe_id` або Aniliberty `release id`). */
+  /** Id каталогу Animepahe (`pahe_id`) — для resolve на гілці animepahe. */
+  animepaheCatalogProviderId: string | null;
+  /** Id релізу Anilibria — для resolve на гілці aniliberty. */
+  anilibertyCatalogProviderId: string | null;
+  /**
+   * Shorthand: id активного провайдера епізодів (той самий, що відповідає `watchStreamProvider`).
+   */
   providerAnimeId: string | null;
   episodes: EpisodesTypes[] | null;
   totalEpisodes: number | null;
@@ -26,6 +32,8 @@ export interface UseWatchAnimeReturn {
   animeInfoLoading: boolean;
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   error: string | null;
+  /** Пункт Anilibria в меню плеєра лише після підтвердженого пошуку (не порожній каталог). */
+  anilibertyLanguageMenuEligible: boolean;
 }
 
 function getErrorMessage(err: unknown): string {
@@ -126,13 +134,17 @@ export function useWatchAnime(
 ): UseWatchAnimeReturn {
   const [animeInfo, setAnimeInfo] = useState<AnimeData | null>(null);
   const [episodes, setEpisodes] = useState<EpisodesTypes[] | null>(null);
-  const [providerAnimeId, setProviderAnimeId] = useState<string | null>(null);
+  const [animepaheCatalogProviderId, setAnimepaheCatalogProviderId] = useState<string | null>(null);
+  const [anilibertyCatalogProviderId, setAnilibertyCatalogProviderId] = useState<string | null>(
+    null
+  );
   const [totalEpisodes, setTotalEpisodes] = useState<number | null>(null);
   const [episodeId, setEpisodeId] = useState<string | null>(null);
   const [animeInfoLoading, setAnimeInfoLoading] = useState(false);
   const [nextEpisodeSchedule, setNextEpisodeSchedule] =
     useState<NextEpisodeScheduleResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [anilibertyLanguageMenuEligible, setAnilibertyLanguageMenuEligible] = useState(false);
   const initialEpisodeRef = useRef(initialEpisodeId);
   initialEpisodeRef.current = initialEpisodeId;
 
@@ -144,12 +156,14 @@ export function useWatchAnime(
 
   useLayoutEffect(() => {
     setEpisodes(null);
-    setProviderAnimeId(null);
+    setAnimepaheCatalogProviderId(null);
+    setAnilibertyCatalogProviderId(null);
     setEpisodeId(null);
     setAnimeInfo(null);
     setTotalEpisodes(null);
     setAnimeInfoLoading(true);
     setError(null);
+    setAnilibertyLanguageMenuEligible(false);
   }, [animeId, watchStreamProvider]);
 
   useEffect(() => {
@@ -158,12 +172,14 @@ export function useWatchAnime(
     let cancelled = false;
 
     setEpisodes(null);
-    setProviderAnimeId(null);
+    setAnimepaheCatalogProviderId(null);
+    setAnilibertyCatalogProviderId(null);
     setEpisodeId(null);
     setAnimeInfo(null);
     setTotalEpisodes(null);
     setAnimeInfoLoading(true);
     setError(null);
+    setAnilibertyLanguageMenuEligible(false);
     if (episodeRemapPass === 0) {
       setNextEpisodeSchedule(null);
     }
@@ -198,6 +214,15 @@ export function useWatchAnime(
         try {
           const forceFuzzy = episodeRemapPass > 0;
           const catalogPayload = catalogBodyFromAnimeData(dataForResolve, animeId);
+
+          if (!forceFuzzy) {
+            const hidP = readVerifiedPaheMapping(animeId);
+            const hidL = readVerifiedLibertyMapping(animeId);
+            if (!cancelled && !signal.aborted) {
+              if (hidP?.paheId) setAnimepaheCatalogProviderId(hidP.paheId.trim());
+              if (hidL?.libertyId) setAnilibertyCatalogProviderId(hidL.libertyId.trim());
+            }
+          }
 
           let providerId: string | null = null;
           let list: EpisodesTypes[] = [];
@@ -295,7 +320,9 @@ export function useWatchAnime(
                 ? 'Aniliberty повернув порожній список епізодів. Оновіть сторінку або спробуйте пізніше.'
                 : 'Animepahe повернув порожній список епізодів. Оновіть сторінку або спробуйте пізніше.'
             );
-            setProviderAnimeId(null);
+            setAnimepaheCatalogProviderId(null);
+            setAnilibertyCatalogProviderId(null);
+            setAnilibertyLanguageMenuEligible(false);
             setEpisodes([]);
             setTotalEpisodes(0);
             setEpisodeId(null);
@@ -306,10 +333,56 @@ export function useWatchAnime(
             if (freshLibertyCatalog) {
               writeVerifiedLibertyMapping(animeId, providerId);
             }
-          } else if (freshPaheCatalog) {
-            writeVerifiedPaheMapping(animeId, providerId, freshPaheCatalog.hasSeriesDub === true);
+            setAnilibertyCatalogProviderId(providerId);
+          } else {
+            if (freshPaheCatalog) {
+              writeVerifiedPaheMapping(animeId, providerId, freshPaheCatalog.hasSeriesDub === true);
+            }
+            setAnimepaheCatalogProviderId(providerId);
           }
-          setProviderAnimeId(providerId);
+
+          if (watchStreamProvider === 'aniliberty') {
+            setAnilibertyLanguageMenuEligible(true);
+          }
+
+          if (!forceFuzzy) {
+            void (async () => {
+              try {
+                if (cancelled || signal.aborted) return;
+                if (watchStreamProvider === 'animepahe') {
+                  if (readVerifiedLibertyMapping(animeId)?.libertyId) {
+                    if (!cancelled) setAnilibertyLanguageMenuEligible(true);
+                    return;
+                  }
+                  const alt = await postAnilibertyCatalog(catalogPayload, signal);
+                  if (cancelled || signal.aborted) return;
+                  if (!alt.success || !alt.libertyId?.trim()) {
+                    if (!cancelled) {
+                      if (!alt.success && alt.error === 'aniliberty_catalog_not_found') {
+                        setAnilibertyCatalogProviderId(null);
+                      }
+                      setAnilibertyLanguageMenuEligible(false);
+                    }
+                    return;
+                  }
+                  writeVerifiedLibertyMapping(animeId, alt.libertyId.trim());
+                  if (!cancelled) {
+                    setAnilibertyCatalogProviderId(alt.libertyId.trim());
+                    setAnilibertyLanguageMenuEligible(true);
+                  }
+                } else {
+                  if (readVerifiedPaheMapping(animeId)?.paheId) return;
+                  const alt = await postAnimepaheCatalog(catalogPayload, signal);
+                  if (cancelled || signal.aborted) return;
+                  if (!alt.success || !alt.paheId?.trim()) return;
+                  writeVerifiedPaheMapping(animeId, alt.paheId.trim(), alt.hasSeriesDub === true);
+                  if (!cancelled) setAnimepaheCatalogProviderId(alt.paheId.trim());
+                }
+              } catch {
+                if (!cancelled) setAnilibertyLanguageMenuEligible(false);
+              }
+            })();
+          }
 
           const mergedEpisodes = applyAnilistEpisodeDisplayTitles(
             alignKaiEpisodesToAnilistSeasonStart(
@@ -349,7 +422,9 @@ export function useWatchAnime(
           if (cancelled || signal.aborted) return;
           console.warn('[useWatchAnime] catalog:', episodesError);
           setError(getErrorMessage(episodesError));
-          setProviderAnimeId(null);
+          setAnimepaheCatalogProviderId(null);
+          setAnilibertyCatalogProviderId(null);
+          setAnilibertyLanguageMenuEligible(false);
           setEpisodes([]);
           setTotalEpisodes(0);
           setEpisodeId(null);
@@ -380,8 +455,15 @@ export function useWatchAnime(
     if (valid) setEpisodeId(initialEpisodeId);
   }, [animeId, initialEpisodeId, episodes, animeInfoLoading]);
 
+  const providerAnimeId =
+    watchStreamProvider === 'aniliberty'
+      ? anilibertyCatalogProviderId
+      : animepaheCatalogProviderId;
+
   return {
     animeInfo,
+    animepaheCatalogProviderId,
+    anilibertyCatalogProviderId,
     providerAnimeId,
     episodes,
     totalEpisodes,
@@ -390,5 +472,6 @@ export function useWatchAnime(
     animeInfoLoading,
     nextEpisodeSchedule,
     error,
+    anilibertyLanguageMenuEligible,
   };
 }

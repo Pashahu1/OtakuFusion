@@ -6,6 +6,7 @@ import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached'
 import {
   buildAnimepaheSearchQueryQueue,
   buildAnimepaheSearchTermsFromFields,
+  normalizeCatalogSearchQuery,
   type AnimepaheCatalogHints,
 } from '@/services/animepahe/catalogHints';
 import { pickBestAnilibertySearchHit } from '@/services/aniliberty/pickAnilibertySearchHit';
@@ -103,7 +104,8 @@ export async function POST(req: Request) {
 
   try {
     for (let i = 0; i < Math.min(queue.length, MAX_SEARCH_QUERIES); i++) {
-      const q = queue[i];
+      const q = normalizeCatalogSearchQuery(queue[i]);
+      if (q.length < 2) continue;
       const hits = await crysolineAnilibertySearch(q);
       for (const h of hits) {
         if (typeof h?.id === 'number' && Number.isFinite(h.id) && !merged.has(h.id)) {

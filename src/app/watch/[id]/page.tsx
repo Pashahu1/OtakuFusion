@@ -56,6 +56,7 @@ export default function Watch() {
     setWatchStreamProvider,
     showStreamRecovery,
     onStreamRecoveryChoice,
+    anilibertyLanguageMenuEligible,
   } = useWatch(animeId || '', urlEp ?? undefined);
 
   const hasAppliedSavedEpisodeRef = useRef(false);
@@ -139,6 +140,7 @@ export default function Watch() {
             setWatchStreamProvider={setWatchStreamProvider}
             showStreamRecovery={showStreamRecovery}
             onStreamRecoveryChoice={onStreamRecoveryChoice}
+            anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
           />
 
           <WatchInfoPanel
