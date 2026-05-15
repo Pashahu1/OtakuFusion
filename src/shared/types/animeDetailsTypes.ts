@@ -18,7 +18,7 @@ export interface AnimeData {
   title: string;
   /**
    * Назви серій з AniList `streamingEpisodes` (ключ — номер серії як рядок).
-   * Покриття часткове; рядки на кшталт «Episode 12 - …» зіставляються за номером.
+   * Для списку на watch застосовується `applyAnilistEpisodeDisplayTitles`: рядок з мапи або fallback «title - Episode N».
    */
   anilistEpisodeTitles?: Record<string, string>;
   /** AniList `title.romaji` — для зіставлення з джерелами каталогу надійніше за англ. локалізацію. */

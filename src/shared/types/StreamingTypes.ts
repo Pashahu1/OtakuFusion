@@ -3,6 +3,11 @@ import type { VideoTrack } from "./VideoTrackTypes";
 export interface StreamingData {
   streamingLink: StreamingType[];
   servers: StreamServer[];
+  /** Опційні інтервали (секунди), напр. з Aniliberty / Crysoline `sources`. */
+  skipSegments?: {
+    intro: { start: number; end: number } | null;
+    outro: { start: number; end: number } | null;
+  };
 }
 
 export type StreamingType = {

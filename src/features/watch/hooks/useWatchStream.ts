@@ -39,7 +39,9 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   'no_working_source|dub_not_available':
     'Не знайдено робочого дубльованого потоку для цього епізоду. Спробуйте субтитри або інший епізод.',
   no_working_source:
-    'Не вдалося відтворити HLS: джерело Animepahe може бути недоступне або змінилося. Спробуйте інший епізод або перемикач Sub/Dub.',
+    'Не вдалося відтворити HLS: джерело може бути недоступне або змінилося. Спробуйте інший епізод, інший провайдер (Japanese / Anilibria) або пізніше.',
+  'no_working_source|aniliberty_sources_empty':
+    'Anilibria не повернула HLS-плейлист для цього епізоду. Спробуйте Animepahe або інший епізод.',
   'lang must be sub or dub':
     'Некоректний параметр мови стріму. Оновіть сторінку або перемкніть Sub/Dub.',
 };
@@ -161,6 +163,10 @@ export function useWatchStream(
           providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
           episode: episodeNumber,
           lang: watchResolveOptions.preferredLang,
+          streamProvider:
+            watchResolveOptions.watchStreamProvider === 'aniliberty'
+              ? ('aniliberty' as const)
+              : ('animepahe' as const),
         };
 
         const hadServerHint =
@@ -220,6 +226,7 @@ export function useWatchStream(
             },
           ],
           servers: [],
+          skipSegments: result.segments,
         });
         setStreamUrl(result.stream.url);
         const subtitleItems = filterSubtitleTracksByStreamLang(

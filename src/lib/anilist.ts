@@ -108,7 +108,26 @@ function pickTitle(title?: AniListTitle | null): string {
   return title?.english || title?.romaji || title?.native || 'Unknown title';
 }
 
-/** Будує мапу номер серії → повний рядок заголовку з `streamingEpisodes` (перший збіг на номер). */
+/**
+ * Витягує номер епізоду з рядка `streamingEpisodes` (різні формати Crunchyroll / ін.).
+ * Повертає [номер як рядок, повний raw-рядок для мапи].
+ */
+function parseStreamingEpisodeNumber(raw: string): [string, string] | null {
+  const t = raw.trim();
+  if (!t) return null;
+  const patterns: RegExp[] = [
+    /^\s*(?:Episode|Ep\.?)\s*#?\s*(\d+)\b/i,
+    /^\s*(\d+)\s*[.:\-|–—]\s+\S/,
+    /^\s*#?\s*(\d+)\s+[–—\-]\s+\S/,
+  ];
+  for (const re of patterns) {
+    const m = t.match(re);
+    if (m?.[1] && /^\d+$/.test(m[1])) return [m[1], t];
+  }
+  return null;
+}
+
+/** Будує мапу номер серії → рядок з `streamingEpisodes` (перший збіг на номер). */
 function buildAnilistEpisodeTitleRecord(
   streaming?: ReadonlyArray<{ title?: string | null } | null> | null
 ): Record<string, string> | undefined {
@@ -117,9 +136,9 @@ function buildAnilistEpisodeTitleRecord(
   for (const row of streaming) {
     const raw = row?.title?.trim();
     if (!raw) continue;
-    const m = raw.match(/^\s*Episode\s+(\d+)\b/i);
-    if (!m) continue;
-    const numKey = m[1];
+    const parsed = parseStreamingEpisodeNumber(raw);
+    if (!parsed) continue;
+    const [numKey] = parsed;
     if (out[numKey]) continue;
     out[numKey] = raw;
   }

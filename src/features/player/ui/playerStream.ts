@@ -26,7 +26,8 @@ function playlistSuggestsThirdPartyCdn(playlistUrl: string): boolean {
       u.includes('megacdn') ||
       u.includes('code29wave') ||
       u.includes('megaup') ||
-      u.includes('owocdn'))
+      u.includes('owocdn') ||
+      u.includes('libria.fun'))
   );
 }
 

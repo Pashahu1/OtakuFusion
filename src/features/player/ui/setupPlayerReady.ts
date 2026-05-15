@@ -10,6 +10,7 @@ import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
+import type { StreamingData } from '@/shared/types/StreamingTypes';
 import {
   readSubtitlePreference,
   writeSubtitlePreference,
@@ -78,7 +79,9 @@ export function setupPlayerReady(
   serversRef: React.RefObject<ServerInfo[] | null>,
   activeServerIdRef: React.RefObject<string | null>,
   watchStreamProvider: WatchStreamProvider,
-  setWatchStreamProvider: (next: WatchStreamProvider) => void
+  setWatchStreamProvider: (next: WatchStreamProvider) => void,
+  /** Маркери OP/ED (з Anilibria або злиті в Animepahe-резолві за мапінгом). */
+  skipSegments: StreamingData['skipSegments'] | null | undefined
 ) {
   let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
   const goToNextEpisode = () => {
@@ -173,6 +176,88 @@ export function setupPlayerReady(
       });
   }
 
+  const introSeg = skipSegments?.intro;
+  const outroSeg = skipSegments?.outro;
+  const introSkipOk =
+    introSeg != null &&
+    typeof introSeg.start === 'number' &&
+    typeof introSeg.end === 'number' &&
+    introSeg.start < introSeg.end;
+  const outroSkipOk =
+    outroSeg != null &&
+    typeof outroSeg.start === 'number' &&
+    typeof outroSeg.end === 'number' &&
+    outroSeg.start < outroSeg.end;
+
+  const seekClampedToDuration = (seconds: number) => {
+    const dur = art.video?.duration ?? art.duration;
+    const target = Number.isFinite(dur) && dur > 0
+      ? Math.min(seconds, Math.max(0, dur - 0.05))
+      : seconds;
+    art.currentTime = target;
+  };
+
+  const skipRoot = art.layers['skipIntroOutro'] as HTMLDivElement | undefined;
+  let skipOverlayVisible = false;
+
+  if (skipRoot && !skipRoot.dataset.ofSkipSegmentBound) {
+    skipRoot.dataset.ofSkipSegmentBound = '1';
+    skipRoot.querySelector('[data-skip-segment]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const kind = skipRoot.dataset.activeKind;
+      if (kind === 'intro' && introSkipOk && introSeg) {
+        seekClampedToDuration(introSeg.end);
+      } else if (kind === 'outro' && outroSkipOk && outroSeg) {
+        seekClampedToDuration(outroSeg.end);
+      }
+      skipRoot.style.display = 'none';
+      skipRoot.style.pointerEvents = 'none';
+      skipOverlayVisible = false;
+      delete skipRoot.dataset.activeKind;
+    });
+  }
+
+  const syncSkipSegmentOverlay = (t: number) => {
+    if (!skipRoot || (!introSkipOk && !outroSkipOk)) {
+      if (skipRoot && skipOverlayVisible) {
+        skipRoot.style.display = 'none';
+        skipRoot.style.pointerEvents = 'none';
+        skipOverlayVisible = false;
+        delete skipRoot.dataset.activeKind;
+      }
+      return;
+    }
+
+    let nextKind: 'intro' | 'outro' | null = null;
+    if (introSkipOk && introSeg && t >= introSeg.start && t < introSeg.end) {
+      nextKind = 'intro';
+    } else if (outroSkipOk && outroSeg && t >= outroSeg.start && t < outroSeg.end) {
+      nextKind = 'outro';
+    }
+
+    if (nextKind === null) {
+      if (skipOverlayVisible) {
+        skipRoot.style.display = 'none';
+        skipRoot.style.pointerEvents = 'none';
+        skipOverlayVisible = false;
+        delete skipRoot.dataset.activeKind;
+      }
+      return;
+    }
+
+    skipRoot.dataset.activeKind = nextKind;
+    const btn = skipRoot.querySelector(
+      '[data-skip-segment]'
+    ) as HTMLButtonElement | null;
+    if (btn) btn.textContent = nextKind === 'intro' ? 'Skip OP' : 'Skip ED';
+    if (!skipOverlayVisible) {
+      skipRoot.style.display = 'flex';
+      skipRoot.style.pointerEvents = 'auto';
+      skipOverlayVisible = true;
+    }
+  };
+
   requestAnimationFrame(() => {
     if (!logoLayer) return;
     logoLayer.style.opacity = '1';
@@ -190,6 +275,7 @@ export function setupPlayerReady(
 
   const onTimeUpdate = () => {
     const t = art.currentTime;
+    syncSkipSegmentOverlay(t);
 
     const duration = art.video?.duration ?? art.duration;
     const list = episodesRef.current;
@@ -395,7 +481,7 @@ export function setupPlayerReady(
     data_id?: number;
     serverName?: string;
     type?: string;
-    __mode?: 'animepahe-sub' | 'animepahe-dub';
+    __mode?: 'animepahe-sub' | 'animepahe-dub' | 'aniliberty';
   };
 
   const flatLanguage: LangMenuLeaf[] = [];
@@ -424,10 +510,18 @@ export function setupPlayerReady(
     });
   }
 
+  flatLanguage.push({
+    html: 'Anilibria',
+    default: watchStreamProvider === 'aniliberty',
+    __mode: 'aniliberty',
+  });
+
   const langTooltip =
-    langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type === 'dub'
-      ? 'English'
-      : 'Japanese';
+    watchStreamProvider === 'aniliberty'
+      ? 'Anilibria'
+      : langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type === 'dub'
+        ? 'English'
+        : 'Japanese';
 
   if (flatLanguage.length > 0) {
     art.setting.add({
@@ -439,6 +533,17 @@ export function setupPlayerReady(
       selector: flatLanguage,
       onSelect: function (item: Record<string, unknown>) {
         const mode = item.__mode;
+        if (mode === 'aniliberty') {
+          setWatchStreamProvider('aniliberty');
+          setActiveServerId('1');
+          try {
+            localStorage.setItem('server_type', 'sub');
+            localStorage.removeItem('server_name');
+          } catch {
+            /* ignore */
+          }
+          return typeof item.html === 'string' ? item.html : '';
+        }
         if (mode === 'animepahe-sub') {
           setWatchStreamProvider('animepahe');
           const dataId = item.data_id != null ? String(item.data_id) : null;

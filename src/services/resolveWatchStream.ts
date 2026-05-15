@@ -1,5 +1,24 @@
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 
+const ANILIBERTY_MAPPING_PREFIX = 'aniliberty:mapping:';
+
+function readStoredAnilibertyReleaseId(localAnimeId: string | undefined): string | undefined {
+  if (typeof window === 'undefined' || !localAnimeId?.trim()) return undefined;
+  try {
+    const raw = localStorage.getItem(`${ANILIBERTY_MAPPING_PREFIX}${localAnimeId.trim()}`);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as { libertyId?: string };
+    if (parsed && typeof parsed.libertyId === 'string' && parsed.libertyId.trim()) {
+      return parsed.libertyId.trim();
+    }
+  } catch {
+    /* ignore */
+  }
+  return undefined;
+}
+
+export type WatchResolveStreamProvider = 'animepahe' | 'aniliberty';
+
 export interface WatchResolveParams {
   anilistId?: number;
   malId?: number;
@@ -8,6 +27,7 @@ export interface WatchResolveParams {
   lang: 'sub' | 'dub';
   keyword?: string;
   localAnimeId?: string;
+  streamProvider?: WatchResolveStreamProvider;
 }
 
 export interface WatchResolveResponse {
@@ -38,6 +58,11 @@ export interface WatchResolveResponse {
     reason: string | null;
   };
   debug: { latency_ms: number };
+  stream_provider?: WatchResolveStreamProvider;
+  segments?: {
+    intro: { start: number; end: number } | null;
+    outro: { start: number; end: number } | null;
+  };
 }
 
 function normalizeKeyword(value: string): string {
@@ -59,6 +84,13 @@ export async function resolveWatchStream(
   if (params.localAnimeId) query.set('local_anime_id', params.localAnimeId);
   query.set('episode', String(params.episode));
   query.set('lang', params.lang === 'dub' ? 'dub' : 'sub');
+  const sp = params.streamProvider ?? 'animepahe';
+  query.set('stream_provider', sp === 'aniliberty' ? 'aniliberty' : 'animepahe');
+
+  if (sp === 'animepahe') {
+    const libertyId = readStoredAnilibertyReleaseId(params.localAnimeId);
+    if (libertyId) query.set('aniliberty_release_id', libertyId);
+  }
 
   if (typeof window !== 'undefined') {
     const hint = localStorage.getItem(STORAGE_SERVER_NAME)?.trim();

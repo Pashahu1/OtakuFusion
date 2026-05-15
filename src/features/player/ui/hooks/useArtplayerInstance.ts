@@ -10,6 +10,11 @@ import { getStreamFullUrl, getStreamHeaders } from '../playerStream';
 import { getArtplayerOptions } from '../getArtplayerOptions';
 import { setupPlayerReady } from '../setupPlayerReady';
 import {
+  clampChaptersToDuration,
+  skipSegmentsToChapterItems,
+} from '../skipSegmentsPlayerUtils';
+import type { ChapterItem } from '../artPlayerPluginChapter';
+import {
   removeFromContinueWatching,
   updateContinueWatching,
 } from '../updateContinueWatching';
@@ -115,8 +120,15 @@ export function useArtplayerInstance({
           `${String(s.file ?? '').trim()}\t${String(s.label ?? '').trim()}`
       )
       .join('\n');
-    return [streamUrl, thumbnail ?? '', subKey].join('\f');
-  }, [streamUrl, thumbnail, subtitles]);
+    const seg = streamInfo?.skipSegments;
+    const segKey = seg
+      ? [
+          seg.intro ? `${seg.intro.start}-${seg.intro.end}` : '',
+          seg.outro ? `${seg.outro.start}-${seg.outro.end}` : '',
+        ].join('|')
+      : '';
+    return [streamUrl, thumbnail ?? '', subKey, segKey].join('\f');
+  }, [streamUrl, thumbnail, subtitles, streamInfo?.skipSegments]);
 
   useEffect(() => {
     serversRef.current = servers;
@@ -426,11 +438,33 @@ export function useArtplayerInstance({
         serversRef,
         activeServerIdRef,
         watchStreamProvider,
-        setWatchStreamProvider
+        setWatchStreamProvider,
+        streamInfo?.skipSegments
       );
       queueMicrotask(() => {
         updateContinueWatching(animeInfo, episodeId, episodeNum);
       });
+
+      type ChapterPlugin = {
+        update?: (o: { chapters?: ChapterItem[] }) => void;
+      };
+      const chapterPlugin = (art.plugins as { artplayerPluginChapter?: ChapterPlugin })
+        .artplayerPluginChapter;
+      const rawChapters = skipSegmentsToChapterItems(streamInfo?.skipSegments);
+      const applyChapterMarkers = () => {
+        if (!rawChapters.length) return;
+        const dur = art.video?.duration ?? art.duration;
+        if (!Number.isFinite(dur) || dur <= 0) return;
+        const clamped = clampChaptersToDuration(rawChapters, dur);
+        if (!clamped.length) return;
+        try {
+          chapterPlugin?.update?.({ chapters: clamped });
+        } catch {
+          /* різна тривалість релізу / некоректні мітки */
+        }
+      };
+      art.once('video:loadedmetadata', applyChapterMarkers);
+      applyChapterMarkers();
 
       /** UI якості: початковий рівень уже виставлено в `MANIFEST_PARSED` (onM3u8HlsBeforeLoad). */
       const storedQualitySnapshot = readHlsQualityPreference();

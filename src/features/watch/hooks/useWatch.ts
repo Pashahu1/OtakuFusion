@@ -31,7 +31,7 @@ export function useWatch(
     writeWatchStreamProvider(next);
   }, []);
 
-  const anime = useWatchAnime(animeId, initialEpisodeId);
+  const anime = useWatchAnime(animeId, initialEpisodeId, watchStreamProvider);
 
   const playerShellPending =
     anime.animeInfoLoading ||

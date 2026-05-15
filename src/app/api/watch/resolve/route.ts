@@ -1,10 +1,14 @@
 import { unstable_cache } from 'next/cache';
 import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
 import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
+import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
+import { getAnilibertySourcesCached } from '@/server/aniliberty/sourcesCached';
 import type {
   CrysolineAnimepaheSourceRow,
   CrysolineAnimepaheSourcesPayload,
 } from '@/server/crysoline/animepaheClient';
+import type { CrysolineAnilibertySourcesPayload } from '@/server/crysoline/anilibertyClient';
+import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
 import {
   buildProbeHeaders,
   isPlayableViaProxy,
@@ -15,6 +19,8 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
 type WatchLang = 'sub' | 'dub';
+
+type WatchResolveStreamProvider = 'animepahe' | 'aniliberty';
 
 const inflightResolve = new Map<string, Promise<Response>>();
 
@@ -90,6 +96,12 @@ function getNormalizedLang(sp: URLSearchParams): WatchLang {
   return raw?.trim().toLowerCase() === 'dub' ? 'dub' : 'sub';
 }
 
+function getStreamProvider(sp: URLSearchParams): WatchResolveStreamProvider {
+  const raw = (sp.get('stream_provider') ?? '').trim().toLowerCase();
+  if (raw === 'aniliberty' || raw === 'anilibria') return 'aniliberty';
+  return 'animepahe';
+}
+
 function parseEpisodeNumber(sp: URLSearchParams): number | null {
   const value = Number(sp.get('episode') ?? '');
   if (!Number.isFinite(value) || value <= 0) return null;
@@ -159,6 +171,60 @@ function buildAnimePaheStreamCandidates(
   return out;
 }
 
+const ANILIBRIA_STREAM_HEADERS: Record<string, string> = {
+  Referer: 'https://www.anilibria.tv/',
+  Origin: 'https://www.anilibria.tv',
+};
+
+function inferAnilibertyResolutionLabel(urlStr: string): string {
+  const m = urlStr.match(/\/(480|720|1080)\//);
+  if (m) return `${m[1]}p`;
+  return 'Auto';
+}
+
+function normalizeSkipSegmentBlock(
+  block: { start?: number | null; end?: number | null } | null | undefined
+): { start: number; end: number } | null {
+  if (!block) return null;
+  const s = block.start;
+  const e = block.end;
+  if (typeof s !== 'number' || typeof e !== 'number' || !Number.isFinite(s) || !Number.isFinite(e)) {
+    return null;
+  }
+  return { start: s, end: e };
+}
+
+function buildAnilibertyStreamCandidates(payload: CrysolineAnilibertySourcesPayload): StreamingType[] {
+  const sources = Array.isArray(payload.sources) ? payload.sources : [];
+  const rows = sources.filter(
+    (s) =>
+      (s.type ?? '').trim().toLowerCase() === 'hls' &&
+      typeof s.url === 'string' &&
+      s.url.trim().length > 0
+  );
+  const scored = rows.map((s) => {
+    const file = s.url!.trim();
+    const label = inferAnilibertyResolutionLabel(file);
+    const rank = resolutionRank(label);
+    return { file, label, rank };
+  });
+  const sorted = [...scored].sort((a, b) => b.rank - a.rank);
+  const out: StreamingType[] = [];
+  let nid = 0;
+  for (const row of sorted) {
+    nid += 1;
+    out.push({
+      id: nid,
+      type: 'sub',
+      link: { file: row.file, type: 'hls' },
+      tracks: [],
+      server: `${row.label} · Anilibria`,
+      request_headers: { ...ANILIBRIA_STREAM_HEADERS },
+    });
+  }
+  return out;
+}
+
 function prioritizeByServerHint(
   candidates: StreamingType[],
   hint: string | null | undefined
@@ -197,41 +263,29 @@ async function resolveFirstWorkingAnimePaheCandidate(
   throw lastErr ?? new Error('no_working_source');
 }
 
-async function computeWatchResolveOutcome(
-  req: Request,
-  options?: { publicOrigin: string }
-): Promise<WatchResolveOutcome> {
-  const startedAt = Date.now();
-  const url = new URL(req.url);
-  const lang = getNormalizedLang(url.searchParams);
-  const episode = parseEpisodeNumber(url.searchParams);
-
-  if (episode == null) {
-    return {
-      status: 400,
-      body: {
-        success: false,
-        error: 'episode is required and must be a positive integer',
-      },
-    };
-  }
-
-  const probeCfg = readWatchProbeConfig(lang);
-  const origin = options?.publicOrigin ?? url.origin;
-
-  const paheSeriesId = url.searchParams.get('ani_id')?.trim();
-  if (!paheSeriesId) {
-    return {
-      status: 400,
-      body: {
-        success: false,
-        error: 'ani_id is required (Animepahe series id from catalog)',
-      },
-    };
-  }
+async function computeAnimepaheWatchResolveOutcome(params: {
+  startedAt: number;
+  episode: number;
+  lang: WatchLang;
+  probeCfg: WatchProbeConfig;
+  origin: string;
+  seriesId: string;
+  preferredHint: string | null;
+  anilibertyReleaseId: string | null;
+}): Promise<WatchResolveOutcome> {
+  const {
+    startedAt,
+    episode,
+    lang,
+    probeCfg,
+    origin,
+    seriesId,
+    preferredHint,
+    anilibertyReleaseId,
+  } = params;
 
   try {
-    const episodesResult = await getAnimePaheEpisodesCached(paheSeriesId);
+    const episodesResult = await getAnimePaheEpisodesCached(seriesId);
     const targetEpisode = pickEpisodeByNumber(episodesResult.episodes, episode);
     const epHash = targetEpisode?.ep_token?.trim();
     if (!epHash) {
@@ -245,7 +299,7 @@ async function computeWatchResolveOutcome(
       };
     }
 
-    const sourcesPayload = await getAnimePaheSourcesCached(paheSeriesId, epHash);
+    const sourcesPayload = await getAnimePaheSourcesCached(seriesId, epHash);
     let candidates = buildAnimePaheStreamCandidates(sourcesPayload, lang);
     if (!candidates.length) {
       return {
@@ -258,7 +312,6 @@ async function computeWatchResolveOutcome(
       };
     }
 
-    const preferredHint = url.searchParams.get('preferred_server_hint')?.trim();
     candidates = prioritizeByServerHint(candidates, preferredHint);
 
     const primary = await resolveFirstWorkingAnimePaheCandidate(
@@ -272,9 +325,10 @@ async function computeWatchResolveOutcome(
 
     const body: Record<string, unknown> = {
       success: true,
+      stream_provider: 'animepahe',
       resolved_anime: {
-        ani_id: paheSeriesId,
-        slug: paheSeriesId,
+        ani_id: seriesId,
+        slug: seriesId,
         status: 'verified',
         resolved_by: 'cache',
       },
@@ -303,6 +357,26 @@ async function computeWatchResolveOutcome(
       },
     };
 
+    const libertyId = anilibertyReleaseId?.trim() ?? null;
+    if (libertyId) {
+      try {
+        const rows = await getAnilibertyEpisodesCached(libertyId);
+        const { episodes: libertyEpisodes } = mapCrysolineAnilibertyEpisodes(rows);
+        const libertyTarget = pickEpisodeByNumber(libertyEpisodes, episode);
+        const libertyEpToken = libertyTarget?.ep_token?.trim();
+        if (libertyEpToken) {
+          const segPayload = await getAnilibertySourcesCached(libertyId, libertyEpToken);
+          const intro = normalizeSkipSegmentBlock(segPayload.intro);
+          const outro = normalizeSkipSegmentBlock(segPayload.outro);
+          if (intro || outro) {
+            body.segments = { intro, outro };
+          }
+        }
+      } catch {
+        /* Anilibria — лише підказка для маркерів OP/ED; не ламаємо Animepahe-резолв. */
+      }
+    }
+
     return { status: 200, body };
   } catch (error) {
     return {
@@ -313,6 +387,169 @@ async function computeWatchResolveOutcome(
       },
     };
   }
+}
+
+async function computeAnilibertyWatchResolveOutcome(params: {
+  startedAt: number;
+  episode: number;
+  origin: string;
+  seriesId: string;
+  preferredHint: string | null;
+}): Promise<WatchResolveOutcome> {
+  const { startedAt, episode, origin, seriesId, preferredHint } = params;
+  const probeCfg = readWatchProbeConfig('sub');
+
+  try {
+    const rows = await getAnilibertyEpisodesCached(seriesId);
+    const { episodes } = mapCrysolineAnilibertyEpisodes(rows);
+    const targetEpisode = pickEpisodeByNumber(episodes, episode);
+    const epToken = targetEpisode?.ep_token?.trim();
+    if (!epToken) {
+      return {
+        status: 404,
+        body: {
+          success: false,
+          error: 'episode_not_found',
+          reason: `Episode ${episode} is missing in Aniliberty catalog`,
+        },
+      };
+    }
+
+    const sourcesPayload = await getAnilibertySourcesCached(seriesId, epToken);
+    let candidates = buildAnilibertyStreamCandidates(sourcesPayload);
+    if (!candidates.length) {
+      return {
+        status: 404,
+        body: {
+          success: false,
+          error: 'no_working_source',
+          reason: 'aniliberty_sources_empty',
+        },
+      };
+    }
+
+    candidates = prioritizeByServerHint(candidates, preferredHint);
+
+    const primary = await resolveFirstWorkingAnimePaheCandidate(
+      candidates,
+      origin,
+      probeCfg
+    );
+
+    const intro = normalizeSkipSegmentBlock(sourcesPayload.intro);
+    const outro = normalizeSkipSegmentBlock(sourcesPayload.outro);
+
+    const body: Record<string, unknown> = {
+      success: true,
+      stream_provider: 'aniliberty',
+      resolved_anime: {
+        ani_id: seriesId,
+        slug: seriesId,
+        status: 'verified',
+        resolved_by: 'cache',
+      },
+      episode: {
+        number: episode,
+        ep_token: epToken,
+        hasSub: true,
+        hasDub: false,
+      },
+      stream: {
+        url: primary.link.file,
+        lang: 'sub',
+        server: primary.server,
+        request_headers: buildProbeHeaders(primary),
+        tracks: primary.tracks ?? [],
+      },
+      segments: {
+        intro,
+        outro,
+      },
+      fallback: {
+        applied: false,
+        from: null,
+        to: null,
+        reason: null,
+      },
+      debug: {
+        latency_ms: Date.now() - startedAt,
+        requested_lang: 'sub',
+      },
+    };
+
+    return { status: 200, body };
+  } catch (error) {
+    return {
+      status: 502,
+      body: {
+        success: false,
+        error: error instanceof Error ? error.message : 'watch_resolve_failed',
+      },
+    };
+  }
+}
+
+async function computeWatchResolveOutcome(
+  req: Request,
+  options?: { publicOrigin: string }
+): Promise<WatchResolveOutcome> {
+  const startedAt = Date.now();
+  const url = new URL(req.url);
+  const lang = getNormalizedLang(url.searchParams);
+  const episode = parseEpisodeNumber(url.searchParams);
+
+  if (episode == null) {
+    return {
+      status: 400,
+      body: {
+        success: false,
+        error: 'episode is required and must be a positive integer',
+      },
+    };
+  }
+
+  const probeCfg = readWatchProbeConfig(lang);
+  const origin = options?.publicOrigin ?? url.origin;
+
+  const seriesId = url.searchParams.get('ani_id')?.trim();
+  const provider = getStreamProvider(url.searchParams);
+  const preferredHint = url.searchParams.get('preferred_server_hint')?.trim() ?? null;
+  const anilibertyReleaseId =
+    url.searchParams.get('aniliberty_release_id')?.trim() ?? null;
+
+  if (!seriesId) {
+    return {
+      status: 400,
+      body: {
+        success: false,
+        error:
+          provider === 'aniliberty'
+            ? 'ani_id is required (Aniliberty release id from catalog)'
+            : 'ani_id is required (Animepahe series id from catalog)',
+      },
+    };
+  }
+
+  if (provider === 'aniliberty') {
+    return computeAnilibertyWatchResolveOutcome({
+      startedAt,
+      episode,
+      origin,
+      seriesId,
+      preferredHint,
+    });
+  }
+
+  return computeAnimepaheWatchResolveOutcome({
+    startedAt,
+    episode,
+    lang,
+    probeCfg,
+    origin,
+    seriesId,
+    preferredHint,
+    anilibertyReleaseId,
+  });
 }
 
 async function handleWatchResolve(req: Request): Promise<Response> {
@@ -335,7 +572,7 @@ async function handleWatchResolve(req: Request): Promise<Response> {
         if (o.status !== 200) throw new WatchResolveNonOkError(o);
         return o.body;
       },
-      ['watch-resolve-data-v3-animepahe', cacheKey, publicOrigin],
+      ['watch-resolve-data-v4', cacheKey, publicOrigin],
       { revalidate: watchResolveCacheRevalidateSec() }
     );
 
