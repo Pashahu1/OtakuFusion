@@ -6,12 +6,16 @@ import { Suspense } from 'react';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { AppToaster } from '@/components/ui/AppToaster';
 import { AuthProvider } from '@/context/AuthContext';
-import { env } from '@/lib/env';
 import type { Viewport } from 'next';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { AuthQueryBridge } from '@/components/providers/auth-query-bridge';
 
-const siteUrl = env.NEXT_PUBLIC_SITE_URL ?? 'https://otakufusion.com';
+/** Не імпортувати `@/lib/env` у root layout — `EnvSchema.parse` падає на `next build` без усіх секретів на Vercel. */
+const siteUrl =
+  (typeof process.env.NEXT_PUBLIC_SITE_URL === 'string' &&
+  process.env.NEXT_PUBLIC_SITE_URL.trim()
+    ? process.env.NEXT_PUBLIC_SITE_URL.trim().replace(/\/+$/, '')
+    : null) ?? 'https://otakufusion.com';
 
 export const viewport: Viewport = {
   width: 'device-width',
