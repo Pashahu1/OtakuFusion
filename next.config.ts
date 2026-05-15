@@ -8,10 +8,6 @@ const nextConfig = {
         source: '/favicon.ico',
         destination: '/language.png',
       },
-      {
-        source: '/api/:path*',
-        destination: 'https://otaku-fusion-fizq.vercel.app/api/:path*',
-      },
     ];
   },
   images: {
