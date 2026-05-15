@@ -196,8 +196,15 @@ export function useWatchStream(
 
         const tracks = [] as VideoTrack[];
         const preferredLang = opts?.preferredLang ?? 'sub';
+        const anilistFromMeta = (() => {
+          const raw = streamAnime.id?.trim();
+          if (!raw) return undefined;
+          const n = Number(raw);
+          return Number.isFinite(n) && n > 0 ? Math.floor(n) : undefined;
+        })();
+
         const resolveParams = {
-          anilistId: streamAnime.id?.trim() ? Number(streamAnime.id) : undefined,
+          anilistId: anilistFromMeta,
           malId:
             typeof streamAnime.mal_id === 'number' && streamAnime.mal_id > 0
               ? streamAnime.mal_id

@@ -90,17 +90,68 @@ export function buildProbeHeaders(stream: StreamingType): Record<string, string>
   };
 }
 
+export interface HlsProxyProbeResult {
+  ok: boolean;
+  /** Текст першого відповідного m3u8 (master або media), якщо `ok`. */
+  masterPlaylistText: string | null;
+}
+
+/**
+ * Евристика для master HLS: чи є ознаки **окремої** англомовної / dub аудіо
+ * (`#EXT-X-MEDIA:TYPE=AUDIO`), а не лише саби в JSON Miruno.
+ *
+ * - Немає рядків `TYPE=AUDIO` — зазвичай аудіо змультиплексоване в відео; повертаємо **true** (не блокуємо).
+ * - Два і більше `TYPE=AUDIO` — часто multi-audio (типово sub+dub); **true**.
+ * - Один `TYPE=AUDIO` — **true** лише якщо в рядку є натяк на EN / dub.
+ */
+export function hlsMasterSuggestsDubLikeAudio(masterText: string): boolean {
+  if (!masterText.includes('#EXTM3U')) return false;
+  const audioLines = masterText
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.includes('#EXT-X-MEDIA:TYPE=AUDIO'));
+  if (audioLines.length === 0) return true;
+  if (audioLines.length >= 2) return true;
+
+  const line = audioLines[0].toLowerCase();
+  if (
+    line.includes('language="en"') ||
+    line.includes("language='en'") ||
+    line.includes('language=en,')
+  ) {
+    return true;
+  }
+  if (
+    line.includes('english') ||
+    line.includes(' eng,') ||
+    line.includes(',eng,') ||
+    line.includes(' eng ') ||
+    /\beng dub\b/.test(line) ||
+    line.includes('simuldub') ||
+    line.includes('funimation') ||
+    /\bdub\b/.test(line)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+export function isMirunoDubHlsManifestCheckEnabled(): boolean {
+  const v = process.env.MIRUNO_DUB_HLS_MANIFEST_CHECK?.trim().toLowerCase();
+  return v === '1' || v === 'true';
+}
+
 /**
  * Перевірка, що плейлист віддається через наш проксі (як у плеєрі).
- * Оптимізації: медіа-плейлист (#EXTINF) без другого запиту; кілька variant рядків — Promise.any.
+ * Повертає також текст master/media playlist для додаткових перевірок (Miruno dub).
  */
-export async function isPlayableViaProxy(
+export async function probeHlsStreamViaProxy(
   origin: string,
   stream: StreamingType,
   cfg: WatchProbeConfig
-): Promise<boolean> {
+): Promise<HlsProxyProbeResult> {
   const streamUrl = stream.link?.file?.trim();
-  if (!streamUrl) return false;
+  if (!streamUrl) return { ok: false, masterPlaylistText: null };
 
   const probeUrl = new URL('/api/m3u8-proxy', origin);
   probeUrl.searchParams.set('url', streamUrl);
@@ -112,25 +163,25 @@ export async function isPlayableViaProxy(
       cache: 'no-store',
       signal: AbortSignal.timeout(cfg.masterMs),
     });
-    if (!res.ok) return false;
+    if (!res.ok) return { ok: false, masterPlaylistText: null };
 
     const contentType = res.headers.get('content-type')?.toLowerCase() ?? '';
     const isPlaylistType =
       contentType.includes('mpegurl') ||
       contentType.includes('vnd.apple.mpegurl') ||
       contentType.includes('application/octet-stream');
-    if (!isPlaylistType) return false;
+    if (!isPlaylistType) return { ok: false, masterPlaylistText: null };
 
     const text = await res.text();
-    if (!text.includes('#EXTM3U')) return false;
+    if (!text.includes('#EXTM3U')) return { ok: false, masterPlaylistText: null };
 
     /** Вже медіа-плейлист — не потрібен другий hop. */
-    if (text.includes('#EXTINF')) return true;
+    if (text.includes('#EXTINF')) return { ok: true, masterPlaylistText: text };
 
     /** Один рівень без variant (рідко, але швидко). */
-    if (!text.includes('#EXT-X-STREAM-INF')) return true;
+    if (!text.includes('#EXT-X-STREAM-INF')) return { ok: true, masterPlaylistText: text };
 
-    if (cfg.skipVariant) return true;
+    if (cfg.skipVariant) return { ok: true, masterPlaylistText: text };
 
     const variantLines = text
       .split(/\r?\n/)
@@ -138,7 +189,7 @@ export async function isPlayableViaProxy(
       .filter((line) => line.length > 0 && !line.startsWith('#'))
       .slice(0, 4);
 
-    if (!variantLines.length) return false;
+    if (!variantLines.length) return { ok: false, masterPlaylistText: text };
 
     const variantTasks = variantLines.map((line) =>
       (async () => {
@@ -155,11 +206,24 @@ export async function isPlayableViaProxy(
 
     try {
       await Promise.any(variantTasks);
-      return true;
+      return { ok: true, masterPlaylistText: text };
     } catch {
-      return false;
+      return { ok: false, masterPlaylistText: text };
     }
   } catch {
-    return false;
+    return { ok: false, masterPlaylistText: null };
   }
+}
+
+/**
+ * Перевірка, що плейлист віддається через наш проксі (як у плеєрі).
+ * Оптимізації: медіа-плейлист (#EXTINF) без другого hop; кілька variant рядків — Promise.any.
+ */
+export async function isPlayableViaProxy(
+  origin: string,
+  stream: StreamingType,
+  cfg: WatchProbeConfig
+): Promise<boolean> {
+  const r = await probeHlsStreamViaProxy(origin, stream, cfg);
+  return r.ok;
 }

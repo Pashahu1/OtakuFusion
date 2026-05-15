@@ -18,6 +18,7 @@ import {
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 import { inferAnimepaheSourceIsDub } from '@/services/animepahe/inferAnimepaheSourceIsDub';
+import { tryResolveMirunoDubHls } from '@/server/miruno/fetchMirunoDubStream';
 
 type WatchLang = 'sub' | 'dub';
 
@@ -326,6 +327,7 @@ async function computeAnimepaheWatchResolveOutcome(params: {
   seriesId: string;
   preferredHint: string | null;
   anilibertyReleaseId: string | null;
+  anilistId: number | null;
 }): Promise<WatchResolveOutcome> {
   const {
     startedAt,
@@ -336,6 +338,7 @@ async function computeAnimepaheWatchResolveOutcome(params: {
     seriesId,
     preferredHint,
     anilibertyReleaseId,
+    anilistId,
   } = params;
 
   try {
@@ -351,6 +354,79 @@ async function computeAnimepaheWatchResolveOutcome(params: {
           reason: `Episode ${episode} is missing in Animepahe catalog`,
         },
       };
+    }
+
+    const tryMirunoGapDub =
+      lang === 'dub' &&
+      targetEpisode != null &&
+      targetEpisode.hasDub !== true &&
+      anilistId != null;
+
+    if (tryMirunoGapDub) {
+      const mirunoPrimary = await tryResolveMirunoDubHls({
+        anilistId,
+        episode,
+        origin,
+        probeCfg,
+      });
+      if (mirunoPrimary) {
+        const body: Record<string, unknown> = {
+          success: true,
+          stream_provider: 'animepahe',
+          resolved_anime: {
+            ani_id: seriesId,
+            slug: seriesId,
+            status: 'verified',
+            resolved_by: 'cache',
+          },
+          episode: {
+            number: episode,
+            ep_token: epHash,
+            hasSub: Boolean(targetEpisode?.hasSub ?? true),
+            hasDub: false,
+          },
+          stream: {
+            url: mirunoPrimary.link.file,
+            lang: 'dub',
+            server: mirunoPrimary.server,
+            request_headers: buildProbeHeaders(mirunoPrimary),
+            tracks: mirunoPrimary.tracks ?? [],
+          },
+          fallback: {
+            applied: false,
+            from: null,
+            to: null,
+            reason: null,
+          },
+          debug: {
+            latency_ms: Date.now() - startedAt,
+            requested_lang: lang,
+            miruno_dub_gap_fill: true,
+          },
+        };
+
+        const libertyId = anilibertyReleaseId?.trim() ?? null;
+        if (libertyId) {
+          try {
+            const rows = await getAnilibertyEpisodesCached(libertyId);
+            const { episodes: libertyEpisodes } = mapCrysolineAnilibertyEpisodes(rows);
+            const libertyTarget = pickEpisodeByNumber(libertyEpisodes, episode);
+            const libertyEpToken = libertyTarget?.ep_token?.trim();
+            if (libertyEpToken) {
+              const segPayload = await getAnilibertySourcesCached(libertyId, libertyEpToken);
+              const intro = normalizeSkipSegmentBlock(segPayload.intro);
+              const outro = normalizeSkipSegmentBlock(segPayload.outro);
+              if (intro || outro) {
+                body.segments = { intro, outro };
+              }
+            }
+          } catch {
+            /* Anilibria — лише підказка для маркерів OP/ED; не ламаємо Miruno-резолв. */
+          }
+        }
+
+        return { status: 200, body };
+      }
     }
 
     const sourcesPayload = await getAnimePaheSourcesCached(seriesId, epHash);
@@ -581,6 +657,11 @@ async function computeWatchResolveOutcome(
   const anilibertyReleaseId =
     url.searchParams.get('aniliberty_release_id')?.trim() ?? null;
 
+  const anilistRaw = url.searchParams.get('anilist_id')?.trim();
+  const anilistParsed = anilistRaw ? Number(anilistRaw) : NaN;
+  const anilistId =
+    Number.isFinite(anilistParsed) && anilistParsed > 0 ? Math.floor(anilistParsed) : null;
+
   if (!seriesId) {
     return {
       status: 400,
@@ -613,6 +694,7 @@ async function computeWatchResolveOutcome(
     seriesId,
     preferredHint,
     anilibertyReleaseId,
+    anilistId,
   });
 }
 
@@ -636,7 +718,7 @@ async function handleWatchResolve(req: Request): Promise<Response> {
         if (o.status !== 200) throw new WatchResolveNonOkError(o);
         return o.body;
       },
-      ['watch-resolve-data-v4', cacheKey, publicOrigin],
+      ['watch-resolve-data-v8', cacheKey, publicOrigin],
       { revalidate: watchResolveCacheRevalidateSec() }
     );
 

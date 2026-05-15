@@ -16,6 +16,19 @@ import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
 import { useWatchAnime } from './useWatchAnime';
 import { useWatchStream, type WatchStreamAnimeMeta } from './useWatchStream';
 
+/**
+ * English у меню + `lang=dub` для епізодів без `hasDub: true` у каталозі — узгоджено з Miruno gap-fill на `/api/watch/resolve`.
+ * За замовчуванням увімкнено. Вимкнути (старий суворий режим): `NEXT_PUBLIC_MIRUNO_DUB_FALLBACK=0` або `false` / `off`.
+ */
+function isAnimepaheMirunoDubGapUiEnabled(): boolean {
+  if (typeof process === 'undefined') return true;
+  const raw = process.env.NEXT_PUBLIC_MIRUNO_DUB_FALLBACK?.trim().toLowerCase();
+  if (raw === '0' || raw === 'false' || raw === 'off') return false;
+  return true;
+}
+
+const mirunoDubFallbackPublic = isAnimepaheMirunoDubGapUiEnabled();
+
 export function useWatch(
   animeId: string,
   initialEpisodeId: string | undefined
@@ -91,14 +104,16 @@ export function useWatch(
     return ep?.hasDub === true;
   }, [anime.episodes, anime.episodeId]);
 
-  /** Мова для `watch/resolve`: Anilibria лише саб; dub лише якщо є доріжка на епізоді. */
+  /**
+   * Мова для `watch/resolve`: Anilibria — лише саб.
+   * Animepahe: якщо вибрано English (`activeServerId === '2'`), завжди `dub` — інакше
+   * при `currentEpisodeHasDub === false` у мережі йшов `lang=sub`, хоча в плеєрі обрано English.
+   */
   const resolverLang = useMemo<'sub' | 'dub'>(() => {
     if (watchStreamProvider === 'aniliberty') return 'sub';
     if (activeServerId !== '2') return 'sub';
-    if (!hasAnyDub) return 'sub';
-    if (currentEpisodeHasDub === false) return 'sub';
     return 'dub';
-  }, [watchStreamProvider, activeServerId, hasAnyDub, currentEpisodeHasDub]);
+  }, [watchStreamProvider, activeServerId]);
 
   const preferredLang = useMemo<'sub' | 'dub'>(
     () => (activeServerId === '2' ? 'dub' : 'sub'),
@@ -111,20 +126,14 @@ export function useWatch(
       if (activeServerId === '2') setActiveServerIdRaw('1');
       return;
     }
+    if (mirunoDubFallbackPublic) {
+      return;
+    }
     if (!hasAnyDub && activeServerId === '2') {
       setActiveServerIdRaw('1');
       return;
     }
-    if (activeServerId === '2' && anime.episodeId && currentEpisodeHasDub === false) {
-      setActiveServerIdRaw('1');
-    }
-  }, [
-    watchStreamProvider,
-    activeServerId,
-    hasAnyDub,
-    anime.episodeId,
-    currentEpisodeHasDub,
-  ]);
+  }, [watchStreamProvider, activeServerId, hasAnyDub, mirunoDubFallbackPublic]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -136,7 +145,7 @@ export function useWatch(
     const base: ServerInfo[] = [
       { type: 'sub', data_id: 1, server_id: 1, serverName: 'Japanese' },
     ];
-    if (hasAnyDub) {
+    if (hasAnyDub || mirunoDubFallbackPublic) {
       base.push({
         type: 'dub',
         data_id: 2,
@@ -145,7 +154,7 @@ export function useWatch(
       });
     }
     return base;
-  }, [hasAnyDub]);
+  }, [hasAnyDub, mirunoDubFallbackPublic]);
 
   const onPlaybackLangResolved = useCallback((lang: 'sub' | 'dub') => {
     setActiveServerIdRaw(lang === 'dub' ? '2' : '1');
