@@ -1,15 +1,15 @@
 import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
+import { inferAnimepaheSourceIsDub } from '@/services/animepahe/inferAnimepaheSourceIsDub';
 
 function sourcesPayloadHasDub(payload: {
   sources?: Array<{ isDub?: boolean; quality?: string }>;
+  download?: Array<{ quality?: string }>;
 }): boolean {
   const list = Array.isArray(payload.sources) ? payload.sources : [];
-  if (list.some((s) => s.isDub === true)) return true;
-  return list.some((s) => {
-    const q = (s.quality ?? '').toLowerCase();
-    return q.includes('dub') || q.includes('english dub');
-  });
+  if (list.some((s) => inferAnimepaheSourceIsDub(s))) return true;
+  const downloads = Array.isArray(payload.download) ? payload.download : [];
+  return downloads.some((d) => inferAnimepaheSourceIsDub(d));
 }
 
 function applySeriesDubHint(episodes: EpisodesTypes[], hasSeriesDub: boolean): EpisodesTypes[] {

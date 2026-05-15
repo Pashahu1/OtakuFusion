@@ -17,6 +17,7 @@ import {
 } from '@/lib/watchResolveProbe';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
+import { inferAnimepaheSourceIsDub } from '@/services/animepahe/inferAnimepaheSourceIsDub';
 
 type WatchLang = 'sub' | 'dub';
 
@@ -193,7 +194,7 @@ function buildAnimePaheStreamCandidates(
   const rootHeaders = mergeRootHeaders(payload.headers);
   const sources = Array.isArray(payload.sources) ? payload.sources : [];
   const filtered = sources.filter((s: CrysolineAnimepaheSourceRow) => {
-    const isDub = s.isDub === true;
+    const isDub = inferAnimepaheSourceIsDub(s);
     if (requestedLang === 'dub') return isDub;
     return !isDub;
   });
@@ -213,7 +214,7 @@ function buildAnimePaheStreamCandidates(
       nid += 1;
       out.push({
         id: nid,
-        type: row.isDub === true ? ('dub' as const) : ('sub' as const),
+        type: inferAnimepaheSourceIsDub(row) ? ('dub' as const) : ('sub' as const),
         link: { file, type: 'hls' },
         tracks: [],
         server: row.quality?.trim() || 'Animepahe',

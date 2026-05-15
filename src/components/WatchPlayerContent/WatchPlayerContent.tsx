@@ -30,8 +30,8 @@ type WatchPlayerContentProps = {
   showErrorBlock: boolean;
   /** Дані для стріму ще підвантажуються — не показувати помилку плеєра. */
   playerShellPending: boolean;
-  showStreamRecovery: boolean;
-  onStreamRecoveryChoice: (choice: 'japanese' | 'english') => void;
+  /** Англомовний текст оверлею при фатальній помилці; `null` — ще немає копі для показу. */
+  streamOverlayMessage: { title: string; subtitle: string } | null;
   /** Показувати Anilibria в меню Language лише якщо каталог знайшов реліз. */
   anilibertyLanguageMenuEligible: boolean;
 };
@@ -57,13 +57,16 @@ export const WatchPlayerContent = ({
   showErrorBlock,
   episodeNum,
   playerShellPending,
-  showStreamRecovery,
-  onStreamRecoveryChoice,
+  streamOverlayMessage,
   anilibertyLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
   const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
 
-  const hasAnyDub = Boolean(episodes?.some((e) => e.hasDub === true));
+  const overlayCopy =
+    streamOverlayMessage ?? {
+      title: 'This player is currently unavailable.',
+      subtitle: 'Please try another episode or server.',
+    };
 
   const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
   const [prevStreamKey, setPrevStreamKey] = useState(streamKey);
@@ -80,14 +83,15 @@ export const WatchPlayerContent = ({
 
   const isStreamMissing = !playerShellPending && !buffering && !streamUrl;
   const allowFatalErrorUi =
-    isStreamMissing && (showErrorBlock || hasBuiltinError || showStreamRecovery);
+    isStreamMissing &&
+    (showErrorBlock || hasBuiltinError || streamOverlayMessage != null);
   const showBuiltinPlayer = !hasBuiltinError && !isStreamMissing && Boolean(streamUrl);
   const showLoader =
     !hasBuiltinError &&
     (playerShellPending || buffering || !streamUrl) &&
     !allowFatalErrorUi;
   const showErrorOverlay =
-    isStreamMissing && (showErrorBlock || hasBuiltinError || showStreamRecovery);
+    isStreamMissing && (showErrorBlock || hasBuiltinError || streamOverlayMessage != null);
 
   return (
     <div
@@ -127,36 +131,9 @@ export const WatchPlayerContent = ({
         )}
 
         {showErrorOverlay && (
-          <div className="absolute inset-0 z-[15] flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center">
-            <img
-              src="/gojo-player.png"
-              alt=""
-              width={100}
-              height={100}
-              decoding="async"
-              className="mx-auto block max-h-[100px] max-w-[100px] object-contain"
-            />
-            <span>This player is currently unavailable.</span>
-            <span>Please try another episode or server.</span>
-            {showStreamRecovery ? (
-              <div className="mt-2 flex max-w-md flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-center">
-                <button
-                  type="button"
-                  className="rounded-lg border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#f47521]/45 hover:bg-[#f47521]/10"
-                  onClick={() => onStreamRecoveryChoice('japanese')}
-                >
-                  Japanese
-                </button>
-                <button
-                  type="button"
-                  disabled={!hasAnyDub}
-                  className="rounded-lg border border-white/20 bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#f47521]/45 hover:bg-[#f47521]/10 disabled:cursor-not-allowed disabled:opacity-40"
-                  onClick={() => onStreamRecoveryChoice('english')}
-                >
-                  English
-                </button>
-              </div>
-            ) : null}
+          <div className="absolute inset-0 z-[15] flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center text-sm text-white/90">
+            <span className="text-base font-semibold text-white">{overlayCopy.title}</span>
+            <span className="max-w-md text-white/80">{overlayCopy.subtitle}</span>
           </div>
         )}
       </div>

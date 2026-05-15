@@ -3,6 +3,7 @@ import {
   useMemo,
   useEffect,
   useCallback,
+  useRef,
   type SetStateAction,
 } from 'react';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
@@ -20,10 +21,11 @@ export function useWatch(
   initialEpisodeId: string | undefined
 ): UseWatchReturn {
   const [isFullOverview, setIsFullOverview] = useState(false);
-  const [streamRecoveryNonce, setStreamRecoveryNonce] = useState(0);
   const [streamLangRevision, setStreamLangRevision] = useState(0);
   const [watchStreamProvider, setWatchStreamProviderState] =
     useState<WatchStreamProvider>('animepahe');
+  const [streamHardExhausted, setStreamHardExhausted] = useState(false);
+  const issuedDubToSubFallbackRef = useRef(false);
 
   const setWatchStreamProvider = useCallback((next: WatchStreamProvider) => {
     setWatchStreamProviderState(next);
@@ -32,12 +34,16 @@ export function useWatch(
 
   /** Новий тайтл — завжди Animepahe; Anilibria лише після явного вибору в плеєрі. */
   useEffect(() => {
-    setStreamRecoveryNonce(0);
     if (!animeId.trim()) return;
     setWatchStreamProvider('animepahe');
   }, [animeId, setWatchStreamProvider]);
 
   const anime = useWatchAnime(animeId, initialEpisodeId, watchStreamProvider);
+
+  useEffect(() => {
+    issuedDubToSubFallbackRef.current = false;
+    setStreamHardExhausted(false);
+  }, [animeId, anime.episodeId, watchStreamProvider]);
 
   const playerShellPending =
     anime.animeInfoLoading ||
@@ -165,7 +171,6 @@ export function useWatch(
       preferredLang: resolverLang,
       onPlaybackLangResolved,
       watchStreamProvider,
-      streamRecoveryNonce,
       streamLangRevision,
       episodeDubStateKey,
     }),
@@ -178,7 +183,6 @@ export function useWatch(
       watchStreamProvider,
       resolverLang,
       onPlaybackLangResolved,
-      streamRecoveryNonce,
       streamLangRevision,
       episodeDubStateKey,
     ]
@@ -186,34 +190,99 @@ export function useWatch(
 
   const stream = useWatchStream(watchResolveOptions);
 
-  const onStreamRecoveryChoice = useCallback(
-    (choice: 'japanese' | 'english') => {
-      if (choice === 'english' && !hasAnyDub) return;
-      setWatchStreamProvider('animepahe');
-      setActiveServerIdRaw(choice === 'english' ? '2' : '1');
-      setStreamLangRevision((n) => n + 1);
-      setStreamRecoveryNonce((n) => n + 1);
-    },
-    [hasAnyDub, setWatchStreamProvider]
-  );
+  /**
+   * Dub (English) часто падає через блокування/відсутність джерел — автоматично
+   * перемикаємо на Japanese (sub), найстабільніший варіант на Animepahe.
+   */
+  useEffect(() => {
+    if (!stream.resolveAttempted || stream.buffering) return;
+    if (stream.streamUrl) return;
+    if (!stream.errorCode) return;
+    if (watchStreamProvider !== 'animepahe') return;
+    if (activeServerId !== '2') return;
+    if (resolverLang !== 'dub') return;
 
-  const showStreamRecovery = useMemo(
-    () =>
-      stream.resolveAttempted &&
-      !anime.error &&
-      !playerShellPending &&
-      !stream.buffering &&
-      !stream.streamUrl &&
-      Boolean(anime.episodes?.length),
-    [
-      stream.resolveAttempted,
-      anime.error,
-      playerShellPending,
-      stream.buffering,
-      stream.streamUrl,
-      anime.episodes,
-    ]
-  );
+    const code = stream.errorCode.toLowerCase();
+    if (code.includes('episode_not_found')) return;
+    if (code.includes('animepahe_sources_empty')) return;
+    if (code.includes('episode is required')) return;
+    if (code.includes('lang must')) return;
+    if (code.includes('watch_resolve_invalid_json')) return;
+    if (code.includes('watch_resolve_empty')) return;
+
+    issuedDubToSubFallbackRef.current = true;
+    setActiveServerIdRaw('1');
+  }, [
+    stream.resolveAttempted,
+    stream.buffering,
+    stream.streamUrl,
+    stream.errorCode,
+    watchStreamProvider,
+    activeServerId,
+    resolverLang,
+  ]);
+
+  useEffect(() => {
+    if (!stream.streamUrl) return;
+    issuedDubToSubFallbackRef.current = false;
+    setStreamHardExhausted(false);
+  }, [stream.streamUrl]);
+
+  useEffect(() => {
+    if (!issuedDubToSubFallbackRef.current) return;
+    if (!stream.resolveAttempted || stream.buffering || stream.streamUrl) return;
+    if (watchStreamProvider !== 'animepahe') return;
+    if (activeServerId !== '1' || resolverLang !== 'sub') return;
+    if (!stream.errorCode) return;
+
+    setStreamHardExhausted(true);
+  }, [
+    stream.resolveAttempted,
+    stream.buffering,
+    stream.streamUrl,
+    stream.errorCode,
+    watchStreamProvider,
+    activeServerId,
+    resolverLang,
+  ]);
+
+  const streamOverlayMessage = useMemo((): { title: string; subtitle: string } | null => {
+    if (playerShellPending || stream.buffering || stream.streamUrl) return null;
+
+    const catalogErr = anime.error?.trim();
+    if (catalogErr) {
+      return {
+        title: 'Could not load this title.',
+        subtitle: catalogErr,
+      };
+    }
+
+    if (!stream.resolveAttempted) return null;
+
+    if (streamHardExhausted) {
+      return {
+        title: 'Playback could not be started.',
+        subtitle:
+          'You may have hit a temporary rate limit from switching stream sources, or the streaming server is unavailable. Please wait and try again, or pick another episode.',
+      };
+    }
+
+    return {
+      title: 'This player is currently unavailable.',
+      subtitle:
+        'Please try another episode, change server or provider, or try again later.',
+    };
+  }, [
+    playerShellPending,
+    stream.buffering,
+    stream.streamUrl,
+    stream.resolveAttempted,
+    streamHardExhausted,
+    anime.error,
+  ]);
+
+  const episodesForUi = streamHardExhausted ? [] : anime.episodes;
+  const totalEpisodesForUi = streamHardExhausted ? 0 : anime.totalEpisodes;
 
   const activeEpisodeNum = useMemo((): number | null => {
     const { episodes, episodeId } = anime;
@@ -231,11 +300,11 @@ export function useWatch(
     buffering: stream.buffering,
     streamInfo: stream.streamInfo,
     animeInfo: anime.animeInfo,
-    episodes: anime.episodes,
+    episodes: episodesForUi,
     nextEpisodeSchedule: anime.nextEpisodeSchedule,
     animeInfoLoading: anime.animeInfoLoading,
     playerShellPending,
-    totalEpisodes: anime.totalEpisodes,
+    totalEpisodes: totalEpisodesForUi,
     servers,
     streamUrl: stream.streamUrl,
     isFullOverview,
@@ -250,8 +319,7 @@ export function useWatch(
     watchStreamProvider,
     setWatchStreamProvider,
     streamErrorCode: stream.errorCode,
-    showStreamRecovery,
-    onStreamRecoveryChoice,
+    streamOverlayMessage,
     anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
   };
 }

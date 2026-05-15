@@ -33,9 +33,11 @@ export interface UseWatchReturn {
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (provider: WatchStreamProvider) => void;
   streamErrorCode: string | null;
-  /** Показати кнопки Japanese / English після збою стріму. */
-  showStreamRecovery: boolean;
   /** Пункт Anilibria в меню плеєра лише після успішного каталогу Anilibria (порожній пошук — приховано). */
   anilibertyLanguageMenuEligible: boolean;
-  onStreamRecoveryChoice: (choice: 'japanese' | 'english') => void;
+  /**
+   * Текст оверлею плеєра при фатальній помилці стріму (англійською).
+   * `null` — плеєр не в стані «фатальної помилки» (ще завантаження або є URL).
+   */
+  streamOverlayMessage: { title: string; subtitle: string } | null;
 }

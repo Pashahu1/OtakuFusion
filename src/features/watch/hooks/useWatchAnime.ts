@@ -152,8 +152,9 @@ export function useWatchAnime(
 
   useEffect(() => {
     setEpisodeRemapPass(0);
-  }, [animeId, watchStreamProvider]);
+  }, [animeId]);
 
+  /** Повне скидання лише при зміні тайтлу — не при перемиканні Animepahe ↔ Anilibria. */
   useLayoutEffect(() => {
     setEpisodes(null);
     setAnimepaheCatalogProviderId(null);
@@ -164,12 +165,339 @@ export function useWatchAnime(
     setAnimeInfoLoading(true);
     setError(null);
     setAnilibertyLanguageMenuEligible(false);
-  }, [animeId, watchStreamProvider]);
+  }, [animeId]);
+
+  const animeInfoRef = useRef(animeInfo);
+  animeInfoRef.current = animeInfo;
+  const episodeIdRef = useRef(episodeId);
+  episodeIdRef.current = episodeId;
+
+  /**
+   * Останній успішно завантажений «знімок» для розрізнення:
+   * повне завантаження (anime / remap) vs лише зміна `watchStreamProvider`.
+   * Оновлюється лише після успіху — у dev Strict Mode повторний ефект не пропускає перший fetch.
+   */
+  const stableWatchLoad = useRef<{
+    animeId: string;
+    remap: number;
+    provider: WatchStreamProvider;
+  } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     const { signal } = controller;
     let cancelled = false;
+
+    const s = stableWatchLoad.current;
+    const providerOnly =
+      s !== null &&
+      s.animeId === animeId &&
+      s.remap === episodeRemapPass &&
+      s.provider !== watchStreamProvider;
+
+    const applyCatalogSuccess = (
+      dataForResolve: AnimeData,
+      list: EpisodesTypes[],
+      providerId: string,
+      opts: {
+        forceFuzzy: boolean;
+        freshPaheCatalog: AnimepaheCatalogBffOk | null;
+        freshLibertyCatalog: AnilibertyCatalogBffOk | null;
+        preserveEpisodeNum: string | null;
+        settleLoading: { current: boolean };
+      }
+    ) => {
+      const {
+        forceFuzzy,
+        freshPaheCatalog,
+        freshLibertyCatalog,
+        preserveEpisodeNum,
+        settleLoading,
+      } = opts;
+
+      if (watchStreamProvider === 'aniliberty') {
+        if (freshLibertyCatalog) {
+          writeVerifiedLibertyMapping(animeId, providerId);
+        }
+        setAnilibertyCatalogProviderId(providerId);
+      } else {
+        if (freshPaheCatalog) {
+          writeVerifiedPaheMapping(animeId, providerId, freshPaheCatalog.hasSeriesDub === true);
+        }
+        setAnimepaheCatalogProviderId(providerId);
+      }
+
+      if (watchStreamProvider === 'aniliberty') {
+        setAnilibertyLanguageMenuEligible(true);
+      }
+
+      if (!forceFuzzy) {
+        const catalogPayload = catalogBodyFromAnimeData(dataForResolve, animeId);
+        void (async () => {
+          try {
+            if (cancelled || signal.aborted) return;
+            if (watchStreamProvider === 'animepahe') {
+              if (readVerifiedLibertyMapping(animeId)?.libertyId) {
+                if (!cancelled) setAnilibertyLanguageMenuEligible(true);
+                return;
+              }
+              const alt = await postAnilibertyCatalog(catalogPayload, signal);
+              if (cancelled || signal.aborted) return;
+              if (!alt.success || !alt.libertyId?.trim()) {
+                if (!cancelled) {
+                  if (!alt.success && alt.error === 'aniliberty_catalog_not_found') {
+                    setAnilibertyCatalogProviderId(null);
+                  }
+                  setAnilibertyLanguageMenuEligible(false);
+                }
+                return;
+              }
+              writeVerifiedLibertyMapping(animeId, alt.libertyId.trim());
+              if (!cancelled) {
+                setAnilibertyCatalogProviderId(alt.libertyId.trim());
+                setAnilibertyLanguageMenuEligible(true);
+              }
+            } else {
+              if (readVerifiedPaheMapping(animeId)?.paheId) return;
+              const alt = await postAnimepaheCatalog(catalogPayload, signal);
+              if (cancelled || signal.aborted) return;
+              if (!alt.success || !alt.paheId?.trim()) return;
+              writeVerifiedPaheMapping(animeId, alt.paheId.trim(), alt.hasSeriesDub === true);
+              if (!cancelled) setAnimepaheCatalogProviderId(alt.paheId.trim());
+            }
+          } catch {
+            if (!cancelled) setAnilibertyLanguageMenuEligible(false);
+          }
+        })();
+      }
+
+      const mergedEpisodes = applyAnilistEpisodeDisplayTitles(
+        alignKaiEpisodesToAnilistSeasonStart(list, dataForResolve.anilistEpisodeTitles),
+        dataForResolve.anilistEpisodeTitles,
+        dataForResolve.title,
+        dataForResolve.romaji_title
+      );
+
+      setEpisodes(mergedEpisodes);
+      setTotalEpisodes(mergedEpisodes.length > 0 ? mergedEpisodes.length : null);
+
+      const counts = aggregateCatalogStreamCounts(mergedEpisodes);
+      setAnimeInfo((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          animeInfo: {
+            ...prev.animeInfo,
+            tvInfo: {
+              ...prev.animeInfo.tvInfo,
+              has_sub: counts.has_sub,
+              has_dub: counts.has_dub,
+            },
+          },
+        };
+      });
+
+      const fromInitial =
+        initialEpisodeRef.current ??
+        (mergedEpisodes.length ? (getEpisodeNumberFromId(mergedEpisodes[0].id) ?? null) : null);
+
+      const preservedOk =
+        preserveEpisodeNum &&
+        mergedEpisodes.some((ep) => getEpisodeNumberFromId(ep.id) === preserveEpisodeNum);
+
+      const newEpisodeId = preservedOk ? preserveEpisodeNum : (fromInitial ?? null);
+      setEpisodeId(newEpisodeId);
+
+      stableWatchLoad.current = {
+        animeId,
+        remap: episodeRemapPass,
+        provider: watchStreamProvider,
+      };
+
+      if (!cancelled && settleLoading.current) setAnimeInfoLoading(false);
+    };
+
+    const runCatalogPipeline = async (params: {
+      dataForResolve: AnimeData;
+      forceFuzzy: boolean;
+      preserveEpisodeNum: string | null;
+      settleLoading: { current: boolean };
+      /** Лише повне завантаження тайтлу — не для soft swap провайдера. */
+      allowEmptyCatalogRemap: boolean;
+    }) => {
+      const {
+        dataForResolve,
+        forceFuzzy,
+        preserveEpisodeNum,
+        settleLoading,
+        allowEmptyCatalogRemap,
+      } = params;
+      const catalogPayload = catalogBodyFromAnimeData(dataForResolve, animeId);
+
+      if (!forceFuzzy) {
+        const hidP = readVerifiedPaheMapping(animeId);
+        const hidL = readVerifiedLibertyMapping(animeId);
+        if (!cancelled && !signal.aborted) {
+          if (hidP?.paheId) setAnimepaheCatalogProviderId(hidP.paheId.trim());
+          if (hidL?.libertyId) setAnilibertyCatalogProviderId(hidL.libertyId.trim());
+        }
+      }
+
+      let providerId: string | null = null;
+      let list: EpisodesTypes[] = [];
+      let freshPaheCatalog: AnimepaheCatalogBffOk | null = null;
+      let freshLibertyCatalog: AnilibertyCatalogBffOk | null = null;
+
+      if (watchStreamProvider === 'aniliberty') {
+        if (!forceFuzzy) {
+          const cachedL = readVerifiedLibertyMapping(animeId);
+          if (cachedL?.libertyId) {
+            try {
+              const cachedEp = await getAnilibertyEpisodesFromBff(cachedL.libertyId, signal);
+              if (!cancelled && !signal.aborted && (cachedEp.episodes?.length ?? 0) > 0) {
+                providerId = cachedL.libertyId.trim();
+                list = cachedEp.episodes ?? [];
+              }
+            } catch {
+              providerId = null;
+              list = [];
+            }
+          }
+        }
+
+        if (!providerId || !list.length) {
+          const catalog = await postAnilibertyCatalog(catalogPayload, signal);
+
+          if (cancelled || signal.aborted) return;
+
+          if (!catalog.success) {
+            throw new Error(catalog.error);
+          }
+
+          if (!catalog.libertyId?.trim()) {
+            throw new Error('aniliberty_catalog_bad_shape');
+          }
+
+          freshLibertyCatalog = catalog;
+          providerId = catalog.libertyId.trim();
+          list = catalog.episodes ?? [];
+        }
+      } else {
+        if (!forceFuzzy) {
+          const cached = readVerifiedPaheMapping(animeId);
+          if (cached?.paheId) {
+            try {
+              const cachedEp = await getAnimePaheEpisodesFromBff(cached.paheId, signal);
+              if (!cancelled && !signal.aborted && (cachedEp.episodes?.length ?? 0) > 0) {
+                providerId = cached.paheId.trim();
+                list = patchEpisodesSeriesDub(
+                  cachedEp.episodes ?? [],
+                  cached.hasSeriesDub === true
+                );
+              }
+            } catch {
+              providerId = null;
+              list = [];
+            }
+          }
+        }
+
+        if (!providerId || !list.length) {
+          const catalog = await postAnimepaheCatalog(catalogPayload, signal);
+
+          if (cancelled || signal.aborted) return;
+
+          if (!catalog.success) {
+            throw new Error(catalog.error);
+          }
+
+          if (!catalog.paheId?.trim()) {
+            throw new Error('animepahe_catalog_bad_shape');
+          }
+
+          freshPaheCatalog = catalog;
+          providerId = catalog.paheId.trim();
+          list = catalog.episodes ?? [];
+        }
+      }
+
+      if (cancelled || signal.aborted) return;
+
+      if (!list.length) {
+        try {
+          localStorage.removeItem(getMappingCacheKey(animeId, watchStreamProvider));
+        } catch {
+          /* ignore */
+        }
+        if (allowEmptyCatalogRemap && !forceFuzzy && episodeRemapPass === 0) {
+          settleLoading.current = false;
+          setEpisodeRemapPass((n) => n + 1);
+          return;
+        }
+        setError(
+              watchStreamProvider === 'aniliberty'
+                ? 'Anilibria returned an empty episode list. Refresh the page or try again later.'
+                : 'Animepahe returned an empty episode list. Refresh the page or try again later.'
+            );
+        setAnimepaheCatalogProviderId(null);
+        setAnilibertyCatalogProviderId(null);
+        setAnilibertyLanguageMenuEligible(false);
+        setEpisodes([]);
+        setTotalEpisodes(0);
+        setEpisodeId(null);
+        return;
+      }
+
+      if (cancelled || signal.aborted) return;
+
+      applyCatalogSuccess(dataForResolve, list, providerId, {
+        forceFuzzy,
+        freshPaheCatalog,
+        freshLibertyCatalog,
+        preserveEpisodeNum,
+        settleLoading,
+      });
+    };
+
+    if (providerOnly) {
+      const dataForResolve = animeInfoRef.current;
+      if (!dataForResolve) {
+        stableWatchLoad.current = null;
+        return () => {
+          cancelled = true;
+          controller.abort();
+        };
+      }
+
+      const settleLoading = { current: false };
+      setEpisodes(null);
+      setError(null);
+      const preserveEpisodeNum = episodeIdRef.current;
+
+      void (async () => {
+        try {
+          await runCatalogPipeline({
+            dataForResolve,
+            forceFuzzy: false,
+            preserveEpisodeNum: preserveEpisodeNum ?? null,
+            settleLoading,
+            allowEmptyCatalogRemap: false,
+          });
+        } catch (episodesError) {
+          if (cancelled || signal.aborted) return;
+          console.warn('[useWatchAnime] provider swap catalog:', episodesError);
+          setError(getErrorMessage(episodesError));
+          setEpisodes([]);
+          setTotalEpisodes(0);
+          setEpisodeId(null);
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+        controller.abort();
+      };
+    }
 
     setEpisodes(null);
     setAnimepaheCatalogProviderId(null);
@@ -185,7 +513,7 @@ export function useWatchAnime(
     }
 
     const fetchInitial = async () => {
-      let settleLoading = true;
+      const settleLoading = { current: true };
       try {
         let animeData: Awaited<ReturnType<typeof getAnimeInfo>>;
         if (episodeRemapPass === 0) {
@@ -207,217 +535,19 @@ export function useWatchAnime(
         setAnimeInfo(animeData?.data ?? null);
         const dataForResolve = animeData?.data;
         if (!dataForResolve) {
-          setError('Немає даних аніме.');
+          setError('No anime data available.');
           return;
         }
 
         try {
           const forceFuzzy = episodeRemapPass > 0;
-          const catalogPayload = catalogBodyFromAnimeData(dataForResolve, animeId);
-
-          if (!forceFuzzy) {
-            const hidP = readVerifiedPaheMapping(animeId);
-            const hidL = readVerifiedLibertyMapping(animeId);
-            if (!cancelled && !signal.aborted) {
-              if (hidP?.paheId) setAnimepaheCatalogProviderId(hidP.paheId.trim());
-              if (hidL?.libertyId) setAnilibertyCatalogProviderId(hidL.libertyId.trim());
-            }
-          }
-
-          let providerId: string | null = null;
-          let list: EpisodesTypes[] = [];
-          let freshPaheCatalog: AnimepaheCatalogBffOk | null = null;
-          let freshLibertyCatalog: AnilibertyCatalogBffOk | null = null;
-
-          if (watchStreamProvider === 'aniliberty') {
-            if (!forceFuzzy) {
-              const cachedL = readVerifiedLibertyMapping(animeId);
-              if (cachedL?.libertyId) {
-                try {
-                  const cachedEp = await getAnilibertyEpisodesFromBff(cachedL.libertyId, signal);
-                  if (!cancelled && !signal.aborted && (cachedEp.episodes?.length ?? 0) > 0) {
-                    providerId = cachedL.libertyId.trim();
-                    list = cachedEp.episodes ?? [];
-                  }
-                } catch {
-                  providerId = null;
-                  list = [];
-                }
-              }
-            }
-
-            if (!providerId || !list.length) {
-              const catalog = await postAnilibertyCatalog(catalogPayload, signal);
-
-              if (cancelled || signal.aborted) return;
-
-              if (!catalog.success) {
-                throw new Error(catalog.error);
-              }
-
-              if (!catalog.libertyId?.trim()) {
-                throw new Error('aniliberty_catalog_bad_shape');
-              }
-
-              freshLibertyCatalog = catalog;
-              providerId = catalog.libertyId.trim();
-              list = catalog.episodes ?? [];
-            }
-          } else {
-            if (!forceFuzzy) {
-              const cached = readVerifiedPaheMapping(animeId);
-              if (cached?.paheId) {
-                try {
-                  const cachedEp = await getAnimePaheEpisodesFromBff(cached.paheId, signal);
-                  if (!cancelled && !signal.aborted && (cachedEp.episodes?.length ?? 0) > 0) {
-                    providerId = cached.paheId.trim();
-                    list = patchEpisodesSeriesDub(
-                      cachedEp.episodes ?? [],
-                      cached.hasSeriesDub === true
-                    );
-                  }
-                } catch {
-                  providerId = null;
-                  list = [];
-                }
-              }
-            }
-
-            if (!providerId || !list.length) {
-              const catalog = await postAnimepaheCatalog(catalogPayload, signal);
-
-              if (cancelled || signal.aborted) return;
-
-              if (!catalog.success) {
-                throw new Error(catalog.error);
-              }
-
-              if (!catalog.paheId?.trim()) {
-                throw new Error('animepahe_catalog_bad_shape');
-              }
-
-              freshPaheCatalog = catalog;
-              providerId = catalog.paheId.trim();
-              list = catalog.episodes ?? [];
-            }
-          }
-
-          if (cancelled || signal.aborted) return;
-
-          if (!list.length) {
-            try {
-              localStorage.removeItem(getMappingCacheKey(animeId, watchStreamProvider));
-            } catch {
-              /* ignore */
-            }
-            if (!forceFuzzy && episodeRemapPass === 0) {
-              settleLoading = false;
-              setEpisodeRemapPass((n) => n + 1);
-              return;
-            }
-            setError(
-              watchStreamProvider === 'aniliberty'
-                ? 'Aniliberty повернув порожній список епізодів. Оновіть сторінку або спробуйте пізніше.'
-                : 'Animepahe повернув порожній список епізодів. Оновіть сторінку або спробуйте пізніше.'
-            );
-            setAnimepaheCatalogProviderId(null);
-            setAnilibertyCatalogProviderId(null);
-            setAnilibertyLanguageMenuEligible(false);
-            setEpisodes([]);
-            setTotalEpisodes(0);
-            setEpisodeId(null);
-            return;
-          }
-
-          if (watchStreamProvider === 'aniliberty') {
-            if (freshLibertyCatalog) {
-              writeVerifiedLibertyMapping(animeId, providerId);
-            }
-            setAnilibertyCatalogProviderId(providerId);
-          } else {
-            if (freshPaheCatalog) {
-              writeVerifiedPaheMapping(animeId, providerId, freshPaheCatalog.hasSeriesDub === true);
-            }
-            setAnimepaheCatalogProviderId(providerId);
-          }
-
-          if (watchStreamProvider === 'aniliberty') {
-            setAnilibertyLanguageMenuEligible(true);
-          }
-
-          if (!forceFuzzy) {
-            void (async () => {
-              try {
-                if (cancelled || signal.aborted) return;
-                if (watchStreamProvider === 'animepahe') {
-                  if (readVerifiedLibertyMapping(animeId)?.libertyId) {
-                    if (!cancelled) setAnilibertyLanguageMenuEligible(true);
-                    return;
-                  }
-                  const alt = await postAnilibertyCatalog(catalogPayload, signal);
-                  if (cancelled || signal.aborted) return;
-                  if (!alt.success || !alt.libertyId?.trim()) {
-                    if (!cancelled) {
-                      if (!alt.success && alt.error === 'aniliberty_catalog_not_found') {
-                        setAnilibertyCatalogProviderId(null);
-                      }
-                      setAnilibertyLanguageMenuEligible(false);
-                    }
-                    return;
-                  }
-                  writeVerifiedLibertyMapping(animeId, alt.libertyId.trim());
-                  if (!cancelled) {
-                    setAnilibertyCatalogProviderId(alt.libertyId.trim());
-                    setAnilibertyLanguageMenuEligible(true);
-                  }
-                } else {
-                  if (readVerifiedPaheMapping(animeId)?.paheId) return;
-                  const alt = await postAnimepaheCatalog(catalogPayload, signal);
-                  if (cancelled || signal.aborted) return;
-                  if (!alt.success || !alt.paheId?.trim()) return;
-                  writeVerifiedPaheMapping(animeId, alt.paheId.trim(), alt.hasSeriesDub === true);
-                  if (!cancelled) setAnimepaheCatalogProviderId(alt.paheId.trim());
-                }
-              } catch {
-                if (!cancelled) setAnilibertyLanguageMenuEligible(false);
-              }
-            })();
-          }
-
-          const mergedEpisodes = applyAnilistEpisodeDisplayTitles(
-            alignKaiEpisodesToAnilistSeasonStart(
-              list,
-              dataForResolve.anilistEpisodeTitles
-            ),
-            dataForResolve.anilistEpisodeTitles,
-            dataForResolve.title,
-            dataForResolve.romaji_title
-          );
-
-          setEpisodes(mergedEpisodes);
-          setTotalEpisodes(mergedEpisodes.length > 0 ? mergedEpisodes.length : null);
-
-          const counts = aggregateCatalogStreamCounts(mergedEpisodes);
-          setAnimeInfo((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              animeInfo: {
-                ...prev.animeInfo,
-                tvInfo: {
-                  ...prev.animeInfo.tvInfo,
-                  has_sub: counts.has_sub,
-                  has_dub: counts.has_dub,
-                },
-              },
-            };
+          await runCatalogPipeline({
+            dataForResolve,
+            forceFuzzy,
+            preserveEpisodeNum: null,
+            settleLoading,
+            allowEmptyCatalogRemap: true,
           });
-          const newEpisodeId =
-            initialEpisodeRef.current ??
-            (mergedEpisodes.length
-              ? (getEpisodeNumberFromId(mergedEpisodes[0].id) ?? null)
-              : null);
-          setEpisodeId(newEpisodeId ?? null);
         } catch (episodesError) {
           if (cancelled || signal.aborted) return;
           console.warn('[useWatchAnime] catalog:', episodesError);
@@ -434,10 +564,10 @@ export function useWatchAnime(
         console.error('Error fetching initial data:', err);
         setError(getErrorMessage(err));
       } finally {
-        if (!cancelled && settleLoading) setAnimeInfoLoading(false);
+        if (!cancelled && settleLoading.current) setAnimeInfoLoading(false);
       }
     };
-    fetchInitial();
+    void fetchInitial();
 
     return () => {
       cancelled = true;

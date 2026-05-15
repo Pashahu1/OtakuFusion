@@ -31,7 +31,6 @@ interface WatchResolveOptions {
   preferredLang: 'sub' | 'dub';
   onPlaybackLangResolved?: (lang: 'sub' | 'dub') => void;
   watchStreamProvider: WatchStreamProvider;
-  streamRecoveryNonce: number;
   /**
    * Збільшується лише при явній зміні доріжки в UI (Japanese / English).
    * Не змінювати при авто-синхроні після fallback dub→sub — інакше подвійний resolve.
@@ -43,19 +42,19 @@ interface WatchResolveOptions {
 
 const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   'no_working_source|sub_not_available':
-    'Не вдалося отримати робочий субтитрований потік для цього епізоду. Спробуйте інший епізод або пізніше.',
+    'No playable subtitled stream was found for this episode. Try another episode or try again later.',
   'no_working_source|dub_not_available':
-    'Не знайдено робочого дубльованого потоку для цього епізоду. Спробуйте субтитри або інший епізод.',
+    'No playable dubbed stream was found for this episode. Try subtitles or another episode.',
   no_working_source:
-    'Не вдалося відтворити HLS: джерело може бути недоступне або змінилося. Спробуйте інший епізод, інший провайдер (Japanese / Anilibria) або пізніше.',
+    'Could not play this HLS source — it may be blocked or no longer available. Try another episode, provider, or later.',
   'no_working_source|aniliberty_sources_empty':
-    'Anilibria не повернула HLS-плейлист для цього епізоду. Спробуйте Animepahe або інший епізод.',
+    'Anilibria did not return an HLS playlist for this episode. Try Animepahe or another episode.',
   'lang must be sub or dub':
-    'Некоректний параметр мови стріму. Оновіть сторінку або перемкніть Sub/Dub.',
+    'Invalid stream language parameter. Refresh the page or toggle Sub/Dub.',
 };
 
 function getErrorMessage(err: unknown): string {
-  if (!(err instanceof Error)) return 'Something went wrong.';
+  if (!(err instanceof Error)) return 'Something went wrong. Please try again.';
   const key = err.message.trim();
   return (
     WATCH_RESOLVE_UPSTREAM_HINTS[key] ??
@@ -310,8 +309,8 @@ export function useWatchStream(
     watchResolveOptions?.animeId,
     watchResolveOptions?.episodeId,
     watchResolveOptions?.providerAnimeId,
+    watchResolveOptions?.preferredLang,
     watchResolveOptions?.watchStreamProvider,
-    watchResolveOptions?.streamRecoveryNonce,
     watchResolveOptions?.streamLangRevision,
     watchResolveOptions?.episodeDubStateKey,
     watchResolveOptions?.streamAnime?.id,

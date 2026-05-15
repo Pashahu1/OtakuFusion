@@ -27,6 +27,8 @@ export interface CrysolineAnimepaheSourceRow {
 export interface CrysolineAnimepaheSourcesPayload {
   headers?: Record<string, string>;
   sources?: CrysolineAnimepaheSourceRow[];
+  /** Як на pahe.win / kwik — дуб часто лише тут у підписі «… Eng». */
+  download?: Array<{ url?: string; quality?: string }>;
 }
 
 function withBase(path: string): URL {
