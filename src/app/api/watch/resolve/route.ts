@@ -9,6 +9,7 @@ import type {
 } from '@/server/crysoline/animepaheClient';
 import type { CrysolineAnilibertySourcesPayload } from '@/server/crysoline/anilibertyClient';
 import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
+import { isAnilibertyEpisodeCountAcceptable } from '@/services/aniliberty/anilibertyEpisodeMatch';
 import {
   buildProbeHeaders,
   isPlayableViaProxy,
@@ -550,24 +551,63 @@ async function computeAnimepaheWatchResolveOutcome(params: {
   }
 }
 
+function parseExpectedEpisodesParam(sp: URLSearchParams): number | null {
+  const raw = sp.get('expected_episodes')?.trim();
+  if (!raw || !/^\d+$/.test(raw)) return null;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 async function computeAnilibertyWatchResolveOutcome(params: {
   startedAt: number;
   episode: number;
   origin: string;
   seriesId: string;
   preferredHint: string | null;
-  /** Якщо клієнт уже має `ep_token` з каталогу — не тягнемо повний список епізодів з Crysoline. */
   epTokenOverride?: string | null;
+  expectedEpisodes?: number | null;
+  anilistStillAiring?: boolean;
 }): Promise<WatchResolveOutcome> {
-  const { startedAt, episode, origin, seriesId, preferredHint, epTokenOverride } = params;
+  const {
+    startedAt,
+    episode,
+    origin,
+    seriesId,
+    preferredHint,
+    epTokenOverride,
+    expectedEpisodes,
+    anilistStillAiring = false,
+  } = params;
   const probeCfg = readWatchProbeConfig('sub');
 
   try {
+    const rows = await getAnilibertyEpisodesCached(seriesId);
+    const { episodes, totalEpisodes } = mapCrysolineAnilibertyEpisodes(rows);
+
+    if (
+      expectedEpisodes != null &&
+      !isAnilibertyEpisodeCountAcceptable(expectedEpisodes, totalEpisodes, {
+        allowPartialCatalog: anilistStillAiring,
+        isOngoing: anilistStillAiring,
+      })
+    ) {
+      return {
+        status: 404,
+        body: {
+          success: false,
+          error: 'aniliberty_episode_count_mismatch',
+          reason: `Anilibria has ${totalEpisodes} episodes, expected about ${expectedEpisodes}`,
+        },
+      };
+    }
+
+    const targetEpisode = pickEpisodeByNumber(episodes, episode);
+
     let epToken = epTokenOverride?.trim() ?? '';
+    if (epToken && targetEpisode?.ep_token?.trim() && epToken !== targetEpisode.ep_token.trim()) {
+      epToken = targetEpisode.ep_token.trim();
+    }
     if (!epToken) {
-      const rows = await getAnilibertyEpisodesCached(seriesId);
-      const { episodes } = mapCrysolineAnilibertyEpisodes(rows);
-      const targetEpisode = pickEpisodeByNumber(episodes, episode);
       epToken = targetEpisode?.ep_token?.trim() ?? '';
     }
     if (!epToken) {
@@ -721,6 +761,8 @@ async function computeWatchResolveOutcome(
       seriesId,
       preferredHint,
       epTokenOverride,
+      expectedEpisodes: parseExpectedEpisodesParam(url.searchParams),
+      anilistStillAiring: url.searchParams.get('anilist_still_airing')?.trim() === '1',
     });
   }
 

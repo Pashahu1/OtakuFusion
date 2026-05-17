@@ -14,6 +14,10 @@ import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
+import {
+  isAnilibertyEpisodeCountAcceptable,
+  isAnilistStillAiringFromStatus,
+} from '@/services/aniliberty/anilibertyEpisodeMatch';
 
 export interface UseWatchAnimeReturn {
   animeInfo: AnimeData | null;
@@ -42,6 +46,34 @@ export interface UseWatchAnimeReturn {
 
 function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : 'An error occurred.';
+}
+
+function readExpectedEpisodeCountFromAnime(data: AnimeData): number | null {
+  const et = data.animeInfo?.tvInfo?.episodeTotal?.trim();
+  if (!et || !/^\d+$/.test(et)) return null;
+  const n = parseInt(et, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function isLibertyCatalogAcceptableForAnime(
+  data: AnimeData,
+  actualEpisodeCount: number
+): boolean {
+  const stillAiring = isAnilistStillAiringFromStatus(data.animeInfo?.Status);
+  return isAnilibertyEpisodeCountAcceptable(
+    readExpectedEpisodeCountFromAnime(data),
+    actualEpisodeCount,
+    { isOngoing: stillAiring, allowPartialCatalog: stillAiring }
+  );
+}
+
+function clearVerifiedLibertyMapping(localAnimeId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(getMappingCacheKey(localAnimeId, 'aniliberty'));
+  } catch {
+    /* ignore */
+  }
 }
 
 function getMappingCacheKey(localAnimeId: string, provider: WatchStreamProvider): string {
@@ -125,16 +157,17 @@ function prefetchAnilibertyMapping(
   isCancelled: () => boolean,
   onEligible: () => void
 ): void {
-  if (readVerifiedLibertyMapping(localAnimeId)?.libertyId) {
-    onEligible();
-    return;
-  }
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
     try {
       const alt = await postAnilibertyCatalog(catalogPayload, signal);
       if (isCancelled() || signal.aborted) return;
       if (!alt.success || !alt.libertyId?.trim()) return;
+      const actualCount = alt.totalEpisodes ?? alt.episodes?.length ?? 0;
+      if (!isLibertyCatalogAcceptableForAnime(dataForResolve, actualCount)) {
+        clearVerifiedLibertyMapping(localAnimeId);
+        return;
+      }
       writeVerifiedLibertyMapping(localAnimeId, alt.libertyId.trim());
       onEligible();
     } catch {
@@ -176,6 +209,7 @@ function catalogBodyFromAnimeData(data: AnimeData, anilistKey: string) {
     episodeTotal: data.animeInfo?.tvInfo?.episodeTotal,
     mal_id: data.mal_id ?? null,
     synonyms: data.animeInfo?.Synonyms,
+    anilistStatus: data.animeInfo?.Status,
   };
 }
 
@@ -333,10 +367,6 @@ export function useWatchAnime(
         setAnimepaheCatalogProviderId(providerId);
       }
 
-      if (watchStreamProvider === 'aniliberty') {
-        setAnilibertyLanguageMenuEligible(true);
-      }
-
       if (!forceFuzzy) {
         deferredOppositePrefetchRef.current = {
           animeId,
@@ -428,9 +458,18 @@ export function useWatchAnime(
           if (cachedL?.libertyId) {
             try {
               const cachedEp = await getAnilibertyEpisodesFromBff(cachedL.libertyId, signal);
-              if (!cancelled && !signal.aborted && (cachedEp.episodes?.length ?? 0) > 0) {
+              const cachedCount =
+                cachedEp.totalEpisodes ?? cachedEp.episodes?.length ?? 0;
+              if (
+                !cancelled &&
+                !signal.aborted &&
+                (cachedEp.episodes?.length ?? 0) > 0 &&
+                isLibertyCatalogAcceptableForAnime(dataForResolve, cachedCount)
+              ) {
                 providerId = cachedL.libertyId.trim();
                 list = cachedEp.episodes ?? [];
+              } else if (!cancelled && !signal.aborted) {
+                clearVerifiedLibertyMapping(animeId);
               }
             } catch {
               providerId = null;
@@ -523,6 +562,17 @@ export function useWatchAnime(
       }
 
       if (cancelled || signal.aborted) return;
+
+      if (watchStreamProvider === 'aniliberty') {
+        const actualCount = list.length;
+        if (!isLibertyCatalogAcceptableForAnime(dataForResolve, actualCount)) {
+          clearVerifiedLibertyMapping(animeId);
+          setAnilibertyLanguageMenuEligible(false);
+          setAnilibertyCatalogProviderId(null);
+          throw new Error('aniliberty_episode_count_mismatch');
+        }
+        setAnilibertyLanguageMenuEligible(true);
+      }
 
       applyCatalogSuccess(dataForResolve, list, providerId, {
         forceFuzzy,

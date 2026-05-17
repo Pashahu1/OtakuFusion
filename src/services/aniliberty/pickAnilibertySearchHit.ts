@@ -1,5 +1,9 @@
 import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
 import type { AnimepaheCatalogHints } from '@/services/animepahe/catalogHints';
+import {
+  isAnilibertyHitEligible,
+  readAnilibertySearchEpisodeCount,
+} from '@/services/aniliberty/anilibertyEpisodeMatch';
 
 function normalizeFormat(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();
@@ -7,11 +11,9 @@ function normalizeFormat(value: string | null | undefined): string {
 
 function haystack(hit: CrysolineAnilibertySearchRow): string {
   const t = hit.title;
-  const parts = [
-    t?.english,
-    t?.other,
-    hit.metadata?.alias,
-  ].filter((x): x is string => typeof x === 'string' && Boolean(x.trim()));
+  const parts = [t?.english, t?.other, hit.metadata?.alias].filter(
+    (x): x is string => typeof x === 'string' && Boolean(x.trim())
+  );
   return parts.join(' ').toLowerCase();
 }
 
@@ -33,21 +35,24 @@ function scoreHit(
   hints: AnimepaheCatalogHints,
   terms: string[]
 ): number {
-  let score = qualityOfMatch(terms, hit);
+  const text = qualityOfMatch(terms, hit);
+  /** Без збігу назви — не довіряємо лише року / лічильнику (як Animepahe). */
+  if (text < 42) return -Infinity;
+
+  let score = text;
   const year = typeof hit.year === 'number' ? hit.year : null;
   if (hints.seasonYear != null && year === hints.seasonYear) score += 58;
   else if (hints.seasonYear != null && year != null && Math.abs(year - hints.seasonYear) === 1) {
     score += 14;
   }
 
-  const te = typeof hit.totalEpisodes === 'number' ? hit.totalEpisodes : null;
-  if (hints.episodeCount != null && te === hints.episodeCount) score += 52;
-  else if (
-    hints.episodeCount != null &&
-    te != null &&
-    Math.abs(te - hints.episodeCount) <= 2
-  ) {
-    score += 26;
+  const te = readAnilibertySearchEpisodeCount(hit);
+  if (hints.episodeCount != null && te != null) {
+    const d = Math.abs(te - hints.episodeCount);
+    if (d === 0) score += 52;
+    else if (d <= 2) score += 26;
+    else if (d <= 5) score -= 28;
+    else score -= 72;
   }
 
   const hf = normalizeFormat(hints.format);
@@ -60,9 +65,8 @@ function scoreHit(
   return score;
 }
 
-/** Мінімальний сумарний скор; якщо два топ-хіти близькі — не беремо (ризик чужого тайтлу). */
-const MIN_CONFIDENT_SCORE = 40;
-const MIN_LEAD_OVER_RUNNER_UP = 14;
+const MIN_CONFIDENT_SCORE = 48;
+const MIN_LEAD_OVER_RUNNER_UP = 16;
 
 export function pickBestAnilibertySearchHit(
   hits: CrysolineAnilibertySearchRow[],
@@ -70,11 +74,20 @@ export function pickBestAnilibertySearchHit(
   terms: string[]
 ): CrysolineAnilibertySearchRow | null {
   if (!hits.length) return null;
-  const ranked = hits
+
+  const eligible = hits.filter((h) => isAnilibertyHitEligible(h, hints));
+  const pool = eligible.length > 0 ? eligible : [];
+
+  if (!pool.length) return null;
+
+  const ranked = pool
     .map((h) => ({ h, s: scoreHit(h, hints, terms) }))
+    .filter((row) => Number.isFinite(row.s))
     .sort((a, b) => b.s - a.s);
+
   const best = ranked[0];
   if (!best || best.s < MIN_CONFIDENT_SCORE) return null;
   if (ranked.length > 1 && best.s - ranked[1].s < MIN_LEAD_OVER_RUNNER_UP) return null;
+
   return best.h;
 }

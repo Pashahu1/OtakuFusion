@@ -7,6 +7,8 @@ export interface AnimepaheCatalogHints {
   episodeCount?: number | null;
   anilistId?: number | null;
   malId?: number | null;
+  /** AniList `Status` — «Currently Airing» тощо; для Anilibria дозволяє менший ep count. */
+  isStillAiring?: boolean | null;
 }
 
 export function buildAnimepaheCatalogHints(data: AnimeData): AnimepaheCatalogHints {
@@ -29,7 +31,14 @@ export function buildAnimepaheCatalogHints(data: AnimeData): AnimepaheCatalogHin
     typeof data.mal_id === 'number' && Number.isFinite(data.mal_id) && data.mal_id > 0
       ? Math.floor(data.mal_id)
       : null;
-  return { format, seasonYear, episodeCount, anilistId, malId };
+  const status = data.animeInfo?.Status?.trim() || null;
+  const isStillAiring =
+    typeof status === 'string' &&
+    (status.toLowerCase().includes('currently airing') ||
+      status.toLowerCase().includes('releasing') ||
+      status.toLowerCase() === 'airing');
+
+  return { format, seasonYear, episodeCount, anilistId, malId, isStillAiring };
 }
 
 export function buildAnimepaheSearchTerms(data: AnimeData): string[] {

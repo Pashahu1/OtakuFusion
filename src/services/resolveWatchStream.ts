@@ -28,6 +28,9 @@ export interface WatchResolveParams {
   /** `hasDub` з каталогу — разом з ep_token пропускає повторний fetch епізодів Animepahe. */
   episodeHasDub?: boolean;
   episode: number;
+  /** AniList `episodes` — перевірка на гілці Anilibria (не для ongoing). */
+  expectedEpisodes?: number;
+  anilistStillAiring?: boolean;
   lang: 'sub' | 'dub';
   keyword?: string;
   localAnimeId?: string;
@@ -97,6 +100,12 @@ export async function resolveWatchStream(
   }
   if (params.localAnimeId) query.set('local_anime_id', params.localAnimeId);
   query.set('episode', String(params.episode));
+  if (params.expectedEpisodes != null && params.expectedEpisodes > 0) {
+    query.set('expected_episodes', String(Math.floor(params.expectedEpisodes)));
+  }
+  if (params.anilistStillAiring === true) {
+    query.set('anilist_still_airing', '1');
+  }
   query.set('lang', params.lang === 'dub' ? 'dub' : 'sub');
   const sp = params.streamProvider ?? 'animepahe';
   query.set('stream_provider', sp === 'aniliberty' ? 'aniliberty' : 'animepahe');

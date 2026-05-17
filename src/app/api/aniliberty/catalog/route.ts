@@ -7,6 +7,12 @@ import {
   type AnimepaheCatalogHints,
 } from '@/services/animepahe/catalogHints';
 import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
+import {
+  buildAnilibertyEpisodeMatchOptions,
+  isAnilibertyEpisodeCountAcceptable,
+  isAnilistStillAiringFromStatus,
+  parseExpectedEpisodeCountFromHints,
+} from '@/services/aniliberty/anilibertyEpisodeMatch';
 
 const BodySchema = z.object({
   anilistId: z.string().min(1),
@@ -18,6 +24,7 @@ const BodySchema = z.object({
   episodeTotal: z.string().optional(),
   mal_id: z.number().nullable().optional(),
   synonyms: z.string().optional(),
+  anilistStatus: z.string().optional(),
 });
 
 function hintsFromBody(b: z.infer<typeof BodySchema>): AnimepaheCatalogHints {
@@ -45,6 +52,7 @@ function hintsFromBody(b: z.infer<typeof BodySchema>): AnimepaheCatalogHints {
     episodeCount,
     anilistId,
     malId,
+    isStillAiring: isAnilistStillAiringFromStatus(b.anilistStatus),
   };
 }
 
@@ -105,6 +113,20 @@ export async function POST(req: Request) {
     if (!episodes.length) {
       return Response.json(
         { success: false, error: 'aniliberty_episodes_empty' },
+        { status: 404, headers: { 'Cache-Control': 'no-store' } }
+      );
+    }
+
+    const expectedEpisodes = parseExpectedEpisodeCountFromHints(hints);
+    const epMatchOpts = buildAnilibertyEpisodeMatchOptions(hints);
+    if (
+      !isAnilibertyEpisodeCountAcceptable(expectedEpisodes, totalEpisodes, epMatchOpts)
+    ) {
+      return Response.json(
+        {
+          success: false,
+          error: 'aniliberty_episode_count_mismatch',
+        },
         { status: 404, headers: { 'Cache-Control': 'no-store' } }
       );
     }

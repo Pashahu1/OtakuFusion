@@ -13,6 +13,7 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
+import { isAnilistStillAiringFromStatus } from '@/services/aniliberty/anilibertyEpisodeMatch';
 import { useWatchAnime } from './useWatchAnime';
 import { useWatchStream, type WatchStreamAnimeMeta } from './useWatchStream';
 
@@ -187,6 +188,19 @@ export function useWatch(
     return undefined;
   }, [anime.episodes, anime.episodeId]);
 
+  const anilistStillAiring = useMemo(
+    () => isAnilistStillAiringFromStatus(anime.animeInfo?.animeInfo?.Status),
+    [anime.animeInfo?.animeInfo?.Status]
+  );
+
+  const expectedEpisodesForResolve = useMemo((): number | undefined => {
+    if (anilistStillAiring) return undefined;
+    const et = anime.animeInfo?.animeInfo?.tvInfo?.episodeTotal?.trim();
+    if (!et || !/^\d+$/.test(et)) return undefined;
+    const n = parseInt(et, 10);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  }, [anilistStillAiring, anime.animeInfo?.animeInfo?.tvInfo?.episodeTotal]);
+
   const watchResolveOptions = useMemo(
     () => ({
       animeId,
@@ -198,6 +212,8 @@ export function useWatch(
           : anime.animepaheCatalogProviderId,
       episodeEpToken,
       episodeHasDub: episodeHasDubForResolve,
+      expectedEpisodes: expectedEpisodesForResolve,
+      anilistStillAiring,
       preferredLang: resolverLang,
       onPlaybackLangResolved,
       watchStreamProvider,
@@ -211,6 +227,8 @@ export function useWatch(
       anime.anilibertyCatalogProviderId,
       episodeEpToken,
       episodeHasDubForResolve,
+      expectedEpisodesForResolve,
+      anilistStillAiring,
       animeId,
       watchStreamProvider,
       resolverLang,
@@ -226,6 +244,20 @@ export function useWatch(
     if (!stream.streamUrl) return;
     anime.runDeferredOppositeProviderPrefetch();
   }, [stream.streamUrl, animeId, anime.runDeferredOppositeProviderPrefetch]);
+
+  /** Anilibria недоступна (немає мапінгу / ep count) — не лишаємо провайдер у «мертвому» resolve. */
+  useEffect(() => {
+    if (watchStreamProvider !== 'aniliberty') return;
+    if (anime.animeInfoLoading || anime.providerCatalogPending) return;
+    if (anime.anilibertyLanguageMenuEligible) return;
+    setWatchStreamProvider('animepahe');
+  }, [
+    watchStreamProvider,
+    anime.animeInfoLoading,
+    anime.providerCatalogPending,
+    anime.anilibertyLanguageMenuEligible,
+    setWatchStreamProvider,
+  ]);
 
   /**
    * Dub (English) часто падає через блокування/відсутність джерел — автоматично

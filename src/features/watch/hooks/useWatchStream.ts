@@ -42,6 +42,9 @@ interface WatchResolveOptions {
   streamLangRevision: number;
   /** Зміна коли з’являється факт hasDub на епізоді / серії — окремий повторний resolve. */
   episodeDubStateKey: string;
+  /** AniList total episodes — блокує resolve Anilibria при розбіжності (не ongoing). */
+  expectedEpisodes?: number;
+  anilistStillAiring?: boolean;
 }
 
 /** Один повторний resolve після помилки при перемиканні епізоду (cold CDN / rate limit). */
@@ -63,6 +66,8 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
     'Could not play this HLS source — it may be blocked or no longer available. Try another episode, provider, or later.',
   'no_working_source|aniliberty_sources_empty':
     'Anilibria did not return an HLS playlist for this episode. Try Animepahe or another episode.',
+  aniliberty_episode_count_mismatch:
+    'Anilibria episode count does not match this title. Use Animepahe instead.',
   'lang must be sub or dub':
     'Invalid stream language parameter. Refresh the page or toggle Sub/Dub.',
 };
@@ -334,6 +339,11 @@ export function useWatchStream(
         episodeEpToken: episodeEpTokenRef.current?.trim() || undefined,
         episodeHasDub: episodeHasDubRef.current,
         episode: episodeNumber,
+        expectedEpisodes:
+          typeof opts?.expectedEpisodes === 'number' && opts.expectedEpisodes > 0
+            ? Math.floor(opts.expectedEpisodes)
+            : undefined,
+        anilistStillAiring: opts?.anilistStillAiring === true,
         lang: preferredLang,
         streamProvider:
           watchResolveOptions.watchStreamProvider === 'aniliberty'
@@ -417,6 +427,8 @@ export function useWatchStream(
     watchResolveOptions?.watchStreamProvider,
     watchResolveOptions?.streamLangRevision,
     watchResolveOptions?.episodeDubStateKey,
+    watchResolveOptions?.expectedEpisodes,
+    watchResolveOptions?.anilistStillAiring,
     watchResolveOptions?.streamAnime?.id,
     watchResolveOptions?.streamAnime?.title,
     watchResolveOptions?.streamAnime?.mal_id,
