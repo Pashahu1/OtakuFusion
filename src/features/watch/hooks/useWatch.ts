@@ -111,7 +111,7 @@ export function useWatch(
    * при `currentEpisodeHasDub === false` у мережі йшов `lang=sub`, хоча в плеєрі обрано English.
    */
   const resolverLang = useMemo<'sub' | 'dub'>(() => {
-    if (watchStreamProvider === 'aniliberty') return 'sub';
+    if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') return 'sub';
     if (activeServerId !== '2') return 'sub';
     return 'dub';
   }, [watchStreamProvider, activeServerId]);
@@ -123,7 +123,7 @@ export function useWatch(
 
   /** Dub / Anilibria: один прохід без «другого редіректу» — лише `setActiveServerIdRaw`, без `streamLangRevision`. */
   useEffect(() => {
-    if (watchStreamProvider === 'aniliberty') {
+    if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') {
       if (activeServerId === '2') setActiveServerIdRaw('1');
       return;
     }
@@ -209,7 +209,9 @@ export function useWatch(
       providerAnimeId:
         watchStreamProvider === 'aniliberty'
           ? anime.anilibertyCatalogProviderId
-          : anime.animepaheCatalogProviderId,
+          : watchStreamProvider === 'hikka'
+            ? anime.hikkaCatalogProviderId
+            : anime.animepaheCatalogProviderId,
       episodeEpToken,
       episodeHasDub: episodeHasDubForResolve,
       expectedEpisodes: expectedEpisodesForResolve,
@@ -225,6 +227,7 @@ export function useWatch(
       anime.episodeId,
       anime.animepaheCatalogProviderId,
       anime.anilibertyCatalogProviderId,
+      anime.hikkaCatalogProviderId,
       episodeEpToken,
       episodeHasDubForResolve,
       expectedEpisodesForResolve,
@@ -245,17 +248,25 @@ export function useWatch(
     anime.runDeferredOppositeProviderPrefetch();
   }, [stream.streamUrl, animeId, anime.runDeferredOppositeProviderPrefetch]);
 
-  /** Anilibria недоступна (немає мапінгу / ep count) — не лишаємо провайдер у «мертвому» resolve. */
+  /** Anilibria / Hikka недоступні — не лишаємо провайдер у «мертвому» resolve. */
   useEffect(() => {
-    if (watchStreamProvider !== 'aniliberty') return;
-    if (anime.animeInfoLoading || anime.providerCatalogPending) return;
-    if (anime.anilibertyLanguageMenuEligible) return;
-    setWatchStreamProvider('animepahe');
+    if (watchStreamProvider === 'aniliberty') {
+      if (anime.animeInfoLoading || anime.providerCatalogPending) return;
+      if (anime.anilibertyLanguageMenuEligible) return;
+      setWatchStreamProvider('animepahe');
+      return;
+    }
+    if (watchStreamProvider === 'hikka') {
+      if (anime.animeInfoLoading || anime.providerCatalogPending) return;
+      if (anime.hikkaLanguageMenuEligible) return;
+      setWatchStreamProvider('animepahe');
+    }
   }, [
     watchStreamProvider,
     anime.animeInfoLoading,
     anime.providerCatalogPending,
     anime.anilibertyLanguageMenuEligible,
+    anime.hikkaLanguageMenuEligible,
     setWatchStreamProvider,
   ]);
 
@@ -391,5 +402,6 @@ export function useWatch(
     streamErrorCode: stream.errorCode,
     streamOverlayMessage,
     anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
   };
 }

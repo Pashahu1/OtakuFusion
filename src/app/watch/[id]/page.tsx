@@ -57,6 +57,7 @@ export default function Watch() {
     setWatchStreamProvider,
     streamOverlayMessage,
     anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible,
   } = useWatch(animeId || '', urlEp ?? undefined);
 
   const hasAppliedSavedEpisodeRef = useRef(false);
@@ -141,6 +142,7 @@ export default function Watch() {
             setWatchStreamProvider={setWatchStreamProvider}
             streamOverlayMessage={streamOverlayMessage}
             anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
+            hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
           />
 
           <WatchInfoPanel

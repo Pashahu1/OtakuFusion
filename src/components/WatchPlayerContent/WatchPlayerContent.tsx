@@ -35,6 +35,7 @@ type WatchPlayerContentProps = {
   streamOverlayMessage: { title: string; subtitle: string } | null;
   /** Показувати Anilibria в меню Language лише якщо каталог знайшов реліз. */
   anilibertyLanguageMenuEligible: boolean;
+  hikkaLanguageMenuEligible: boolean;
 };
 
 export const WatchPlayerContent = ({
@@ -61,6 +62,7 @@ export const WatchPlayerContent = ({
   playerShellPending,
   streamOverlayMessage,
   anilibertyLanguageMenuEligible,
+  hikkaLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
   const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
 
@@ -133,6 +135,7 @@ export const WatchPlayerContent = ({
             setWatchStreamProvider={setWatchStreamProvider}
             onPlaybackError={handleBuiltinError}
             anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
+            hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
           />
           </div>
         )}

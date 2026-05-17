@@ -20,10 +20,18 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 import { inferAnimepaheSourceIsDub } from '@/services/animepahe/inferAnimepaheSourceIsDub';
 import { tryResolveMirunoDubHls } from '@/server/miruno/fetchMirunoDubStream';
+import { decodeHikkaEpToken } from '@/services/hikka/hikkaEpToken';
+import { fetchHikkaWatchV2 } from '@/services/hikka/hikkaFeaturesClient';
+import {
+  mapHikkaTeamEpisodes,
+  pickDefaultHikkaCatalog,
+} from '@/services/hikka/mapHikkaCatalog';
+import { refererForHikkaPageUrl } from '@/services/hikka/extractPageM3u8';
+import { extractHikkaM3u8Cached } from '@/server/hikka/extractM3u8Cached';
 
 type WatchLang = 'sub' | 'dub';
 
-type WatchResolveStreamProvider = 'animepahe' | 'aniliberty';
+type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
 
 const inflightResolve = new Map<string, Promise<Response>>();
 
@@ -102,6 +110,7 @@ function getNormalizedLang(sp: URLSearchParams): WatchLang {
 function getStreamProvider(sp: URLSearchParams): WatchResolveStreamProvider {
   const raw = (sp.get('stream_provider') ?? '').trim().toLowerCase();
   if (raw === 'aniliberty' || raw === 'anilibria') return 'aniliberty';
+  if (raw === 'hikka' || raw === 'ukrainian' || raw === 'uk') return 'hikka';
   return 'animepahe';
 }
 
@@ -551,6 +560,150 @@ async function computeAnimepaheWatchResolveOutcome(params: {
   }
 }
 
+async function computeHikkaWatchResolveOutcome(params: {
+  startedAt: number;
+  episode: number;
+  origin: string;
+  hikkaSlug: string;
+  epTokenOverride?: string | null;
+}): Promise<WatchResolveOutcome> {
+  const { startedAt, episode, origin, hikkaSlug, epTokenOverride } = params;
+  const probeCfg = readWatchProbeConfig('sub');
+
+  try {
+    let epToken = epTokenOverride?.trim() ?? '';
+    let pageUrl: string | null = null;
+
+    const decoded = epToken ? decodeHikkaEpToken(epToken) : null;
+    if (decoded) {
+      pageUrl = decoded.pageUrl;
+    } else if (!epToken) {
+      const watch = await fetchHikkaWatchV2(hikkaSlug);
+      if (!watch) {
+        return {
+          status: 404,
+          body: { success: false, error: 'hikka_watch_not_found' },
+        };
+      }
+      const pick = pickDefaultHikkaCatalog(watch);
+      if (!pick) {
+        return {
+          status: 404,
+          body: { success: false, error: 'hikka_teams_empty' },
+        };
+      }
+      const episodes = mapHikkaTeamEpisodes(watch, pick, 'Anime');
+      const target = pickEpisodeByNumber(episodes, episode);
+      epToken = target?.ep_token?.trim() ?? '';
+      const again = epToken ? decodeHikkaEpToken(epToken) : null;
+      pageUrl = again?.pageUrl ?? null;
+    }
+
+    if (!pageUrl) {
+      return {
+        status: 404,
+        body: {
+          success: false,
+          error: 'episode_not_found',
+          reason: `Episode ${episode} is missing in Hikka catalog`,
+        },
+      };
+    }
+
+    const m3u8 = await extractHikkaM3u8Cached(pageUrl);
+    if (!m3u8) {
+      return {
+        status: 404,
+        body: {
+          success: false,
+          error: 'no_working_source',
+          reason: 'hikka_m3u8_not_found',
+        },
+      };
+    }
+
+    const referer = refererForHikkaPageUrl(pageUrl);
+    let originHeader = 'https://ashdi.vip';
+    try {
+      originHeader = new URL(referer).origin;
+    } catch {
+      /* noop */
+    }
+    const requestHeaders: Record<string, string> = {
+      Referer: referer,
+      Origin: originHeader,
+    };
+
+    const candidate: StreamingType = {
+      id: 1,
+      type: 'sub',
+      link: { file: m3u8, type: 'hls' },
+      tracks: [],
+      server: decoded?.team?.trim() || 'Ukrainian',
+      request_headers: requestHeaders,
+      iframe: pageUrl,
+    };
+
+    const playable = await isPlayableViaProxy(origin, candidate, probeCfg);
+    if (!playable) {
+      return {
+        status: 404,
+        body: {
+          success: false,
+          error: 'no_working_source',
+          reason: 'hikka_stream_probe_failed',
+        },
+      };
+    }
+
+    return {
+      status: 200,
+      body: {
+        success: true,
+        stream_provider: 'hikka',
+        resolved_anime: {
+          ani_id: hikkaSlug,
+          slug: hikkaSlug,
+          status: 'verified',
+          resolved_by: 'cache',
+        },
+        episode: {
+          number: episode,
+          ep_token: epToken,
+          hasSub: false,
+          hasDub: true,
+        },
+        stream: {
+          url: m3u8,
+          lang: 'sub',
+          server: candidate.server ?? 'Ukrainian',
+          request_headers: requestHeaders,
+          tracks: [],
+        },
+        fallback: {
+          applied: false,
+          from: null,
+          to: null,
+          reason: null,
+        },
+        debug: {
+          latency_ms: Date.now() - startedAt,
+          requested_lang: 'sub',
+          hikka_source: decoded?.source ?? null,
+        },
+      },
+    };
+  } catch (error) {
+    return {
+      status: 502,
+      body: {
+        success: false,
+        error: error instanceof Error ? error.message : 'watch_resolve_failed',
+      },
+    };
+  }
+}
+
 function parseExpectedEpisodesParam(sp: URLSearchParams): number | null {
   const raw = sp.get('expected_episodes')?.trim();
   if (!raw || !/^\d+$/.test(raw)) return null;
@@ -742,7 +895,9 @@ async function computeWatchResolveOutcome(
         error:
           provider === 'aniliberty'
             ? 'ani_id is required (Aniliberty release id from catalog)'
-            : 'ani_id is required (Animepahe series id from catalog)',
+            : provider === 'hikka'
+              ? 'ani_id is required (Hikka slug from catalog)'
+              : 'ani_id is required (Animepahe series id from catalog)',
       },
     };
   }
@@ -763,6 +918,16 @@ async function computeWatchResolveOutcome(
       epTokenOverride,
       expectedEpisodes: parseExpectedEpisodesParam(url.searchParams),
       anilistStillAiring: url.searchParams.get('anilist_still_airing')?.trim() === '1',
+    });
+  }
+
+  if (provider === 'hikka') {
+    return computeHikkaWatchResolveOutcome({
+      startedAt,
+      episode,
+      origin,
+      hikkaSlug: seriesId,
+      epTokenOverride,
     });
   }
 

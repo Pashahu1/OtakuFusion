@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { getAnimeInfo } from '@/services/getAnimeInfo';
 import { postAnimepaheCatalog, type AnimepaheCatalogBffOk } from '@/lib/animepahe-catalog-bff';
 import { postAnilibertyCatalog, type AnilibertyCatalogBffOk } from '@/lib/aniliberty-catalog-bff';
+import { postHikkaCatalog, type HikkaCatalogBffOk } from '@/lib/hikka-catalog-bff';
 import { getAnimePaheEpisodesFromBff } from '@/lib/animepahe-episodes-bff';
 import { getAnilibertyEpisodesFromBff } from '@/lib/aniliberty-episodes-bff';
 import { getNextEpisodeSchedule } from '@/services/getNextEpisodeSchedule';
@@ -38,6 +39,9 @@ export interface UseWatchAnimeReturn {
   error: string | null;
   /** Пункт Anilibria в меню плеєра лише після підтвердженого пошуку (не порожній каталог). */
   anilibertyLanguageMenuEligible: boolean;
+  /** Пункт «Українська» (Hikka Features) після успішного каталогу. */
+  hikkaLanguageMenuEligible: boolean;
+  hikkaCatalogProviderId: string | null;
   /** М’яка зміна Animepahe ↔ Anilibria — список епізодів не скидається. */
   providerCatalogPending: boolean;
   /** Після появи streamUrl — тихий prefetch іншого провайдера (не конкурує з resolve). */
@@ -77,9 +81,9 @@ function clearVerifiedLibertyMapping(localAnimeId: string): void {
 }
 
 function getMappingCacheKey(localAnimeId: string, provider: WatchStreamProvider): string {
-  return provider === 'aniliberty'
-    ? `aniliberty:mapping:${localAnimeId}`
-    : `animepahe:mapping:${localAnimeId}`;
+  if (provider === 'aniliberty') return `aniliberty:mapping:${localAnimeId}`;
+  if (provider === 'hikka') return `hikka:mapping:${localAnimeId}`;
+  return `animepahe:mapping:${localAnimeId}`;
 }
 
 interface VerifiedPaheMapping {
@@ -89,6 +93,10 @@ interface VerifiedPaheMapping {
 
 interface VerifiedLibertyMapping {
   libertyId: string;
+}
+
+interface VerifiedHikkaMapping {
+  hikkaSlug: string;
 }
 
 function readVerifiedPaheMapping(localAnimeId: string): VerifiedPaheMapping | null {
@@ -149,6 +157,31 @@ function writeVerifiedLibertyMapping(localAnimeId: string, libertyId: string): v
   }
 }
 
+function readVerifiedHikkaMapping(localAnimeId: string): VerifiedHikkaMapping | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(getMappingCacheKey(localAnimeId, 'hikka'));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { hikkaSlug?: string };
+    if (!parsed || typeof parsed.hikkaSlug !== 'string' || !parsed.hikkaSlug.trim()) return null;
+    return { hikkaSlug: parsed.hikkaSlug.trim() };
+  } catch {
+    return null;
+  }
+}
+
+function writeVerifiedHikkaMapping(localAnimeId: string, hikkaSlug: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(
+      getMappingCacheKey(localAnimeId, 'hikka'),
+      JSON.stringify({ hikkaSlug: hikkaSlug.trim() })
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Префетч Anilibria mapping + меню Language ще до перемикання провайдера. */
 function prefetchAnilibertyMapping(
   dataForResolve: AnimeData,
@@ -169,6 +202,28 @@ function prefetchAnilibertyMapping(
         return;
       }
       writeVerifiedLibertyMapping(localAnimeId, alt.libertyId.trim());
+      onEligible();
+    } catch {
+      /* тихий префетч */
+    }
+  })();
+}
+
+function prefetchHikkaMapping(
+  dataForResolve: AnimeData,
+  localAnimeId: string,
+  signal: AbortSignal,
+  isCancelled: () => boolean,
+  onEligible: () => void
+): void {
+  const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
+  void (async () => {
+    try {
+      const alt = await postHikkaCatalog(catalogPayload, signal);
+      if (isCancelled() || signal.aborted) return;
+      if (!alt.success || !alt.hikkaSlug?.trim()) return;
+      if (!(alt.episodes?.length ?? 0)) return;
+      writeVerifiedHikkaMapping(localAnimeId, alt.hikkaSlug.trim());
       onEligible();
     } catch {
       /* тихий префетч */
@@ -231,6 +286,8 @@ export function useWatchAnime(
     useState<NextEpisodeScheduleResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [anilibertyLanguageMenuEligible, setAnilibertyLanguageMenuEligible] = useState(false);
+  const [hikkaLanguageMenuEligible, setHikkaLanguageMenuEligible] = useState(false);
+  const [hikkaCatalogProviderId, setHikkaCatalogProviderId] = useState<string | null>(null);
   const [providerCatalogPending, setProviderCatalogPending] = useState(false);
   const initialEpisodeRef = useRef(initialEpisodeId);
   initialEpisodeRef.current = initialEpisodeId;
@@ -260,6 +317,8 @@ export function useWatchAnime(
     setAnimeInfoLoading(true);
     setError(null);
     setAnilibertyLanguageMenuEligible(false);
+    setHikkaLanguageMenuEligible(false);
+    setHikkaCatalogProviderId(null);
     setProviderCatalogPending(false);
     deferredOppositePrefetchRef.current = null;
     oppositePrefetchDoneRef.current = null;
@@ -288,6 +347,32 @@ export function useWatchAnime(
         () => {
           if (!isCancelled() && !signal.aborted) {
             setAnilibertyLanguageMenuEligible(true);
+          }
+        }
+      );
+      prefetchHikkaMapping(
+        pending.data,
+        animeId,
+        signal,
+        () => isCancelled() || signal.aborted,
+        () => {
+          if (!isCancelled() && !signal.aborted) {
+            setHikkaLanguageMenuEligible(true);
+          }
+        }
+      );
+      return;
+    }
+
+    if (pending.provider === 'hikka') {
+      prefetchAnimepaheMapping(
+        pending.data,
+        animeId,
+        signal,
+        () => isCancelled() || signal.aborted,
+        (paheId) => {
+          if (!isCancelled() && !signal.aborted) {
+            setAnimepaheCatalogProviderId(paheId);
           }
         }
       );
@@ -343,6 +428,7 @@ export function useWatchAnime(
         forceFuzzy: boolean;
         freshPaheCatalog: AnimepaheCatalogBffOk | null;
         freshLibertyCatalog: AnilibertyCatalogBffOk | null;
+        freshHikkaCatalog: HikkaCatalogBffOk | null;
         preserveEpisodeNum: string | null;
         settleLoading: { current: boolean };
       }
@@ -351,6 +437,7 @@ export function useWatchAnime(
         forceFuzzy,
         freshPaheCatalog,
         freshLibertyCatalog,
+        freshHikkaCatalog,
         preserveEpisodeNum,
         settleLoading,
       } = opts;
@@ -360,11 +447,27 @@ export function useWatchAnime(
           writeVerifiedLibertyMapping(animeId, providerId);
         }
         setAnilibertyCatalogProviderId(providerId);
+      } else if (watchStreamProvider === 'hikka') {
+        if (freshHikkaCatalog) {
+          writeVerifiedHikkaMapping(animeId, providerId);
+        }
+        setHikkaCatalogProviderId(providerId);
+        setHikkaLanguageMenuEligible(true);
       } else {
         if (freshPaheCatalog) {
           writeVerifiedPaheMapping(animeId, providerId, freshPaheCatalog.hasSeriesDub === true);
         }
         setAnimepaheCatalogProviderId(providerId);
+        if (!forceFuzzy) {
+          const prefetchCtrl = new AbortController();
+          prefetchHikkaMapping(
+            dataForResolve,
+            animeId,
+            prefetchCtrl.signal,
+            () => prefetchCtrl.signal.aborted,
+            () => setHikkaLanguageMenuEligible(true)
+          );
+        }
       }
 
       if (!forceFuzzy) {
@@ -451,8 +554,45 @@ export function useWatchAnime(
       let list: EpisodesTypes[] = [];
       let freshPaheCatalog: AnimepaheCatalogBffOk | null = null;
       let freshLibertyCatalog: AnilibertyCatalogBffOk | null = null;
+      let freshHikkaCatalog: HikkaCatalogBffOk | null = null;
 
-      if (watchStreamProvider === 'aniliberty') {
+      if (watchStreamProvider === 'hikka') {
+        if (!forceFuzzy) {
+          const cachedH = readVerifiedHikkaMapping(animeId);
+          if (cachedH?.hikkaSlug) {
+            try {
+              const catalog = await postHikkaCatalog(catalogPayload, signal);
+              if (
+                !cancelled &&
+                !signal.aborted &&
+                catalog.success &&
+                catalog.hikkaSlug.trim() === cachedH.hikkaSlug &&
+                (catalog.episodes?.length ?? 0) > 0
+              ) {
+                providerId = cachedH.hikkaSlug;
+                list = catalog.episodes ?? [];
+              }
+            } catch {
+              providerId = null;
+              list = [];
+            }
+          }
+        }
+
+        if (!providerId || !list.length) {
+          const catalog = await postHikkaCatalog(catalogPayload, signal);
+          if (cancelled || signal.aborted) return;
+          if (!catalog.success) {
+            throw new Error(catalog.error);
+          }
+          if (!catalog.hikkaSlug?.trim()) {
+            throw new Error('hikka_catalog_bad_shape');
+          }
+          freshHikkaCatalog = catalog;
+          providerId = catalog.hikkaSlug.trim();
+          list = catalog.episodes ?? [];
+        }
+      } else if (watchStreamProvider === 'aniliberty') {
         if (!forceFuzzy) {
           const cachedL = readVerifiedLibertyMapping(animeId);
           if (cachedL?.libertyId) {
@@ -550,11 +690,15 @@ export function useWatchAnime(
         setError(
               watchStreamProvider === 'aniliberty'
                 ? 'Anilibria returned an empty episode list. Refresh the page or try again later.'
-                : 'Animepahe returned an empty episode list. Refresh the page or try again later.'
+                : watchStreamProvider === 'hikka'
+                  ? 'Ukrainian sources returned an empty episode list. Try another provider.'
+                  : 'Animepahe returned an empty episode list. Refresh the page or try again later.'
             );
         setAnimepaheCatalogProviderId(null);
         setAnilibertyCatalogProviderId(null);
+        setHikkaCatalogProviderId(null);
         setAnilibertyLanguageMenuEligible(false);
+        setHikkaLanguageMenuEligible(false);
         setEpisodes([]);
         setTotalEpisodes(0);
         setEpisodeId(null);
@@ -578,6 +722,7 @@ export function useWatchAnime(
         forceFuzzy,
         freshPaheCatalog,
         freshLibertyCatalog,
+        freshHikkaCatalog,
         preserveEpisodeNum,
         settleLoading,
       });
@@ -628,12 +773,14 @@ export function useWatchAnime(
     setEpisodes(null);
     setAnimepaheCatalogProviderId(null);
     setAnilibertyCatalogProviderId(null);
+    setHikkaCatalogProviderId(null);
     setEpisodeId(null);
     setAnimeInfo(null);
     setTotalEpisodes(null);
     setAnimeInfoLoading(true);
     setError(null);
     setAnilibertyLanguageMenuEligible(false);
+    setHikkaLanguageMenuEligible(false);
     if (episodeRemapPass === 0) {
       setNextEpisodeSchedule(null);
     }
@@ -681,6 +828,8 @@ export function useWatchAnime(
           setAnimepaheCatalogProviderId(null);
           setAnilibertyCatalogProviderId(null);
           setAnilibertyLanguageMenuEligible(false);
+          setHikkaLanguageMenuEligible(false);
+          setHikkaCatalogProviderId(null);
           setEpisodes([]);
           setTotalEpisodes(0);
           setEpisodeId(null);
@@ -714,12 +863,15 @@ export function useWatchAnime(
   const providerAnimeId =
     watchStreamProvider === 'aniliberty'
       ? anilibertyCatalogProviderId
-      : animepaheCatalogProviderId;
+      : watchStreamProvider === 'hikka'
+        ? hikkaCatalogProviderId
+        : animepaheCatalogProviderId;
 
   return {
     animeInfo,
     animepaheCatalogProviderId,
     anilibertyCatalogProviderId,
+    hikkaCatalogProviderId,
     providerAnimeId,
     episodes,
     totalEpisodes,
@@ -729,6 +881,7 @@ export function useWatchAnime(
     nextEpisodeSchedule,
     error,
     anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible,
     providerCatalogPending,
     runDeferredOppositeProviderPrefetch,
   };

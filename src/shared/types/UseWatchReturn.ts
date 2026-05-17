@@ -37,6 +37,8 @@ export interface UseWatchReturn {
   streamErrorCode: string | null;
   /** Пункт Anilibria в меню плеєра лише після успішного каталогу Anilibria (порожній пошук — приховано). */
   anilibertyLanguageMenuEligible: boolean;
+  /** Пункт «Українська» (Hikka Features) у меню Language. */
+  hikkaLanguageMenuEligible: boolean;
   /**
    * Текст оверлею плеєра при фатальній помилці стріму (англійською).
    * `null` — плеєр не в стані «фатальної помилки» (ще завантаження або є URL).

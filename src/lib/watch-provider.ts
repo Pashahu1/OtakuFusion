@@ -1,4 +1,4 @@
-export type WatchStreamProvider = 'animepahe' | 'aniliberty';
+export type WatchStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
 
 export const STORAGE_WATCH_STREAM_PROVIDER = 'watch_stream_provider';
 
@@ -6,6 +6,7 @@ export function readWatchStreamProvider(): WatchStreamProvider {
   if (typeof window === 'undefined') return 'animepahe';
   const v = localStorage.getItem(STORAGE_WATCH_STREAM_PROVIDER)?.toLowerCase();
   if (v === 'anilibria' || v === 'aniliberty') return 'aniliberty';
+  if (v === 'hikka' || v === 'ukrainian' || v === 'uk') return 'hikka';
   if (v === 'kai') {
     localStorage.setItem(STORAGE_WATCH_STREAM_PROVIDER, 'animepahe');
     return 'animepahe';
@@ -17,7 +18,8 @@ export function readWatchStreamProvider(): WatchStreamProvider {
 export function writeWatchStreamProvider(value: WatchStreamProvider): void {
   if (typeof window === 'undefined') return;
   try {
-    const next = value === 'aniliberty' ? 'aniliberty' : 'animepahe';
+    const next =
+      value === 'aniliberty' ? 'aniliberty' : value === 'hikka' ? 'hikka' : 'animepahe';
     localStorage.setItem(STORAGE_WATCH_STREAM_PROVIDER, next);
   } catch {
     /* ignore */

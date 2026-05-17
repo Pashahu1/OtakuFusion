@@ -73,6 +73,7 @@ export interface UseArtplayerInstanceParams {
   onPlaybackError: PlayerProps['onPlaybackError'];
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
   anilibertyLanguageMenuEligible: PlayerProps['anilibertyLanguageMenuEligible'];
+  hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
 }
 
 /**
@@ -99,6 +100,7 @@ export function useArtplayerInstance({
   onPlaybackError,
   onPlaybackSurfaceReady,
   anilibertyLanguageMenuEligible,
+  hikkaLanguageMenuEligible,
 }: UseArtplayerInstanceParams) {
   const artRef = useRef<HTMLDivElement>(null);
   const artInstanceRef = useRef<Artplayer | null>(null);
@@ -133,8 +135,24 @@ export function useArtplayerInstance({
           seg.outro ? `${seg.outro.start}-${seg.outro.end}` : '',
         ].join('|')
       : '';
-    return [streamUrl, thumbnail ?? '', subKey, segKey, qvKey, anilibertyLanguageMenuEligible ? '1' : '0'].join('\f');
-  }, [streamUrl, thumbnail, subtitles, streamInfo?.skipSegments, streamInfo?.qualityVariants, anilibertyLanguageMenuEligible]);
+    return [
+      streamUrl,
+      thumbnail ?? '',
+      subKey,
+      segKey,
+      qvKey,
+      anilibertyLanguageMenuEligible ? '1' : '0',
+      hikkaLanguageMenuEligible ? '1' : '0',
+    ].join('\f');
+  }, [
+    streamUrl,
+    thumbnail,
+    subtitles,
+    streamInfo?.skipSegments,
+    streamInfo?.qualityVariants,
+    anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible,
+  ]);
 
   useEffect(() => {
     serversRef.current = servers;
@@ -427,6 +445,7 @@ export function useArtplayerInstance({
         watchStreamProvider,
         setWatchStreamProvider,
         anilibertyLanguageMenuEligible ?? false,
+        hikkaLanguageMenuEligible ?? false,
         streamInfo?.skipSegments
       );
       attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);

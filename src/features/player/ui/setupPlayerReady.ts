@@ -71,6 +71,8 @@ export function setupPlayerReady(
   setWatchStreamProvider: (next: WatchStreamProvider) => void,
   /** Каталог Anilibria знайшов реліз — показувати пункт у меню Language. */
   anilibertyLanguageMenuEligible: boolean,
+  /** Каталог Hikka Features (українська озвучка). */
+  hikkaLanguageMenuEligible: boolean,
   /** Маркери OP/ED (з Anilibria або злиті в Animepahe-резолві за мапінгом). */
   skipSegments: StreamingData['skipSegments'] | null | undefined
 ) {
@@ -379,7 +381,7 @@ export function setupPlayerReady(
     data_id?: number;
     serverName?: string;
     type?: string;
-    __mode?: 'animepahe-sub' | 'animepahe-dub' | 'aniliberty';
+    __mode?: 'animepahe-sub' | 'animepahe-dub' | 'aniliberty' | 'hikka';
   };
 
   const flatLanguage: LangMenuLeaf[] = [];
@@ -418,12 +420,22 @@ export function setupPlayerReady(
     });
   }
 
+  if (hikkaLanguageMenuEligible) {
+    flatLanguage.push({
+      html: 'Ukrainian',
+      default: watchStreamProvider === 'hikka',
+      __mode: 'hikka',
+    });
+  }
+
   const langTooltip =
-    watchStreamProvider === 'aniliberty' && anilibertyLanguageMenuEligible
-      ? 'Anilibria'
-      : langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type === 'dub'
-        ? 'English'
-        : 'Japanese';
+    watchStreamProvider === 'hikka' && hikkaLanguageMenuEligible
+      ? 'Ukrainian'
+      : watchStreamProvider === 'aniliberty' && anilibertyLanguageMenuEligible
+        ? 'Anilibria'
+        : langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type === 'dub'
+          ? 'English'
+          : 'Japanese';
 
   if (flatLanguage.length > 0) {
     art.setting.add({
@@ -437,6 +449,17 @@ export function setupPlayerReady(
         const mode = item.__mode;
         if (mode === 'aniliberty') {
           setWatchStreamProvider('aniliberty');
+          setActiveServerId('1');
+          try {
+            localStorage.setItem('server_type', 'sub');
+            localStorage.removeItem('server_name');
+          } catch {
+            /* ignore */
+          }
+          return typeof item.html === 'string' ? item.html : '';
+        }
+        if (mode === 'hikka') {
+          setWatchStreamProvider('hikka');
           setActiveServerId('1');
           try {
             localStorage.setItem('server_type', 'sub');

@@ -25,6 +25,7 @@ export function Player({
   onPlaybackError,
   onPlaybackSurfaceReady,
   anilibertyLanguageMenuEligible = false,
+  hikkaLanguageMenuEligible = false,
 }: PlayerProps) {
   const currentEpisodeIndex =
     episodes?.findIndex(
@@ -51,6 +52,7 @@ export function Player({
     onPlaybackError,
     onPlaybackSurfaceReady,
     anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible,
   });
 
   return <div ref={artRef} className="relative h-full w-full"></div>;

@@ -17,7 +17,7 @@ function readStoredAnilibertyReleaseId(localAnimeId: string | undefined): string
   return undefined;
 }
 
-export type WatchResolveStreamProvider = 'animepahe' | 'aniliberty';
+export type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
 
 export interface WatchResolveParams {
   anilistId?: number;
@@ -108,7 +108,10 @@ export async function resolveWatchStream(
   }
   query.set('lang', params.lang === 'dub' ? 'dub' : 'sub');
   const sp = params.streamProvider ?? 'animepahe';
-  query.set('stream_provider', sp === 'aniliberty' ? 'aniliberty' : 'animepahe');
+  query.set(
+    'stream_provider',
+    sp === 'aniliberty' ? 'aniliberty' : sp === 'hikka' ? 'hikka' : 'animepahe'
+  );
 
   if (sp === 'animepahe') {
     const libertyId = readStoredAnilibertyReleaseId(params.localAnimeId);

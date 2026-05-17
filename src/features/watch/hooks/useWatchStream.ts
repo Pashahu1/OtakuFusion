@@ -66,6 +66,12 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
     'Could not play this HLS source — it may be blocked or no longer available. Try another episode, provider, or later.',
   'no_working_source|aniliberty_sources_empty':
     'Anilibria did not return an HLS playlist for this episode. Try Animepahe or another episode.',
+  'no_working_source|hikka_m3u8_not_found':
+    'Could not extract a playable stream from the Ukrainian source page. Try another episode or provider.',
+  'no_working_source|hikka_stream_probe_failed':
+    'Ukrainian stream is blocked or unavailable. Try Animepahe or refresh later.',
+  hikka_catalog_not_found:
+    'No Ukrainian dub catalog was found for this title on Hikka Features.',
   aniliberty_episode_count_mismatch:
     'Anilibria episode count does not match this title. Use Animepahe instead.',
   'lang must be sub or dub':
@@ -99,7 +105,6 @@ function clearStoredServerHint(): void {
   }
 }
 
-/** Помилки, де повтор через 3 с майже ніколи не допоможе. */
 function shouldAutoRetryWatchResolve(err: unknown): boolean {
   if (err instanceof Error && err.name === 'AbortError') return false;
   if (!(err instanceof Error)) return true;
@@ -348,7 +353,9 @@ export function useWatchStream(
         streamProvider:
           watchResolveOptions.watchStreamProvider === 'aniliberty'
             ? ('aniliberty' as const)
-            : ('animepahe' as const),
+            : watchResolveOptions.watchStreamProvider === 'hikka'
+              ? ('hikka' as const)
+              : ('animepahe' as const),
       };
 
       const hadServerHint =

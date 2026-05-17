@@ -31,5 +31,6 @@ export interface PlayerProps {
   onPlaybackSurfaceReady?: () => void;
   /** Якщо false — пункт Anilibria в меню Language не додається. */
   anilibertyLanguageMenuEligible?: boolean;
+  hikkaLanguageMenuEligible?: boolean;
 }
 
