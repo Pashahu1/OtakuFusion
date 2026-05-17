@@ -7,8 +7,11 @@ import { getAnimePaheEpisodesFromBff } from '@/lib/animepahe-episodes-bff';
 import { getAnilibertyEpisodesFromBff } from '@/lib/aniliberty-episodes-bff';
 import { getNextEpisodeSchedule } from '@/services/getNextEpisodeSchedule';
 import { alignKaiEpisodesToAnilistSeasonStart } from '@/lib/alignKaiEpisodesToAnilistSeason';
-import { aggregateCatalogStreamCounts } from '@/shared/utils/catalogStreamCounts';
-import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
+import { aggregateTvInfoStreamCounts } from '@/shared/utils/catalogStreamCounts';
+import {
+  episodeMatchesSelection,
+  getEpisodeNumberFromId,
+} from '@/shared/utils/episodeUtils';
 import { applyAnilistEpisodeDisplayTitles } from '@/lib/mergeKaiEpisodesWithAnilistTitles';
 import { patchEpisodesSeriesDub } from '@/services/animepahe/patchEpisodesSeriesDub';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
@@ -488,29 +491,42 @@ export function useWatchAnime(
       setEpisodes(mergedEpisodes);
       setTotalEpisodes(mergedEpisodes.length > 0 ? mergedEpisodes.length : null);
 
-      const counts = aggregateCatalogStreamCounts(mergedEpisodes);
-      setAnimeInfo((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          animeInfo: {
-            ...prev.animeInfo,
-            tvInfo: {
-              ...prev.animeInfo.tvInfo,
-              has_sub: counts.has_sub,
-              has_dub: counts.has_dub,
+      const seriesDubHint =
+        watchStreamProvider === 'animepahe' &&
+        (freshPaheCatalog?.hasSeriesDub === true ||
+          readVerifiedPaheMapping(animeId)?.hasSeriesDub === true);
+      // SUB/DUB у бейджах і меню Language — лише з каталогу Animepahe; Anilibria/Hikka не скидають dub.
+      if (watchStreamProvider === 'animepahe') {
+        const counts = aggregateTvInfoStreamCounts(mergedEpisodes, {
+          provider: 'animepahe',
+          seriesDubHint,
+        });
+        setAnimeInfo((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            animeInfo: {
+              ...prev.animeInfo,
+              tvInfo: {
+                ...prev.animeInfo.tvInfo,
+                has_sub: counts.has_sub,
+                has_dub: counts.has_dub,
+              },
             },
-          },
-        };
-      });
+          };
+        });
+      }
 
       const fromInitial =
         initialEpisodeRef.current ??
-        (mergedEpisodes.length ? (getEpisodeNumberFromId(mergedEpisodes[0].id) ?? null) : null);
+        (mergedEpisodes.length
+          ? (getEpisodeNumberFromId(mergedEpisodes[0].id) ??
+            String(mergedEpisodes[0].episode_no))
+          : null);
 
       const preservedOk =
         preserveEpisodeNum &&
-        mergedEpisodes.some((ep) => getEpisodeNumberFromId(ep.id) === preserveEpisodeNum);
+        mergedEpisodes.some((ep) => episodeMatchesSelection(ep, preserveEpisodeNum));
 
       const newEpisodeId = preservedOk ? preserveEpisodeNum : (fromInitial ?? null);
       setEpisodeId(newEpisodeId);
@@ -854,9 +870,7 @@ export function useWatchAnime(
     if (!animeId.trim()) return;
     if (animeInfoLoading) return;
     if (!initialEpisodeId || !episodes?.length) return;
-    const valid = episodes.some(
-      (ep) => getEpisodeNumberFromId(ep.id) === initialEpisodeId
-    );
+    const valid = episodes.some((ep) => episodeMatchesSelection(ep, initialEpisodeId));
     if (valid) setEpisodeId(initialEpisodeId);
   }, [animeId, initialEpisodeId, episodes, animeInfoLoading]);
 

@@ -8,7 +8,10 @@ import {
 } from 'react';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import { writeWatchStreamProvider } from '@/lib/watch-provider';
-import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
+import {
+  episodeMatchesSelection,
+  getEpisodeNumberFromId,
+} from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
@@ -16,19 +19,6 @@ import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
 import { isAnilistStillAiringFromStatus } from '@/services/aniliberty/anilibertyEpisodeMatch';
 import { useWatchAnime } from './useWatchAnime';
 import { useWatchStream, type WatchStreamAnimeMeta } from './useWatchStream';
-
-/**
- * English у меню + `lang=dub` для епізодів без `hasDub: true` у каталозі — узгоджено з Miruno gap-fill на `/api/watch/resolve`.
- * За замовчуванням увімкнено. Вимкнути (старий суворий режим): `NEXT_PUBLIC_MIRUNO_DUB_FALLBACK=0` або `false` / `off`.
- */
-function isAnimepaheMirunoDubGapUiEnabled(): boolean {
-  if (typeof process === 'undefined') return true;
-  const raw = process.env.NEXT_PUBLIC_MIRUNO_DUB_FALLBACK?.trim().toLowerCase();
-  if (raw === '0' || raw === 'false' || raw === 'off') return false;
-  return true;
-}
-
-const mirunoDubFallbackPublic = isAnimepaheMirunoDubGapUiEnabled();
 
 export function useWatch(
   animeId: string,
@@ -68,9 +58,7 @@ export function useWatch(
     (Boolean(anime.episodeId) &&
       Array.isArray(anime.episodes) &&
       anime.episodes.length > 0 &&
-      anime.episodes.every(
-        (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) !== anime.episodeId
-      ));
+      anime.episodes.every((e: EpisodesTypes) => !episodeMatchesSelection(e, anime.episodeId)));
 
   const [activeServerId, setActiveServerIdRaw] = useState<string | null>('2');
 
@@ -93,14 +81,21 @@ export function useWatch(
     };
   }, [anime.animeInfo?.id, anime.animeInfo?.mal_id, anime.animeInfo?.title]);
 
-  const hasAnyDub = useMemo(
-    () => Boolean(anime.episodes?.some((e) => e.hasDub === true)),
-    [anime.episodes]
-  );
+  const hasAnyDub = useMemo(() => {
+    const dubFromTv = anime.animeInfo?.animeInfo?.tvInfo?.has_dub ?? 0;
+    if (dubFromTv > 0) return true;
+    // Епізоди Anilibria/Hikka не мають dub — не приховувати English після перемикання провайдера.
+    if (watchStreamProvider !== 'animepahe') return false;
+    return Boolean(anime.episodes?.some((e) => e.hasDub === true));
+  }, [
+    anime.animeInfo?.animeInfo?.tvInfo?.has_dub,
+    anime.episodes,
+    watchStreamProvider,
+  ]);
 
   const currentEpisodeHasDub = useMemo(() => {
-    const ep = anime.episodes?.find(
-      (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === anime.episodeId
+    const ep = anime.episodes?.find((e: EpisodesTypes) =>
+      episodeMatchesSelection(e, anime.episodeId)
     );
     return ep?.hasDub === true;
   }, [anime.episodes, anime.episodeId]);
@@ -127,14 +122,11 @@ export function useWatch(
       if (activeServerId === '2') setActiveServerIdRaw('1');
       return;
     }
-    if (mirunoDubFallbackPublic) {
-      return;
-    }
     if (!hasAnyDub && activeServerId === '2') {
       setActiveServerIdRaw('1');
       return;
     }
-  }, [watchStreamProvider, activeServerId, hasAnyDub, mirunoDubFallbackPublic]);
+  }, [watchStreamProvider, activeServerId, hasAnyDub]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -146,7 +138,7 @@ export function useWatch(
     const base: ServerInfo[] = [
       { type: 'sub', data_id: 1, server_id: 1, serverName: 'Japanese' },
     ];
-    if (hasAnyDub || mirunoDubFallbackPublic) {
+    if (hasAnyDub) {
       base.push({
         type: 'dub',
         data_id: 2,
@@ -155,7 +147,7 @@ export function useWatch(
       });
     }
     return base;
-  }, [hasAnyDub, mirunoDubFallbackPublic]);
+  }, [hasAnyDub]);
 
   const onPlaybackLangResolved = useCallback((lang: 'sub' | 'dub') => {
     setActiveServerIdRaw(lang === 'dub' ? '2' : '1');
@@ -171,8 +163,8 @@ export function useWatch(
 
   const episodeEpToken = useMemo(() => {
     if (!anime.episodeId || !anime.episodes?.length) return null;
-    const ep = anime.episodes.find(
-      (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === anime.episodeId
+    const ep = anime.episodes.find((e: EpisodesTypes) =>
+      episodeMatchesSelection(e, anime.episodeId)
     );
     const token = ep?.ep_token?.trim();
     return token || null;
@@ -180,8 +172,8 @@ export function useWatch(
 
   const episodeHasDubForResolve = useMemo((): boolean | undefined => {
     if (!anime.episodeId || !anime.episodes?.length) return undefined;
-    const ep = anime.episodes.find(
-      (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === anime.episodeId
+    const ep = anime.episodes.find((e: EpisodesTypes) =>
+      episodeMatchesSelection(e, anime.episodeId)
     );
     if (ep?.hasDub === true) return true;
     if (ep?.hasDub === false) return false;
@@ -367,9 +359,7 @@ export function useWatch(
   const activeEpisodeNum = useMemo((): number | null => {
     const { episodes, episodeId } = anime;
     if (!episodes?.length || !episodeId) return null;
-    const ep = episodes.find(
-      (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === episodeId
-    );
+    const ep = episodes.find((e: EpisodesTypes) => episodeMatchesSelection(e, episodeId));
     return ep?.episode_no ?? null;
   }, [anime.episodes, anime.episodeId]);
 

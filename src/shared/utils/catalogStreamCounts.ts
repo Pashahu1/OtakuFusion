@@ -16,3 +16,24 @@ export function aggregateCatalogStreamCounts(episodes: EpisodesTypes[]): {
   }
   return { has_sub, has_dub };
 }
+
+/** Лічильники для бейджів SUB/DUB на watch — без «фейкового» dub з Ukrainian (Hikka). */
+export function aggregateTvInfoStreamCounts(
+  episodes: EpisodesTypes[],
+  opts: {
+    provider: 'animepahe' | 'aniliberty' | 'hikka';
+    seriesDubHint?: boolean;
+  }
+): { has_sub: number; has_dub: number } {
+  const counts = aggregateCatalogStreamCounts(episodes);
+  if (opts.provider === 'hikka') {
+    return { has_sub: counts.has_sub, has_dub: 0 };
+  }
+  if (opts.provider === 'aniliberty') {
+    return { has_sub: counts.has_sub, has_dub: 0 };
+  }
+  if (opts.seriesDubHint && counts.has_dub === 0) {
+    return { has_sub: counts.has_sub, has_dub: 1 };
+  }
+  return counts;
+}

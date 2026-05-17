@@ -2,8 +2,7 @@ import {
   buildAnimepaheSearchTermsFromFields,
   type AnimepaheCatalogHints,
 } from '@/services/animepahe/catalogHints';
-
-const HIKKA_API = 'https://api.hikka.io';
+import { hikkaIoFetch, hikkaIoUrl } from '@/services/hikka/hikkaIoFetch';
 
 interface HikkaAnimeRow {
   slug?: string;
@@ -52,10 +51,7 @@ function scoreHikkaSearchHit(
 }
 
 async function fetchHikkaSlugByMal(malId: number): Promise<string | null> {
-  const res = await fetch(`${HIKKA_API}/integrations/mal/anime/${malId}`, {
-    headers: { accept: 'application/json' },
-    next: { revalidate: 86400 },
-  });
+  const res = await hikkaIoFetch(hikkaIoUrl(`/integrations/mal/anime/${malId}`));
   if (!res.ok) return null;
   const data = (await res.json()) as HikkaAnimeRow;
   const slug = data.slug?.trim();
@@ -69,14 +65,10 @@ async function searchHikkaSlug(
 ): Promise<string | null> {
   const q = query.trim();
   if (!q) return null;
-  const res = await fetch(`${HIKKA_API}/anime`, {
+  const res = await hikkaIoFetch(hikkaIoUrl('/anime'), {
     method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-    },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ query: q }),
-    next: { revalidate: 3600 },
   });
   if (!res.ok) return null;
   const data = (await res.json()) as { list?: HikkaAnimeRow[] };

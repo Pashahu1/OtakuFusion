@@ -107,7 +107,7 @@ export function Episodelist({
           {totalEpisodes > 30
             ? visibleEpisodesInRange.map((item) => {
                   const episodeNumber =
-                    getEpisodeNumberFromId(item?.id) ?? '';
+                    getEpisodeNumberFromId(item?.id) ?? String(item.episode_no ?? '');
                   const isActive =
                     activeEpisodeId === episodeNumber ||
                     currentEpisode === episodeNumber;
@@ -132,7 +132,7 @@ export function Episodelist({
                 })
             : episodes?.map((item) => {
                 const episodeNumber =
-                  getEpisodeNumberFromId(item?.id) ?? '';
+                  getEpisodeNumberFromId(item?.id) ?? String(item.episode_no ?? '');
                 const isActive =
                   activeEpisodeId === episodeNumber ||
                   currentEpisode === episodeNumber;

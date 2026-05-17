@@ -28,6 +28,7 @@ import {
 } from '@/services/hikka/mapHikkaCatalog';
 import { refererForHikkaPageUrl } from '@/services/hikka/extractPageM3u8';
 import { extractHikkaM3u8Cached } from '@/server/hikka/extractM3u8Cached';
+import { HikkaFeaturesForbiddenError } from '@/services/hikka/hikkaOutboundFetch';
 
 type WatchLang = 'sub' | 'dub';
 
@@ -694,6 +695,16 @@ async function computeHikkaWatchResolveOutcome(params: {
       },
     };
   } catch (error) {
+    if (error instanceof HikkaFeaturesForbiddenError) {
+      return {
+        status: 403,
+        body: {
+          success: false,
+          error: 'hikka_features_forbidden',
+          reason: 'Hikka Features API blocked this host. Configure HIKKA_FEATURES_RELAY_BASE on Vercel.',
+        },
+      };
+    }
     return {
       status: 502,
       body: {

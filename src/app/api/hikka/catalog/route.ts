@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { resolveHikkaCatalogCached } from '@/server/hikka/catalogMatchCached';
+import { HikkaFeaturesForbiddenError } from '@/services/hikka/hikkaOutboundFetch';
 
 const BodySchema = z.object({
   anilistId: z.string().min(1),
@@ -54,6 +55,17 @@ export async function POST(req: Request) {
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch (e) {
+    if (e instanceof HikkaFeaturesForbiddenError) {
+      return Response.json(
+        {
+          success: false,
+          error: 'hikka_features_forbidden',
+          reason:
+            'Hikka Features API blocks this server IP (common on Vercel). Set HIKKA_FEATURES_RELAY_BASE to a small Cloudflare Worker proxy — see workers/hikka-features-relay.',
+        },
+        { status: 403, headers: { 'Cache-Control': 'no-store' } }
+      );
+    }
     return Response.json(
       {
         success: false,

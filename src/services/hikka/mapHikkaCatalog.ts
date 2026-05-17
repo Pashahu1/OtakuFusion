@@ -113,8 +113,8 @@ export function mapHikkaTeamEpisodes(
       title: `Episode ${epNo}`,
       japanese_title: `Episode ${epNo}`,
       ep_token: epToken,
-      hasSub: false,
-      hasDub: true,
+      hasSub: true,
+      hasDub: false,
     });
   }
   return out;

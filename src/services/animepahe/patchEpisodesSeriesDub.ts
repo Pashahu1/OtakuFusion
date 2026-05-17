@@ -9,6 +9,6 @@ export function patchEpisodesSeriesDub(
   return episodes.map((ep) => {
     const hasSub = ep.hasSub !== false;
     const variant = hasSub ? 'Sub | Dub' : 'Dub';
-    return { ...ep, hasDub: true, variant };
+    return { ...ep, variant };
   });
 }

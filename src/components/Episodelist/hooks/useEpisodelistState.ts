@@ -1,4 +1,4 @@
-import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
+import { episodeMatchesSelection } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import {
   useEffect,
@@ -36,8 +36,8 @@ export function useEpisodelistState(
 
   useEffect(() => {
     if (!Array.isArray(episodes)) return;
-    const activeEpisode = episodes.find(
-      (item) => getEpisodeNumberFromId(item?.id) === activeEpisodeId
+    const activeEpisode = episodes.find((item) =>
+      episodeMatchesSelection(item, activeEpisodeId)
     );
     if (activeEpisode) {
       setEpisodeNum(String(activeEpisode.episode_no));
