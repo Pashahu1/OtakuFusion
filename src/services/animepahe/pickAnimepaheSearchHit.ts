@@ -78,3 +78,18 @@ export function pickBestAnimepaheSearchHit(
   if (ranked.length > 1 && best.s - ranked[1].s < MIN_LEAD_OVER_RUNNER_UP) return null;
   return best.h;
 }
+
+/** Якщо «впевненого» матчу немає — беремо найкращий за score (мінімум збіг підрядка). */
+export function pickBestAnimepaheSearchHitRelaxed(
+  hits: CrysolineAnimepaheSearchRow[],
+  hints: AnimepaheCatalogHints,
+  terms: string[]
+): CrysolineAnimepaheSearchRow | null {
+  if (!hits.length) return null;
+  const ranked = hits
+    .map((h) => ({ h, s: scoreHit(h, hints, terms) }))
+    .sort((a, b) => b.s - a.s);
+  const best = ranked[0];
+  if (!best || !Number.isFinite(best.s) || best.s < 42) return null;
+  return best.h;
+}

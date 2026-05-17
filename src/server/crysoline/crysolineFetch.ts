@@ -11,6 +11,12 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));
 }
 
+function read429MaxWaitMs(): number {
+  const raw = Number(process.env.CRYSOLINE_429_MAX_WAIT_MS);
+  if (Number.isFinite(raw) && raw >= 2000 && raw <= 90_000) return Math.floor(raw);
+  return 12_000;
+}
+
 /** Пауза до `resetTime` з тіла 429 Crysoline + невеликий буфер. */
 function parse429WaitMs(bodyText: string): number {
   try {
@@ -18,7 +24,8 @@ function parse429WaitMs(bodyText: string): number {
     if (typeof j.resetTime !== 'string') return 6000;
     const t = new Date(j.resetTime).getTime();
     if (!Number.isFinite(t)) return 6000;
-    return clamp(t - Date.now() + 750, 2000, 90_000);
+    const maxWait = read429MaxWaitMs();
+    return clamp(t - Date.now() + 750, 2000, maxWait);
   } catch {
     return 6000;
   }

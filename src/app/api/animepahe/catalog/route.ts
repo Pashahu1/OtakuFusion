@@ -8,6 +8,17 @@ import {
 } from '@/services/animepahe/catalogHints';
 import { enrichEpisodesWithSeriesDubIfNeeded } from '@/server/animepahe/dubProbe';
 
+type CatalogJsonResponse = {
+  success: boolean;
+  error?: string;
+  paheId?: string;
+  episodes?: unknown[];
+  totalEpisodes?: number;
+  hasSeriesDub?: boolean;
+};
+
+const inflightCatalogByAnilistId = new Map<string, Promise<CatalogJsonResponse>>();
+
 const BodySchema = z.object({
   anilistId: z.string().min(1),
   title: z.string().min(1),
@@ -97,38 +108,61 @@ export async function POST(req: Request) {
     process.env.ANIMEPAHE_SKIP_SERIES_DUB_PROBE === '1' ||
     process.env.ANIMEPAHE_SKIP_SERIES_DUB_PROBE === 'true';
 
-  try {
-    const paheId = await resolveAnimepahePaheIdCached(body, hints, baseTerms);
-    if (!paheId) {
-      return Response.json(
-        { success: false, error: 'animepahe_catalog_not_found' },
-        { status: 404, headers: { 'Cache-Control': 'no-store' } }
-      );
-    }
+  const anilistKey = body.anilistId.trim();
 
-    const { episodes, totalEpisodes } = await getAnimePaheEpisodesCached(paheId);
-    const episodesOut = skipDubProbe
-      ? episodes
-      : await enrichEpisodesWithSeriesDubIfNeeded(paheId, episodes);
-    const hasSeriesDub =
-      !skipDubProbe && episodesOut.some((e) => e.hasDub === true);
-    return Response.json(
-      {
+  const runCatalog = async (): Promise<CatalogJsonResponse> => {
+    try {
+      const paheId = await resolveAnimepahePaheIdCached(body, hints, baseTerms);
+      if (!paheId) {
+        return { success: false, error: 'animepahe_catalog_not_found' };
+      }
+
+      const { episodes, totalEpisodes } = await getAnimePaheEpisodesCached(paheId);
+      const episodesOut = skipDubProbe
+        ? episodes
+        : await enrichEpisodesWithSeriesDubIfNeeded(paheId, episodes);
+      const hasSeriesDub =
+        !skipDubProbe && episodesOut.some((e) => e.hasDub === true);
+      return {
         success: true,
         paheId,
         episodes: episodesOut,
         totalEpisodes,
         hasSeriesDub,
-      },
-      { headers: { 'Cache-Control': 'no-store' } }
-    );
-  } catch (e) {
-    return Response.json(
-      {
+      };
+    } catch (e) {
+      return {
         success: false,
         error: e instanceof Error ? e.message : 'animepahe_episodes_failed',
-      },
-      { status: 502, headers: { 'Cache-Control': 'no-store' } }
-    );
+      };
+    }
+  };
+
+  const existing = inflightCatalogByAnilistId.get(anilistKey);
+  if (existing) {
+    const shared = await existing;
+    const status = shared.success ? 200 : shared.error === 'animepahe_catalog_not_found' ? 404 : 502;
+    return Response.json(shared, {
+      status,
+      headers: { 'Cache-Control': 'no-store' },
+    });
   }
+
+  const promise = runCatalog().finally(() => {
+    if (inflightCatalogByAnilistId.get(anilistKey) === promise) {
+      inflightCatalogByAnilistId.delete(anilistKey);
+    }
+  });
+  inflightCatalogByAnilistId.set(anilistKey, promise);
+
+  const result = await promise;
+  const status = result.success
+    ? 200
+    : result.error === 'animepahe_catalog_not_found'
+      ? 404
+      : 502;
+  return Response.json(result, {
+    status,
+    headers: { 'Cache-Control': 'no-store' },
+  });
 }

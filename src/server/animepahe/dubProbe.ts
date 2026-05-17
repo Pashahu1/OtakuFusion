@@ -22,24 +22,44 @@ function applySeriesDubHint(episodes: EpisodesTypes[], hasSeriesDub: boolean): E
   });
 }
 
+function readDubProbeTimeoutMs(): number {
+  const raw = Number(process.env.ANIMEPAHE_DUB_PROBE_TIMEOUT_MS);
+  if (Number.isFinite(raw) && raw >= 800 && raw <= 20_000) return Math.floor(raw);
+  return 4500;
+}
+
+async function enrichEpisodesWithSeriesDubInner(
+  seriesId: string,
+  episodes: EpisodesTypes[]
+): Promise<EpisodesTypes[]> {
+  const hash = episodes[0]?.ep_token?.trim();
+  if (!hash) return episodes;
+  const payload = await getAnimePaheSourcesCached(seriesId.trim(), hash);
+  if (sourcesPayloadHasDub(payload)) {
+    return applySeriesDubHint(episodes, true);
+  }
+  return episodes;
+}
+
 /**
  * Один запит `sources` для першого епізоду: якщо є дуб у відповіді Crysoline — позначаємо весь список (серіал).
  * Помилки (429 тощо) ігноруємо — повертаємо `episodes` без змін.
+ * Таймаут за замовч. 4.5 с — каталог не блокується на повільному sources.
  */
 export async function enrichEpisodesWithSeriesDubIfNeeded(
   seriesId: string,
   episodes: EpisodesTypes[]
 ): Promise<EpisodesTypes[]> {
   if (!episodes.length) return episodes;
-  const hash = episodes[0]?.ep_token?.trim();
-  if (!hash) return episodes;
+  const timeoutMs = readDubProbeTimeoutMs();
   try {
-    const payload = await getAnimePaheSourcesCached(seriesId.trim(), hash);
-    if (sourcesPayloadHasDub(payload)) {
-      return applySeriesDubHint(episodes, true);
-    }
+    return await Promise.race([
+      enrichEpisodesWithSeriesDubInner(seriesId, episodes),
+      new Promise<EpisodesTypes[]>((resolve) => {
+        setTimeout(() => resolve(episodes), timeoutMs);
+      }),
+    ]);
   } catch {
-    /* ignore */
+    return episodes;
   }
-  return episodes;
 }
