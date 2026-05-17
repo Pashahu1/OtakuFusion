@@ -29,6 +29,7 @@ interface WatchResolveOptions {
   streamAnime: WatchStreamAnimeMeta | null;
   providerAnimeId?: string | null;
   episodeEpToken?: string | null;
+  episodeHasDub?: boolean;
   preferredLang: 'sub' | 'dub';
   onPlaybackLangResolved?: (lang: 'sub' | 'dub') => void;
   watchStreamProvider: WatchStreamProvider;
@@ -162,6 +163,12 @@ export function useWatchStream(
   const resolveOptsRef = useRef(watchResolveOptions);
   resolveOptsRef.current = watchResolveOptions;
 
+  /** Актуальний ep_token без повторного resolve при тій самій серії (див. deps ефекту). */
+  const episodeEpTokenRef = useRef(watchResolveOptions?.episodeEpToken);
+  episodeEpTokenRef.current = watchResolveOptions?.episodeEpToken;
+  const episodeHasDubRef = useRef(watchResolveOptions?.episodeHasDub);
+  episodeHasDubRef.current = watchResolveOptions?.episodeHasDub;
+
   useEffect(() => {
     if (!watchResolveOptions?.streamAnime || !watchResolveOptions.episodeId) {
       setStreamInfo(null);
@@ -213,7 +220,8 @@ export function useWatchStream(
           keyword: streamAnime.title,
           localAnimeId: watchResolveOptions.animeId,
           providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
-          episodeEpToken: watchResolveOptions.episodeEpToken?.trim() || undefined,
+          episodeEpToken: episodeEpTokenRef.current?.trim() || undefined,
+          episodeHasDub: episodeHasDubRef.current,
           episode: episodeNumber,
           lang: preferredLang,
           streamProvider:
@@ -318,7 +326,6 @@ export function useWatchStream(
     watchResolveOptions?.animeId,
     watchResolveOptions?.episodeId,
     watchResolveOptions?.providerAnimeId,
-    watchResolveOptions?.episodeEpToken,
     watchResolveOptions?.preferredLang,
     watchResolveOptions?.watchStreamProvider,
     watchResolveOptions?.streamLangRevision,

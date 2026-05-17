@@ -26,10 +26,18 @@ export interface AnimepaheCatalogBffErr {
   error: string;
 }
 
-export async function postAnimepaheCatalog(
+export type AnimepaheCatalogBffResult = AnimepaheCatalogBffOk | AnimepaheCatalogBffErr;
+
+const inFlightCatalogByAnilistId = new Map<string, Promise<AnimepaheCatalogBffResult>>();
+
+function catalogDedupeKey(body: AnimepaheCatalogBffBody): string {
+  return body.anilistId.trim();
+}
+
+async function fetchAnimepaheCatalog(
   body: AnimepaheCatalogBffBody,
   signal?: AbortSignal
-): Promise<AnimepaheCatalogBffOk | AnimepaheCatalogBffErr> {
+): Promise<AnimepaheCatalogBffResult> {
   const res = await fetch('/api/animepahe/catalog', {
     method: 'POST',
     cache: 'no-store',
@@ -63,4 +71,29 @@ export async function postAnimepaheCatalog(
     return { success: false, error: 'animepahe_catalog_bad_shape' };
   }
   return ok;
+}
+
+/** Один in-flight POST /catalog на anilistId — менше 429 при швидких переходах по картках. */
+export async function postAnimepaheCatalog(
+  body: AnimepaheCatalogBffBody,
+  signal?: AbortSignal
+): Promise<AnimepaheCatalogBffResult> {
+  const key = catalogDedupeKey(body);
+  if (!key) {
+    return fetchAnimepaheCatalog(body, signal);
+  }
+
+  const existing = inFlightCatalogByAnilistId.get(key);
+  if (existing) {
+    return existing;
+  }
+
+  const promise = fetchAnimepaheCatalog(body).finally(() => {
+    if (inFlightCatalogByAnilistId.get(key) === promise) {
+      inFlightCatalogByAnilistId.delete(key);
+    }
+  });
+
+  inFlightCatalogByAnilistId.set(key, promise);
+  return promise;
 }

@@ -177,6 +177,16 @@ export function useWatch(
     return token || null;
   }, [anime.episodes, anime.episodeId]);
 
+  const episodeHasDubForResolve = useMemo((): boolean | undefined => {
+    if (!anime.episodeId || !anime.episodes?.length) return undefined;
+    const ep = anime.episodes.find(
+      (e: EpisodesTypes) => getEpisodeNumberFromId(e.id) === anime.episodeId
+    );
+    if (ep?.hasDub === true) return true;
+    if (ep?.hasDub === false) return false;
+    return undefined;
+  }, [anime.episodes, anime.episodeId]);
+
   const watchResolveOptions = useMemo(
     () => ({
       animeId,
@@ -187,6 +197,7 @@ export function useWatch(
           ? anime.anilibertyCatalogProviderId
           : anime.animepaheCatalogProviderId,
       episodeEpToken,
+      episodeHasDub: episodeHasDubForResolve,
       preferredLang: resolverLang,
       onPlaybackLangResolved,
       watchStreamProvider,
@@ -199,6 +210,7 @@ export function useWatch(
       anime.animepaheCatalogProviderId,
       anime.anilibertyCatalogProviderId,
       episodeEpToken,
+      episodeHasDubForResolve,
       animeId,
       watchStreamProvider,
       resolverLang,
@@ -209,6 +221,11 @@ export function useWatch(
   );
 
   const stream = useWatchStream(watchResolveOptions);
+
+  useEffect(() => {
+    if (!stream.streamUrl) return;
+    anime.runDeferredOppositeProviderPrefetch();
+  }, [stream.streamUrl, animeId, anime.runDeferredOppositeProviderPrefetch]);
 
   /**
    * Dub (English) часто падає через блокування/відсутність джерел — автоматично

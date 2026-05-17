@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { getAnimeInfo } from '@/services/getAnimeInfo';
 import { postAnimepaheCatalog, type AnimepaheCatalogBffOk } from '@/lib/animepahe-catalog-bff';
 import { postAnilibertyCatalog, type AnilibertyCatalogBffOk } from '@/lib/aniliberty-catalog-bff';
@@ -36,6 +36,8 @@ export interface UseWatchAnimeReturn {
   anilibertyLanguageMenuEligible: boolean;
   /** М’яка зміна Animepahe ↔ Anilibria — список епізодів не скидається. */
   providerCatalogPending: boolean;
+  /** Після появи streamUrl — тихий prefetch іншого провайдера (не конкурує з resolve). */
+  runDeferredOppositeProviderPrefetch: () => void;
 }
 
 function getErrorMessage(err: unknown): string {
@@ -141,6 +143,28 @@ function prefetchAnilibertyMapping(
   })();
 }
 
+function prefetchAnimepaheMapping(
+  dataForResolve: AnimeData,
+  localAnimeId: string,
+  signal: AbortSignal,
+  isCancelled: () => boolean,
+  onMapped: (paheId: string) => void
+): void {
+  if (readVerifiedPaheMapping(localAnimeId)?.paheId) return;
+  const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
+  void (async () => {
+    try {
+      const alt = await postAnimepaheCatalog(catalogPayload, signal);
+      if (isCancelled() || signal.aborted) return;
+      if (!alt.success || !alt.paheId?.trim()) return;
+      writeVerifiedPaheMapping(localAnimeId, alt.paheId.trim(), alt.hasSeriesDub === true);
+      onMapped(alt.paheId.trim());
+    } catch {
+      /* тихий префетч */
+    }
+  })();
+}
+
 function catalogBodyFromAnimeData(data: AnimeData, anilistKey: string) {
   return {
     anilistId: anilistKey,
@@ -177,6 +201,14 @@ export function useWatchAnime(
   const initialEpisodeRef = useRef(initialEpisodeId);
   initialEpisodeRef.current = initialEpisodeId;
 
+  const deferredOppositePrefetchRef = useRef<{
+    animeId: string;
+    data: AnimeData;
+    provider: WatchStreamProvider;
+  } | null>(null);
+  const oppositePrefetchDoneRef = useRef<string | null>(null);
+  const oppositePrefetchAbortRef = useRef<AbortController | null>(null);
+
   const [episodeRemapPass, setEpisodeRemapPass] = useState(0);
 
   useEffect(() => {
@@ -195,6 +227,50 @@ export function useWatchAnime(
     setError(null);
     setAnilibertyLanguageMenuEligible(false);
     setProviderCatalogPending(false);
+    deferredOppositePrefetchRef.current = null;
+    oppositePrefetchDoneRef.current = null;
+    oppositePrefetchAbortRef.current?.abort();
+    oppositePrefetchAbortRef.current = null;
+  }, [animeId]);
+
+  const runDeferredOppositeProviderPrefetch = useCallback(() => {
+    const pending = deferredOppositePrefetchRef.current;
+    if (!pending || pending.animeId !== animeId) return;
+    if (oppositePrefetchDoneRef.current === animeId) return;
+    oppositePrefetchDoneRef.current = animeId;
+
+    oppositePrefetchAbortRef.current?.abort();
+    const controller = new AbortController();
+    oppositePrefetchAbortRef.current = controller;
+    const { signal } = controller;
+    const isCancelled = () => oppositePrefetchAbortRef.current !== controller;
+
+    if (pending.provider === 'animepahe') {
+      prefetchAnilibertyMapping(
+        pending.data,
+        animeId,
+        signal,
+        () => isCancelled() || signal.aborted,
+        () => {
+          if (!isCancelled() && !signal.aborted) {
+            setAnilibertyLanguageMenuEligible(true);
+          }
+        }
+      );
+      return;
+    }
+
+    prefetchAnimepaheMapping(
+      pending.data,
+      animeId,
+      signal,
+      () => isCancelled() || signal.aborted,
+      (paheId) => {
+        if (!isCancelled() && !signal.aborted) {
+          setAnimepaheCatalogProviderId(paheId);
+        }
+      }
+    );
   }, [animeId]);
 
   const animeInfoRef = useRef(animeInfo);
@@ -262,25 +338,11 @@ export function useWatchAnime(
       }
 
       if (!forceFuzzy) {
-        prefetchAnilibertyMapping(dataForResolve, animeId, signal, () => cancelled, () => {
-          if (!cancelled) setAnilibertyLanguageMenuEligible(true);
-        });
-        if (watchStreamProvider === 'aniliberty') {
-          const catalogPayload = catalogBodyFromAnimeData(dataForResolve, animeId);
-          void (async () => {
-            try {
-              if (cancelled || signal.aborted) return;
-              if (readVerifiedPaheMapping(animeId)?.paheId) return;
-              const alt = await postAnimepaheCatalog(catalogPayload, signal);
-              if (cancelled || signal.aborted) return;
-              if (!alt.success || !alt.paheId?.trim()) return;
-              writeVerifiedPaheMapping(animeId, alt.paheId.trim(), alt.hasSeriesDub === true);
-              if (!cancelled) setAnimepaheCatalogProviderId(alt.paheId.trim());
-            } catch {
-              /* тихий префетч */
-            }
-          })();
-        }
+        deferredOppositePrefetchRef.current = {
+          animeId,
+          data: dataForResolve,
+          provider: watchStreamProvider,
+        };
       }
 
       const mergedEpisodes = applyAnilistEpisodeDisplayTitles(
@@ -553,10 +615,6 @@ export function useWatchAnime(
           return;
         }
 
-        prefetchAnilibertyMapping(dataForResolve, animeId, signal, () => cancelled, () => {
-          if (!cancelled) setAnilibertyLanguageMenuEligible(true);
-        });
-
         try {
           const forceFuzzy = episodeRemapPass > 0;
           await runCatalogPipeline({
@@ -622,5 +680,6 @@ export function useWatchAnime(
     error,
     anilibertyLanguageMenuEligible,
     providerCatalogPending,
+    runDeferredOppositeProviderPrefetch,
   };
 }

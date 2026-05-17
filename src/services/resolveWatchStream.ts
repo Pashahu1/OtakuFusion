@@ -25,6 +25,8 @@ export interface WatchResolveParams {
   providerAniId?: string;
   /** Anilibria episode uuid з каталогу — пропускає повторний fetch списку епізодів на resolve. */
   episodeEpToken?: string;
+  /** `hasDub` з каталогу — разом з ep_token пропускає повторний fetch епізодів Animepahe. */
+  episodeHasDub?: boolean;
   episode: number;
   lang: 'sub' | 'dub';
   keyword?: string;
@@ -87,6 +89,8 @@ export async function resolveWatchStream(
   if (params.providerAniId?.trim()) query.set('ani_id', params.providerAniId.trim());
   const epToken = params.episodeEpToken?.trim();
   if (epToken) query.set('ep_token', epToken);
+  if (params.episodeHasDub === true) query.set('episode_has_dub', '1');
+  if (params.episodeHasDub === false) query.set('episode_has_dub', '0');
   if (params.keyword) {
     const keyword = normalizeKeyword(params.keyword);
     if (keyword) query.set('keyword', keyword);
