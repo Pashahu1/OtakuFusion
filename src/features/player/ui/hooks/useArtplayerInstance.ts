@@ -114,7 +114,6 @@ export function useArtplayerInstance({
   const animeInfoRef = useRef(animeInfo);
   const hasTriggeredNextRef = useRef(false);
   const userPausedRef = useRef(false);
-  const upNextDismissedRef = useRef(false);
 
   const streamBootKey = useMemo(() => {
     const subKey = (subtitles ?? [])
@@ -153,7 +152,6 @@ export function useArtplayerInstance({
   useEffect(() => {
     hasTriggeredNextRef.current = false;
     userPausedRef.current = false;
-    upNextDismissedRef.current = false;
   }, [episodeId, episodes]);
 
   useEffect(() => {
@@ -171,7 +169,6 @@ export function useArtplayerInstance({
 
     const deferStrictInit = readPlayerDeferStrictInit();
 
-    upNextDismissedRef.current = false;
     const container = artRef.current;
     if (artInstanceRef.current) {
       const prev = artInstanceRef.current;
@@ -394,20 +391,6 @@ export function useArtplayerInstance({
       const next = list?.[idx + 1];
       const info = animeInfoRef.current;
 
-      if (upNextDismissedRef.current) {
-        if (
-          !next &&
-          info?.id &&
-          info.data_id != null &&
-          list &&
-          list.length > 0 &&
-          idx >= 0
-        ) {
-          removeFromContinueWatching(info.id, info.data_id);
-        }
-        return;
-      }
-
       if (next) {
         const nextId = getEpisodeNumberFromId(next.id);
         if (nextId) {
@@ -433,14 +416,7 @@ export function useArtplayerInstance({
         rawLang === 'dub' || rawLang === 'sub' ? rawLang : null;
       setupPlayerReady(
         art,
-        playNextPropRef,
-        episodeIdRef,
         thumbnail,
-        episodesRef,
-        currentEpisodeIndexRef,
-        hasTriggeredNextRef,
-        upNextDismissedRef,
-        onEpisodeWatchedRef,
         setActiveServerId,
         userPausedRef,
         artRef,

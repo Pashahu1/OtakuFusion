@@ -1,6 +1,5 @@
 import Artplayer from 'artplayer';
 import { SERVER_PRIORITY_ORDER, mirrorServerLabel } from '@/shared/data/servers';
-import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { captionIcon, serverIcon } from './PlayerIcons';
 import { ANIKAI_PAGE_REFERER, LOGO_HIDE_DELAY_MS, M3U8_PROXY_URL, PROXY_URL } from './playerConstants';
 import { isHlsDirectHostUrl } from './playerStream';
@@ -8,7 +7,6 @@ import { artplayerPluginVttThumbnail } from './artPlayerPluginVttThumbnail';
 import { handlePlayerKeydown } from './playerKeydown';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
-import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import {
@@ -61,16 +59,7 @@ function scheduleIdle(fn: () => void): void {
 
 export function setupPlayerReady(
   art: Artplayer,
-  playNextPropRef: React.RefObject<(episodeId: string) => void>,
-  episodeIdRef: React.RefObject<string | null>,
   thumbnail: string | null,
-  episodesRef: React.RefObject<EpisodesTypes[] | null>,
-  currentEpisodeIndexRef: React.RefObject<number | null | undefined>,
-  hasTriggeredNextRef: React.RefObject<boolean>,
-  upNextDismissedRef: React.RefObject<boolean>,
-  onEpisodeWatchedRef: React.RefObject<
-    ((episodeId: string) => void) | null | undefined
-  >,
   setActiveServerId: (id: string | null) => void,
   userPausedRef: React.RefObject<boolean>,
   artRef: React.RefObject<HTMLDivElement | null>,
@@ -86,20 +75,6 @@ export function setupPlayerReady(
   skipSegments: StreamingData['skipSegments'] | null | undefined
 ) {
   let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  const goToNextEpisode = () => {
-    if (hasTriggeredNextRef.current) return;
-    const id = episodeIdRef.current;
-    const list = episodesRef.current;
-    const idx = currentEpisodeIndexRef.current ?? -1;
-    const epId = id != null ? String(id) : '';
-    if (epId) onEpisodeWatchedRef.current?.(epId);
-    const next = list?.[idx + 1];
-    if (!next) return;
-    const nextId = getEpisodeNumberFromId(next.id);
-    if (!nextId) return;
-    hasTriggeredNextRef.current = true;
-    playNextPropRef.current?.(nextId);
-  };
 
   const tryPlay = () => {
     if (userPausedRef.current) return;
@@ -157,26 +132,6 @@ export function setupPlayerReady(
   });
 
   const logoLayer = art.layers.siteLogo as HTMLElement | undefined;
-  const upNextRoot = art.layers['upNext'] as HTMLDivElement | undefined;
-
-  if (upNextRoot && !upNextRoot.dataset.ofUpnextBound) {
-    upNextRoot.dataset.ofUpnextBound = '1';
-    upNextRoot
-      .querySelector('[data-upnext-play]')
-      ?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        goToNextEpisode();
-      });
-    upNextRoot
-      .querySelector('[data-upnext-cancel]')
-      ?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        upNextDismissedRef.current = true;
-        upNextRoot.style.display = 'none';
-      });
-  }
 
   const introSeg = skipSegments?.intro;
   const outroSeg = skipSegments?.outro;
@@ -272,67 +227,8 @@ export function setupPlayerReady(
     logoLayer.style.transform = 'translateY(-10px) scale(0.95)';
   }, LOGO_HIDE_DELAY_MS);
 
-  let upNextPanelVisible = false;
-  let lastUpNextTick = -1;
-
   const onTimeUpdate = () => {
-    const t = art.currentTime;
-    syncSkipSegmentOverlay(t);
-
-    const duration = art.video?.duration ?? art.duration;
-    const list = episodesRef.current;
-    const idx = currentEpisodeIndexRef.current ?? -1;
-    const hasNextEpisode = list != null && list[idx + 1] != null;
-
-    if (
-      !upNextRoot ||
-      !hasNextEpisode ||
-      !Number.isFinite(duration) ||
-      duration <= 0
-    ) {
-      if (upNextPanelVisible && upNextRoot) {
-        upNextRoot.style.display = 'none';
-        upNextPanelVisible = false;
-        lastUpNextTick = -1;
-      }
-      return;
-    }
-
-    if (upNextDismissedRef.current) {
-      if (upNextPanelVisible) {
-        upNextRoot.style.display = 'none';
-        upNextPanelVisible = false;
-        lastUpNextTick = -1;
-      }
-      return;
-    }
-
-    const tailStart = Math.max(0, duration - 15);
-    if (t < tailStart) {
-      if (upNextPanelVisible) {
-        upNextRoot.style.display = 'none';
-        upNextPanelVisible = false;
-        lastUpNextTick = -1;
-      }
-      return;
-    }
-
-    if (t >= duration) return;
-
-    if (!upNextPanelVisible) {
-      upNextRoot.style.display = 'flex';
-      upNextPanelVisible = true;
-    }
-
-    const left = Math.max(0, Math.ceil(duration - t));
-    const cdEl = upNextRoot.querySelector(
-      '[data-upnext-countdown]'
-    ) as HTMLDivElement | null;
-    if (left !== lastUpNextTick && cdEl) {
-      lastUpNextTick = left;
-      cdEl.textContent = left <= 0 ? '0 с' : `${left} с`;
-    }
-    if (left <= 0) goToNextEpisode();
+    syncSkipSegmentOverlay(art.currentTime);
   };
 
   art.on('video:timeupdate', onTimeUpdate);
