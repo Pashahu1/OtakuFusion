@@ -50,6 +50,8 @@ interface AniListMedia {
   status?: string | null;
   episodes?: number | null;
   averageScore?: number | null;
+  popularity?: number | null;
+  favourites?: number | null;
   isAdult?: boolean | null;
   seasonYear?: number | null;
   startDate?: AniListDate | null;
@@ -423,6 +425,63 @@ export async function getAniListMediaPage(
     status: params.status,
     format: params.format,
     genre: params.genre,
+    search: params.search,
+  });
+
+  return data.Page;
+}
+
+/** Легкий запит для сторінки пошуку (без description/banner). */
+export async function getAniListSearchPage(params: {
+  search: string;
+  page?: number;
+  perPage?: number;
+}): Promise<AniListPageResponse> {
+  const query = `
+    query ($page: Int, $perPage: Int, $search: String) {
+      Page(page: $page, perPage: $perPage) {
+        pageInfo {
+          currentPage
+          hasNextPage
+          lastPage
+          total
+          perPage
+        }
+        media(type: ANIME, sort: [SEARCH_MATCH], search: $search) {
+          id
+          title {
+            romaji
+            english
+            native
+          }
+          synonyms
+          coverImage {
+            extraLarge
+            large
+            medium
+          }
+          format
+          duration
+          status
+          episodes
+          averageScore
+          popularity
+          favourites
+          seasonYear
+          isAdult
+          startDate {
+            year
+            month
+            day
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await anilistRequest<{ Page: AniListPageResponse }>(query, {
+    page: params.page ?? 1,
+    perPage: params.perPage ?? 24,
     search: params.search,
   });
 

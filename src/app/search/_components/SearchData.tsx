@@ -1,4 +1,7 @@
-import { getAnimeSearch } from '@/services/getAnimeSearch';
+import {
+  ANIME_SEARCH_MIN_QUERY_LENGTH,
+  getAnimeSearch,
+} from '@/services/getAnimeSearch';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import {
@@ -9,8 +12,16 @@ import { EmptyState } from '@/components/ui/states/EmptyState';
 import type { AnimeSearchItems } from '@/shared/types/AnimeSearchTypes';
 
 export async function SearchData({ keyword }: { keyword: string }) {
-  if (!keyword.trim()) {
+  const trimmed = keyword.trim();
+
+  if (!trimmed) {
     return <EmptyState message="Please enter Anime name." />;
+  }
+
+  if (trimmed.length < ANIME_SEARCH_MIN_QUERY_LENGTH) {
+    return (
+      <EmptyState message={`Enter at least ${ANIME_SEARCH_MIN_QUERY_LENGTH} characters to search.`} />
+    );
   }
 
   let results: AnimeSearchItems[] | null = null;
