@@ -335,6 +335,7 @@ export function useWatch(
   return {
     error,
     buffering: stream.buffering,
+    streamLoadingMessage: stream.streamLoadingMessage,
     streamInfo: stream.streamInfo,
     animeInfo: anime.animeInfo,
     episodes: episodesForUi,

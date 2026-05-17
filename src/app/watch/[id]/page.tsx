@@ -35,6 +35,7 @@ export default function Watch() {
   >(`watched-${animeId}`, {});
   const {
     buffering,
+    streamLoadingMessage,
     streamInfo,
     animeInfo,
     episodes,
@@ -120,6 +121,7 @@ export default function Watch() {
             animeId={animeId}
             playerColumnRef={playerColumnRef}
             buffering={buffering}
+            streamLoadingMessage={streamLoadingMessage}
             streamUrl={streamUrl}
             subtitles={subtitles}
             thumbnail={thumbnail}

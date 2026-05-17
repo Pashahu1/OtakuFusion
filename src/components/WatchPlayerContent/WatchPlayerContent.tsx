@@ -12,6 +12,7 @@ type WatchPlayerContentProps = {
   animeId: string;
   playerColumnRef: React.RefObject<HTMLDivElement | null>;
   buffering: boolean;
+  streamLoadingMessage: string | null;
   streamUrl: string | null;
   subtitles: SubtitleItem[] | null;
   thumbnail: string | null;
@@ -40,6 +41,7 @@ export const WatchPlayerContent = ({
   animeId,
   playerColumnRef,
   buffering,
+  streamLoadingMessage,
   streamUrl,
   subtitles,
   thumbnail,
@@ -100,8 +102,13 @@ export const WatchPlayerContent = ({
     >
       <div className="player relative h-full w-full shrink-0 overflow-hidden rounded-xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.45)] min-[1401px]:h-full min-[1200px]:max-[1400px]:h-[40vw] max-[1199px]:h-[48vw] md:max-[1199px]:max-h-[520px] max-md:h-[58vw] max-[600px]:h-[65vw]">
         {showLoader && (
-          <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-black/50">
+          <div className="pointer-events-none absolute inset-0 z-[1] flex flex-col items-center justify-center gap-3 bg-black/50 px-4 text-center">
             <BouncingLoader />
+            {streamLoadingMessage ? (
+              <p className="max-w-sm text-sm font-medium text-white/90">
+                {streamLoadingMessage}
+              </p>
+            ) : null}
           </div>
         )}
 

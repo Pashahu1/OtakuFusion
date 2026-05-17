@@ -11,6 +11,8 @@ import type { WatchStreamProvider } from '@/lib/watch-provider';
 export interface UseWatchReturn {
   error: string | null;
   buffering: boolean;
+  /** Підпис під лоадером під час авто-retry resolve (англійською). */
+  streamLoadingMessage: string | null;
   streamInfo: StreamingData | null;
   animeInfo: AnimeData | null;
   episodes: EpisodesTypes[] | null;
