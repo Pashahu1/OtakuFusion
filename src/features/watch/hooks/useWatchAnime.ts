@@ -192,6 +192,22 @@ interface WarmAlternateCatalogEntry {
 }
 
 /** Префетч Anilibria mapping + меню Language ще до перемикання провайдера. */
+async function delayMs(ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) return;
+  await new Promise<void>((resolve, reject) => {
+    const id = window.setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      window.clearTimeout(id);
+      signal.removeEventListener('abort', onAbort);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
 function prefetchAnilibertyMapping(
   dataForResolve: AnimeData,
   localAnimeId: string,
@@ -203,7 +219,13 @@ function prefetchAnilibertyMapping(
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
     try {
-      const alt = await postAnilibertyCatalog(catalogPayload, signal);
+      let alt = await postAnilibertyCatalog(catalogPayload, signal);
+      if (isCancelled() || signal.aborted) return;
+      if (!alt.success || !alt.libertyId?.trim()) {
+        await delayMs(1400, signal);
+        if (isCancelled() || signal.aborted) return;
+        alt = await postAnilibertyCatalog(catalogPayload, signal);
+      }
       if (isCancelled() || signal.aborted) return;
       if (!alt.success || !alt.libertyId?.trim()) return;
       const actualCount = alt.totalEpisodes ?? alt.episodes?.length ?? 0;
@@ -231,7 +253,13 @@ function prefetchHikkaMapping(
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
     try {
-      const alt = await postHikkaCatalog(catalogPayload, signal);
+      let alt = await postHikkaCatalog(catalogPayload, signal);
+      if (isCancelled() || signal.aborted) return;
+      if (!alt.success || !alt.hikkaSlug?.trim() || !(alt.episodes?.length ?? 0)) {
+        await delayMs(1400, signal);
+        if (isCancelled() || signal.aborted) return;
+        alt = await postHikkaCatalog(catalogPayload, signal);
+      }
       if (isCancelled() || signal.aborted) return;
       if (!alt.success || !alt.hikkaSlug?.trim()) return;
       if (!(alt.episodes?.length ?? 0)) return;
@@ -506,6 +534,17 @@ export function useWatchAnime(
         }
         setAnimepaheCatalogProviderId(providerId);
         if (!forceFuzzy) {
+          const cachedHikka = readVerifiedHikkaMapping(animeId);
+          const cachedLiberty = readVerifiedLibertyMapping(animeId);
+          if (cachedHikka?.hikkaSlug) {
+            setHikkaCatalogProviderId(cachedHikka.hikkaSlug);
+            setHikkaLanguageMenuEligible(true);
+          }
+          if (cachedLiberty?.libertyId) {
+            setAnilibertyCatalogProviderId(cachedLiberty.libertyId);
+            setAnilibertyLanguageMenuEligible(true);
+          }
+
           oppositePrefetchDoneRef.current = animeId;
           alternateWarmupAbortRef.current?.abort();
           const warmupCtrl = new AbortController();

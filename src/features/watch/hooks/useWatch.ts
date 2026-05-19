@@ -86,7 +86,9 @@ export function useWatch(
     if (dubFromTv > 0) return true;
     // Епізоди Anilibria/Hikka не мають dub — не приховувати English після перемикання провайдера.
     if (watchStreamProvider !== 'animepahe') return false;
-    return Boolean(anime.episodes?.some((e) => e.hasDub === true));
+    if (Boolean(anime.episodes?.some((e) => e.hasDub === true))) return true;
+    /** На Animepahe dub часто є, навіть якщо probe вимкнено на сервері — пункт English лишаємо. */
+    return true;
   }, [
     anime.animeInfo?.animeInfo?.tvInfo?.has_dub,
     anime.episodes,

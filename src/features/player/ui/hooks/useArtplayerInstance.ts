@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useCallback } from 'react';
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
 
@@ -148,14 +148,18 @@ export function useArtplayerInstance({
   const watchStreamProviderRef = useRef(watchStreamProvider);
   const setWatchStreamProviderRef = useRef(setWatchStreamProvider);
   const setActiveServerIdRef = useRef(setActiveServerId);
+  const anilibertyEligibleRef = useRef(anilibertyLanguageMenuEligible ?? false);
+  const hikkaEligibleRef = useRef(hikkaLanguageMenuEligible ?? false);
 
   useEffect(() => {
     watchStreamProviderRef.current = watchStreamProvider;
     setWatchStreamProviderRef.current = setWatchStreamProvider;
     setActiveServerIdRef.current = setActiveServerId;
+    anilibertyEligibleRef.current = anilibertyLanguageMenuEligible ?? false;
+    hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
   });
 
-  useEffect(() => {
+  const syncLanguageMenuIfReady = useCallback(() => {
     const art = artInstanceRef.current;
     if (!art) return;
     syncPlayerLanguageMenu(art, {
@@ -164,15 +168,20 @@ export function useArtplayerInstance({
       watchStreamProvider: watchStreamProviderRef.current,
       setWatchStreamProvider: (next) => setWatchStreamProviderRef.current(next),
       setActiveServerId: (id) => setActiveServerIdRef.current(id),
-      anilibertyLanguageMenuEligible: anilibertyLanguageMenuEligible ?? false,
-      hikkaLanguageMenuEligible: hikkaLanguageMenuEligible ?? false,
+      anilibertyLanguageMenuEligible: anilibertyEligibleRef.current,
+      hikkaLanguageMenuEligible: hikkaEligibleRef.current,
     });
+  }, []);
+
+  useEffect(() => {
+    syncLanguageMenuIfReady();
   }, [
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     watchStreamProvider,
     activeServerId,
     servers,
+    syncLanguageMenuIfReady,
   ]);
 
   useEffect(() => {
@@ -465,10 +474,12 @@ export function useArtplayerInstance({
         activeServerIdRef,
         watchStreamProvider,
         setWatchStreamProvider,
-        anilibertyLanguageMenuEligible ?? false,
-        hikkaLanguageMenuEligible ?? false,
+        anilibertyEligibleRef.current,
+        hikkaEligibleRef.current,
         streamInfo?.skipSegments
       );
+      syncLanguageMenuIfReady();
+      queueMicrotask(syncLanguageMenuIfReady);
       attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);
       queueMicrotask(() => {
         updateContinueWatching(animeInfo, episodeId, episodeNum);
@@ -553,6 +564,7 @@ export function useArtplayerInstance({
 
       artInstanceRef.current = art;
       createdPlayer = art;
+      queueMicrotask(syncLanguageMenuIfReady);
     };
 
     if (deferStrictInit) {
