@@ -9,6 +9,7 @@ import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { getStreamFullUrl, getStreamHeaders } from '../playerStream';
 import { getArtplayerOptions } from '../getArtplayerOptions';
 import { setupPlayerReady } from '../setupPlayerReady';
+import { syncPlayerLanguageMenu } from '../syncPlayerLanguageMenu';
 import { attachStreamQualityMenu } from '../attachStreamQualityMenu';
 import {
   clampChaptersToDuration,
@@ -135,23 +136,43 @@ export function useArtplayerInstance({
           seg.outro ? `${seg.outro.start}-${seg.outro.end}` : '',
         ].join('|')
       : '';
-    return [
-      streamUrl,
-      thumbnail ?? '',
-      subKey,
-      segKey,
-      qvKey,
-      anilibertyLanguageMenuEligible ? '1' : '0',
-      hikkaLanguageMenuEligible ? '1' : '0',
-    ].join('\f');
+    return [streamUrl, thumbnail ?? '', subKey, segKey, qvKey].join('\f');
   }, [
     streamUrl,
     thumbnail,
     subtitles,
     streamInfo?.skipSegments,
     streamInfo?.qualityVariants,
+  ]);
+
+  const watchStreamProviderRef = useRef(watchStreamProvider);
+  const setWatchStreamProviderRef = useRef(setWatchStreamProvider);
+  const setActiveServerIdRef = useRef(setActiveServerId);
+
+  useEffect(() => {
+    watchStreamProviderRef.current = watchStreamProvider;
+    setWatchStreamProviderRef.current = setWatchStreamProvider;
+    setActiveServerIdRef.current = setActiveServerId;
+  });
+
+  useEffect(() => {
+    const art = artInstanceRef.current;
+    if (!art) return;
+    syncPlayerLanguageMenu(art, {
+      serversRef,
+      activeServerIdRef,
+      watchStreamProvider: watchStreamProviderRef.current,
+      setWatchStreamProvider: (next) => setWatchStreamProviderRef.current(next),
+      setActiveServerId: (id) => setActiveServerIdRef.current(id),
+      anilibertyLanguageMenuEligible: anilibertyLanguageMenuEligible ?? false,
+      hikkaLanguageMenuEligible: hikkaLanguageMenuEligible ?? false,
+    });
+  }, [
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
+    watchStreamProvider,
+    activeServerId,
+    servers,
   ]);
 
   useEffect(() => {

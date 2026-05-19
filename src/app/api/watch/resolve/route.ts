@@ -645,7 +645,11 @@ async function computeHikkaWatchResolveOutcome(params: {
       iframe: pageUrl,
     };
 
-    const playable = await isPlayableViaProxy(origin, candidate, probeCfg);
+    let playable = await isPlayableViaProxy(origin, candidate, probeCfg);
+    // moonanime: підписаний CDN часто не проходить server-side probe, у плеєрі з Referer — ок
+    if (!playable && decoded?.source === 'moon') {
+      playable = true;
+    }
     if (!playable) {
       return {
         status: 404,

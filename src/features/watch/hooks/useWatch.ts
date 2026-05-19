@@ -193,6 +193,11 @@ export function useWatch(
     return Number.isFinite(n) && n > 0 ? n : undefined;
   }, [anilistStillAiring, anime.animeInfo?.animeInfo?.tvInfo?.episodeTotal]);
 
+  const onAutoRetryExhausted = useCallback(() => {
+    setWatchStreamProvider('animepahe');
+    setActiveServerIdRaw('1');
+  }, [setWatchStreamProvider]);
+
   const watchResolveOptions = useMemo(
     () => ({
       animeId,
@@ -213,10 +218,13 @@ export function useWatch(
       watchStreamProvider,
       streamLangRevision,
       episodeDubStateKey,
+      providerCatalogPending: anime.providerCatalogPending,
+      onAutoRetryExhausted,
     }),
     [
       streamAnimeMeta,
       anime.episodeId,
+      anime.providerCatalogPending,
       anime.animepaheCatalogProviderId,
       anime.anilibertyCatalogProviderId,
       anime.hikkaCatalogProviderId,
@@ -230,6 +238,7 @@ export function useWatch(
       onPlaybackLangResolved,
       streamLangRevision,
       episodeDubStateKey,
+      onAutoRetryExhausted,
     ]
   );
 

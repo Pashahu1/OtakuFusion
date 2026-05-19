@@ -185,13 +185,20 @@ function writeVerifiedHikkaMapping(localAnimeId: string, hikkaSlug: string): voi
   }
 }
 
+interface WarmAlternateCatalogEntry {
+  animeId: string;
+  hikka?: { slug: string; episodes: EpisodesTypes[] };
+  liberty?: { libertyId: string; episodes: EpisodesTypes[] };
+}
+
 /** Префетч Anilibria mapping + меню Language ще до перемикання провайдера. */
 function prefetchAnilibertyMapping(
   dataForResolve: AnimeData,
   localAnimeId: string,
   signal: AbortSignal,
   isCancelled: () => boolean,
-  onEligible: () => void
+  onEligible: () => void,
+  onWarm?: (catalog: AnilibertyCatalogBffOk) => void
 ): void {
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
@@ -205,6 +212,7 @@ function prefetchAnilibertyMapping(
         return;
       }
       writeVerifiedLibertyMapping(localAnimeId, alt.libertyId.trim());
+      onWarm?.(alt);
       onEligible();
     } catch {
       /* тихий префетч */
@@ -217,7 +225,8 @@ function prefetchHikkaMapping(
   localAnimeId: string,
   signal: AbortSignal,
   isCancelled: () => boolean,
-  onEligible: () => void
+  onEligible: () => void,
+  onWarm?: (catalog: HikkaCatalogBffOk) => void
 ): void {
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
@@ -227,11 +236,41 @@ function prefetchHikkaMapping(
       if (!alt.success || !alt.hikkaSlug?.trim()) return;
       if (!(alt.episodes?.length ?? 0)) return;
       writeVerifiedHikkaMapping(localAnimeId, alt.hikkaSlug.trim());
+      onWarm?.(alt);
       onEligible();
     } catch {
       /* тихий префетч */
     }
   })();
+}
+
+/** Паралельний warmup Anilibria + Hikka під час першого Animepahe-завантаження. */
+function startAlternateProviderWarmup(
+  dataForResolve: AnimeData,
+  localAnimeId: string,
+  signal: AbortSignal,
+  isCancelled: () => boolean,
+  onHikkaEligible: () => void,
+  onLibertyEligible: () => void,
+  onHikkaWarm: (catalog: HikkaCatalogBffOk) => void,
+  onLibertyWarm: (catalog: AnilibertyCatalogBffOk) => void
+): void {
+  prefetchAnilibertyMapping(
+    dataForResolve,
+    localAnimeId,
+    signal,
+    isCancelled,
+    onLibertyEligible,
+    onLibertyWarm
+  );
+  prefetchHikkaMapping(
+    dataForResolve,
+    localAnimeId,
+    signal,
+    isCancelled,
+    onHikkaEligible,
+    onHikkaWarm
+  );
 }
 
 function prefetchAnimepaheMapping(
@@ -302,6 +341,8 @@ export function useWatchAnime(
   } | null>(null);
   const oppositePrefetchDoneRef = useRef<string | null>(null);
   const oppositePrefetchAbortRef = useRef<AbortController | null>(null);
+  const alternateWarmupAbortRef = useRef<AbortController | null>(null);
+  const warmCatalogsRef = useRef<WarmAlternateCatalogEntry | null>(null);
 
   const [episodeRemapPass, setEpisodeRemapPass] = useState(0);
 
@@ -327,6 +368,9 @@ export function useWatchAnime(
     oppositePrefetchDoneRef.current = null;
     oppositePrefetchAbortRef.current?.abort();
     oppositePrefetchAbortRef.current = null;
+    alternateWarmupAbortRef.current?.abort();
+    alternateWarmupAbortRef.current = null;
+    warmCatalogsRef.current = null;
   }, [animeId]);
 
   const runDeferredOppositeProviderPrefetch = useCallback(() => {
@@ -462,13 +506,57 @@ export function useWatchAnime(
         }
         setAnimepaheCatalogProviderId(providerId);
         if (!forceFuzzy) {
-          const prefetchCtrl = new AbortController();
-          prefetchHikkaMapping(
+          oppositePrefetchDoneRef.current = animeId;
+          alternateWarmupAbortRef.current?.abort();
+          const warmupCtrl = new AbortController();
+          alternateWarmupAbortRef.current = warmupCtrl;
+          const { signal: warmupSignal } = warmupCtrl;
+          const isWarmupCancelled = () =>
+            alternateWarmupAbortRef.current !== warmupCtrl || warmupSignal.aborted;
+
+          startAlternateProviderWarmup(
             dataForResolve,
             animeId,
-            prefetchCtrl.signal,
-            () => prefetchCtrl.signal.aborted,
-            () => setHikkaLanguageMenuEligible(true)
+            warmupSignal,
+            () => isWarmupCancelled() || warmupSignal.aborted,
+            () => {
+              if (!isWarmupCancelled()) setHikkaLanguageMenuEligible(true);
+            },
+            () => {
+              if (!isWarmupCancelled()) setAnilibertyLanguageMenuEligible(true);
+            },
+            (catalog) => {
+              if (isWarmupCancelled()) return;
+              const slug = catalog.hikkaSlug.trim();
+              const eps = catalog.episodes ?? [];
+              if (!slug || !eps.length) return;
+              const prev =
+                warmCatalogsRef.current?.animeId === animeId
+                  ? warmCatalogsRef.current
+                  : null;
+              warmCatalogsRef.current = {
+                animeId,
+                hikka: { slug, episodes: eps },
+                liberty: prev?.liberty,
+              };
+              setHikkaCatalogProviderId(slug);
+            },
+            (catalog) => {
+              if (isWarmupCancelled()) return;
+              const libertyId = catalog.libertyId.trim();
+              const eps = catalog.episodes ?? [];
+              if (!libertyId || !eps.length) return;
+              const prev =
+                warmCatalogsRef.current?.animeId === animeId
+                  ? warmCatalogsRef.current
+                  : null;
+              warmCatalogsRef.current = {
+                animeId,
+                liberty: { libertyId, episodes: eps },
+                hikka: prev?.hikka,
+              };
+              setAnilibertyCatalogProviderId(libertyId);
+            }
           );
         }
       }
@@ -538,6 +626,13 @@ export function useWatchAnime(
       };
 
       if (!cancelled && settleLoading.current) setAnimeInfoLoading(false);
+
+      if (
+        !cancelled &&
+        (watchStreamProvider === 'hikka' || watchStreamProvider === 'aniliberty')
+      ) {
+        setProviderCatalogPending(false);
+      }
     };
 
     const runCatalogPipeline = async (params: {
@@ -758,6 +853,65 @@ export function useWatchAnime(
       setProviderCatalogPending(true);
       setError(null);
       const preserveEpisodeNum = episodeIdRef.current;
+      const warm = warmCatalogsRef.current;
+
+      const applyWarmProviderSwap = (
+        list: EpisodesTypes[],
+        providerId: string,
+        provider: 'hikka' | 'aniliberty'
+      ): void => {
+        if (provider === 'hikka') {
+          setHikkaCatalogProviderId(providerId);
+          setHikkaLanguageMenuEligible(true);
+        } else {
+          setAnilibertyCatalogProviderId(providerId);
+          setAnilibertyLanguageMenuEligible(true);
+        }
+        applyCatalogSuccess(dataForResolve, list, providerId, {
+          forceFuzzy: false,
+          freshPaheCatalog: null,
+          freshLibertyCatalog: null,
+          freshHikkaCatalog: null,
+          preserveEpisodeNum: preserveEpisodeNum ?? null,
+          settleLoading,
+        });
+      };
+
+      if (
+        watchStreamProvider === 'hikka' &&
+        warm?.animeId === animeId &&
+        warm.hikka?.slug &&
+        (warm.hikka.episodes?.length ?? 0) > 0
+      ) {
+        applyWarmProviderSwap(warm.hikka.episodes, warm.hikka.slug, 'hikka');
+        return () => {
+          cancelled = true;
+          controller.abort();
+        };
+      }
+
+      if (
+        watchStreamProvider === 'aniliberty' &&
+        warm?.animeId === animeId &&
+        warm.liberty?.libertyId &&
+        (warm.liberty.episodes?.length ?? 0) > 0
+      ) {
+        applyWarmProviderSwap(
+          warm.liberty.episodes,
+          warm.liberty.libertyId,
+          'aniliberty'
+        );
+        return () => {
+          cancelled = true;
+          controller.abort();
+        };
+      }
+
+      if (watchStreamProvider === 'hikka') {
+        setHikkaCatalogProviderId(null);
+      } else if (watchStreamProvider === 'aniliberty') {
+        setAnilibertyCatalogProviderId(null);
+      }
 
       void (async () => {
         try {
@@ -775,14 +929,14 @@ export function useWatchAnime(
           setEpisodes([]);
           setTotalEpisodes(0);
           setEpisodeId(null);
-        } finally {
-          if (!cancelled) setProviderCatalogPending(false);
+          setProviderCatalogPending(false);
         }
       })();
 
       return () => {
         cancelled = true;
         controller.abort();
+        setProviderCatalogPending(false);
       };
     }
 

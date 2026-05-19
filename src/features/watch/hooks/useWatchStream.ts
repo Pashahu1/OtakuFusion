@@ -45,6 +45,10 @@ interface WatchResolveOptions {
   /** AniList total episodes — блокує resolve Anilibria при розбіжності (не ongoing). */
   expectedEpisodes?: number;
   anilistStillAiring?: boolean;
+  /** Поки тягнеться каталог Anilibria/Hikka — resolve не викликати (немає ani_id → 400). */
+  providerCatalogPending?: boolean;
+  /** Після невдалого 3s auto-retry — повернути Japanese (Animepahe sub). */
+  onAutoRetryExhausted?: () => void;
 }
 
 /** Один повторний resolve після помилки при перемиканні епізоду (cold CDN / rate limit). */
@@ -72,6 +76,10 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
     'Ukrainian stream is blocked or unavailable. Try Animepahe or refresh later.',
   hikka_catalog_not_found:
     'No Ukrainian dub catalog was found for this title on Hikka Features.',
+  hikka_features_forbidden:
+    'Hikka Features blocked the server (403). On Vercel set HIKKA_FEATURES_RELAY_BASE; locally add it to .env.local and restart `npm run dev`.',
+  'ani_id is required (Hikka slug from catalog)':
+    'Ukrainian catalog is still loading or missing. Wait a moment, refresh, or switch to Japanese and back.',
   aniliberty_episode_count_mismatch:
     'Anilibria episode count does not match this title. Use Animepahe instead.',
   'lang must be sub or dub':
@@ -232,6 +240,26 @@ export function useWatchStream(
 
   useEffect(() => {
     if (!watchResolveOptions?.streamAnime || !watchResolveOptions.episodeId) {
+      setStreamInfo(null);
+      setStreamUrl(null);
+      setSubtitles([]);
+      setThumbnail(null);
+      setBuffering(true);
+      setStreamLoadingMessage(null);
+      setResolveAttempted(false);
+      setError(null);
+      setErrorCode(null);
+      return;
+    }
+
+    const sp = watchResolveOptions.watchStreamProvider;
+    const providerId = watchResolveOptions.providerAnimeId?.trim() ?? '';
+    const needsProviderCatalog =
+      sp === 'hikka' || sp === 'aniliberty';
+    if (
+      needsProviderCatalog &&
+      (watchResolveOptions.providerCatalogPending === true || !providerId)
+    ) {
       setStreamInfo(null);
       setStreamUrl(null);
       setSubtitles([]);
@@ -411,6 +439,7 @@ export function useWatchStream(
         } catch (retryErr) {
           if (signal.aborted) return;
           if (retryErr instanceof Error && retryErr.name === 'AbortError') return;
+          resolveOptsRef.current?.onAutoRetryExhausted?.();
           reportResolveError(retryErr);
         }
       } finally {
@@ -436,6 +465,7 @@ export function useWatchStream(
     watchResolveOptions?.episodeDubStateKey,
     watchResolveOptions?.expectedEpisodes,
     watchResolveOptions?.anilistStillAiring,
+    watchResolveOptions?.providerCatalogPending,
     watchResolveOptions?.streamAnime?.id,
     watchResolveOptions?.streamAnime?.title,
     watchResolveOptions?.streamAnime?.mal_id,
