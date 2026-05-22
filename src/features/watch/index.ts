@@ -3,7 +3,7 @@
  * Хуки лежать у `hooks/`; сторінка `app/watch/[id]` імпортує звідси або з `@/hooks/*` (реекспорт).
  */
 export { useWatch } from './hooks/useWatch';
-export { useWatchAnime, type UseWatchAnimeReturn } from './hooks/useWatchAnime';
+export { useWatchAnime, type UseWatchAnimeReturn } from './hooks/useWatchAnime/index';
 export type { WatchStreamProvider } from '@/lib/watch-provider';
 export {
   useWatchStream,

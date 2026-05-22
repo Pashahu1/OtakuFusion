@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
 import { useWatch, useWatchPageEffects } from '@/features/watch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -61,12 +61,7 @@ export default function Watch() {
   } = useWatch(animeId || '', urlEp ?? undefined);
 
   const hasAppliedSavedEpisodeRef = useRef(false);
-  const isFirstSet = useRef(true);
   const errorBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    isFirstSet.current = true;
-  }, [animeId]);
 
   useWatchPageEffects(
     hasAppliedSavedEpisodeRef,
@@ -75,7 +70,6 @@ export default function Watch() {
     episodeId,
     episodes,
     urlEp,
-    isFirstSet,
     buffering,
     streamUrl,
     playerShellPending,

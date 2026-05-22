@@ -136,8 +136,9 @@ export function useArtplayerInstance({
           seg.outro ? `${seg.outro.start}-${seg.outro.end}` : '',
         ].join('|')
       : '';
-    return [streamUrl, thumbnail ?? '', subKey, segKey, qvKey].join('\f');
+    return [watchStreamProvider, streamUrl, thumbnail ?? '', subKey, segKey, qvKey].join('\f');
   }, [
+    watchStreamProvider,
     streamUrl,
     thumbnail,
     subtitles,

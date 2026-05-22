@@ -135,7 +135,6 @@ export function syncPlayerLanguageMenu(
       const mode = item.__mode;
       if (mode === 'aniliberty') {
         setWatchStreamProvider('aniliberty');
-        setActiveServerId('1');
         try {
           localStorage.setItem('server_type', 'sub');
           localStorage.removeItem('server_name');
@@ -146,7 +145,6 @@ export function syncPlayerLanguageMenu(
       }
       if (mode === 'hikka') {
         setWatchStreamProvider('hikka');
-        setActiveServerId('1');
         try {
           localStorage.setItem('server_type', 'sub');
           localStorage.removeItem('server_name');

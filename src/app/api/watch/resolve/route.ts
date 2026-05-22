@@ -319,42 +319,44 @@ function readMaxProbeCandidates(lang: WatchLang): number {
   return lang === 'dub' ? 3 : 4;
 }
 
-/** Один URL на роздільність (проксі Crysoline в пріоритеті) — менше послідовних probe. */
-function shrinkCandidatesForProbe(
+const PREFERRED_PROBE_HEIGHT = 720;
+
+/** Спроба 720p першою, далі за близькістю до 720 — не «хто швидше відповів» (часто 360p). */
+function orderCandidatesForProbe(
   candidates: StreamingType[],
   lang: WatchLang
 ): StreamingType[] {
   const deduped = dedupeStreamingCandidatesByHeight(candidates);
-  return deduped.slice(0, readMaxProbeCandidates(lang));
+  const ranked = [...deduped].sort((a, b) => {
+    const ha = resolutionRank(a.server);
+    const hb = resolutionRank(b.server);
+    const da = Math.abs(ha - PREFERRED_PROBE_HEIGHT);
+    const db = Math.abs(hb - PREFERRED_PROBE_HEIGHT);
+    if (da !== db) return da - db;
+    return hb - ha;
+  });
+  return ranked.slice(0, readMaxProbeCandidates(lang));
 }
 
-/** Перший успішний probe паралельно (замість до N×masterMs послідовно). */
+/** Перший успішний probe по пріоритету (720p → інші), не паралельна гонка на найнижчу якість. */
 async function resolveFirstWorkingAnimePaheCandidate(
   candidates: StreamingType[],
   origin: string,
   probeCfg: WatchProbeConfig,
   lang: WatchLang
 ): Promise<StreamingType> {
-  const toTry = shrinkCandidatesForProbe(candidates, lang);
+  const toTry = orderCandidatesForProbe(candidates, lang);
   if (!toTry.length) throw new Error('no_working_source');
 
-  return new Promise<StreamingType>((resolve, reject) => {
-    let failed = 0;
-    let lastErr: unknown = null;
-    const n = toTry.length;
-
-    for (const c of toTry) {
-      void tryResolveStreamingCandidate(c, origin, probeCfg)
-        .then(resolve)
-        .catch((e) => {
-          lastErr = e;
-          failed += 1;
-          if (failed >= n) {
-            reject(lastErr ?? new Error('no_working_source'));
-          }
-        });
+  let lastErr: unknown = null;
+  for (const c of toTry) {
+    try {
+      return await tryResolveStreamingCandidate(c, origin, probeCfg);
+    } catch (e) {
+      lastErr = e;
     }
-  });
+  }
+  throw lastErr instanceof Error ? lastErr : new Error('no_working_source');
 }
 
 function shouldFetchAnilibriaSegmentHints(): boolean {

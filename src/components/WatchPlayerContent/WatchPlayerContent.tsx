@@ -64,7 +64,7 @@ export const WatchPlayerContent = ({
   anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
-  const streamKey = `${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
+  const streamKey = `${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
 
   const overlayCopy =
     streamOverlayMessage ?? {
@@ -117,7 +117,7 @@ export const WatchPlayerContent = ({
         {showBuiltinPlayer && (
           <div className="relative z-[2] h-full w-full min-h-0">
           <Player
-            key={`${animeId}:${episodeId ?? ''}:${activeServerId ?? ''}:${streamUrl}`}
+            key={`${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl}`}
             streamUrl={streamUrl as string}
             subtitles={subtitles}
             thumbnail={thumbnail}

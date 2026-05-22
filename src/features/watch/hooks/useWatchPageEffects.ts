@@ -16,7 +16,6 @@ export const useWatchPageEffects = (
   episodeId: string | null,
   episodes: EpisodesTypes[] | null,
   urlEp: string | undefined,
-  isFirstSetRef: React.RefObject<boolean>,
   buffering: boolean,
   streamUrl: string | null,
   playerShellPending: boolean,
@@ -39,8 +38,8 @@ export const useWatchPageEffects = (
     episodes,
     episodeId,
     animeId,
-    setEpisodeId,
-    isFirstSetRef
+    urlEp,
+    setEpisodeId
   );
   useWatchPageDocumentTitle(animeInfo, animeId);
   useStreamErrorBlockDelay(

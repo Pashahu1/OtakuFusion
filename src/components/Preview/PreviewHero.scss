@@ -40,15 +40,15 @@
       transform: translateY(clamp(-40px, -6vh, -100px));
     }
 
-    @media (max-width: 1023px) {
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      transform: none;
-      padding-top: 0;
-      /* Трохи вище за нижній край + без vh */
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.25rem);
-    }
+    // @media (max-width: 1023px) {
+    //   flex-direction: column;
+    //   align-items: center;
+    //   justify-content: flex-end;
+    //   transform: none;
+    //   padding-top: 0;
+    //   /* Трохи вище за нижній край + без vh */
+    //   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.25rem);
+    // }
 
     &::before {
       content: '';

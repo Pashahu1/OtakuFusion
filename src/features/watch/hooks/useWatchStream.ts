@@ -3,6 +3,7 @@ import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData, StreamQualityVariant } from '@/shared/types/StreamingTypes';
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
+import { pickPreferredQualityVariant } from '@/features/player/ui/pickPreferredStreamQuality';
 import { resolveWatchStream } from '@/services/resolveWatchStream';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 
@@ -47,8 +48,25 @@ interface WatchResolveOptions {
   anilistStillAiring?: boolean;
   /** Поки тягнеться каталог Anilibria/Hikka — resolve не викликати (немає ani_id → 400). */
   providerCatalogPending?: boolean;
+  /** Каталог епізодів відповідає `watchStreamProvider` — інакше не слати чужий ep_token. */
+  episodesSourceProvider?: WatchStreamProvider | null;
   /** Після невдалого 3s auto-retry — повернути Japanese (Animepahe sub). */
   onAutoRetryExhausted?: () => void;
+}
+
+function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): boolean {
+  if (!opts?.streamAnime || !opts.episodeId) return true;
+  const sp = opts.watchStreamProvider;
+  const epSource = opts.episodesSourceProvider;
+  /** Лише чужий ep_token після перемикання мови — не чекати весь providerCatalogPending. */
+  if (epSource != null && epSource !== sp) return true;
+  if (opts.providerCatalogPending === true && (sp === 'hikka' || sp === 'aniliberty')) {
+    return true;
+  }
+  const providerId = opts.providerAnimeId?.trim() ?? '';
+  const needsProviderCatalog = sp === 'hikka' || sp === 'aniliberty';
+  if (needsProviderCatalog && !providerId) return true;
+  return false;
 }
 
 /** Один повторний resolve після помилки при перемиканні епізоду (cold CDN / rate limit). */
@@ -237,9 +255,10 @@ export function useWatchStream(
   episodeEpTokenRef.current = watchResolveOptions?.episodeEpToken;
   const episodeHasDubRef = useRef(watchResolveOptions?.episodeHasDub);
   episodeHasDubRef.current = watchResolveOptions?.episodeHasDub;
+  const lastResolveProviderRef = useRef<WatchStreamProvider | null>(null);
 
   useEffect(() => {
-    if (!watchResolveOptions?.streamAnime || !watchResolveOptions.episodeId) {
+    if (isWatchResolveBlocked(watchResolveOptions)) {
       setStreamInfo(null);
       setStreamUrl(null);
       setSubtitles([]);
@@ -252,27 +271,16 @@ export function useWatchStream(
       return;
     }
 
-    const sp = watchResolveOptions.watchStreamProvider;
-    const providerId = watchResolveOptions.providerAnimeId?.trim() ?? '';
-    const needsProviderCatalog =
-      sp === 'hikka' || sp === 'aniliberty';
-    if (
-      needsProviderCatalog &&
-      (watchResolveOptions.providerCatalogPending === true || !providerId)
-    ) {
-      setStreamInfo(null);
-      setStreamUrl(null);
-      setSubtitles([]);
-      setThumbnail(null);
-      setBuffering(true);
-      setStreamLoadingMessage(null);
-      setResolveAttempted(false);
-      setError(null);
-      setErrorCode(null);
-      return;
+    const activeOpts = watchResolveOptions!;
+    const streamAnime = activeOpts.streamAnime!;
+    const sp = activeOpts.watchStreamProvider;
+    const providerJustChanged =
+      lastResolveProviderRef.current != null && lastResolveProviderRef.current !== sp;
+    lastResolveProviderRef.current = sp;
+    if (providerJustChanged) {
+      clearStoredServerHint();
     }
 
-    const streamAnime = watchResolveOptions.streamAnime;
     const controller = new AbortController();
     const { signal } = controller;
     setError(null);
@@ -315,24 +323,33 @@ export function useWatchStream(
         });
       }
 
+      const qualityVariants = normalizeQualityVariantsFromResolve(
+        (result as { quality_variants?: unknown }).quality_variants
+      );
+      const preferredPlayback = pickPreferredQualityVariant(
+        qualityVariants,
+        result.stream.url
+      );
+      const playbackUrl = preferredPlayback.url;
+      const playbackHeaders =
+        preferredPlayback.request_headers ?? result.stream.request_headers;
+
       setStreamInfo({
         streamingLink: [
           {
             id: 1,
             type: result.stream.lang,
-            link: { file: result.stream.url, type: 'hls' },
+            link: { file: playbackUrl, type: 'hls' },
             tracks,
             server: result.stream.server || 'Resolved',
-            request_headers: result.stream.request_headers,
+            request_headers: playbackHeaders,
           },
         ],
         servers: [],
         skipSegments: result.segments,
-        qualityVariants: normalizeQualityVariantsFromResolve(
-          (result as { quality_variants?: unknown }).quality_variants
-        ),
+        qualityVariants,
       });
-      setStreamUrl(result.stream.url);
+      setStreamUrl(playbackUrl);
       const subtitleItems = filterSubtitleTracksByStreamLang(
         parseSubtitleTracks(result.stream.tracks),
         result.stream.lang
@@ -347,7 +364,7 @@ export function useWatchStream(
 
     const runResolveAttempt = async (): Promise<void> => {
       const opts = resolveOptsRef.current;
-      const episodeNumber = Number(watchResolveOptions.episodeId);
+      const episodeNumber = Number(activeOpts.episodeId);
       if (!Number.isFinite(episodeNumber) || episodeNumber <= 0) {
         throw new Error('Invalid episode number.');
       }
@@ -367,8 +384,8 @@ export function useWatchStream(
             ? streamAnime.mal_id
             : undefined,
         keyword: streamAnime.title,
-        localAnimeId: watchResolveOptions.animeId,
-        providerAniId: watchResolveOptions.providerAnimeId ?? undefined,
+        localAnimeId: activeOpts.animeId,
+        providerAniId: activeOpts.providerAnimeId ?? undefined,
         episodeEpToken: episodeEpTokenRef.current?.trim() || undefined,
         episodeHasDub: episodeHasDubRef.current,
         episode: episodeNumber,
@@ -379,9 +396,9 @@ export function useWatchStream(
         anilistStillAiring: opts?.anilistStillAiring === true,
         lang: preferredLang,
         streamProvider:
-          watchResolveOptions.watchStreamProvider === 'aniliberty'
+          activeOpts.watchStreamProvider === 'aniliberty'
             ? ('aniliberty' as const)
-            : watchResolveOptions.watchStreamProvider === 'hikka'
+            : activeOpts.watchStreamProvider === 'hikka'
               ? ('hikka' as const)
               : ('animepahe' as const),
       };
@@ -427,6 +444,12 @@ export function useWatchStream(
         }
 
         try {
+          if (providerJustChanged) {
+            clearStoredServerHint();
+            await runResolveAttempt();
+            return;
+          }
+
           for (let sec = WATCH_RESOLVE_AUTO_RETRY_DELAY_SEC; sec >= 1; sec--) {
             if (signal.aborted) return;
             setStreamLoadingMessage(formatAutoRetryCountdownMessage(sec));
@@ -466,6 +489,7 @@ export function useWatchStream(
     watchResolveOptions?.expectedEpisodes,
     watchResolveOptions?.anilistStillAiring,
     watchResolveOptions?.providerCatalogPending,
+    watchResolveOptions?.episodesSourceProvider,
     watchResolveOptions?.streamAnime?.id,
     watchResolveOptions?.streamAnime?.title,
     watchResolveOptions?.streamAnime?.mal_id,

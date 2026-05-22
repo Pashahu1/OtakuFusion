@@ -1,17 +1,10 @@
 import type Artplayer from 'artplayer';
 import type { StreamingData, StreamQualityVariant } from '@/shared/types/StreamingTypes';
+import {
+  DEFAULT_PLAYBACK_QUALITY_HEIGHT,
+  pickPreferredQualityVariant,
+} from './pickPreferredStreamQuality';
 import { getStreamFullUrl, getStreamHeaders } from './playerStream';
-
-function pickActiveQualityVariant(
-  variants: StreamQualityVariant[],
-  rawPlaylistUrl: string
-): StreamQualityVariant {
-  const raw = rawPlaylistUrl.trim();
-  const exact = variants.find((v) => v.url.trim() === raw);
-  if (exact) return exact;
-  const sorted = [...variants].sort((a, b) => b.height - a.height);
-  return sorted[0] ?? variants[0];
-}
 
 /**
  * Окремі HLS-плейлисти на кожну роздільність (Animepahe / Anilibria через Crysoline),
@@ -26,12 +19,16 @@ export function attachStreamQualityMenu(
   if (!variants?.length || variants.length < 2) return;
 
   const raw = rawPlaylistUrl.trim();
-  const active = pickActiveQualityVariant(variants, raw);
+  const preferred = pickPreferredQualityVariant(variants, raw);
+  const active =
+    variants.find((v) => v.url.trim() === preferred.url) ??
+    variants.find((v) => v.height === DEFAULT_PLAYBACK_QUALITY_HEIGHT) ??
+    variants[0];
   const initialTooltip = `${active.height}p`;
 
   const selector = variants.map((v) => ({
     html: `${v.height}p`,
-    default: v.url.trim() === raw,
+    default: v.url.trim() === preferred.url,
   }));
 
   art.setting.add({

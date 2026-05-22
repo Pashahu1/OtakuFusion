@@ -1,6 +1,7 @@
 import Hls from 'hls.js';
 
 const HLS_QUALITY_KEY = 'otakufusion:player:hls-quality';
+export const DEFAULT_HLS_QUALITY_HEIGHT = 720;
 const SUBTITLE_PREF_KEY = 'otakufusion:player:subtitle';
 
 /** Збережений вибір якості HLS: `auto` (ABR лише до 720p), `best-display`, конкретна висота, або порожньо — старт ~720p. */
@@ -100,14 +101,18 @@ export function readHlsQualityPreference(): HlsQualityPreference | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(HLS_QUALITY_KEY)?.trim();
-    if (!raw) return null;
+    if (!raw) return { height: DEFAULT_HLS_QUALITY_HEIGHT };
     if (raw === 'auto') return 'auto';
     if (raw === 'best-display' || raw === 'best') return 'best-display';
     const n = Number(raw);
-    if (Number.isFinite(n) && n > 0) return { height: Math.floor(n) };
-    return null;
+    if (Number.isFinite(n) && n > 0) {
+      const h = Math.floor(n);
+      if (h < DEFAULT_HLS_QUALITY_HEIGHT) return { height: DEFAULT_HLS_QUALITY_HEIGHT };
+      return { height: h };
+    }
+    return { height: DEFAULT_HLS_QUALITY_HEIGHT };
   } catch {
-    return null;
+    return { height: DEFAULT_HLS_QUALITY_HEIGHT };
   }
 }
 

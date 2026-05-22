@@ -31,9 +31,14 @@ export function useWatch(
   const [streamHardExhausted, setStreamHardExhausted] = useState(false);
   const issuedDubToSubFallbackRef = useRef(false);
 
+  /** Зміна провайдера (Animepahe / Anilibria / Hikka) — новий resolve + remount плеєра. */
   const setWatchStreamProvider = useCallback((next: WatchStreamProvider) => {
-    setWatchStreamProviderState(next);
-    writeWatchStreamProvider(next);
+    setWatchStreamProviderState((prev) => {
+      if (prev === next) return prev;
+      writeWatchStreamProvider(next);
+      setStreamLangRevision((n) => n + 1);
+      return next;
+    });
   }, []);
 
   /** Новий тайтл — завжди Animepahe; Anilibria лише після явного вибору в плеєрі. */
@@ -81,16 +86,23 @@ export function useWatch(
     };
   }, [anime.animeInfo?.id, anime.animeInfo?.mal_id, anime.animeInfo?.title]);
 
+  /**
+   * Чи показувати English (Animepahe dub) у меню Language.
+   * Не залежить від активного провайдера: на Hikka/Anilibria список епізодів без hasDub,
+   * але перемикання на English має лишатися доступним.
+   */
   const hasAnyDub = useMemo(() => {
     const dubFromTv = anime.animeInfo?.animeInfo?.tvInfo?.has_dub ?? 0;
     if (dubFromTv > 0) return true;
-    // Епізоди Anilibria/Hikka не мають dub — не приховувати English після перемикання провайдера.
-    if (watchStreamProvider !== 'animepahe') return false;
-    if (Boolean(anime.episodes?.some((e) => e.hasDub === true))) return true;
-    /** На Animepahe dub часто є, навіть якщо probe вимкнено на сервері — пункт English лишаємо. */
+    if (anime.animepaheCatalogProviderId?.trim()) return true;
+    if (watchStreamProvider === 'animepahe') {
+      if (Boolean(anime.episodes?.some((e) => e.hasDub === true))) return true;
+      return true;
+    }
     return true;
   }, [
     anime.animeInfo?.animeInfo?.tvInfo?.has_dub,
+    anime.animepaheCatalogProviderId,
     anime.episodes,
     watchStreamProvider,
   ]);
@@ -118,7 +130,7 @@ export function useWatch(
     [activeServerId]
   );
 
-  /** Dub / Anilibria: один прохід без «другого редіректу» — лише `setActiveServerIdRaw`, без `streamLangRevision`. */
+  /** Hikka / Anilibria: sub-only; English id скидаємо без другого resolve (рефреш дає `setWatchStreamProvider`). */
   useEffect(() => {
     if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') {
       if (activeServerId === '2') setActiveServerIdRaw('1');
@@ -165,12 +177,25 @@ export function useWatch(
 
   const episodeEpToken = useMemo(() => {
     if (!anime.episodeId || !anime.episodes?.length) return null;
+    if (anime.providerCatalogPending) return null;
+    if (
+      anime.episodesSourceProvider != null &&
+      anime.episodesSourceProvider !== watchStreamProvider
+    ) {
+      return null;
+    }
     const ep = anime.episodes.find((e: EpisodesTypes) =>
       episodeMatchesSelection(e, anime.episodeId)
     );
     const token = ep?.ep_token?.trim();
     return token || null;
-  }, [anime.episodes, anime.episodeId]);
+  }, [
+    anime.episodes,
+    anime.episodeId,
+    anime.providerCatalogPending,
+    anime.episodesSourceProvider,
+    watchStreamProvider,
+  ]);
 
   const episodeHasDubForResolve = useMemo((): boolean | undefined => {
     if (!anime.episodeId || !anime.episodes?.length) return undefined;
@@ -221,12 +246,14 @@ export function useWatch(
       streamLangRevision,
       episodeDubStateKey,
       providerCatalogPending: anime.providerCatalogPending,
+      episodesSourceProvider: anime.episodesSourceProvider,
       onAutoRetryExhausted,
     }),
     [
       streamAnimeMeta,
       anime.episodeId,
       anime.providerCatalogPending,
+      anime.episodesSourceProvider,
       anime.animepaheCatalogProviderId,
       anime.anilibertyCatalogProviderId,
       anime.hikkaCatalogProviderId,
