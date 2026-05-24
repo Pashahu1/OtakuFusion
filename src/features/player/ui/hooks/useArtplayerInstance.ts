@@ -173,6 +173,10 @@ export function useArtplayerInstance({
   const anilibertyEligibleRef = useRef(anilibertyLanguageMenuEligible ?? false);
   const hikkaEligibleRef = useRef(hikkaLanguageMenuEligible ?? false);
 
+  serversRef.current = servers;
+  activeServerIdRef.current = activeServerId;
+  watchStreamProviderRef.current = watchStreamProvider;
+
   useEffect(() => {
     watchStreamProviderRef.current = watchStreamProvider;
     setWatchStreamProviderRef.current = setWatchStreamProvider;
@@ -207,8 +211,6 @@ export function useArtplayerInstance({
   ]);
 
   useEffect(() => {
-    serversRef.current = servers;
-    activeServerIdRef.current = activeServerId;
     episodeIdRef.current = episodeId;
     episodesRef.current = episodes;
     currentEpisodeIndexRef.current = currentEpisodeIndex;

@@ -30,6 +30,7 @@ export function useWatch(
     useState<WatchStreamProvider>('anicore');
   const [streamHardExhausted, setStreamHardExhausted] = useState(false);
   const issuedDubToSubFallbackRef = useRef(false);
+  const userChoseDubRef = useRef(false);
 
   const setWatchStreamProvider = useCallback((next: WatchStreamProvider) => {
     setWatchStreamProviderState((prev) => {
@@ -49,6 +50,7 @@ export function useWatch(
 
   useEffect(() => {
     issuedDubToSubFallbackRef.current = false;
+    userChoseDubRef.current = false;
     setStreamHardExhausted(false);
   }, [animeId, anime.episodeId, watchStreamProvider]);
 
@@ -63,14 +65,19 @@ export function useWatch(
       anime.episodes.length > 0 &&
       anime.episodes.every((e: EpisodesTypes) => !episodeMatchesSelection(e, anime.episodeId)));
 
-  const [activeServerId, setActiveServerIdRaw] = useState<string | null>('2');
+  const [activeServerId, setActiveServerIdRaw] = useState<string | null>('1');
 
   useEffect(() => {
-    setActiveServerIdRaw('2');
+    setActiveServerIdRaw('1');
   }, [animeId]);
 
   const setActiveServerId = useCallback((value: SetStateAction<string | null>) => {
-    setActiveServerIdRaw(value);
+    setActiveServerIdRaw((prev) => {
+      const next = typeof value === 'function' ? value(prev) : value;
+      if (next === '2') userChoseDubRef.current = true;
+      if (next === '1') userChoseDubRef.current = false;
+      return next;
+    });
     setStreamLangRevision((n) => n + 1);
   }, []);
 
@@ -119,13 +126,13 @@ export function useWatch(
   );
 
   useEffect(() => {
+    if (userChoseDubRef.current) return;
     if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') {
       if (activeServerId === '2') setActiveServerIdRaw('1');
       return;
     }
     if (!hasAnyDub && activeServerId === '2') {
       setActiveServerIdRaw('1');
-      return;
     }
   }, [watchStreamProvider, activeServerId, hasAnyDub]);
 
@@ -150,6 +157,7 @@ export function useWatch(
   }, [hasAnyDub]);
 
   const onPlaybackLangResolved = useCallback((lang: 'sub' | 'dub') => {
+    if (userChoseDubRef.current && lang === 'sub') return;
     setActiveServerIdRaw(lang === 'dub' ? '2' : '1');
   }, []);
 
@@ -192,6 +200,15 @@ export function useWatch(
     if (ep?.hasDub === false) return false;
     return undefined;
   }, [anime.episodes, anime.episodeId]);
+
+  /** Лише при зміні епізоду: якщо в каталозі немає dub — старт з Japanese. Не чіпати ручний вибір English. */
+  useEffect(() => {
+    if (watchStreamProvider !== 'anicore') return;
+    if (episodeHasDubForResolve !== false) return;
+    userChoseDubRef.current = false;
+    setActiveServerIdRaw('1');
+    setStreamLangRevision((n) => n + 1);
+  }, [watchStreamProvider, episodeHasDubForResolve, anime.episodeId]);
 
   const anilistStillAiring = useMemo(
     () => isAnilistStillAiringFromStatus(anime.animeInfo?.animeInfo?.Status),
@@ -305,6 +322,10 @@ export function useWatch(
     if (code.includes('lang must')) return;
     if (code.includes('watch_resolve_invalid_json')) return;
     if (code.includes('watch_resolve_empty')) return;
+
+    if (userChoseDubRef.current) {
+      return;
+    }
 
     issuedDubToSubFallbackRef.current = true;
     setActiveServerIdRaw('1');

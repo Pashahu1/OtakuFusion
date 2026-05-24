@@ -8,10 +8,10 @@ import { resolveWatchStream } from '@/services/resolveWatchStream';
 import { inferStreamMediaKind, urlLooksLikeHlsStream } from '@/lib/streamMediaType';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 import {
-  clearAnicorePlaybackServerHint,
+  clearAnicorePlaybackServerHintForAnime,
   isValidAnicorePlaybackServerHint,
-  readAnicorePlaybackServerHint,
-  writeAnicorePlaybackServerHint,
+  readAnicorePlaybackServerHintForAnime,
+  writeAnicorePlaybackServerHintForAnime,
 } from '@/features/watch/lib/anicore-playback-server-preference';
 import {
   clearAnilibertyPlaybackQualityHint,
@@ -133,11 +133,14 @@ function delayMs(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
-function clearStoredServerHint(provider: WatchStreamProvider): void {
+function clearStoredServerHint(
+  provider: WatchStreamProvider,
+  localAnimeId?: string
+): void {
   if (typeof window === 'undefined') return;
   try {
     if (provider === 'anicore') {
-      clearAnicorePlaybackServerHint();
+      clearAnicorePlaybackServerHintForAnime(localAnimeId);
       return;
     }
     if (provider === 'aniliberty') {
@@ -296,8 +299,11 @@ export function useWatchStream(
       lastResolveProviderRef.current != null && lastResolveProviderRef.current !== sp;
     lastResolveProviderRef.current = sp;
     if (providerJustChanged) {
-      clearStoredServerHint(sp);
+      clearStoredServerHint(sp, activeOpts.animeId);
     }
+
+    const resolveLangRevision = activeOpts.streamLangRevision;
+    const resolvePreferredLang = activeOpts.preferredLang;
 
     const controller = new AbortController();
     const { signal } = controller;
@@ -316,6 +322,9 @@ export function useWatchStream(
       resolveParams: { lang: 'sub' | 'dub' }
     ) => {
       const opts = resolveOptsRef.current;
+      if (opts?.streamLangRevision !== resolveLangRevision) return;
+      if (opts?.preferredLang !== resolveParams.lang) return;
+
       const tracks = [] as VideoTrack[];
 
       const resolvedServerLabel = result.stream.server?.trim();
@@ -327,7 +336,10 @@ export function useWatchStream(
             anicoreServer &&
             isValidAnicorePlaybackServerHint(anicoreServer)
           ) {
-            writeAnicorePlaybackServerHint(anicoreServer);
+            writeAnicorePlaybackServerHintForAnime(
+              activeOpts.animeId,
+              anicoreServer
+            );
           } else if (activeOpts.watchStreamProvider === 'aniliberty') {
             const h = heightFromAnilibertyServerLabel(
               resolvedServerLabel ?? ''
@@ -391,6 +403,10 @@ export function useWatchStream(
       setThumbnail(getThumbnailTrack(tracks));
 
       if (resolveParams.lang !== result.stream.lang) {
+        if (resolveParams.lang === 'dub' && result.stream.lang === 'sub') {
+          return;
+        }
+        if (opts?.preferredLang !== resolveParams.lang) return;
         opts?.onPlaybackLangResolved?.(result.stream.lang);
       }
     };
@@ -402,7 +418,7 @@ export function useWatchStream(
         throw new Error('Invalid episode number.');
       }
 
-      const preferredLang = opts?.preferredLang ?? 'sub';
+      const preferredLang = resolvePreferredLang ?? opts?.preferredLang ?? 'sub';
       const anilistFromMeta = (() => {
         const raw = streamAnime.id?.trim();
         if (!raw) return undefined;
@@ -442,7 +458,9 @@ export function useWatchStream(
       const hadServerHint =
         typeof window !== 'undefined' &&
         (activeOpts.watchStreamProvider === 'anicore'
-          ? Boolean(readAnicorePlaybackServerHint())
+          ? Boolean(
+              readAnicorePlaybackServerHintForAnime(activeOpts.animeId)
+            )
           : activeOpts.watchStreamProvider === 'aniliberty'
             ? Boolean(readAnilibertyPlaybackQualityHint())
             : Boolean(localStorage.getItem(STORAGE_SERVER_NAME)?.trim()));
@@ -453,7 +471,10 @@ export function useWatchStream(
       } catch (firstErr) {
         if (signal.aborted) return;
         if (!hadServerHint) throw firstErr;
-        clearStoredServerHint(activeOpts.watchStreamProvider);
+        clearStoredServerHint(
+          activeOpts.watchStreamProvider,
+          activeOpts.animeId
+        );
         result = await resolveWatchStream(resolveParams, signal);
       }
 
@@ -485,7 +506,10 @@ export function useWatchStream(
 
         try {
           if (providerJustChanged) {
-            clearStoredServerHint(activeOpts.watchStreamProvider);
+            clearStoredServerHint(
+              activeOpts.watchStreamProvider,
+              activeOpts.animeId
+            );
             await runResolveAttempt();
             return;
           }
@@ -496,7 +520,10 @@ export function useWatchStream(
             await delayMs(1000, signal);
           }
           setStreamLoadingMessage(WATCH_RESOLVE_AUTO_RETRY_REFRESHING_MSG);
-          clearStoredServerHint(activeOpts.watchStreamProvider);
+          clearStoredServerHint(
+            activeOpts.watchStreamProvider,
+            activeOpts.animeId
+          );
           await runResolveAttempt();
           setStreamLoadingMessage(null);
         } catch (retryErr) {

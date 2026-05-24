@@ -1,4 +1,4 @@
-import { readAnicorePlaybackServerHint } from '@/shared/utils/anicorePlaybackServerHint';
+import { readAnicorePlaybackServerHintForAnime } from '@/shared/utils/anicorePlaybackServerHint';
 import { readAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
 
 const ANILIBERTY_MAPPING_PREFIX = 'aniliberty:mapping:';
@@ -121,7 +121,9 @@ export async function resolveWatchStream(
   if (sp === 'anicore') {
     const libertyId = readStoredAnilibertyReleaseId(params.localAnimeId);
     if (libertyId) query.set('aniliberty_release_id', libertyId);
-    const anicoreHint = readAnicorePlaybackServerHint();
+    const anicoreHint = readAnicorePlaybackServerHintForAnime(
+      params.localAnimeId
+    );
     if (anicoreHint) query.set('preferred_server_hint', anicoreHint);
   }
 
