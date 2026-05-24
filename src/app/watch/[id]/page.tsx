@@ -2,15 +2,18 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { useSearchParams, useParams } from 'next/navigation';
-import { useWatch, useWatchPageEffects } from '@/features/watch';
+import {
+  Episodelist,
+  StreamOriginPreconnect,
+  useWatch,
+  useWatchPageEffects,
+  WatchInfoPanel,
+  WatchPlayerContent,
+} from '@/features/watch';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Episodelist } from '@/components/Episodelist/Episodelist';
 import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
-import { WatchInfoPanel } from '@/components/WatchInfoPanel/WatchInfoPanel';
-import { WatchPlayerContent } from '@/components/WatchPlayerContent/WatchPlayerContent';
 import { onEpisodeWatched as markWatchedInStorage } from '@/helper/WatchedEpisodes';
-import { StreamOriginPreconnect } from '@/features/watch/ui/StreamOriginPreconnect';
 
 export default function Watch() {
   const searchParams = useSearchParams();

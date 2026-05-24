@@ -1,12 +1,8 @@
 import { unstable_cache } from 'next/cache';
-import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
-import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
+import { getAnicoreEpisodesCached, getAnicoreEpisodeRowsCached } from '@/server/anicore/episodesCached';
+import { pickAnicoreSourcesWithProbe } from '@/server/anicore/pickAnicoreSources';
 import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
 import { getAnilibertySourcesCached } from '@/server/aniliberty/sourcesCached';
-import type {
-  CrysolineAnimepaheSourceRow,
-  CrysolineAnimepaheSourcesPayload,
-} from '@/server/crysoline/animepaheClient';
 import type { CrysolineAnilibertySourcesPayload } from '@/server/crysoline/anilibertyClient';
 import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
 import { isAnilibertyEpisodeCountAcceptable } from '@/services/aniliberty/anilibertyEpisodeMatch';
@@ -18,7 +14,6 @@ import {
 } from '@/lib/watchResolveProbe';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
-import { inferAnimepaheSourceIsDub } from '@/services/animepahe/inferAnimepaheSourceIsDub';
 import { tryResolveMirunoDubHls } from '@/server/miruno/fetchMirunoDubStream';
 import { decodeHikkaEpToken } from '@/services/hikka/hikkaEpToken';
 import { fetchHikkaWatchV2 } from '@/services/hikka/hikkaFeaturesClient';
@@ -32,7 +27,7 @@ import { HikkaFeaturesForbiddenError } from '@/services/hikka/hikkaOutboundFetch
 
 type WatchLang = 'sub' | 'dub';
 
-type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
+type WatchResolveStreamProvider = 'anicore' | 'aniliberty' | 'hikka';
 
 const inflightResolve = new Map<string, Promise<Response>>();
 
@@ -112,7 +107,9 @@ function getStreamProvider(sp: URLSearchParams): WatchResolveStreamProvider {
   const raw = (sp.get('stream_provider') ?? '').trim().toLowerCase();
   if (raw === 'aniliberty' || raw === 'anilibria') return 'aniliberty';
   if (raw === 'hikka' || raw === 'ukrainian' || raw === 'uk') return 'hikka';
-  return 'animepahe';
+  if (raw === 'anicore') return 'anicore';
+  if (raw === 'animex' || raw === 'animepahe' || raw === 'kai') return 'anicore';
+  return 'anicore';
 }
 
 function parseEpisodeNumber(sp: URLSearchParams): number | null {
@@ -151,7 +148,6 @@ function urlLooksLikeCrysolineProxy(file: string): boolean {
   return u.includes('proxy.crysoline') || u.includes('crysoline.moe/proxy');
 }
 
-/** Одна роздільність — один кандидат; пріоритет проксі Crysoline над прямим CDN. */
 function dedupeStreamingCandidatesByHeight(candidates: StreamingType[]): StreamingType[] {
   const map = new Map<number, StreamingType>();
   for (const c of candidates) {
@@ -195,44 +191,6 @@ function qualityVariantsFromCandidates(
       url: c.link.file.trim(),
       request_headers: buildProbeHeaders(c),
     });
-  }
-  return out;
-}
-
-function buildAnimePaheStreamCandidates(
-  payload: CrysolineAnimepaheSourcesPayload,
-  requestedLang: WatchLang
-): StreamingType[] {
-  const rootHeaders = mergeRootHeaders(payload.headers);
-  const sources = Array.isArray(payload.sources) ? payload.sources : [];
-  const filtered = sources.filter((s: CrysolineAnimepaheSourceRow) => {
-    const isDub = inferAnimepaheSourceIsDub(s);
-    if (requestedLang === 'dub') return isDub;
-    return !isDub;
-  });
-  const list = filtered.length ? filtered : sources;
-  const sorted = [...list].sort(
-    (a, b) => resolutionRank(b.quality) - resolutionRank(a.quality)
-  );
-  const out: StreamingType[] = [];
-  let nid = 0;
-  for (const row of sorted) {
-    const headers = { ...rootHeaders };
-    const fileUrls = [row.proxy, row.url].filter(
-      (u): u is string => typeof u === 'string' && u.trim().length > 0
-    );
-    const uniq = [...new Set(fileUrls.map((u) => u.trim()))];
-    for (const file of uniq) {
-      nid += 1;
-      out.push({
-        id: nid,
-        type: inferAnimepaheSourceIsDub(row) ? ('dub' as const) : ('sub' as const),
-        link: { file, type: 'hls' },
-        tracks: [],
-        server: row.quality?.trim() || 'Animepahe',
-        request_headers: Object.keys(headers).length ? headers : undefined,
-      });
-    }
   }
   return out;
 }
@@ -321,7 +279,6 @@ function readMaxProbeCandidates(lang: WatchLang): number {
 
 const PREFERRED_PROBE_HEIGHT = 720;
 
-/** Спроба 720p першою, далі за близькістю до 720 — не «хто швидше відповів» (часто 360p). */
 function orderCandidatesForProbe(
   candidates: StreamingType[],
   lang: WatchLang
@@ -338,7 +295,6 @@ function orderCandidatesForProbe(
   return ranked.slice(0, readMaxProbeCandidates(lang));
 }
 
-/** Перший успішний probe по пріоритету (720p → інші), не паралельна гонка на найнижчу якість. */
 async function resolveFirstWorkingAnimePaheCandidate(
   candidates: StreamingType[],
   origin: string,
@@ -383,11 +339,10 @@ async function attachAnilibriaSegmentHints(
       body.segments = { intro, outro };
     }
   } catch {
-    /* Anilibria — лише підказка OP/ED; не блокуємо старт відтворення. */
   }
 }
 
-async function computeAnimepaheWatchResolveOutcome(params: {
+async function computeAnicoreWatchResolveOutcome(params: {
   startedAt: number;
   episode: number;
   lang: WatchLang;
@@ -415,13 +370,13 @@ async function computeAnimepaheWatchResolveOutcome(params: {
   } = params;
 
   try {
-    let epHash = epTokenOverride?.trim() ?? '';
+    let epToken = epTokenOverride?.trim() ?? '';
     let targetEpisode: EpisodesTypes | null = null;
 
-    if (!epHash || episodeHasDub == null) {
-      const episodesResult = await getAnimePaheEpisodesCached(seriesId);
+    if (!epToken || episodeHasDub == null) {
+      const episodesResult = await getAnicoreEpisodesCached(seriesId);
       targetEpisode = pickEpisodeByNumber(episodesResult.episodes, episode);
-      if (!epHash) epHash = targetEpisode?.ep_token?.trim() ?? '';
+      if (!epToken) epToken = targetEpisode?.ep_token?.trim() ?? String(episode);
     } else {
       targetEpisode = {
         episode_no: episode,
@@ -430,19 +385,19 @@ async function computeAnimepaheWatchResolveOutcome(params: {
         jname: '',
         title: '',
         japanese_title: '',
-        ep_token: epHash,
+        ep_token: epToken,
         hasSub: true,
         hasDub: episodeHasDub === true,
       };
     }
 
-    if (!epHash) {
+    if (!epToken) {
       return {
         status: 404,
         body: {
           success: false,
           error: 'episode_not_found',
-          reason: `Episode ${episode} is missing in Animepahe catalog`,
+          reason: `Episode ${episode} is missing in Anicore catalog`,
         },
       };
     }
@@ -453,23 +408,29 @@ async function computeAnimepaheWatchResolveOutcome(params: {
       targetEpisode.hasDub !== true &&
       anilistId != null;
 
-    const sourcesPayload = await getAnimePaheSourcesCached(seriesId, epHash);
-    let candidates = buildAnimePaheStreamCandidates(sourcesPayload, lang);
-    candidates = prioritizeByServerHint(candidates, preferredHint);
+    const rawRows = await getAnicoreEpisodeRowsCached(seriesId);
+    const episodeRow =
+      rawRows.find((r) => r.id?.trim() === epToken) ??
+      rawRows.find((r) => Math.floor(r.number) === episode) ??
+      null;
+
+    const picked = await pickAnicoreSourcesWithProbe({
+      seriesId,
+      episodeId: epToken,
+      episodeRow,
+      lang,
+      origin,
+      probeCfg,
+      preferredServerHint: preferredHint,
+      episodeHasDub: targetEpisode?.hasDub ?? episodeHasDub ?? null,
+    });
 
     let primary: StreamingType | null = null;
+    let candidates: StreamingType[] = [];
 
-    if (candidates.length > 0) {
-      try {
-        primary = await resolveFirstWorkingAnimePaheCandidate(
-          candidates,
-          origin,
-          probeCfg,
-          lang
-        );
-      } catch {
-        primary = null;
-      }
+    if (picked) {
+      candidates = picked.candidates;
+      primary = picked.verifiedCandidate;
     }
 
     if (!primary && tryMirunoGapDub) {
@@ -482,22 +443,12 @@ async function computeAnimepaheWatchResolveOutcome(params: {
     }
 
     if (!primary) {
-      if (!candidates.length) {
-        return {
-          status: 404,
-          body: {
-            success: false,
-            error: 'no_working_source',
-            reason: 'animepahe_sources_empty',
-          },
-        };
-      }
       return {
         status: 404,
         body: {
           success: false,
           error: 'no_working_source',
-          reason: `${lang}_not_available`,
+          reason: picked ? `${lang}_not_available` : 'anicore_sources_empty',
         },
       };
     }
@@ -508,7 +459,7 @@ async function computeAnimepaheWatchResolveOutcome(params: {
 
     const body: Record<string, unknown> = {
       success: true,
-      stream_provider: 'animepahe',
+      stream_provider: 'anicore',
       resolved_anime: {
         ani_id: seriesId,
         slug: seriesId,
@@ -517,12 +468,18 @@ async function computeAnimepaheWatchResolveOutcome(params: {
       },
       episode: {
         number: episode,
-        ep_token: epHash,
+        ep_token: epToken,
         hasSub: Boolean(targetEpisode?.hasSub ?? true),
         hasDub: fromMiruno ? false : Boolean(targetEpisode?.hasDub ?? false),
       },
       stream: {
         url: primary.link.file,
+        format: (() => {
+          const file = primary.link.file?.trim() ?? '';
+          if (file && /\.m3u8|mpegurl|\/hls\//i.test(file)) return 'hls';
+          const t = primary.link.type;
+          return t === 'mp4' || t === 'hls' ? t : 'hls';
+        })(),
         lang: fromMiruno ? 'dub' : usedLang,
         server: primary.server,
         request_headers: buildProbeHeaders(primary),
@@ -537,6 +494,7 @@ async function computeAnimepaheWatchResolveOutcome(params: {
       debug: {
         latency_ms: Date.now() - startedAt,
         requested_lang: lang,
+        anicore_server: picked?.server ?? null,
         ...(fromMiruno ? { miruno_dub_gap_fill: true } : {}),
       },
     };
@@ -630,7 +588,6 @@ async function computeHikkaWatchResolveOutcome(params: {
     try {
       originHeader = new URL(referer).origin;
     } catch {
-      /* noop */
     }
     const requestHeaders: Record<string, string> = {
       Referer: referer,
@@ -648,7 +605,6 @@ async function computeHikkaWatchResolveOutcome(params: {
     };
 
     let playable = await isPlayableViaProxy(origin, candidate, probeCfg);
-    // moonanime: підписаний CDN часто не проходить server-side probe, у плеєрі з Referer — ок
     if (!playable && decoded?.source === 'moon') {
       playable = true;
     }
@@ -914,7 +870,7 @@ async function computeWatchResolveOutcome(
             ? 'ani_id is required (Aniliberty release id from catalog)'
             : provider === 'hikka'
               ? 'ani_id is required (Hikka slug from catalog)'
-              : 'ani_id is required (Animepahe series id from catalog)',
+              : 'ani_id is required (Anicore series id from catalog)',
       },
     };
   }
@@ -948,7 +904,7 @@ async function computeWatchResolveOutcome(
     });
   }
 
-  return computeAnimepaheWatchResolveOutcome({
+  return computeAnicoreWatchResolveOutcome({
     startedAt,
     episode,
     lang,

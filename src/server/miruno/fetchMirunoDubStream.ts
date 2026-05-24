@@ -23,7 +23,7 @@ function isHttpUrl(s: string): boolean {
   return s.startsWith('http://') || s.startsWith('https://');
 }
 
-/** Miruno Native: `{ streams: [{ url, referer, server, default }], subtitles: [...] }`. */
+
 function extractMirunoPrimaryStream(json: Record<string, unknown>): MirunoPrimaryPick | null {
   const streams = json.streams;
   if (Array.isArray(streams) && streams.length > 0) {
@@ -106,10 +106,7 @@ function mirunoSubtitlesToTracks(subtitles: unknown): VideoTrack[] {
   return out;
 }
 
-/**
- * Лише dub: Miruno Native API (AniList id + episode).
- * Викликати лише коли в каталозі Animepahe для епізоду `hasDub !== true`.
- */
+
 export async function tryResolveMirunoDubHls(params: {
   anilistId: number;
   episode: number;
@@ -122,11 +119,7 @@ export async function tryResolveMirunoDubHls(params: {
   const { anilistId, episode, origin, probeCfg } = params;
   const epParam = Number.isFinite(episode) ? String(episode) : '';
 
-  /**
-   * `server=hd-1|hd-2` — лінія Miruno (Arc / Bee), як у їхньому `/api/stream`.
-   * Поле `streams[].server` у JSON (Vidstream, VidCloud) — лише мітка CDN, не цей параметр.
-   * Спочатку `hd-2`: частіше збігає з ручним тестом dub (Bee); далі fallback на `hd-1`.
-   */
+  
   for (const server of ['hd-2', 'hd-1'] as const) {
     const apiUrl = `${base}/api/stream?id=${anilistId}&ep=${encodeURIComponent(epParam)}&server=${server}&type=dub`;
     try {
@@ -152,7 +145,7 @@ export async function tryResolveMirunoDubHls(params: {
         try {
           requestHeaders.Origin = new URL(pick.referer).origin;
         } catch {
-          /* ignore */
+          
         }
       }
 

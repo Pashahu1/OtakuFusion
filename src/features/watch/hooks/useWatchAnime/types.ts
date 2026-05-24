@@ -1,11 +1,11 @@
-import type { WatchStreamProvider } from '@/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
 
 export interface UseWatchAnimeReturn {
   animeInfo: AnimeData | null;
-  animepaheCatalogProviderId: string | null;
+  anicoreCatalogProviderId: string | null;
   anilibertyCatalogProviderId: string | null;
   providerAnimeId: string | null;
   episodes: EpisodesTypes[] | null;
@@ -19,7 +19,7 @@ export interface UseWatchAnimeReturn {
   hikkaLanguageMenuEligible: boolean;
   hikkaCatalogProviderId: string | null;
   providerCatalogPending: boolean;
-  /** Провайдер, для якого поточний `episodes` / `ep_token` валідні для resolve. */
+
   episodesSourceProvider: WatchStreamProvider | null;
   runDeferredOppositeProviderPrefetch: () => void;
 }

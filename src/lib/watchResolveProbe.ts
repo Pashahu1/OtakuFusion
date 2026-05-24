@@ -1,17 +1,13 @@
-/**
- * Швидка перевірка HLS через локальний /api/m3u8-proxy під час резолву watch.
- * Таймаути та режими керуються env (див. `readWatchProbeConfig`).
- */
+
 
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
-/** Мова запиту GET /api/watch/resolve — керує дефолтом probe для dub vs sub. */
 export type WatchProbeRequestLang = 'sub' | 'dub';
 
 export interface WatchProbeConfig {
   masterMs: number;
   variantMs: number;
-  /** Якщо true — не перевіряти перший variant при master playlist (швидше, ризик «мертвого» рівня). */
+
   skipVariant: boolean;
 }
 
@@ -20,15 +16,6 @@ function clampMs(value: number, fallback: number): number {
   return Math.min(45_000, Math.max(1200, Math.floor(value)));
 }
 
-/**
- * Таймаути та skip variant для `isPlayableViaProxy` під час watch/resolve.
- *
- * **WATCH_PROBE_SKIP_VARIANT** (опційно): `1`/`true` — завжди skip variant (sub і dub);
- * `0`/`false` — ніколи не skip (повний probe). Якщо змінна **не задана**: для **dub**
- * за замовчуванням skip variant (швидший резолв), для **sub** — перевірка variant як раніше.
- *
- * Підкрутити час: WATCH_PROBE_MASTER_MS, WATCH_PROBE_VARIANT_MS.
- */
 export function readWatchProbeConfig(requestedLang: WatchProbeRequestLang): WatchProbeConfig {
   const masterRaw = Number(process.env.WATCH_PROBE_MASTER_MS);
   const variantRaw = Number(process.env.WATCH_PROBE_VARIANT_MS);
@@ -50,7 +37,6 @@ export function readWatchProbeConfig(requestedLang: WatchProbeRequestLang): Watc
   };
 }
 
-/** Заголовки для проксі та поля `request_headers` у відповіді резолву. */
 export function buildProbeHeaders(stream: StreamingType): Record<string, string> {
   const direct = stream.request_headers;
   if (direct && typeof direct === 'object') {
@@ -65,7 +51,7 @@ export function buildProbeHeaders(stream: StreamingType): Record<string, string>
         try {
           out.Origin = new URL(out.Referer).origin;
         } catch {
-          /* ignore */
+
         }
       }
       return out;
@@ -81,7 +67,7 @@ export function buildProbeHeaders(stream: StreamingType): Record<string, string>
         Origin: url.origin,
       };
     } catch {
-      // ignore
+
     }
   }
   return {
@@ -92,18 +78,10 @@ export function buildProbeHeaders(stream: StreamingType): Record<string, string>
 
 export interface HlsProxyProbeResult {
   ok: boolean;
-  /** Текст першого відповідного m3u8 (master або media), якщо `ok`. */
+
   masterPlaylistText: string | null;
 }
 
-/**
- * Евристика для master HLS: чи є ознаки **окремої** англомовної / dub аудіо
- * (`#EXT-X-MEDIA:TYPE=AUDIO`), а не лише саби в JSON Miruno.
- *
- * - Немає рядків `TYPE=AUDIO` — зазвичай аудіо змультиплексоване в відео; повертаємо **true** (не блокуємо).
- * - Два і більше `TYPE=AUDIO` — часто multi-audio (типово sub+dub); **true**.
- * - Один `TYPE=AUDIO` — **true** лише якщо в рядку є натяк на EN / dub.
- */
 export function hlsMasterSuggestsDubLikeAudio(masterText: string): boolean {
   if (!masterText.includes('#EXTM3U')) return false;
   const audioLines = masterText
@@ -141,10 +119,6 @@ export function isMirunoDubHlsManifestCheckEnabled(): boolean {
   return v === '1' || v === 'true';
 }
 
-/**
- * Перевірка, що плейлист віддається через наш проксі (як у плеєрі).
- * Повертає також текст master/media playlist для додаткових перевірок (Miruno dub).
- */
 export async function probeHlsStreamViaProxy(
   origin: string,
   stream: StreamingType,
@@ -175,10 +149,8 @@ export async function probeHlsStreamViaProxy(
     const text = await res.text();
     if (!text.includes('#EXTM3U')) return { ok: false, masterPlaylistText: null };
 
-    /** Вже медіа-плейлист — не потрібен другий hop. */
     if (text.includes('#EXTINF')) return { ok: true, masterPlaylistText: text };
 
-    /** Один рівень без variant (рідко, але швидко). */
     if (!text.includes('#EXT-X-STREAM-INF')) return { ok: true, masterPlaylistText: text };
 
     if (cfg.skipVariant) return { ok: true, masterPlaylistText: text };
@@ -215,15 +187,53 @@ export async function probeHlsStreamViaProxy(
   }
 }
 
-/**
- * Перевірка, що плейлист віддається через наш проксі (як у плеєрі).
- * Оптимізації: медіа-плейлист (#EXTINF) без другого hop; кілька variant рядків — Promise.any.
- */
 export async function isPlayableViaProxy(
   origin: string,
   stream: StreamingType,
   cfg: WatchProbeConfig
 ): Promise<boolean> {
-  const r = await probeHlsStreamViaProxy(origin, stream, cfg);
-  return r.ok;
+  return isPlayableStreamViaProxy(origin, stream, cfg);
+}
+
+function streamUrlLooksLikeHls(url: string): boolean {
+  const u = url.toLowerCase();
+  return u.includes('.m3u8') || u.includes('mpegurl');
+}
+
+export async function isPlayableStreamViaProxy(
+  origin: string,
+  stream: StreamingType,
+  cfg: WatchProbeConfig
+): Promise<boolean> {
+  const streamUrl = stream.link?.file?.trim();
+  if (!streamUrl) return false;
+
+  if (streamUrlLooksLikeHls(streamUrl)) {
+    const r = await probeHlsStreamViaProxy(origin, stream, cfg);
+    return r.ok;
+  }
+
+  const probeUrl = new URL('/api/m3u8-proxy', origin);
+  probeUrl.searchParams.set('url', streamUrl);
+  probeUrl.searchParams.set('headers', JSON.stringify(buildProbeHeaders(stream)));
+
+  try {
+    const rangeRes = await fetch(probeUrl.toString(), {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { Range: 'bytes=0-1' },
+      signal: AbortSignal.timeout(cfg.masterMs),
+    });
+    if (rangeRes.ok || rangeRes.status === 206) return true;
+    if (rangeRes.status !== 404 && rangeRes.status !== 416) return false;
+
+    const fullRes = await fetch(probeUrl.toString(), {
+      method: 'GET',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(cfg.masterMs),
+    });
+    return fullRes.ok;
+  } catch {
+    return false;
+  }
 }

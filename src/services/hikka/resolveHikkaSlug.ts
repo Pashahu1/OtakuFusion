@@ -1,7 +1,7 @@
 import {
   buildAnimepaheSearchTermsFromFields,
   type AnimepaheCatalogHints,
-} from '@/services/animepahe/catalogHints';
+} from '@/services/catalog/catalogHints';
 import { hikkaIoFetch, hikkaIoUrl } from '@/services/hikka/hikkaIoFetch';
 
 interface HikkaAnimeRow {

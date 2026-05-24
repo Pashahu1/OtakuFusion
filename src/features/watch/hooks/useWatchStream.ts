@@ -2,16 +2,29 @@ import { useEffect, useRef, useState } from 'react';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData, StreamQualityVariant } from '@/shared/types/StreamingTypes';
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
-import type { WatchStreamProvider } from '@/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { pickPreferredQualityVariant } from '@/features/player/ui/pickPreferredStreamQuality';
 import { resolveWatchStream } from '@/services/resolveWatchStream';
+import { inferStreamMediaKind, urlLooksLikeHlsStream } from '@/lib/streamMediaType';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
+import {
+  clearAnicorePlaybackServerHint,
+  isValidAnicorePlaybackServerHint,
+  readAnicorePlaybackServerHint,
+  writeAnicorePlaybackServerHint,
+} from '@/features/watch/lib/anicore-playback-server-preference';
+import {
+  clearAnilibertyPlaybackQualityHint,
+  heightFromAnilibertyServerLabel,
+  readAnilibertyPlaybackQualityHint,
+  writeAnilibertyPlaybackQualityHint,
+} from '@/shared/utils/anilibertyPlaybackQualityHint';
 
 export interface UseWatchStreamReturn {
   streamInfo: StreamingData | null;
   streamUrl: string | null;
   buffering: boolean;
-  /** Підпис під лоадером під час авто-retry (англійською). */
+
   streamLoadingMessage: string | null;
   subtitles: SubtitleItem[];
   thumbnail: string | null;
@@ -36,29 +49,28 @@ interface WatchResolveOptions {
   preferredLang: 'sub' | 'dub';
   onPlaybackLangResolved?: (lang: 'sub' | 'dub') => void;
   watchStreamProvider: WatchStreamProvider;
-  /**
-   * Збільшується лише при явній зміні доріжки в UI (Japanese / English).
-   * Не змінювати при авто-синхроні після fallback dub→sub — інакше подвійний resolve.
-   */
+
   streamLangRevision: number;
-  /** Зміна коли з’являється факт hasDub на епізоді / серії — окремий повторний resolve. */
+
   episodeDubStateKey: string;
-  /** AniList total episodes — блокує resolve Anilibria при розбіжності (не ongoing). */
+
   expectedEpisodes?: number;
   anilistStillAiring?: boolean;
-  /** Поки тягнеться каталог Anilibria/Hikka — resolve не викликати (немає ani_id → 400). */
+
   providerCatalogPending?: boolean;
-  /** Каталог епізодів відповідає `watchStreamProvider` — інакше не слати чужий ep_token. */
+
   episodesSourceProvider?: WatchStreamProvider | null;
-  /** Після невдалого 3s auto-retry — повернути Japanese (Animepahe sub). */
+
   onAutoRetryExhausted?: () => void;
+
+  anilibertyCatalogVerified?: boolean;
 }
 
 function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): boolean {
   if (!opts?.streamAnime || !opts.episodeId) return true;
   const sp = opts.watchStreamProvider;
   const epSource = opts.episodesSourceProvider;
-  /** Лише чужий ep_token після перемикання мови — не чекати весь providerCatalogPending. */
+
   if (epSource != null && epSource !== sp) return true;
   if (opts.providerCatalogPending === true && (sp === 'hikka' || sp === 'aniliberty')) {
     return true;
@@ -69,7 +81,6 @@ function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): boolean {
   return false;
 }
 
-/** Один повторний resolve після помилки при перемиканні епізоду (cold CDN / rate limit). */
 const WATCH_RESOLVE_AUTO_RETRY_DELAY_SEC = 3;
 
 function formatAutoRetryCountdownMessage(secondsLeft: number): string {
@@ -87,11 +98,11 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   no_working_source:
     'Could not play this HLS source — it may be blocked or no longer available. Try another episode, provider, or later.',
   'no_working_source|aniliberty_sources_empty':
-    'Anilibria did not return an HLS playlist for this episode. Try Animepahe or another episode.',
+    'Anilibria did not return an HLS playlist for this episode. Try Anicore or another episode.',
   'no_working_source|hikka_m3u8_not_found':
     'Could not extract a playable stream from the Ukrainian source page. Try another episode or provider.',
   'no_working_source|hikka_stream_probe_failed':
-    'Ukrainian stream is blocked or unavailable. Try Animepahe or refresh later.',
+    'Ukrainian stream is blocked or unavailable. Try Anicore or refresh later.',
   hikka_catalog_not_found:
     'No Ukrainian dub catalog was found for this title on Hikka Features.',
   hikka_features_forbidden:
@@ -99,7 +110,7 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   'ani_id is required (Hikka slug from catalog)':
     'Ukrainian catalog is still loading or missing. Wait a moment, refresh, or switch to Japanese and back.',
   aniliberty_episode_count_mismatch:
-    'Anilibria episode count does not match this title. Use Animepahe instead.',
+    'Anilibria episode count does not match this title. Use Animex instead.',
   'lang must be sub or dub':
     'Invalid stream language parameter. Refresh the page or toggle Sub/Dub.',
 };
@@ -122,12 +133,20 @@ function delayMs(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
-function clearStoredServerHint(): void {
+function clearStoredServerHint(provider: WatchStreamProvider): void {
   if (typeof window === 'undefined') return;
   try {
+    if (provider === 'anicore') {
+      clearAnicorePlaybackServerHint();
+      return;
+    }
+    if (provider === 'aniliberty') {
+      clearAnilibertyPlaybackQualityHint();
+      return;
+    }
     localStorage.removeItem(STORAGE_SERVER_NAME);
   } catch {
-    /* ignore */
+
   }
 }
 
@@ -244,13 +263,12 @@ export function useWatchStream(
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
-  /** Після першого завершення resolve (успіх або помилка) — щоб не показувати recovery «миготінням». */
+
   const [resolveAttempted, setResolveAttempted] = useState(false);
 
   const resolveOptsRef = useRef(watchResolveOptions);
   resolveOptsRef.current = watchResolveOptions;
 
-  /** Актуальний ep_token без повторного resolve при тій самій серії (див. deps ефекту). */
   const episodeEpTokenRef = useRef(watchResolveOptions?.episodeEpToken);
   episodeEpTokenRef.current = watchResolveOptions?.episodeEpToken;
   const episodeHasDubRef = useRef(watchResolveOptions?.episodeHasDub);
@@ -278,7 +296,7 @@ export function useWatchStream(
       lastResolveProviderRef.current != null && lastResolveProviderRef.current !== sp;
     lastResolveProviderRef.current = sp;
     if (providerJustChanged) {
-      clearStoredServerHint();
+      clearStoredServerHint(sp);
     }
 
     const controller = new AbortController();
@@ -301,15 +319,23 @@ export function useWatchStream(
       const tracks = [] as VideoTrack[];
 
       const resolvedServerLabel = result.stream.server?.trim();
-      if (
-        typeof window !== 'undefined' &&
-        resolvedServerLabel &&
-        resolvedServerLabel !== 'Resolved'
-      ) {
+      const anicoreServer = result.debug?.anicore_server?.trim();
+      if (typeof window !== 'undefined') {
         try {
-          localStorage.setItem(STORAGE_SERVER_NAME, resolvedServerLabel);
+          if (
+            activeOpts.watchStreamProvider === 'anicore' &&
+            anicoreServer &&
+            isValidAnicorePlaybackServerHint(anicoreServer)
+          ) {
+            writeAnicorePlaybackServerHint(anicoreServer);
+          } else if (activeOpts.watchStreamProvider === 'aniliberty') {
+            const h = heightFromAnilibertyServerLabel(
+              resolvedServerLabel ?? ''
+            );
+            if (h != null) writeAnilibertyPlaybackQualityHint(h);
+          }
         } catch {
-          /* ignore */
+
         }
       }
 
@@ -333,13 +359,20 @@ export function useWatchStream(
       const playbackUrl = preferredPlayback.url;
       const playbackHeaders =
         preferredPlayback.request_headers ?? result.stream.request_headers;
+      const resolvedFormat =
+        result.stream.format === 'mp4' || result.stream.format === 'hls'
+          ? result.stream.format
+          : inferStreamMediaKind(playbackUrl);
+      const playbackFormat = urlLooksLikeHlsStream(playbackUrl)
+        ? 'hls'
+        : resolvedFormat;
 
       setStreamInfo({
         streamingLink: [
           {
             id: 1,
             type: result.stream.lang,
-            link: { file: playbackUrl, type: 'hls' },
+            link: { file: playbackUrl, type: playbackFormat },
             tracks,
             server: result.stream.server || 'Resolved',
             request_headers: playbackHeaders,
@@ -400,12 +433,19 @@ export function useWatchStream(
             ? ('aniliberty' as const)
             : activeOpts.watchStreamProvider === 'hikka'
               ? ('hikka' as const)
-              : ('animepahe' as const),
+              : ('anicore' as const),
+        anilibertyCatalogVerified:
+          activeOpts.watchStreamProvider === 'aniliberty' &&
+          activeOpts.anilibertyCatalogVerified === true,
       };
 
       const hadServerHint =
         typeof window !== 'undefined' &&
-        Boolean(localStorage.getItem(STORAGE_SERVER_NAME)?.trim());
+        (activeOpts.watchStreamProvider === 'anicore'
+          ? Boolean(readAnicorePlaybackServerHint())
+          : activeOpts.watchStreamProvider === 'aniliberty'
+            ? Boolean(readAnilibertyPlaybackQualityHint())
+            : Boolean(localStorage.getItem(STORAGE_SERVER_NAME)?.trim()));
 
       let result: Awaited<ReturnType<typeof resolveWatchStream>>;
       try {
@@ -413,7 +453,7 @@ export function useWatchStream(
       } catch (firstErr) {
         if (signal.aborted) return;
         if (!hadServerHint) throw firstErr;
-        clearStoredServerHint();
+        clearStoredServerHint(activeOpts.watchStreamProvider);
         result = await resolveWatchStream(resolveParams, signal);
       }
 
@@ -445,7 +485,7 @@ export function useWatchStream(
 
         try {
           if (providerJustChanged) {
-            clearStoredServerHint();
+            clearStoredServerHint(activeOpts.watchStreamProvider);
             await runResolveAttempt();
             return;
           }
@@ -456,7 +496,7 @@ export function useWatchStream(
             await delayMs(1000, signal);
           }
           setStreamLoadingMessage(WATCH_RESOLVE_AUTO_RETRY_REFRESHING_MSG);
-          clearStoredServerHint();
+          clearStoredServerHint(activeOpts.watchStreamProvider);
           await runResolveAttempt();
           setStreamLoadingMessage(null);
         } catch (retryErr) {
@@ -490,6 +530,7 @@ export function useWatchStream(
     watchResolveOptions?.anilistStillAiring,
     watchResolveOptions?.providerCatalogPending,
     watchResolveOptions?.episodesSourceProvider,
+    watchResolveOptions?.anilibertyCatalogVerified,
     watchResolveOptions?.streamAnime?.id,
     watchResolveOptions?.streamAnime?.title,
     watchResolveOptions?.streamAnime?.mal_id,

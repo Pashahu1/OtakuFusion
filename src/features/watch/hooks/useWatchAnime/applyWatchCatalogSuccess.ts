@@ -1,11 +1,11 @@
-import type { AnimepaheCatalogBffOk } from '@/lib/animepahe-catalog-bff';
-import type { AnilibertyCatalogBffOk } from '@/lib/aniliberty-catalog-bff';
-import type { HikkaCatalogBffOk } from '@/lib/hikka-catalog-bff';
+import type { AnicoreCatalogBffOk } from '@/features/watch/lib/anicore-catalog-bff';
+import type { AnilibertyCatalogBffOk } from '@/features/watch/lib/aniliberty-catalog-bff';
+import type { HikkaCatalogBffOk } from '@/features/watch/lib/hikka-catalog-bff';
 import { alignKaiEpisodesToAnilistSeasonStart } from '@/lib/alignKaiEpisodesToAnilistSeason';
 import { aggregateTvInfoStreamCounts } from '@/shared/utils/catalogStreamCounts';
 import { resolveEpisodeIdAfterCatalog } from './resolveEpisodeIdAfterCatalog';
 import { applyAnilistEpisodeDisplayTitles } from '@/lib/mergeKaiEpisodesWithAnilistTitles';
-import type { WatchStreamProvider } from '@/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { AlternateLanguageMenuSetters, StableWatchLoadSnapshot, WarmAlternateCatalogEntry } from './types';
@@ -13,10 +13,10 @@ import { restoreCachedAlternateLanguageMenu } from './watchAnimeCatalogUtils';
 import {
   readVerifiedHikkaMapping,
   readVerifiedLibertyMapping,
-  readVerifiedPaheMapping,
   writeVerifiedHikkaMapping,
   writeVerifiedLibertyMapping,
-  writeVerifiedPaheMapping,
+  writeVerifiedAnicoreMapping,
+  readVerifiedAnicoreMapping,
 } from './watchAnimeMappingCache';
 
 export interface ApplyWatchCatalogSuccessContext {
@@ -35,7 +35,7 @@ export interface ApplyWatchCatalogSuccessContext {
   menuSetters: AlternateLanguageMenuSetters;
   setAnimeInfo: React.Dispatch<React.SetStateAction<AnimeData | null>>;
   setEpisodes: React.Dispatch<React.SetStateAction<EpisodesTypes[] | null>>;
-  setAnimepaheCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
+  setAnicoreCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setAnilibertyCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setHikkaCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setTotalEpisodes: React.Dispatch<React.SetStateAction<number | null>>;
@@ -51,7 +51,7 @@ export interface ApplyWatchCatalogSuccessContext {
 
 export interface ApplyWatchCatalogSuccessOpts {
   forceFuzzy: boolean;
-  freshPaheCatalog: AnimepaheCatalogBffOk | null;
+  freshAnicoreCatalog: AnicoreCatalogBffOk | null;
   freshLibertyCatalog: AnilibertyCatalogBffOk | null;
   freshHikkaCatalog: HikkaCatalogBffOk | null;
   preserveEpisodeNum: string | null;
@@ -77,7 +77,7 @@ export function applyWatchCatalogSuccess(
     menuSetters,
     setAnimeInfo,
     setEpisodes,
-    setAnimepaheCatalogProviderId,
+    setAnicoreCatalogProviderId,
     setAnilibertyCatalogProviderId,
     setHikkaCatalogProviderId,
     setTotalEpisodes,
@@ -91,7 +91,7 @@ export function applyWatchCatalogSuccess(
 
   const {
     forceFuzzy,
-    freshPaheCatalog,
+    freshAnicoreCatalog,
     freshLibertyCatalog,
     freshHikkaCatalog,
     preserveEpisodeNum,
@@ -117,10 +117,10 @@ export function applyWatchCatalogSuccess(
       restoreCachedAlternateLanguageMenu(animeId, 'hikka', menuSetters);
     }
   } else {
-    if (freshPaheCatalog) {
-      writeVerifiedPaheMapping(animeId, providerId, freshPaheCatalog.hasSeriesDub === true);
+    if (freshAnicoreCatalog) {
+      writeVerifiedAnicoreMapping(animeId, providerId, freshAnicoreCatalog.hasSeriesDub === true);
     }
-    setAnimepaheCatalogProviderId(providerId);
+    setAnicoreCatalogProviderId(providerId);
     if (!forceFuzzy) {
       const cachedHikka = readVerifiedHikkaMapping(animeId);
       const cachedLiberty = readVerifiedLibertyMapping(animeId);
@@ -132,7 +132,7 @@ export function applyWatchCatalogSuccess(
         setAnilibertyCatalogProviderId(cachedLiberty.libertyId);
         setAnilibertyLanguageMenuEligible(true);
       }
-      /** Hikka/Anilibria prefetch — лише після streamUrl (`runDeferredOppositeProviderPrefetch`). */
+
     }
   }
 
@@ -156,12 +156,12 @@ export function applyWatchCatalogSuccess(
   setTotalEpisodes(mergedEpisodes.length > 0 ? mergedEpisodes.length : null);
 
   const seriesDubHint =
-    watchStreamProvider === 'animepahe' &&
-    (freshPaheCatalog?.hasSeriesDub === true ||
-      readVerifiedPaheMapping(animeId)?.hasSeriesDub === true);
-  if (watchStreamProvider === 'animepahe') {
+    watchStreamProvider === 'anicore' &&
+    (freshAnicoreCatalog?.hasSeriesDub === true ||
+      readVerifiedAnicoreMapping(animeId)?.hasSeriesDub === true);
+  if (watchStreamProvider === 'anicore') {
     const counts = aggregateTvInfoStreamCounts(mergedEpisodes, {
-      provider: 'animepahe',
+      provider: 'anicore',
       seriesDubHint,
     });
     setAnimeInfo((prev) => {

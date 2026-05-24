@@ -17,7 +17,6 @@ function read429MaxWaitMs(): number {
   return 12_000;
 }
 
-/** Пауза до `resetTime` з тіла 429 Crysoline + невеликий буфер. */
 function parse429WaitMs(bodyText: string): number {
   try {
     const j = JSON.parse(bodyText) as { resetTime?: string };
@@ -49,15 +48,29 @@ function sleepMs(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
-/**
- * GET до Crysoline з **одним** повтором після 429 (чекаємо до `resetTime` або дефолт).
- */
+function mergeAbortSignals(
+  outer?: AbortSignal,
+  timeoutMs?: number
+): AbortSignal | undefined {
+  if (!timeoutMs || !Number.isFinite(timeoutMs) || timeoutMs <= 0) return outer;
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  if (!outer) return timeoutSignal;
+  return AbortSignal.any([outer, timeoutSignal]);
+}
+
+function readCrysolineFetchTimeoutMs(): number {
+  const raw = Number(process.env.CRYSOLINE_FETCH_TIMEOUT_MS);
+  if (Number.isFinite(raw) && raw >= 5000 && raw <= 120_000) return Math.floor(raw);
+  return 28_000;
+}
+
 export async function crysolineGetJson<T>(
   url: URL,
   label: string,
   signal?: AbortSignal
 ): Promise<T> {
-  let res = await fetch(url, { headers: authHeaders(), signal });
+  const merged = mergeAbortSignals(signal, readCrysolineFetchTimeoutMs());
+  let res = await fetch(url, { headers: authHeaders(), signal: merged });
   let text = await res.text();
 
   if (res.status === 429) {
@@ -67,7 +80,7 @@ export async function crysolineGetJson<T>(
     } catch {
       throw new Error(`${label}_http_429:${text.slice(0, 220)}`);
     }
-    res = await fetch(url, { headers: authHeaders(), signal });
+    res = await fetch(url, { headers: authHeaders(), signal: merged });
     text = await res.text();
   }
 

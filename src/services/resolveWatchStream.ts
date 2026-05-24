@@ -1,4 +1,5 @@
-import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
+import { readAnicorePlaybackServerHint } from '@/shared/utils/anicorePlaybackServerHint';
+import { readAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
 
 const ANILIBERTY_MAPPING_PREFIX = 'aniliberty:mapping:';
 
@@ -12,29 +13,31 @@ function readStoredAnilibertyReleaseId(localAnimeId: string | undefined): string
       return parsed.libertyId.trim();
     }
   } catch {
-    /* ignore */
+
   }
   return undefined;
 }
 
-export type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
+export type WatchResolveStreamProvider = 'anicore' | 'aniliberty' | 'hikka';
 
 export interface WatchResolveParams {
   anilistId?: number;
   malId?: number;
   providerAniId?: string;
-  /** Anilibria episode uuid з каталогу — пропускає повторний fetch списку епізодів на resolve. */
+
   episodeEpToken?: string;
-  /** `hasDub` з каталогу — разом з ep_token пропускає повторний fetch епізодів Animepahe. */
+
   episodeHasDub?: boolean;
   episode: number;
-  /** AniList `episodes` — перевірка на гілці Anilibria (не для ongoing). */
+
   expectedEpisodes?: number;
   anilistStillAiring?: boolean;
   lang: 'sub' | 'dub';
   keyword?: string;
   localAnimeId?: string;
   streamProvider?: WatchResolveStreamProvider;
+
+  anilibertyCatalogVerified?: boolean;
 }
 
 export interface WatchResolveResponse {
@@ -53,6 +56,8 @@ export interface WatchResolveResponse {
   };
   stream: {
     url: string;
+
+    format?: 'hls' | 'mp4';
     lang: 'sub' | 'dub';
     server: string;
     request_headers?: Record<string, string>;
@@ -64,7 +69,7 @@ export interface WatchResolveResponse {
     to: 'sub' | 'dub' | null;
     reason: string | null;
   };
-  debug: { latency_ms: number };
+  debug: { latency_ms: number; anicore_server?: string | null };
   stream_provider?: WatchResolveStreamProvider;
   segments?: {
     intro: { start: number; end: number } | null;
@@ -107,25 +112,30 @@ export async function resolveWatchStream(
     query.set('anilist_still_airing', '1');
   }
   query.set('lang', params.lang === 'dub' ? 'dub' : 'sub');
-  const sp = params.streamProvider ?? 'animepahe';
+  const sp = params.streamProvider ?? 'anicore';
   query.set(
     'stream_provider',
-    sp === 'aniliberty' ? 'aniliberty' : sp === 'hikka' ? 'hikka' : 'animepahe'
+    sp === 'aniliberty' ? 'aniliberty' : sp === 'hikka' ? 'hikka' : 'anicore'
   );
 
-  if (sp === 'animepahe') {
+  if (sp === 'anicore') {
     const libertyId = readStoredAnilibertyReleaseId(params.localAnimeId);
     if (libertyId) query.set('aniliberty_release_id', libertyId);
+    const anicoreHint = readAnicorePlaybackServerHint();
+    if (anicoreHint) query.set('preferred_server_hint', anicoreHint);
   }
 
-  if (typeof window !== 'undefined') {
-    const hint = localStorage.getItem(STORAGE_SERVER_NAME)?.trim();
-    if (hint) query.set('preferred_server_hint', hint);
+  if (sp === 'aniliberty') {
+    const qualityHint = readAnilibertyPlaybackQualityHint();
+    if (qualityHint) query.set('preferred_server_hint', qualityHint);
+    if (params.anilibertyCatalogVerified === true) {
+      query.set('aniliberty_catalog_verified', '1');
+    }
   }
 
   const res = await fetch(`/api/watch/resolve?${query.toString()}`, {
     method: 'GET',
-    /** HTTP `Cache-Control` з route + серверний unstable_cache; `no-store` прибирає весь виграш у браузері. */
+
     cache: 'default',
     signal,
     headers: { accept: 'application/json' },

@@ -1,33 +1,33 @@
-import type { WatchStreamProvider } from '@/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { catalogBodyFromAnimeData } from './watchAnimeCatalogUtils';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
-import { fetchAnimepaheCatalogEpisodes } from './fetchAnimepaheCatalogEpisodes';
+import { fetchAnicoreCatalogEpisodes } from './fetchAnicoreCatalogEpisodes';
 import { fetchAnilibertyCatalogEpisodes } from './fetchAnilibertyCatalogEpisodes';
 import { fetchHikkaCatalogEpisodes } from './fetchHikkaCatalogEpisodes';
 import {
   readVerifiedLibertyMapping,
-  readVerifiedPaheMapping,
+  readVerifiedAnicoreMapping,
 } from './watchAnimeMappingCache';
 
 export function hydrateCachedProviderIds(params: {
   animeId: string;
   forceFuzzy: boolean;
   isAborted: () => boolean;
-  setAnimepaheCatalogProviderId: (id: string) => void;
+  setAnicoreCatalogProviderId: (id: string) => void;
   setAnilibertyCatalogProviderId: (id: string) => void;
 }): void {
   const {
     animeId,
     forceFuzzy,
     isAborted,
-    setAnimepaheCatalogProviderId,
+    setAnicoreCatalogProviderId,
     setAnilibertyCatalogProviderId,
   } = params;
   if (forceFuzzy || isAborted()) return;
-  const hidP = readVerifiedPaheMapping(animeId);
+  const hidP = readVerifiedAnicoreMapping(animeId);
   const hidL = readVerifiedLibertyMapping(animeId);
-  if (hidP?.paheId) setAnimepaheCatalogProviderId(hidP.paheId.trim());
+  if (hidP?.anicoreId) setAnicoreCatalogProviderId(hidP.anicoreId.trim());
   if (hidL?.libertyId) setAnilibertyCatalogProviderId(hidL.libertyId.trim());
 }
 
@@ -54,5 +54,5 @@ export async function fetchProviderCatalogEpisodes(params: {
   if (params.watchStreamProvider === 'aniliberty') {
     return fetchAnilibertyCatalogEpisodes(base);
   }
-  return fetchAnimepaheCatalogEpisodes(base);
+  return fetchAnicoreCatalogEpisodes(base);
 }

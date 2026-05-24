@@ -1,6 +1,6 @@
-import { postAnimepaheCatalog } from '@/lib/animepahe-catalog-bff';
-import { postAnilibertyCatalog, type AnilibertyCatalogBffOk } from '@/lib/aniliberty-catalog-bff';
-import { postHikkaCatalog, type HikkaCatalogBffOk } from '@/lib/hikka-catalog-bff';
+import { postAnicoreCatalog } from '@/features/watch/lib/anicore-catalog-bff';
+import { postAnilibertyCatalog, type AnilibertyCatalogBffOk } from '@/features/watch/lib/aniliberty-catalog-bff';
+import { postHikkaCatalog, type HikkaCatalogBffOk } from '@/features/watch/lib/hikka-catalog-bff';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import {
   catalogBodyFromAnimeData,
@@ -8,10 +8,10 @@ import {
 } from './watchAnimeCatalogUtils';
 import {
   clearVerifiedLibertyMapping,
-  readVerifiedPaheMapping,
+  readVerifiedAnicoreMapping,
   writeVerifiedHikkaMapping,
   writeVerifiedLibertyMapping,
-  writeVerifiedPaheMapping,
+  writeVerifiedAnicoreMapping,
 } from './watchAnimeMappingCache';
 
 async function delayMs(ms: number, signal: AbortSignal): Promise<void> {
@@ -59,7 +59,7 @@ export function prefetchAnilibertyMapping(
       onWarm?.(alt);
       onEligible();
     } catch {
-      /* тихий префетч */
+
     }
   })();
 }
@@ -89,7 +89,7 @@ export function prefetchHikkaMapping(
       onWarm?.(alt);
       onEligible();
     } catch {
-      /* тихий префетч */
+
     }
   })();
 }
@@ -122,24 +122,24 @@ export function startAlternateProviderWarmup(
   );
 }
 
-export function prefetchAnimepaheMapping(
+export function prefetchAnicoreMapping(
   dataForResolve: AnimeData,
   localAnimeId: string,
   signal: AbortSignal,
   isCancelled: () => boolean,
-  onMapped: (paheId: string) => void
+  onMapped: (anicoreId: string) => void
 ): void {
-  if (readVerifiedPaheMapping(localAnimeId)?.paheId) return;
+  if (readVerifiedAnicoreMapping(localAnimeId)?.anicoreId) return;
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
     try {
-      const alt = await postAnimepaheCatalog(catalogPayload, signal);
+      const alt = await postAnicoreCatalog(catalogPayload, signal);
       if (isCancelled() || signal.aborted) return;
-      if (!alt.success || !alt.paheId?.trim()) return;
-      writeVerifiedPaheMapping(localAnimeId, alt.paheId.trim(), alt.hasSeriesDub === true);
-      onMapped(alt.paheId.trim());
+      if (!alt.success || !alt.anicoreId?.trim()) return;
+      writeVerifiedAnicoreMapping(localAnimeId, alt.anicoreId.trim(), alt.hasSeriesDub === true);
+      onMapped(alt.anicoreId.trim());
     } catch {
-      /* тихий префетч */
+
     }
   })();
 }

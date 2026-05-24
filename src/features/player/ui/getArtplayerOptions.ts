@@ -18,6 +18,7 @@ import {
   volumeIcon,
 } from './PlayerIcons';
 import { playM3u8 } from './playerStream';
+import { urlLooksLikeHlsStream } from '@/lib/streamMediaType';
 import { getPlayerLayers } from './getPlayerLayers';
 
 export function getArtplayerOptions(
@@ -76,6 +77,20 @@ export function getArtplayerOptions(
           onHlsBeforeLoad: onM3u8HlsBeforeLoad,
           onHlsInstance: (hls) => onM3u8HlsInstance?.(hls, art),
         });
+      },
+      mp4(video: HTMLVideoElement, url: string, art: Artplayer) {
+        if (urlLooksLikeHlsStream(url)) {
+          playM3u8(video, url, art, {
+            onHlsBeforeLoad: onM3u8HlsBeforeLoad,
+            onHlsInstance: (hls) => onM3u8HlsInstance?.(hls, art),
+          });
+          return;
+        }
+        if (art.hls) {
+          art.hls.destroy();
+          art.hls = null;
+        }
+        video.src = url;
       },
     },
   };

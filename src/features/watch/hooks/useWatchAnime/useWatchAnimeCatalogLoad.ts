@@ -1,7 +1,7 @@
 import { useEffect, type MutableRefObject, type RefObject } from 'react';
 import { getAnimeInfo } from '@/services/getAnimeInfo';
 import { getNextEpisodeSchedule } from '@/services/getNextEpisodeSchedule';
-import type { WatchStreamProvider } from '@/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
@@ -29,7 +29,7 @@ export interface WatchAnimeCatalogLoadParams {
   alternateWarmupAbortRef: MutableRefObject<AbortController | null>;
   setAnimeInfo: React.Dispatch<React.SetStateAction<AnimeData | null>>;
   setEpisodes: React.Dispatch<React.SetStateAction<EpisodesTypes[] | null>>;
-  setAnimepaheCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
+  setAnicoreCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setAnilibertyCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setHikkaCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setTotalEpisodes: React.Dispatch<React.SetStateAction<number | null>>;
@@ -63,7 +63,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
     alternateWarmupAbortRef,
     setAnimeInfo,
     setEpisodes,
-    setAnimepaheCatalogProviderId,
+    setAnicoreCatalogProviderId,
     setAnilibertyCatalogProviderId,
     setHikkaCatalogProviderId,
     setTotalEpisodes,
@@ -103,7 +103,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
     menuSetters,
       setAnimeInfo,
       setEpisodes,
-      setAnimepaheCatalogProviderId,
+      setAnicoreCatalogProviderId,
       setAnilibertyCatalogProviderId,
       setHikkaCatalogProviderId,
       setTotalEpisodes,
@@ -141,7 +141,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
         signal,
         isAborted,
         applyCtx,
-        setAnimepaheCatalogProviderId,
+        setAnicoreCatalogProviderId,
         setAnilibertyCatalogProviderId,
         setHikkaCatalogProviderId,
         setAnilibertyLanguageMenuEligible,
@@ -184,7 +184,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
         }
         applyWatchCatalogSuccess(applyCtx, dataForResolve, list, providerId, {
           forceFuzzy: false,
-          freshPaheCatalog: null,
+          freshAnicoreCatalog: null,
           freshLibertyCatalog: null,
           freshHikkaCatalog: null,
           preserveEpisodeNum: preserveEpisodeNum ?? null,
@@ -256,7 +256,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
     }
 
     setEpisodes(null);
-    setAnimepaheCatalogProviderId(null);
+    setAnicoreCatalogProviderId(null);
     setAnilibertyCatalogProviderId(null);
     setHikkaCatalogProviderId(null);
     if (episodeRemapPass === 0) {
@@ -310,7 +310,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
           if (isAborted()) return;
           console.warn('[useWatchAnime] catalog:', episodesError);
           setError(getWatchAnimeErrorMessage(episodesError));
-          setAnimepaheCatalogProviderId(null);
+          setAnicoreCatalogProviderId(null);
           setAnilibertyCatalogProviderId(null);
           setAnilibertyLanguageMenuEligible(false);
           setHikkaLanguageMenuEligible(false);
@@ -345,7 +345,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
     oppositePrefetchDoneRef,
     setAnimeInfo,
     setAnimeInfoLoading,
-    setAnimepaheCatalogProviderId,
+    setAnicoreCatalogProviderId,
     setAnilibertyCatalogProviderId,
     setAnilibertyLanguageMenuEligible,
     setEpisodeId,

@@ -1,7 +1,7 @@
-import type { WatchStreamProvider } from '@/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 
-export interface VerifiedPaheMapping {
-  paheId: string;
+export interface VerifiedAnicoreMapping {
+  anicoreId: string;
   hasSeriesDub?: boolean;
 }
 
@@ -19,15 +19,16 @@ export function getMappingCacheKey(
 ): string {
   if (provider === 'aniliberty') return `aniliberty:mapping:${localAnimeId}`;
   if (provider === 'hikka') return `hikka:mapping:${localAnimeId}`;
-  return `animepahe:mapping:${localAnimeId}`;
+  return `anicore:mapping:${localAnimeId}`;
 }
 
-export function clearVerifiedPaheMapping(localAnimeId: string): void {
+export function clearVerifiedAnicoreMapping(localAnimeId: string): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.removeItem(getMappingCacheKey(localAnimeId, 'animepahe'));
+    localStorage.removeItem(getMappingCacheKey(localAnimeId, 'anicore'));
+    localStorage.removeItem(`animex:mapping:${localAnimeId}`);
   } catch {
-    /* ignore */
+
   }
 }
 
@@ -36,19 +37,31 @@ export function clearVerifiedLibertyMapping(localAnimeId: string): void {
   try {
     localStorage.removeItem(getMappingCacheKey(localAnimeId, 'aniliberty'));
   } catch {
-    /* ignore */
+
   }
 }
 
-export function readVerifiedPaheMapping(localAnimeId: string): VerifiedPaheMapping | null {
+export function readVerifiedAnicoreMapping(
+  localAnimeId: string
+): VerifiedAnicoreMapping | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(getMappingCacheKey(localAnimeId, 'animepahe'));
+    const raw =
+      localStorage.getItem(getMappingCacheKey(localAnimeId, 'anicore')) ??
+      localStorage.getItem(`animex:mapping:${localAnimeId}`);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as { paheId?: string; hasSeriesDub?: boolean };
-    if (!parsed || typeof parsed.paheId !== 'string' || !parsed.paheId.trim()) return null;
+    const parsed = JSON.parse(raw) as {
+      anicoreId?: string;
+      animexId?: string;
+      hasSeriesDub?: boolean;
+    };
+    const id =
+      (typeof parsed.anicoreId === 'string' && parsed.anicoreId.trim()) ||
+      (typeof parsed.animexId === 'string' && parsed.animexId.trim()) ||
+      null;
+    if (!id) return null;
     return {
-      paheId: parsed.paheId.trim(),
+      anicoreId: id.trim(),
       hasSeriesDub: parsed.hasSeriesDub === true ? true : undefined,
     };
   } catch {
@@ -69,20 +82,23 @@ export function readVerifiedLibertyMapping(localAnimeId: string): VerifiedLibert
   }
 }
 
-export function writeVerifiedPaheMapping(
+export function writeVerifiedAnicoreMapping(
   localAnimeId: string,
-  paheId: string,
+  anicoreId: string,
   hasSeriesDub?: boolean
 ): void {
   if (typeof window === 'undefined') return;
   try {
-    const payload: { paheId: string; hasSeriesDub?: boolean } = {
-      paheId: paheId.trim(),
+    const payload: { anicoreId: string; hasSeriesDub?: boolean } = {
+      anicoreId: anicoreId.trim(),
     };
     if (hasSeriesDub === true) payload.hasSeriesDub = true;
-    localStorage.setItem(getMappingCacheKey(localAnimeId, 'animepahe'), JSON.stringify(payload));
+    localStorage.setItem(
+      getMappingCacheKey(localAnimeId, 'anicore'),
+      JSON.stringify(payload)
+    );
   } catch {
-    /* ignore */
+
   }
 }
 
@@ -94,7 +110,7 @@ export function writeVerifiedLibertyMapping(localAnimeId: string, libertyId: str
       JSON.stringify({ libertyId: libertyId.trim() })
     );
   } catch {
-    /* ignore */
+
   }
 }
 
@@ -119,6 +135,6 @@ export function writeVerifiedHikkaMapping(localAnimeId: string, hikkaSlug: strin
       JSON.stringify({ hikkaSlug: hikkaSlug.trim() })
     );
   } catch {
-    /* ignore */
+
   }
 }

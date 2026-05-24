@@ -1,4 +1,4 @@
-import { postAnilibertyCatalog } from '@/lib/aniliberty-catalog-bff';
+import { postAnilibertyCatalog } from '@/features/watch/lib/aniliberty-catalog-bff';
 import { getAnilibertyEpisodesFromBff } from '@/lib/aniliberty-episodes-bff';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
 import { isLibertyCatalogAcceptableForAnime } from './watchAnimeCatalogUtils';
@@ -58,7 +58,7 @@ export async function fetchAnilibertyCatalogEpisodes(
   return {
     providerId,
     episodes: list,
-    freshPaheCatalog: null,
+    freshAnicoreCatalog: null,
     freshLibertyCatalog,
     freshHikkaCatalog: null,
   };

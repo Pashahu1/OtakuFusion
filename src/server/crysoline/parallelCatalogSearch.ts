@@ -1,4 +1,4 @@
-import { normalizeCatalogSearchQuery } from '@/services/animepahe/catalogHints';
+import { normalizeCatalogSearchQuery } from '@/services/catalog/catalogHints';
 
 export interface ParallelCatalogSearchOptions {
   maxQueries?: number;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import type { WatchStreamProvider } from '@/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
@@ -17,9 +17,7 @@ export function useWatchAnime(
 ): UseWatchAnimeReturn {
   const [animeInfo, setAnimeInfo] = useState<AnimeData | null>(null);
   const [episodes, setEpisodes] = useState<EpisodesTypes[] | null>(null);
-  const [animepaheCatalogProviderId, setAnimepaheCatalogProviderId] = useState<string | null>(
-    null
-  );
+  const [anicoreCatalogProviderId, setAnicoreCatalogProviderId] = useState<string | null>(null);
   const [anilibertyCatalogProviderId, setAnilibertyCatalogProviderId] = useState<string | null>(
     null
   );
@@ -57,7 +55,7 @@ export function useWatchAnime(
 
   useLayoutEffect(() => {
     setEpisodes(null);
-    setAnimepaheCatalogProviderId(null);
+    setAnicoreCatalogProviderId(null);
     setAnilibertyCatalogProviderId(null);
     setEpisodeId(null);
     setAnimeInfo(null);
@@ -89,7 +87,6 @@ export function useWatchAnime(
     provider: WatchStreamProvider;
   } | null>(null);
 
-  /** Синхронно скидає ep_token попереднього провайдера (без блокування Animepahe resolve). */
   useLayoutEffect(() => {
     const s = stableWatchLoad.current;
     if (!s || s.animeId !== animeId || s.provider === watchStreamProvider) return;
@@ -101,7 +98,7 @@ export function useWatchAnime(
     deferredOppositePrefetchRef,
     oppositePrefetchDoneRef,
     oppositePrefetchAbortRef,
-    setAnimepaheCatalogProviderId,
+    setAnicoreCatalogProviderId,
     setAnilibertyLanguageMenuEligible,
     setHikkaLanguageMenuEligible,
   });
@@ -120,7 +117,7 @@ export function useWatchAnime(
     alternateWarmupAbortRef,
     setAnimeInfo,
     setEpisodes,
-    setAnimepaheCatalogProviderId,
+    setAnicoreCatalogProviderId,
     setAnilibertyCatalogProviderId,
     setHikkaCatalogProviderId,
     setTotalEpisodes,
@@ -149,11 +146,11 @@ export function useWatchAnime(
       ? anilibertyCatalogProviderId
       : watchStreamProvider === 'hikka'
         ? hikkaCatalogProviderId
-        : animepaheCatalogProviderId;
+        : anicoreCatalogProviderId;
 
   return {
     animeInfo,
-    animepaheCatalogProviderId,
+    anicoreCatalogProviderId,
     anilibertyCatalogProviderId,
     hikkaCatalogProviderId,
     providerAnimeId,

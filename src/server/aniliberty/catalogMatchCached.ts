@@ -5,7 +5,7 @@ import {
   buildAnimepaheSearchQueryQueue,
   buildAnimepaheSearchTermsFromFields,
   type AnimepaheCatalogHints,
-} from '@/services/animepahe/catalogHints';
+} from '@/services/catalog/catalogHints';
 import { pickBestAnilibertySearchHit } from '@/services/aniliberty/pickAnilibertySearchHit';
 import { isAnilibertyHitEligible } from '@/services/aniliberty/anilibertyEpisodeMatch';
 import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
@@ -14,8 +14,8 @@ import {
   type CatalogLookupBody,
 } from '@/server/catalog/catalogLookupTypes';
 
-const MAX_SEARCH_QUERIES = 3;
-const MERGED_HITS_SOFT_CAP = 10;
+const MAX_SEARCH_QUERIES = 5;
+const MERGED_HITS_SOFT_CAP = 12;
 const MATCH_CACHE_REVALIDATE_SEC = 3600;
 
 async function searchAndPickLibertyId(
@@ -48,7 +48,7 @@ export function resolveAnilibertyLibertyIdCached(
   const key = catalogMatchCacheKey(body);
   return unstable_cache(
     () => searchAndPickLibertyId(body, hints, baseTerms),
-    ['aniliberty-catalog-match-v4', key],
+    ['aniliberty-catalog-match-v5', key],
     { revalidate: MATCH_CACHE_REVALIDATE_SEC }
   )();
 }

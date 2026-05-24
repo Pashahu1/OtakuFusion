@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
-import type { WatchStreamProvider } from '@/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import {
   prefetchAnilibertyMapping,
-  prefetchAnimepaheMapping,
+  prefetchAnicoreMapping,
   prefetchHikkaMapping,
 } from './watchAnimePrefetch';
 
@@ -16,7 +16,7 @@ export interface UseWatchAnimeDeferredPrefetchParams {
   } | null>;
   oppositePrefetchDoneRef: React.MutableRefObject<string | null>;
   oppositePrefetchAbortRef: React.MutableRefObject<AbortController | null>;
-  setAnimepaheCatalogProviderId: (id: string) => void;
+  setAnicoreCatalogProviderId: (id: string) => void;
   setAnilibertyLanguageMenuEligible: (v: boolean) => void;
   setHikkaLanguageMenuEligible: (v: boolean) => void;
 }
@@ -29,7 +29,7 @@ export function useWatchAnimeDeferredPrefetch(
     deferredOppositePrefetchRef,
     oppositePrefetchDoneRef,
     oppositePrefetchAbortRef,
-    setAnimepaheCatalogProviderId,
+    setAnicoreCatalogProviderId,
     setAnilibertyLanguageMenuEligible,
     setHikkaLanguageMenuEligible,
   } = params;
@@ -46,7 +46,7 @@ export function useWatchAnimeDeferredPrefetch(
     const { signal } = controller;
     const isCancelled = () => oppositePrefetchAbortRef.current !== controller;
 
-    if (pending.provider === 'animepahe') {
+    if (pending.provider === 'anicore') {
       prefetchAnilibertyMapping(
         pending.data,
         animeId,
@@ -73,14 +73,14 @@ export function useWatchAnimeDeferredPrefetch(
     }
 
     if (pending.provider === 'hikka') {
-      prefetchAnimepaheMapping(
+      prefetchAnicoreMapping(
         pending.data,
         animeId,
         signal,
         () => isCancelled() || signal.aborted,
-        (paheId) => {
+        (anicoreId) => {
           if (!isCancelled() && !signal.aborted) {
-            setAnimepaheCatalogProviderId(paheId);
+            setAnicoreCatalogProviderId(anicoreId);
           }
         }
       );
@@ -98,14 +98,14 @@ export function useWatchAnimeDeferredPrefetch(
       return;
     }
 
-    prefetchAnimepaheMapping(
+    prefetchAnicoreMapping(
       pending.data,
       animeId,
       signal,
       () => isCancelled() || signal.aborted,
-      (paheId) => {
+      (anicoreId) => {
         if (!isCancelled() && !signal.aborted) {
-          setAnimepaheCatalogProviderId(paheId);
+          setAnicoreCatalogProviderId(anicoreId);
         }
       }
     );
@@ -125,7 +125,7 @@ export function useWatchAnimeDeferredPrefetch(
     deferredOppositePrefetchRef,
     oppositePrefetchAbortRef,
     oppositePrefetchDoneRef,
-    setAnimepaheCatalogProviderId,
+    setAnicoreCatalogProviderId,
     setAnilibertyLanguageMenuEligible,
     setHikkaLanguageMenuEligible,
   ]);

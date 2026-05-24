@@ -3,6 +3,10 @@ import Hls from 'hls.js';
 import Artplayer from 'artplayer';
 import { buildM3u8ProxyPlaylistUrl } from '@/lib/m3u8ProxyPublicBase';
 import {
+  decodeStreamUrlForInspection,
+  inferStreamMediaKind,
+} from '@/lib/streamMediaType';
+import {
   DEFAULT_REFERER,
   HLS_CDN_FALLBACK_ORIGIN,
   HLS_CDN_FALLBACK_REFERER,
@@ -110,7 +114,8 @@ export function getStreamHeaders(
   } else if (
     typeof playlistUrl === 'string' &&
     playlistUrl.trim() &&
-    playlistSuggestsThirdPartyCdn(playlistUrl)
+    (playlistSuggestsThirdPartyCdn(playlistUrl) ||
+      decodeStreamUrlForInspection(playlistUrl).includes('24stream'))
   ) {
     headers.Referer = HLS_CDN_FALLBACK_REFERER;
     headers.Origin = HLS_CDN_FALLBACK_ORIGIN;
@@ -173,6 +178,9 @@ export function getStreamFullUrl(
   streamUrl: string,
   headers: Record<string, string>
 ): string {
+  if (inferStreamMediaKind(streamUrl) === 'mp4') {
+    return buildM3u8ProxyPlaylistUrl(streamUrl, headers);
+  }
   if (isHlsDirectHostUrl(streamUrl)) {
     return streamUrl;
   }
@@ -240,8 +248,8 @@ export function playM3u8(
       maxBufferHole: 0.85,
       lowLatencyMode: false,
       /**
-       * false: не тягнути сегменти до `MANIFEST_PARSED` + `startLoad()` у хості — інакше перший init
-       * інколи йде не з того рівня, що зафіксовано в `applyInitialLevelOnce` (гонка з ABR).
+       * Завжди false: єдиний старт у `MANIFEST_PARSED` (`onM3u8HlsBeforeLoad`) — інакше на Anikage/24stream
+       * ABR встигає підхопити «чужий» рівень до фіксації рівня (bufferAddCodec / чорний екран).
        */
       autoStartLoad: false,
       /** Старт з нижнього рунду; фактичний рівень одразу підміняється в `MANIFEST_PARSED`. */

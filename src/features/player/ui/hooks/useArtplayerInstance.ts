@@ -6,7 +6,8 @@ import Hls from 'hls.js';
 
 import { PLAYER_THEME_COLOR } from '../playerConstants';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
-import { getStreamFullUrl, getStreamHeaders } from '../playerStream';
+import { getStreamFullUrl, getStreamHeaders, playM3u8 } from '../playerStream';
+import { urlLooksLikeHlsStream } from '@/lib/streamMediaType';
 import { getArtplayerOptions } from '../getArtplayerOptions';
 import { setupPlayerReady } from '../setupPlayerReady';
 import { syncPlayerLanguageMenu } from '../syncPlayerLanguageMenu';
@@ -27,6 +28,26 @@ import {
   resolveLevelIndexForStoredQuality,
 } from '../playerPlaybackPreferences';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
+import { inferStreamMediaKind } from '@/lib/streamMediaType';
+
+function inferArtplayerMediaType(
+  streamUrl: string,
+  streamInfo: PlayerProps['streamInfo'],
+  proxiedUrl: string
+): 'm3u8' | 'mp4' {
+  if (urlLooksLikeHlsStream(streamUrl) || urlLooksLikeHlsStream(proxiedUrl)) {
+    return 'm3u8';
+  }
+  const linkRaw = streamInfo?.streamingLink;
+  const first = Array.isArray(linkRaw) ? linkRaw[0] : linkRaw;
+  const mediaType =
+    first && typeof first === 'object' && first.link?.type
+      ? String(first.link.type).toLowerCase()
+      : '';
+  if (mediaType === 'mp4') return 'mp4';
+  if (mediaType === 'hls' || mediaType === 'm3u8') return 'm3u8';
+  return inferStreamMediaKind(streamUrl) === 'mp4' ? 'mp4' : 'm3u8';
+}
 
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
@@ -242,6 +263,10 @@ export function useArtplayerInstance({
 
       const headers = getStreamHeaders(streamInfo, streamUrl);
       const fullURL = getStreamFullUrl(streamUrl, headers);
+      const looksHls =
+        urlLooksLikeHlsStream(streamUrl) || urlLooksLikeHlsStream(fullURL);
+      const playerMediaType = inferArtplayerMediaType(streamUrl, streamInfo, fullURL);
+      const useHlsPlayback = looksHls;
       const useManualStreamQuality = Boolean(
         streamInfo?.qualityVariants && streamInfo.qualityVariants.length > 1
       );
@@ -270,30 +295,7 @@ export function useArtplayerInstance({
         onPlaybackErrorRef.current?.();
       };
 
-    art = new Artplayer({
-      url: fullURL,
-      container,
-      type: 'm3u8',
-      autoplay: false,
-      volume: 1,
-      setting: true,
-      playbackRate: true,
-      pip: true,
-      hotkey: false,
-      fullscreen: true,
-      mutex: true,
-      playsInline: true,
-      /** false: `lock` на мобільних/емуляції інколи заважає старту відтворення (Chrome + HLS). */
-      lock: false,
-      airplay: true,
-      autoOrientation: true,
-      fastForward: true,
-      aspectRatio: true,
-      subtitleOffset: true,
-      theme: PLAYER_THEME_COLOR,
-      ...getArtplayerOptions(
-        userPausedRef,
-        (hls, _art) => {
+      const onM3u8HlsInstance = (hls: InstanceType<typeof Hls>, _art: Artplayer) => {
           hls.on(
             Hls.Events.ERROR,
             (_evt: unknown, data: {
@@ -369,39 +371,93 @@ export function useArtplayerInstance({
               }
             }
           );
-        },
-        (hls) => {
-          const storedQualitySnapshot = readHlsQualityPreference();
-          const applyInitialLevelOnce = () => {
-            hls.off(Hls.Events.MANIFEST_PARSED, applyInitialLevelOnce);
-            try {
-              if (!hls.levels?.length) return;
-              const idx = resolveLevelIndexForStoredQuality(
-                hls.levels as Array<{ height?: number; bitrate?: number }>,
-                storedQualitySnapshot
-              );
-              if (idx < 0) {
-                hls.currentLevel = 0;
-                hls.nextLevel = 0;
-                hls.loadLevel = 0;
-              } else {
-                hls.currentLevel = idx;
-                hls.nextLevel = idx;
-                hls.loadLevel = idx;
-              }
-            } finally {
-              try {
-                hls.startLoad();
-              } catch {
-                /* noop */
-              }
+      };
+
+      const onM3u8HlsBeforeLoad = (hls: InstanceType<typeof Hls>) => {
+        const storedQualitySnapshot = readHlsQualityPreference();
+        const applyInitialLevelOnce = () => {
+          hls.off(Hls.Events.MANIFEST_PARSED, applyInitialLevelOnce);
+          try {
+            if (!hls.levels?.length) {
+              hls.loadLevel = -1;
+              return;
             }
-          };
-          hls.on(Hls.Events.MANIFEST_PARSED, applyInitialLevelOnce);
-        },
+            const idx = resolveLevelIndexForStoredQuality(
+              hls.levels as Array<{ height?: number; bitrate?: number }>,
+              storedQualitySnapshot
+            );
+            if (idx < 0) {
+              hls.currentLevel = 0;
+              hls.nextLevel = 0;
+              hls.loadLevel = 0;
+            } else {
+              hls.currentLevel = idx;
+              hls.nextLevel = idx;
+              hls.loadLevel = idx;
+            }
+          } finally {
+            try {
+              hls.startLoad();
+            } catch {
+              /* noop */
+            }
+          }
+        };
+        hls.on(Hls.Events.MANIFEST_PARSED, applyInitialLevelOnce);
+      };
+
+    art = new Artplayer({
+      container,
+      url: fullURL,
+      type: playerMediaType,
+      autoplay: false,
+      volume: 1,
+      setting: true,
+      playbackRate: true,
+      pip: true,
+      hotkey: false,
+      fullscreen: true,
+      mutex: true,
+      playsInline: true,
+      /** false: `lock` на мобільних/емуляції інколи заважає старту відтворення (Chrome + HLS). */
+      lock: false,
+      airplay: true,
+      autoOrientation: true,
+      fastForward: true,
+      aspectRatio: true,
+      subtitleOffset: true,
+      theme: PLAYER_THEME_COLOR,
+      ...getArtplayerOptions(
+        userPausedRef,
+        onM3u8HlsInstance,
+        onM3u8HlsBeforeLoad,
         useManualStreamQuality
       ),
     });
+
+    const bootHlsPlayback = () => {
+      if (!effectActive) return;
+      if (!Hls.isSupported()) {
+        reportError();
+        return;
+      }
+      try {
+        if (art.video) {
+          art.video.removeAttribute('src');
+          art.video.load();
+        }
+      } catch {
+        /* noop */
+      }
+      playM3u8(art.video, fullURL, art, {
+        onHlsBeforeLoad: onM3u8HlsBeforeLoad,
+        onHlsInstance: (hls) => onM3u8HlsInstance(hls, art),
+      });
+    };
+
+    if (useHlsPlayback) {
+      bootHlsPlayback();
+    }
 
     art.on('video:error', () => {
       if (!effectActive || suppressPlaybackError) return;

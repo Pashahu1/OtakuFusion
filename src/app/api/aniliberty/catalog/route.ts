@@ -5,7 +5,7 @@ import { resolveAnilibertyLibertyIdCached } from '@/server/aniliberty/catalogMat
 import {
   buildAnimepaheSearchTermsFromFields,
   type AnimepaheCatalogHints,
-} from '@/services/animepahe/catalogHints';
+} from '@/services/catalog/catalogHints';
 import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
 import {
   buildAnilibertyEpisodeMatchOptions,

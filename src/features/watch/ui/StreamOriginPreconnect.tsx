@@ -12,10 +12,7 @@ function streamUrlToOrigin(streamUrl: string): string | null {
   }
 }
 
-/**
- * Ранній DNS+TLS до хоста HLS (як preconnect на Anidap) — зменшує час до першого сегмента.
- * Працює лише для origin з `streamUrl`; не чіпає same-origin Next.
- */
+
 export function StreamOriginPreconnect({ streamUrl }: { streamUrl: string | null }) {
   useEffect(() => {
     if (!streamUrl?.trim()) return;

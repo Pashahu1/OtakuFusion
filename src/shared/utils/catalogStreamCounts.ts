@@ -1,9 +1,5 @@
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 
-/**
- * Агрегує наявність сабів/дубу по списку епізодів каталогу перегляду.
- * Саб за замовчуванням true, якщо запис явно не заборонив.
- */
 export function aggregateCatalogStreamCounts(episodes: EpisodesTypes[]): {
   has_sub: number;
   has_dub: number;
@@ -17,11 +13,10 @@ export function aggregateCatalogStreamCounts(episodes: EpisodesTypes[]): {
   return { has_sub, has_dub };
 }
 
-/** Лічильники для бейджів SUB/DUB на watch — без «фейкового» dub з Ukrainian (Hikka). */
 export function aggregateTvInfoStreamCounts(
   episodes: EpisodesTypes[],
   opts: {
-    provider: 'animepahe' | 'aniliberty' | 'hikka';
+    provider: 'anicore' | 'aniliberty' | 'hikka';
     seriesDubHint?: boolean;
   }
 ): { has_sub: number; has_dub: number } {

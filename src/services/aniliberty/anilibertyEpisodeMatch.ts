@@ -1,5 +1,5 @@
 import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
-import type { AnimepaheCatalogHints } from '@/services/animepahe/catalogHints';
+import type { AnimepaheCatalogHints } from '@/services/catalog/catalogHints';
 
 /** Допустима різниця для завершених релізів. */
 export const ANILIBERTY_EPISODE_COUNT_MAX_DELTA = 2;

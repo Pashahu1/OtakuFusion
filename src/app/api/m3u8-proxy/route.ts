@@ -1,4 +1,8 @@
 import type { NextRequest } from 'next/server';
+import {
+  decodeStreamUrlForInspection,
+  unwrapCrysolinePlaybackUrl,
+} from '@/lib/streamMediaType';
 
 /** Локальний проксі для HLS (.m3u8 + сегменти), щоб не залежати від зовнішніх сервісів на кшталт m3u8proxy.fly.dev. */
 export const runtime = 'nodejs';
@@ -62,6 +66,70 @@ function mergeUpstreamHeaders(forwardHeaders: Record<string, string>): Record<st
   return { ...DEFAULT_UPSTREAM_FETCH_HEADERS, ...forwardHeaders };
 }
 
+function dropRangeHeader(headers: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === 'range') continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+/** Crysoline / Anikage JWT-проксі без розширення — зазвичай m3u8, не mp4-сегмент. */
+function targetUrlLooksLikePlaylistOrProxy(targetUrl: string): boolean {
+  const u = targetUrl.toLowerCase();
+  if (u.includes('.m3u8') || u.includes('mpegurl')) return true;
+  if (u.includes('proxy.crysoline') || u.includes('crysoline.moe/proxy')) return true;
+  const inner = decodeStreamUrlForInspection(targetUrl).toLowerCase();
+  if (
+    inner.includes('rev.anikage') ||
+    inner.includes('anikage.cc') ||
+    inner.includes('24stream.xyz')
+  ) {
+    return !/\.(ts|m4s|aac|mp4|webm|mkv)(\?|$)/i.test(inner);
+  }
+  return false;
+}
+
+/**
+ * Range з браузера (`bytes=0-`) на m3u8 обрізає великі media-playlist (Anicore) —
+ * hls.js отримує уривок без кінця плейлиста і зациклює XHR.
+ */
+function shouldForwardClientRange(targetUrl: string, rangeHeader: string | null): boolean {
+  const range = rangeHeader?.trim();
+  if (!range) return false;
+  const normalized = range.toLowerCase();
+  if (normalized === 'bytes=0-' || normalized === 'bytes=0') return false;
+  if (targetUrlLooksLikePlaylistOrProxy(targetUrl)) return false;
+  if (/\.(ts|m4s|aac|mp4|webm|mkv|vtt)(\?|$)/i.test(targetUrl)) return true;
+  return /bytes=\d+-\d+/.test(normalized);
+}
+
+function withRangeHeader(
+  req: NextRequest,
+  targetUrl: string,
+  headers: Record<string, string>
+): Record<string, string> {
+  const range = req.headers.get('range')?.trim() ?? null;
+  if (!shouldForwardClientRange(targetUrl, range)) return headers;
+  return { ...headers, Range: range! };
+}
+
+function manifestBaseHref(targetUrl: string, finalUrl: string): string {
+  const fromTarget = decodeStreamUrlForInspection(targetUrl);
+  const fromFinal = decodeStreamUrlForInspection(finalUrl);
+  for (const candidate of [fromTarget, fromFinal, finalUrl, targetUrl]) {
+    const c = candidate.trim();
+    if (!c) continue;
+    const lower = c.toLowerCase();
+    if (lower.includes('proxy.crysoline') || lower.includes('crysoline.moe/proxy')) {
+      continue;
+    }
+    return c;
+  }
+  return finalUrl;
+}
+
 function dropOriginHeader(headers: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(headers)) {
@@ -75,11 +143,16 @@ function buildProxyTargetUrl(req: NextRequest, upstreamHref: string, headersJson
   const selfPath = req.nextUrl.pathname;
   const u = new URL(selfPath, req.nextUrl.origin);
   u.search = '';
-  u.searchParams.set('url', upstreamHref);
+  u.searchParams.set('url', unwrapCrysolinePlaybackUrl(upstreamHref) || upstreamHref);
   if (headersJson.trim()) {
     u.searchParams.set('headers', headersJson);
   }
   return u.toString();
+}
+
+function upstreamFetchUrl(targetUrl: string): string {
+  const unwrapped = unwrapCrysolinePlaybackUrl(targetUrl);
+  return unwrapped || targetUrl;
 }
 
 function rewriteLineUriAttributes(
@@ -142,17 +215,22 @@ export async function GET(req: NextRequest) {
   }
 
   const targetUrl = urlParam.trim();
+  const fetchUrl = upstreamFetchUrl(targetUrl);
 
-  if (!isTargetUrlAllowed(targetUrl)) {
+  if (!isTargetUrlAllowed(targetUrl) || !isTargetUrlAllowed(fetchUrl)) {
     return Response.json({ error: 'Target URL not allowed.' }, { status: 400 });
   }
 
   const headersJson = req.nextUrl.searchParams.get('headers') ?? '{}';
-  const forwardHeaders = mergeUpstreamHeaders(parseForwardHeaders(headersJson));
+  const forwardHeaders = withRangeHeader(
+    req,
+    fetchUrl,
+    mergeUpstreamHeaders(parseForwardHeaders(headersJson))
+  );
 
   let upstreamResponse: Response;
   try {
-    upstreamResponse = await fetch(targetUrl, {
+    upstreamResponse = await fetch(fetchUrl, {
       redirect: 'follow',
       headers: forwardHeaders,
     });
@@ -162,7 +240,7 @@ export async function GET(req: NextRequest) {
        * але пропускає ті самі запити лише з Referer.
        */
       const retryHeaders = dropOriginHeader(forwardHeaders);
-      const retryRes = await fetch(targetUrl, {
+      const retryRes = await fetch(fetchUrl, {
         redirect: 'follow',
         headers: retryHeaders,
       });
@@ -173,10 +251,11 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: message }, { status: 502 });
   }
 
-  const finalUrl = upstreamResponse.url || targetUrl;
+  const finalUrl = upstreamResponse.url || fetchUrl;
 
   const contentTypeRaw =
     upstreamResponse.headers.get('content-type') ?? 'application/octet-stream';
+  const contentTypeLower = contentTypeRaw.toLowerCase();
 
   const contentLength = upstreamResponse.headers.get('content-length');
   const parsedLen = contentLength ? Number(contentLength) : NaN;
@@ -188,16 +267,25 @@ export async function GET(req: NextRequest) {
   const streamAsPassthrough =
     upstreamResponse.ok &&
     upstreamResponse.body &&
-    (/\.(ts|m4s|aac|mp4|webm|mkv)(\?|$)/i.test(targetUrl) ||
+    (/\.(ts|m4s|aac|mp4|webm|mkv)(\?|$)/i.test(fetchUrl) ||
+      contentTypeLower.includes('video/mp4') ||
+      contentTypeLower.includes('video/iso') ||
+      contentTypeLower.includes('video/webm') ||
       (Number.isFinite(parsedLen) && parsedLen > MAX_PLAYLIST_BYTES));
 
   if (streamAsPassthrough) {
+    const passthroughHeaders = new Headers();
+    passthroughHeaders.set('Content-Type', contentTypeRaw);
+    passthroughHeaders.set('Cache-Control', 'private, max-age=120');
+    const contentRange = upstreamResponse.headers.get('content-range');
+    if (contentRange) passthroughHeaders.set('Content-Range', contentRange);
+    const acceptRanges = upstreamResponse.headers.get('accept-ranges');
+    if (acceptRanges) passthroughHeaders.set('Accept-Ranges', acceptRanges);
+    const contentLen = upstreamResponse.headers.get('content-length');
+    if (contentLen) passthroughHeaders.set('Content-Length', contentLen);
     return new Response(upstreamResponse.body, {
       status: upstreamResponse.status,
-      headers: {
-        'Content-Type': contentTypeRaw,
-        'Cache-Control': 'private, max-age=120',
-      },
+      headers: passthroughHeaders,
     });
   }
 
@@ -215,7 +303,11 @@ export async function GET(req: NextRequest) {
     const toProxyAbsolute = (up: string) =>
       buildProxyTargetUrl(req, up, headersJson);
     try {
-      const rewritten = rewriteM3u8Body(text, finalUrl, toProxyAbsolute);
+      const rewritten = rewriteM3u8Body(
+        text,
+        manifestBaseHref(fetchUrl, finalUrl),
+        toProxyAbsolute
+      );
       return new Response(rewritten, {
         status: 200,
         headers: {
@@ -228,11 +320,18 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const fallbackHeaders = new Headers();
+  fallbackHeaders.set('Content-Type', contentTypeRaw);
+  fallbackHeaders.set('Cache-Control', 'private, max-age=120');
+  const contentRange = upstreamResponse.headers.get('content-range');
+  if (contentRange) fallbackHeaders.set('Content-Range', contentRange);
+  const acceptRanges = upstreamResponse.headers.get('accept-ranges');
+  if (acceptRanges) fallbackHeaders.set('Accept-Ranges', acceptRanges);
+  const contentLen = upstreamResponse.headers.get('content-length');
+  if (contentLen) fallbackHeaders.set('Content-Length', contentLen);
+
   return new Response(buf, {
     status: upstreamResponse.status,
-    headers: {
-      'Content-Type': contentTypeRaw,
-      'Cache-Control': 'private, max-age=120',
-    },
+    headers: fallbackHeaders,
   });
 }

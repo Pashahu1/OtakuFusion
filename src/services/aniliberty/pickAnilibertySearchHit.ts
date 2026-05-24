@@ -1,5 +1,5 @@
 import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
-import type { AnimepaheCatalogHints } from '@/services/animepahe/catalogHints';
+import type { AnimepaheCatalogHints } from '@/services/catalog/catalogHints';
 import {
   isAnilibertyHitEligible,
   readAnilibertySearchEpisodeCount,

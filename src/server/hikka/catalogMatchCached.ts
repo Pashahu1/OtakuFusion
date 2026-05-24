@@ -9,7 +9,7 @@ import { resolveHikkaSlug } from '@/services/hikka/resolveHikkaSlug';
 import {
   buildAnimepaheSearchTermsFromFields,
   type AnimepaheCatalogHints,
-} from '@/services/animepahe/catalogHints';
+} from '@/services/catalog/catalogHints';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 
 export interface HikkaCatalogMatchInput {

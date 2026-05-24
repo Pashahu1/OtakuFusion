@@ -4,9 +4,6 @@ import {
 } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 
-/**
- * Після зміни провайдера (Language) — лишити поточну серію, не скидати на `?ep=1` з URL.
- */
 export function resolveEpisodeIdAfterCatalog(
   mergedEpisodes: EpisodesTypes[],
   preserveEpisodeNum: string | null,
