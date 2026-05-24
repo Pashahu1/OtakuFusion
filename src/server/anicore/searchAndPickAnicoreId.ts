@@ -1,12 +1,12 @@
-import {
+﻿import {
   crysolineAnicoreInfo,
   crysolineAnicoreSearch,
   type CrysolineAnicoreSearchRow,
 } from '@/server/crysoline/anicoreClient';
 import {
-  buildAnimepaheSearchQueryQueue,
-  buildAnimepaheSearchTermsFromFields,
-  type AnimepaheCatalogHints,
+  buildCatalogSearchQueryQueue,
+  buildCatalogSearchTermsFromFields,
+  type CatalogHints,
 } from '@/services/catalog/catalogHints';
 import { pickAnicoreSearchHit } from '@/services/anicore/pickAnicoreSearchHit';
 import type { CatalogLookupBody } from '@/server/catalog/catalogLookupTypes';
@@ -25,7 +25,7 @@ async function tryInfoByAnilistId(anilistId: number): Promise<string | null> {
 
 export async function searchAndPickAnicoreId(
   body: CatalogLookupBody,
-  hints: AnimepaheCatalogHints,
+  hints: CatalogHints,
   baseTerms: string[]
 ): Promise<string | null> {
   if (hints.anilistId != null) {
@@ -33,7 +33,7 @@ export async function searchAndPickAnicoreId(
     if (direct) return direct;
   }
 
-  const queue = buildAnimepaheSearchQueryQueue(baseTerms)
+  const queue = buildCatalogSearchQueryQueue(baseTerms)
     .map((q) => q.trim())
     .filter(Boolean);
   if (!queue.length) return null;
@@ -64,7 +64,7 @@ export async function searchAndPickAnicoreId(
 }
 
 export function buildAnicoreSearchTermsFromBody(body: CatalogLookupBody): string[] {
-  return buildAnimepaheSearchTermsFromFields({
+  return buildCatalogSearchTermsFromFields({
     title: body.title,
     romaji_title: body.romaji_title,
     japanese_title: body.japanese_title,

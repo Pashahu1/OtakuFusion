@@ -1,4 +1,4 @@
-/** Animepahe (Crysoline): сумісність плейлистів часто зривається на hls.js > 1.5.x — див. pinned у package.json. */
+/** Crysoline HLS: сумісність плейлистів часто зривається на hls.js > 1.5.x — див. pinned у package.json. */
 import Hls from 'hls.js';
 import Artplayer from 'artplayer';
 import { buildM3u8ProxyPlaylistUrl } from '@/lib/m3u8ProxyPublicBase';
@@ -63,7 +63,7 @@ function pickStreamingLinkForPlaylist(
 }
 
 /**
- * Заголовки для M3U8-проксі: `request_headers` з API, інакше Referer під embed або резерв Animepahe/kwik.
+ * Заголовки для M3U8-проксі: `request_headers` з API, інакше Referer під embed CDN.
  */
 export function getStreamHeaders(
   streamInfo: StreamInfoForHeaders | null,

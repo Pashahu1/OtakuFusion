@@ -1,6 +1,6 @@
 import type { VideoTrack } from "./VideoTrackTypes";
 
-/** Варіанти якості, коли API віддає окремі HLS на кожну роздільність (Animepahe / Anilibria). */
+/** Варіанти якості, коли API віддає окремі HLS на кожну роздільність (Anicore / Aniliberty). */
 export interface StreamQualityVariant {
   height: number;
   label: string;

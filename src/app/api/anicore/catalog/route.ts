@@ -1,10 +1,10 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 import { getCrysolineApiKey } from '@/server/crysoline/config';
 import { getAnicoreEpisodesCached } from '@/server/anicore/episodesCached';
 import { resolveAnicoreCatalogIdCached } from '@/server/anicore/catalogMatchCached';
 import {
-  buildAnimepaheSearchTermsFromFields,
-  type AnimepaheCatalogHints,
+  buildCatalogSearchTermsFromFields,
+  type CatalogHints,
 } from '@/services/catalog/catalogHints';
 import {
   seriesHasDubFromAnicoreEpisodes,
@@ -34,7 +34,7 @@ const BodySchema = z.object({
   synonyms: z.string().optional(),
 });
 
-function hintsFromBody(b: z.infer<typeof BodySchema>): AnimepaheCatalogHints {
+function hintsFromBody(b: z.infer<typeof BodySchema>): CatalogHints {
   const prem = b.premiered?.trim();
   let seasonYear: number | null = null;
   if (prem && /^\d{4}$/.test(prem)) {
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
 
   const body = parsed.data;
   const hints = hintsFromBody(body);
-  const baseTerms = buildAnimepaheSearchTermsFromFields({
+  const baseTerms = buildCatalogSearchTermsFromFields({
     title: body.title,
     romaji_title: body.romaji_title,
     japanese_title: body.japanese_title,

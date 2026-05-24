@@ -1,68 +1,10 @@
-import type { AnimeData } from '@/shared/types/animeDetailsTypes';
-
-/** Підказки з AniList для зіставлення каталогу (Crysoline Anicore / Aniliberty / Hikka). */
-export interface AnimepaheCatalogHints {
+export interface CatalogHints {
   format?: string | null;
   seasonYear?: number | null;
   episodeCount?: number | null;
   anilistId?: number | null;
   malId?: number | null;
-  /** AniList `Status` — «Currently Airing» тощо; для Anilibria дозволяє менший ep count. */
   isStillAiring?: boolean | null;
-}
-
-export function buildAnimepaheCatalogHints(data: AnimeData): AnimepaheCatalogHints {
-  const format = data.showType?.trim() || null;
-  const prem = data.animeInfo?.Premiered?.trim();
-  let seasonYear: number | null = null;
-  if (prem && /^\d{4}$/.test(prem)) {
-    seasonYear = parseInt(prem, 10);
-  }
-  const subEp = data.animeInfo?.tvInfo?.episodeTotal?.trim();
-  let episodeCount: number | null = null;
-  if (subEp && /^\d+$/.test(subEp)) {
-    episodeCount = parseInt(subEp, 10);
-  }
-  const anilistId =
-    typeof data.id === 'string' && /^\d+$/.test(data.id.trim())
-      ? parseInt(data.id.trim(), 10)
-      : null;
-  const malId =
-    typeof data.mal_id === 'number' && Number.isFinite(data.mal_id) && data.mal_id > 0
-      ? Math.floor(data.mal_id)
-      : null;
-  const status = data.animeInfo?.Status?.trim() || null;
-  const isStillAiring =
-    typeof status === 'string' &&
-    (status.toLowerCase().includes('currently airing') ||
-      status.toLowerCase().includes('releasing') ||
-      status.toLowerCase() === 'airing');
-
-  return { format, seasonYear, episodeCount, anilistId, malId, isStillAiring };
-}
-
-export function buildAnimepaheSearchTerms(data: AnimeData): string[] {
-  const push = (arr: string[], s: string | undefined | null) => {
-    const t = s?.trim();
-    if (t && t.length >= 2 && !arr.includes(t)) arr.push(t);
-  };
-  const primary: string[] = [];
-  push(primary, data.animeInfo?.Japanese);
-  push(primary, data.romaji_title);
-  primary.sort((a, b) => b.length - a.length);
-
-  const secondary: string[] = [];
-  push(secondary, data.title);
-  push(secondary, data.japanese_title);
-  const parts = (data.animeInfo?.Synonyms ?? '').split(',');
-  for (const p of parts) push(secondary, p.trim());
-  secondary.sort((a, b) => b.length - a.length);
-
-  const out: string[] = [...primary];
-  for (const t of secondary) {
-    if (!out.includes(t)) out.push(t);
-  }
-  return out;
 }
 
 function expandSearchQueryVariants(raw: string): string[] {
@@ -85,16 +27,14 @@ function expandSearchQueryVariants(raw: string): string[] {
   return pool.sort((a, b) => b.length - a.length);
 }
 
-export interface AnimepaheCatalogRequestFields {
+export interface CatalogRequestFields {
   title: string;
   romaji_title?: string;
   japanese_title?: string;
   synonyms?: string;
 }
 
-export function buildAnimepaheSearchTermsFromFields(
-  f: AnimepaheCatalogRequestFields
-): string[] {
+export function buildCatalogSearchTermsFromFields(f: CatalogRequestFields): string[] {
   const push = (arr: string[], s: string | undefined | null) => {
     const t = s?.trim();
     if (t && t.length >= 2 && !arr.includes(t)) arr.push(t);
@@ -117,7 +57,7 @@ export function buildAnimepaheSearchTermsFromFields(
   return out;
 }
 
-export function buildAnimepaheSearchQueryQueue(baseTerms: string[]): string[] {
+export function buildCatalogSearchQueryQueue(baseTerms: string[]): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (const term of baseTerms) {
@@ -131,10 +71,6 @@ export function buildAnimepaheSearchQueryQueue(baseTerms: string[]): string[] {
   return out;
 }
 
-/**
- * Crysoline search чутливий до зайвих пробілів і кінцевої пунктуації
- * (наприклад «Season 4 .» дає `[]`, а «Season 4» — збіги).
- */
 export function normalizeCatalogSearchQuery(raw: string): string {
   let s = raw.trim().normalize('NFKC');
   s = s.replace(/\s+/g, ' ').trim();

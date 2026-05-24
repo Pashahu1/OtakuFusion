@@ -27,9 +27,7 @@ export function isValidAnicorePlaybackServerHint(raw: string): boolean {
 export function readAnicorePlaybackServerHint(): string | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw =
-      localStorage.getItem(STORAGE_ANICORE_PLAYBACK_SERVER) ??
-      localStorage.getItem('animex_playback_server');
+    const raw = localStorage.getItem(STORAGE_ANICORE_PLAYBACK_SERVER);
     if (!raw?.trim()) return null;
     const id = normalizeAnicorePlaybackServerId(raw);
     return isValidAnicorePlaybackServerHint(id) ? id : null;

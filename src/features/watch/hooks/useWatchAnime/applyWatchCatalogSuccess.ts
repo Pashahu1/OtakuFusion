@@ -1,10 +1,10 @@
 import type { AnicoreCatalogBffOk } from '@/features/watch/lib/anicore-catalog-bff';
 import type { AnilibertyCatalogBffOk } from '@/features/watch/lib/aniliberty-catalog-bff';
 import type { HikkaCatalogBffOk } from '@/features/watch/lib/hikka-catalog-bff';
-import { alignKaiEpisodesToAnilistSeasonStart } from '@/lib/alignKaiEpisodesToAnilistSeason';
+import { alignEpisodesToAnilistSeasonStart } from '@/features/watch/lib/alignEpisodesToAnilistSeason';
 import { aggregateTvInfoStreamCounts } from '@/shared/utils/catalogStreamCounts';
 import { resolveEpisodeIdAfterCatalog } from './resolveEpisodeIdAfterCatalog';
-import { applyAnilistEpisodeDisplayTitles } from '@/lib/mergeKaiEpisodesWithAnilistTitles';
+import { applyAnilistEpisodeDisplayTitles } from '@/features/watch/lib/anilistEpisodeDisplayTitles';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
@@ -145,7 +145,7 @@ export function applyWatchCatalogSuccess(
   }
 
   const mergedEpisodes = applyAnilistEpisodeDisplayTitles(
-    alignKaiEpisodesToAnilistSeasonStart(list, dataForResolve.anilistEpisodeTitles),
+    alignEpisodesToAnilistSeasonStart(list, dataForResolve.anilistEpisodeTitles),
     dataForResolve.anilistEpisodeTitles,
     dataForResolve.title,
     dataForResolve.romaji_title

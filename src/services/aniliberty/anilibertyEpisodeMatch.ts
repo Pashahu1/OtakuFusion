@@ -1,5 +1,5 @@
-import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
-import type { AnimepaheCatalogHints } from '@/services/catalog/catalogHints';
+﻿import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
+import type { CatalogHints } from '@/services/catalog/catalogHints';
 
 /** Допустима різниця для завершених релізів. */
 export const ANILIBERTY_EPISODE_COUNT_MAX_DELTA = 2;
@@ -20,7 +20,7 @@ export function isAnilistStillAiringFromStatus(
 }
 
 export function parseExpectedEpisodeCountFromHints(
-  hints: AnimepaheCatalogHints
+  hints: CatalogHints
 ): number | null {
   const n = hints.episodeCount;
   if (typeof n !== 'number' || !Number.isFinite(n) || n <= 0) return null;
@@ -76,7 +76,7 @@ export function isAnilibertyEpisodeCountAcceptable(
 
 export function isAnilibertyHitEligible(
   hit: CrysolineAnilibertySearchRow,
-  hints: AnimepaheCatalogHints
+  hints: CatalogHints
 ): boolean {
   const expected = parseExpectedEpisodeCountFromHints(hints);
   if (expected == null) return true;
@@ -93,7 +93,7 @@ export function isAnilibertyHitEligible(
 }
 
 export function buildAnilibertyEpisodeMatchOptions(
-  hints: AnimepaheCatalogHints,
+  hints: CatalogHints,
   hit?: CrysolineAnilibertySearchRow | null
 ): { isOngoing: boolean; allowPartialCatalog: boolean } {
   const stillAiring = hints.isStillAiring === true;

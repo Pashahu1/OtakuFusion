@@ -1,6 +1,6 @@
-import {
-  buildAnimepaheSearchTermsFromFields,
-  type AnimepaheCatalogHints,
+﻿import {
+  buildCatalogSearchTermsFromFields,
+  type CatalogHints,
 } from '@/services/catalog/catalogHints';
 import { hikkaIoFetch, hikkaIoUrl } from '@/services/hikka/hikkaIoFetch';
 
@@ -17,7 +17,7 @@ interface HikkaAnimeRow {
 function scoreHikkaSearchHit(
   row: HikkaAnimeRow,
   terms: string[],
-  hints: AnimepaheCatalogHints
+  hints: CatalogHints
 ): number {
   const hay = [
     row.title_en,
@@ -60,7 +60,7 @@ async function fetchHikkaSlugByMal(malId: number): Promise<string | null> {
 
 async function searchHikkaSlug(
   query: string,
-  hints: AnimepaheCatalogHints,
+  hints: CatalogHints,
   terms: string[]
 ): Promise<string | null> {
   const q = query.trim();
@@ -92,14 +92,14 @@ export async function resolveHikkaSlug(params: {
   romaji_title?: string;
   japanese_title?: string;
   synonyms?: string;
-  hints: AnimepaheCatalogHints;
+  hints: CatalogHints;
 }): Promise<string | null> {
   if (params.malId != null && params.malId > 0) {
     const byMal = await fetchHikkaSlugByMal(Math.floor(params.malId));
     if (byMal) return byMal;
   }
 
-  const terms = buildAnimepaheSearchTermsFromFields({
+  const terms = buildCatalogSearchTermsFromFields({
     title: params.title,
     romaji_title: params.romaji_title,
     japanese_title: params.japanese_title,

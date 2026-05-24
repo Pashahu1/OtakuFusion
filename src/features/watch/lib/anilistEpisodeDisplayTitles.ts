@@ -1,8 +1,5 @@
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 
-/**
- * Прибирає префікс «Episode N …» з рядка AniList `streamingEpisodes` для коротшого відображення.
- */
 export function stripAnilistStreamingEpisodeLabel(raw: string): string {
   const t = raw.trim();
   if (!t) return t;
@@ -14,13 +11,6 @@ export function stripAnilistStreamingEpisodeLabel(raw: string): string {
   return withoutPrefix.length >= 2 ? withoutPrefix : t;
 }
 
-/**
- * Відображувані назви епізодів **лише з AniList** (для будь-якого стрім-провайдера):
- * - якщо для номера є рядок у `Media.streamingEpisodes` → коротка назва (без префікса «Episode N»);
- * - інакше → `{англійська або romaji назва серіалу зі сторінки AniList} - Episode {N}` або `Episode {N}`.
- *
- * Викликати після `alignKaiEpisodesToAnilistSeasonStart`.
- */
 export function applyAnilistEpisodeDisplayTitles(
   episodes: EpisodesTypes[],
   anilistEpisodeTitles: Readonly<Record<string, string>> | undefined,

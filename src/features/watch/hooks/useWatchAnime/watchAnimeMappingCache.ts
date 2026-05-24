@@ -26,7 +26,6 @@ export function clearVerifiedAnicoreMapping(localAnimeId: string): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(getMappingCacheKey(localAnimeId, 'anicore'));
-    localStorage.removeItem(`animex:mapping:${localAnimeId}`);
   } catch {
 
   }
@@ -46,19 +45,16 @@ export function readVerifiedAnicoreMapping(
 ): VerifiedAnicoreMapping | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw =
-      localStorage.getItem(getMappingCacheKey(localAnimeId, 'anicore')) ??
-      localStorage.getItem(`animex:mapping:${localAnimeId}`);
+    const raw = localStorage.getItem(getMappingCacheKey(localAnimeId, 'anicore'));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as {
       anicoreId?: string;
-      animexId?: string;
       hasSeriesDub?: boolean;
     };
     const id =
-      (typeof parsed.anicoreId === 'string' && parsed.anicoreId.trim()) ||
-      (typeof parsed.animexId === 'string' && parsed.animexId.trim()) ||
-      null;
+      typeof parsed.anicoreId === 'string' && parsed.anicoreId.trim()
+        ? parsed.anicoreId.trim()
+        : null;
     if (!id) return null;
     return {
       anicoreId: id.trim(),

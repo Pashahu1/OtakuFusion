@@ -110,7 +110,7 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   'ani_id is required (Hikka slug from catalog)':
     'Ukrainian catalog is still loading or missing. Wait a moment, refresh, or switch to Japanese and back.',
   aniliberty_episode_count_mismatch:
-    'Anilibria episode count does not match this title. Use Animex instead.',
+    'Anilibria episode count does not match this title. Try Anicore instead.',
   'lang must be sub or dub':
     'Invalid stream language parameter. Refresh the page or toggle Sub/Dub.',
 };

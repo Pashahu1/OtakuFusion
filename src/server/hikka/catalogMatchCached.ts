@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+﻿import { unstable_cache } from 'next/cache';
 import { fetchHikkaWatchV2 } from '@/services/hikka/hikkaFeaturesClient';
 import {
   mapHikkaTeamEpisodes,
@@ -7,8 +7,8 @@ import {
 } from '@/services/hikka/mapHikkaCatalog';
 import { resolveHikkaSlug } from '@/services/hikka/resolveHikkaSlug';
 import {
-  buildAnimepaheSearchTermsFromFields,
-  type AnimepaheCatalogHints,
+  buildCatalogSearchTermsFromFields,
+  type CatalogHints,
 } from '@/services/catalog/catalogHints';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 
@@ -24,7 +24,7 @@ export interface HikkaCatalogMatchInput {
   synonyms?: string;
 }
 
-function hintsFromInput(input: HikkaCatalogMatchInput): AnimepaheCatalogHints {
+function hintsFromInput(input: HikkaCatalogMatchInput): CatalogHints {
   const prem = input.premiered?.trim();
   let seasonYear: number | null = null;
   if (prem && /^\d{4}$/.test(prem)) seasonYear = parseInt(prem, 10);
@@ -80,7 +80,7 @@ async function resolveHikkaCatalogUncached(
 }
 
 function catalogCacheKey(input: HikkaCatalogMatchInput): string {
-  const terms = buildAnimepaheSearchTermsFromFields({
+  const terms = buildCatalogSearchTermsFromFields({
     title: input.title,
     romaji_title: input.romaji_title,
     japanese_title: input.japanese_title,

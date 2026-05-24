@@ -1,10 +1,10 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 import { getCrysolineApiKey } from '@/server/crysoline/config';
 import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
 import { resolveAnilibertyLibertyIdCached } from '@/server/aniliberty/catalogMatchCached';
 import {
-  buildAnimepaheSearchTermsFromFields,
-  type AnimepaheCatalogHints,
+  buildCatalogSearchTermsFromFields,
+  type CatalogHints,
 } from '@/services/catalog/catalogHints';
 import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
 import {
@@ -27,7 +27,7 @@ const BodySchema = z.object({
   anilistStatus: z.string().optional(),
 });
 
-function hintsFromBody(b: z.infer<typeof BodySchema>): AnimepaheCatalogHints {
+function hintsFromBody(b: z.infer<typeof BodySchema>): CatalogHints {
   const prem = b.premiered?.trim();
   let seasonYear: number | null = null;
   if (prem && /^\d{4}$/.test(prem)) {
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
 
   const body = parsed.data;
   const hints = hintsFromBody(body);
-  const baseTerms = buildAnimepaheSearchTermsFromFields({
+  const baseTerms = buildCatalogSearchTermsFromFields({
     title: body.title,
     romaji_title: body.romaji_title,
     japanese_title: body.japanese_title,

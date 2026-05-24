@@ -39,7 +39,6 @@
     "src/features/player/ui/pluginChapterStyle.ts",
     "src/config/logoTitle.ts",
     "src/config/website.ts",
-    "src/components/Episodelist/Episodelist.tsx",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

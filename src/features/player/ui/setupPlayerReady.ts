@@ -73,7 +73,7 @@ export function setupPlayerReady(
   anilibertyLanguageMenuEligible: boolean,
   /** Каталог Hikka Features (українська озвучка). */
   hikkaLanguageMenuEligible: boolean,
-  /** Маркери OP/ED (з Anilibria або злиті в Animepahe-резолві за мапінгом). */
+  /** Маркери OP/ED (з Aniliberty або з resolve за мапінгом). */
   skipSegments: StreamingData['skipSegments'] | null | undefined
 ) {
   let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;

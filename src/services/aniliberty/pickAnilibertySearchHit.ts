@@ -1,5 +1,5 @@
-import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
-import type { AnimepaheCatalogHints } from '@/services/catalog/catalogHints';
+﻿import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
+import type { CatalogHints } from '@/services/catalog/catalogHints';
 import {
   isAnilibertyHitEligible,
   readAnilibertySearchEpisodeCount,
@@ -32,11 +32,11 @@ function qualityOfMatch(terms: string[], hit: CrysolineAnilibertySearchRow): num
 
 function scoreHit(
   hit: CrysolineAnilibertySearchRow,
-  hints: AnimepaheCatalogHints,
+  hints: CatalogHints,
   terms: string[]
 ): number {
   const text = qualityOfMatch(terms, hit);
-  /** Без збігу назви — не довіряємо лише року / лічильнику (як Animepahe). */
+  /** Без збігу назви — не довіряємо лише року / лічильнику. */
   if (text < 42) return -Infinity;
 
   let score = text;
@@ -70,7 +70,7 @@ const MIN_LEAD_OVER_RUNNER_UP = 16;
 
 export function pickBestAnilibertySearchHit(
   hits: CrysolineAnilibertySearchRow[],
-  hints: AnimepaheCatalogHints,
+  hints: CatalogHints,
   terms: string[]
 ): CrysolineAnilibertySearchRow | null {
   if (!hits.length) return null;

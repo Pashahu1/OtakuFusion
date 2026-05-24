@@ -8,9 +8,6 @@ function rowHaystack(ep: EpisodesTypes): string {
   return `${ep.title} ${ep.jname} ${ep.japanese_title ?? ''}`.toLowerCase();
 }
 
-/**
- * Рахуємо перетин «змістовних» токенів (без дуже коротких), щоб зіставити рядок AniList з рядком Kai.
- */
 function tokenOverlapScore(needle: string, haystack: string): number {
   const words = needle
     .toLowerCase()
@@ -25,14 +22,7 @@ function tokenOverlapScore(needle: string, haystack: string): number {
   return n;
 }
 
-/**
- * Якщо каталог для одного тайтлу містить **попередній сезон** на початку списку,
- * а на сторінці AniList — лише поточний сезон (локальні «Episode 1…»), зсуваємо та перенумеровуємо рядки.
- *
- * Евристика: порівнюємо підрядок після «Episode N» у `streamingEpisodes[1]` з назвами перших епізодів Kai;
- * якщо другий рядок каталогу збігається краще за перший — відрізаємо хвіст до цього місця.
- */
-export function alignKaiEpisodesToAnilistSeasonStart(
+export function alignEpisodesToAnilistSeasonStart(
   episodes: EpisodesTypes[],
   anilistEpisodeTitles: Readonly<Record<string, string>> | undefined
 ): EpisodesTypes[] {
@@ -52,20 +42,15 @@ export function alignKaiEpisodesToAnilistSeasonStart(
   const s0 = tokenOverlapScore(needle, h0);
   const s1 = tokenOverlapScore(needle, h1);
 
-  /** Другий епізод у відповіді Kai явно ближче до AniList «Episode 1» — перший зайвий (інший сезон / дубль). */
   const secondMatchesFirstAnilist = s1 >= s0 + 2;
-  /** Або перший взагалі не містить жодного змістовного токена з AniList ep1, а другий — так. */
   const firstMissesSecondHits = s0 === 0 && s1 >= 2;
 
   let cut = 0;
   if (secondMatchesFirstAnilist || firstMissesSecondHits) {
     cut = 1;
-  } else {
-    /** Один рядок: шукаємо перший Kai, де є needle (довгий підрядок після «Episode 1»). */
-    if (needle.length >= 10) {
-      const idx = sorted.findIndex((e) => rowHaystack(e).includes(needle));
-      if (idx > 0) cut = idx;
-    }
+  } else if (needle.length >= 10) {
+    const idx = sorted.findIndex((e) => rowHaystack(e).includes(needle));
+    if (idx > 0) cut = idx;
   }
 
   if (cut <= 0) return episodes;

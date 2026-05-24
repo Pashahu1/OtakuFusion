@@ -1,10 +1,10 @@
-import { unstable_cache } from 'next/cache';
+﻿import { unstable_cache } from 'next/cache';
 import { crysolineAnilibertySearch } from '@/server/crysoline/anilibertyClient';
 import { mergeParallelCatalogSearch } from '@/server/crysoline/parallelCatalogSearch';
 import {
-  buildAnimepaheSearchQueryQueue,
-  buildAnimepaheSearchTermsFromFields,
-  type AnimepaheCatalogHints,
+  buildCatalogSearchQueryQueue,
+  buildCatalogSearchTermsFromFields,
+  type CatalogHints,
 } from '@/services/catalog/catalogHints';
 import { pickBestAnilibertySearchHit } from '@/services/aniliberty/pickAnilibertySearchHit';
 import { isAnilibertyHitEligible } from '@/services/aniliberty/anilibertyEpisodeMatch';
@@ -20,10 +20,10 @@ const MATCH_CACHE_REVALIDATE_SEC = 3600;
 
 async function searchAndPickLibertyId(
   body: CatalogLookupBody,
-  hints: AnimepaheCatalogHints,
+  hints: CatalogHints,
   baseTerms: string[]
 ): Promise<string | null> {
-  const queue = buildAnimepaheSearchQueryQueue(baseTerms);
+  const queue = buildCatalogSearchQueryQueue(baseTerms);
   if (!queue.length) return null;
 
   const pool = await mergeParallelCatalogSearch<CrysolineAnilibertySearchRow>(
@@ -42,7 +42,7 @@ async function searchAndPickLibertyId(
 /** Кешований пошук AniList → Anilibria release id (без завантаження епізодів). */
 export function resolveAnilibertyLibertyIdCached(
   body: CatalogLookupBody,
-  hints: AnimepaheCatalogHints,
+  hints: CatalogHints,
   baseTerms: string[]
 ): Promise<string | null> {
   const key = catalogMatchCacheKey(body);

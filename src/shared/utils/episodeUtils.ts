@@ -7,7 +7,7 @@ export function getEpisodeNumberFromId(id: string | undefined): string | undefin
   return undefined;
 }
 
-/** Порівняння активного епізоду з id каталогу (Animepahe `?ep=N` або Hikka `"N"`). */
+/** Порівняння активного епізоду з id каталогу (Anicore `?ep=N` або Hikka `"N"`). */
 export function episodeMatchesSelection(
   ep: { id: string; episode_no: number },
   selected: string | null | undefined

@@ -1,9 +1,9 @@
-import type { CrysolineAnicoreSearchRow } from '@/server/crysoline/anicoreClient';
-import type { AnimepaheCatalogHints } from '@/services/catalog/catalogHints';
+﻿import type { CrysolineAnicoreSearchRow } from '@/server/crysoline/anicoreClient';
+import type { CatalogHints } from '@/services/catalog/catalogHints';
 
 export function pickAnicoreSearchHit(
   hits: CrysolineAnicoreSearchRow[],
-  hints: AnimepaheCatalogHints
+  hints: CatalogHints
 ): CrysolineAnicoreSearchRow | null {
   if (!hits.length) return null;
 

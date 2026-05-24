@@ -23,6 +23,7 @@ import {
 } from '@/services/hikka/mapHikkaCatalog';
 import { refererForHikkaPageUrl } from '@/services/hikka/extractPageM3u8';
 import { extractHikkaM3u8Cached } from '@/server/hikka/extractM3u8Cached';
+import { normalizeWatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { HikkaFeaturesForbiddenError } from '@/services/hikka/hikkaOutboundFetch';
 
 type WatchLang = 'sub' | 'dub';
@@ -104,12 +105,7 @@ function getNormalizedLang(sp: URLSearchParams): WatchLang {
 }
 
 function getStreamProvider(sp: URLSearchParams): WatchResolveStreamProvider {
-  const raw = (sp.get('stream_provider') ?? '').trim().toLowerCase();
-  if (raw === 'aniliberty' || raw === 'anilibria') return 'aniliberty';
-  if (raw === 'hikka' || raw === 'ukrainian' || raw === 'uk') return 'hikka';
-  if (raw === 'anicore') return 'anicore';
-  if (raw === 'animex' || raw === 'animepahe' || raw === 'kai') return 'anicore';
-  return 'anicore';
+  return normalizeWatchStreamProvider(sp.get('stream_provider'));
 }
 
 function parseEpisodeNumber(sp: URLSearchParams): number | null {

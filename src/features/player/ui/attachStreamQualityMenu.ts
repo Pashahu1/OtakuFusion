@@ -7,7 +7,7 @@ import {
 import { getStreamFullUrl, getStreamHeaders } from './playerStream';
 
 /**
- * Окремі HLS-плейлисти на кожну роздільність (Animepahe / Anilibria через Crysoline),
+ * Окремі HLS-плейлисти на кожну роздільність (Anicore / Aniliberty через Crysoline),
  * а не один master з ABR — перемикання через `switchUrl`, не через `hls.currentLevel`.
  */
 export function attachStreamQualityMenu(

@@ -1,4 +1,4 @@
-/** Тіло POST catalog (Animepahe / Anilibria) — спільне для match cache. */
+/** Тіло POST catalog (Anicore / Aniliberty / Hikka) — спільне для match cache. */
 export interface CatalogLookupBody {
   anilistId: string;
   title: string;

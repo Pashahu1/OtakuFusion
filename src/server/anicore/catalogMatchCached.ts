@@ -1,5 +1,5 @@
-import { unstable_cache } from 'next/cache';
-import type { AnimepaheCatalogHints } from '@/services/catalog/catalogHints';
+﻿import { unstable_cache } from 'next/cache';
+import type { CatalogHints } from '@/services/catalog/catalogHints';
 import {
   searchAndPickAnicoreId,
   buildAnicoreSearchTermsFromBody,
@@ -13,7 +13,7 @@ const MATCH_CACHE_REVALIDATE_SEC = 3600;
 
 export function resolveAnicoreCatalogIdCached(
   body: CatalogLookupBody,
-  hints: AnimepaheCatalogHints,
+  hints: CatalogHints,
   baseTerms: string[]
 ): Promise<string | null> {
   const key = catalogMatchCacheKey(body);
