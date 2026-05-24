@@ -44,6 +44,16 @@ export interface SpotlightAnime {
   japanese_title: string;
   description: string;
   tvInfo: TvInfo;
+  /** AniList averageScore (0–100), для hero-бейджа «78%». */
+  scorePercent?: number;
+  genres?: string[];
+  malId?: number;
+  /** TVDB clearlogo (як на anikage.cc), якщо є TVDB_API_KEY. */
+  clearLogoUrl?: string;
+  /** Підпис сезону в hero, якщо в назві/clearlogo його немає (напр. «Season 4»). */
+  seasonLabel?: string;
+  /** AniList synonyms — для TVDB-пошуку, у UI не показуємо. */
+  synonyms?: string[];
 }
 
 export interface TrendingAnime {

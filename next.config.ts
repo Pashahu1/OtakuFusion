@@ -37,6 +37,11 @@ const nextConfig = {
         hostname: 'anilist.co',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'artworks.thetvdb.com',
+        pathname: '/**',
+      },
     ],
     imageSizes: [
       16,

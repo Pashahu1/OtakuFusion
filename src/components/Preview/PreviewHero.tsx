@@ -5,7 +5,6 @@ import {
   Pagination,
   Autoplay,
 } from 'swiper/modules';
-import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Swiper as SwiperType } from 'swiper';
 import { Convertor, HERO_THUMBNAIL_RES } from '@/helper/Convertor';
@@ -22,10 +21,14 @@ import type {
   TrendingAnime,
 } from '@/shared/types/GlobalAnimeTypes';
 import { useState, useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { EmptyState } from '../ui/states/EmptyState';
 import { SwiperCard } from '../SwiperCard/SwiperCard';
-import { getStreamAvailabilityLabel } from '@/shared/utils/streamAvailabilityLabel';
+import { buildHeroMetaItems } from './hero-slide-meta';
+import { HeroSlideActions } from './HeroSlideActions';
+import { HeroSlideGenres } from './HeroSlideGenres';
+import { HeroSlideMeta } from './HeroSlideMeta';
+import { HeroSlideTitle } from './HeroSlideTitle';
 
 /** Кастомний `el` для pagination монтується після Swiper — прив’язуємо після init без remount (див. Swiper + React: custom pagination). */
 function bindHeroPagination(swiper: SwiperType, el: HTMLDivElement | null) {
@@ -109,14 +112,10 @@ export const Preview = ({ spotlights, trending }: Props) => {
   const safeTrending = Array.isArray(trending) ? trending : [];
   const currentAnime = spotlights[currentIndex];
 
-  const tv = currentAnime.tvInfo;
-  const metaParts: string[] = [];
-  const streamLabel = getStreamAvailabilityLabel(tv);
-  if (streamLabel) metaParts.push(streamLabel);
-  if (tv?.showType || tv?.duration) {
-    metaParts.push([tv?.showType, tv?.duration].filter(Boolean).join(' • '));
-  }
-  const metaLine = metaParts.join(' • ');
+  const heroMetaItems = buildHeroMetaItems(currentAnime);
+  const heroGenres = currentAnime.genres ?? [];
+  const slideCounter =
+    spotlights.length > 1 ? `${currentIndex + 1} / ${spotlights.length}` : null;
 
   function isAniListImage(url: string): boolean {
     return url.includes('anilist.co') || url.includes('s4.anilist.co');
@@ -192,16 +191,9 @@ export const Preview = ({ spotlights, trending }: Props) => {
           </Swiper>
           <div className="hero__content">
             <div className="hero__info">
-              <h1 className="hero__title">{currentAnime.title}</h1>
-              {metaLine ? (
-                <p className="hero__meta" aria-hidden>
-                  {metaLine}
-                </p>
-              ) : (
-                <p className="hero__meta hero__meta--placeholder" aria-hidden>
-                  {'\u00a0'}
-                </p>
-              )}
+              <HeroSlideTitle anime={currentAnime} priority />
+              <HeroSlideMeta items={heroMetaItems} />
+              <HeroSlideGenres genres={heroGenres} />
               {currentAnime.description ? (
                 <p className="hero__description">{currentAnime.description}</p>
               ) : (
@@ -212,37 +204,41 @@ export const Preview = ({ spotlights, trending }: Props) => {
                   {'\u00a0'}
                 </p>
               )}
-              <Link
-                className="hero__cta bg-brand-orange text-brand-gray-light hover:bg-brand-orange-light hover:text-brand-gray w-full max-w-[300px] rounded-md px-4 py-3 text-center text-base font-medium transition-colors md:py-2.5"
-                href={`/watch/${currentAnime.id}?ep=1`}
-              >
-                <Play className="h-5 w-5 shrink-0 fill-current" />
-                Watch Ep 1
-              </Link>
-            </div>
-            {/* Під текстом у колонці .hero__content; слот з min-height — без стрибка при mount Swiper */}
-            <div className="hero__pagination-slot">
-              {/* До init Swiper лише placeholder; після bind — лише контейнер Swiper (інакше два ряди смужок) */}
-              {!paginationReady && (
-                <div className="hero__pagination-placeholder" aria-hidden>
-                  {spotlights.map((s, i) => (
-                    <span
-                      key={s.id}
-                      className={
-                        i === currentIndex
-                          ? 'hero-pagination-placeholder-dash hero-pagination-placeholder-dash--active'
-                          : 'hero-pagination-placeholder-dash'
-                      }
+              <HeroSlideActions animeId={currentAnime.id} />
+              {spotlights.length > 1 ? (
+                <div className="hero__footer">
+                  {slideCounter ? (
+                    <p className="hero__slide-counter" aria-live="polite">
+                      {slideCounter}
+                    </p>
+                  ) : null}
+                  <div className="hero__pagination-slot">
+                    {!paginationReady && (
+                      <div
+                        className="hero__pagination-placeholder"
+                        aria-hidden
+                      >
+                        {spotlights.map((s, i) => (
+                          <span
+                            key={s.id}
+                            className={
+                              i === currentIndex
+                                ? 'hero-pagination-placeholder-dash hero-pagination-placeholder-dash--active'
+                                : 'hero-pagination-placeholder-dash'
+                            }
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <div
+                      ref={setPaginationNode}
+                      className="hero__pagination-container"
+                      role="group"
+                      aria-label="Spotlight slides navigation"
                     />
-                  ))}
+                  </div>
                 </div>
-              )}
-              <div
-                ref={setPaginationNode}
-                className="hero__pagination-container"
-                role="group"
-                aria-label="Spotlight slides navigation"
-              />
+              ) : null}
             </div>
           </div>
         </div>

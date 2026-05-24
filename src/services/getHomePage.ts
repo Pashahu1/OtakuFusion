@@ -4,6 +4,7 @@ import {
   mapAniListMediaToSpotlight,
   mapAniListMediaToTrending,
 } from '@/lib/anilist';
+import { enrichSpotlightsWithClearLogos } from '@/server/tvdb/fetchClearLogoUrl';
 import type { HomePageResponse } from '@/shared/types/HomePageTypes';
 
 async function getHomePageFromAniList(): Promise<HomePageResponse['results']> {
@@ -40,8 +41,12 @@ async function getHomePageFromAniList(): Promise<HomePageResponse['results']> {
     .slice(0, 10);
   const trendingMedia = trendingPage.media ?? [];
 
+  const spotlights = await enrichSpotlightsWithClearLogos(
+    spotlightsMedia.map(mapAniListMediaToSpotlight)
+  );
+
   return {
-    spotlights: spotlightsMedia.map(mapAniListMediaToSpotlight),
+    spotlights,
     trending: trendingMedia.map((media, index) =>
       mapAniListMediaToTrending(media, index)
     ),

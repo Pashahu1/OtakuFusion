@@ -310,19 +310,32 @@ export function mapAniListMediaToTrending(
 
 export function mapAniListMediaToSpotlight(media: AniListMedia): SpotlightAnime {
   const base = mapAniListMediaToAnimeInfo(media);
+  const description = base.description || '';
+  const synonyms = media.synonyms?.filter((s): s is string => Boolean(s?.trim()));
+
   return {
     id: base.id,
     data_id: base.data_id,
     poster: media.bannerImage || base.poster,
     title: base.title,
     japanese_title: base.japanese_title,
-    description: base.description || '',
+    description,
     tvInfo: base.tvInfo || {
       showType: 'TV',
       duration: '',
       releaseDate: '',
       quality: 'HD',
     },
+    scorePercent:
+      typeof media.averageScore === 'number' && media.averageScore > 0
+        ? media.averageScore
+        : undefined,
+    genres: media.genres?.filter((g): g is string => Boolean(g?.trim())).slice(0, 4),
+    malId:
+      typeof media.idMal === 'number' && media.idMal > 0
+        ? Math.floor(media.idMal)
+        : undefined,
+    synonyms,
   };
 }
 
@@ -389,6 +402,7 @@ export async function getAniListMediaPage(
           search: $search
         ) {
           id
+          idMal
           title {
             romaji
             english
@@ -407,6 +421,8 @@ export async function getAniListMediaPage(
           episodes
           averageScore
           seasonYear
+          genres
+          synonyms
           isAdult
           startDate {
             year
