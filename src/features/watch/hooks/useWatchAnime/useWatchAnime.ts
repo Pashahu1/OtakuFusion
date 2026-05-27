@@ -17,7 +17,7 @@ export function useWatchAnime(
 ): UseWatchAnimeReturn {
   const [animeInfo, setAnimeInfo] = useState<AnimeData | null>(null);
   const [episodes, setEpisodes] = useState<EpisodesTypes[] | null>(null);
-  const [anicoreCatalogProviderId, setAnicoreCatalogProviderId] = useState<string | null>(null);
+  const [animepaheCatalogProviderId, setAnimepaheCatalogProviderId] = useState<string | null>(null);
   const [anilibertyCatalogProviderId, setAnilibertyCatalogProviderId] = useState<string | null>(
     null
   );
@@ -55,7 +55,7 @@ export function useWatchAnime(
 
   useLayoutEffect(() => {
     setEpisodes(null);
-    setAnicoreCatalogProviderId(null);
+    setAnimepaheCatalogProviderId(null);
     setAnilibertyCatalogProviderId(null);
     setEpisodeId(null);
     setAnimeInfo(null);
@@ -98,7 +98,7 @@ export function useWatchAnime(
     deferredOppositePrefetchRef,
     oppositePrefetchDoneRef,
     oppositePrefetchAbortRef,
-    setAnicoreCatalogProviderId,
+    setAnimepaheCatalogProviderId,
     setAnilibertyLanguageMenuEligible,
     setHikkaLanguageMenuEligible,
   });
@@ -117,7 +117,7 @@ export function useWatchAnime(
     alternateWarmupAbortRef,
     setAnimeInfo,
     setEpisodes,
-    setAnicoreCatalogProviderId,
+    setAnimepaheCatalogProviderId,
     setAnilibertyCatalogProviderId,
     setHikkaCatalogProviderId,
     setTotalEpisodes,
@@ -146,11 +146,11 @@ export function useWatchAnime(
       ? anilibertyCatalogProviderId
       : watchStreamProvider === 'hikka'
         ? hikkaCatalogProviderId
-        : anicoreCatalogProviderId;
+        : animepaheCatalogProviderId;
 
   return {
     animeInfo,
-    anicoreCatalogProviderId,
+    animepaheCatalogProviderId,
     anilibertyCatalogProviderId,
     hikkaCatalogProviderId,
     providerAnimeId,

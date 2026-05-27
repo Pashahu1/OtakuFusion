@@ -2,32 +2,32 @@ import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { catalogBodyFromAnimeData } from './watchAnimeCatalogUtils';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
-import { fetchAnicoreCatalogEpisodes } from './fetchAnicoreCatalogEpisodes';
+import { fetchAnimepaheCatalogEpisodes } from './fetchAnimepaheCatalogEpisodes';
 import { fetchAnilibertyCatalogEpisodes } from './fetchAnilibertyCatalogEpisodes';
 import { fetchHikkaCatalogEpisodes } from './fetchHikkaCatalogEpisodes';
 import {
   readVerifiedLibertyMapping,
-  readVerifiedAnicoreMapping,
+  readVerifiedPaheMapping,
 } from './watchAnimeMappingCache';
 
 export function hydrateCachedProviderIds(params: {
   animeId: string;
   forceFuzzy: boolean;
   isAborted: () => boolean;
-  setAnicoreCatalogProviderId: (id: string) => void;
+  setAnimepaheCatalogProviderId: (id: string) => void;
   setAnilibertyCatalogProviderId: (id: string) => void;
 }): void {
   const {
     animeId,
     forceFuzzy,
     isAborted,
-    setAnicoreCatalogProviderId,
+    setAnimepaheCatalogProviderId,
     setAnilibertyCatalogProviderId,
   } = params;
   if (forceFuzzy || isAborted()) return;
-  const hidP = readVerifiedAnicoreMapping(animeId);
+  const hidP = readVerifiedPaheMapping(animeId);
   const hidL = readVerifiedLibertyMapping(animeId);
-  if (hidP?.anicoreId) setAnicoreCatalogProviderId(hidP.anicoreId.trim());
+  if (hidP?.paheId) setAnimepaheCatalogProviderId(hidP.paheId.trim());
   if (hidL?.libertyId) setAnilibertyCatalogProviderId(hidL.libertyId.trim());
 }
 
@@ -54,5 +54,5 @@ export async function fetchProviderCatalogEpisodes(params: {
   if (params.watchStreamProvider === 'aniliberty') {
     return fetchAnilibertyCatalogEpisodes(base);
   }
-  return fetchAnicoreCatalogEpisodes(base);
+  return fetchAnimepaheCatalogEpisodes(base);
 }

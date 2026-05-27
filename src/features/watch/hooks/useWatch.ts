@@ -1,4 +1,4 @@
-import {
+﻿import {
   useState,
   useMemo,
   useEffect,
@@ -27,7 +27,7 @@ export function useWatch(
   const [isFullOverview, setIsFullOverview] = useState(false);
   const [streamLangRevision, setStreamLangRevision] = useState(0);
   const [watchStreamProvider, setWatchStreamProviderState] =
-    useState<WatchStreamProvider>('anicore');
+    useState<WatchStreamProvider>('animepahe');
   const [streamHardExhausted, setStreamHardExhausted] = useState(false);
   const issuedDubToSubFallbackRef = useRef(false);
   const userChoseDubRef = useRef(false);
@@ -43,7 +43,7 @@ export function useWatch(
 
   useEffect(() => {
     if (!animeId.trim()) return;
-    setWatchStreamProvider('anicore');
+    setWatchStreamProvider('animepahe');
   }, [animeId, setWatchStreamProvider]);
 
   const anime = useWatchAnime(animeId, initialEpisodeId, watchStreamProvider);
@@ -94,15 +94,15 @@ export function useWatch(
   const hasAnyDub = useMemo(() => {
     const dubFromTv = anime.animeInfo?.animeInfo?.tvInfo?.has_dub ?? 0;
     if (dubFromTv > 0) return true;
-    if (anime.anicoreCatalogProviderId?.trim()) return true;
-    if (watchStreamProvider === 'anicore') {
+    if (anime.animepaheCatalogProviderId?.trim()) return true;
+    if (watchStreamProvider === 'animepahe') {
       if (Boolean(anime.episodes?.some((e) => e.hasDub === true))) return true;
       return true;
     }
     return true;
   }, [
     anime.animeInfo?.animeInfo?.tvInfo?.has_dub,
-    anime.anicoreCatalogProviderId,
+    anime.animepaheCatalogProviderId,
     anime.episodes,
     watchStreamProvider,
   ]);
@@ -203,7 +203,7 @@ export function useWatch(
 
   /** Лише при зміні епізоду: якщо в каталозі немає dub — старт з Japanese. Не чіпати ручний вибір English. */
   useEffect(() => {
-    if (watchStreamProvider !== 'anicore') return;
+    if (watchStreamProvider !== 'animepahe') return;
     if (episodeHasDubForResolve !== false) return;
     userChoseDubRef.current = false;
     setActiveServerIdRaw('1');
@@ -224,7 +224,7 @@ export function useWatch(
   }, [anilistStillAiring, anime.animeInfo?.animeInfo?.tvInfo?.episodeTotal]);
 
   const onAutoRetryExhausted = useCallback(() => {
-    setWatchStreamProvider('anicore');
+    setWatchStreamProvider('animepahe');
     setActiveServerIdRaw('1');
   }, [setWatchStreamProvider]);
 
@@ -238,7 +238,7 @@ export function useWatch(
           ? anime.anilibertyCatalogProviderId
           : watchStreamProvider === 'hikka'
             ? anime.hikkaCatalogProviderId
-            : anime.anicoreCatalogProviderId,
+            : anime.animepaheCatalogProviderId,
       episodeEpToken,
       episodeHasDub: episodeHasDubForResolve,
       expectedEpisodes: expectedEpisodesForResolve,
@@ -261,7 +261,7 @@ export function useWatch(
       anime.episodeId,
       anime.providerCatalogPending,
       anime.episodesSourceProvider,
-      anime.anicoreCatalogProviderId,
+      anime.animepaheCatalogProviderId,
       anime.anilibertyCatalogProviderId,
       anime.hikkaCatalogProviderId,
       episodeEpToken,
@@ -290,13 +290,13 @@ export function useWatch(
     if (watchStreamProvider === 'aniliberty') {
       if (anime.animeInfoLoading || anime.providerCatalogPending) return;
       if (anime.anilibertyLanguageMenuEligible) return;
-      setWatchStreamProvider('anicore');
+      setWatchStreamProvider('animepahe');
       return;
     }
     if (watchStreamProvider === 'hikka') {
       if (anime.animeInfoLoading || anime.providerCatalogPending) return;
       if (anime.hikkaLanguageMenuEligible) return;
-      setWatchStreamProvider('anicore');
+      setWatchStreamProvider('animepahe');
     }
   }, [
     watchStreamProvider,
@@ -311,13 +311,13 @@ export function useWatch(
     if (!stream.resolveAttempted || stream.buffering) return;
     if (stream.streamUrl) return;
     if (!stream.errorCode) return;
-    if (watchStreamProvider !== 'anicore') return;
+    if (watchStreamProvider !== 'animepahe') return;
     if (activeServerId !== '2') return;
     if (resolverLang !== 'dub') return;
 
     const code = stream.errorCode.toLowerCase();
     if (code.includes('episode_not_found')) return;
-    if (code.includes('anicore_sources_empty')) return;
+    if (code.includes('animepahe_sources_empty')) return;
     if (code.includes('episode is required')) return;
     if (code.includes('lang must')) return;
     if (code.includes('watch_resolve_invalid_json')) return;
@@ -348,7 +348,7 @@ export function useWatch(
   useEffect(() => {
     if (!issuedDubToSubFallbackRef.current) return;
     if (!stream.resolveAttempted || stream.buffering || stream.streamUrl) return;
-    if (watchStreamProvider !== 'anicore') return;
+    if (watchStreamProvider !== 'animepahe') return;
     if (activeServerId !== '1' || resolverLang !== 'sub') return;
     if (!stream.errorCode) return;
 

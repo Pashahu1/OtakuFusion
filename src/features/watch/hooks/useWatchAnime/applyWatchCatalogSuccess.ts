@@ -1,4 +1,4 @@
-import type { AnicoreCatalogBffOk } from '@/features/watch/lib/anicore-catalog-bff';
+import type { AnimepaheCatalogBffOk } from '@/lib/animepahe-catalog-bff';
 import type { AnilibertyCatalogBffOk } from '@/features/watch/lib/aniliberty-catalog-bff';
 import type { HikkaCatalogBffOk } from '@/features/watch/lib/hikka-catalog-bff';
 import { alignEpisodesToAnilistSeasonStart } from '@/features/watch/lib/alignEpisodesToAnilistSeason';
@@ -15,8 +15,8 @@ import {
   readVerifiedLibertyMapping,
   writeVerifiedHikkaMapping,
   writeVerifiedLibertyMapping,
-  writeVerifiedAnicoreMapping,
-  readVerifiedAnicoreMapping,
+  writeVerifiedPaheMapping,
+  readVerifiedPaheMapping,
 } from './watchAnimeMappingCache';
 
 export interface ApplyWatchCatalogSuccessContext {
@@ -35,7 +35,7 @@ export interface ApplyWatchCatalogSuccessContext {
   menuSetters: AlternateLanguageMenuSetters;
   setAnimeInfo: React.Dispatch<React.SetStateAction<AnimeData | null>>;
   setEpisodes: React.Dispatch<React.SetStateAction<EpisodesTypes[] | null>>;
-  setAnicoreCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
+  setAnimepaheCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setAnilibertyCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setHikkaCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setTotalEpisodes: React.Dispatch<React.SetStateAction<number | null>>;
@@ -51,7 +51,7 @@ export interface ApplyWatchCatalogSuccessContext {
 
 export interface ApplyWatchCatalogSuccessOpts {
   forceFuzzy: boolean;
-  freshAnicoreCatalog: AnicoreCatalogBffOk | null;
+  freshPaheCatalog: AnimepaheCatalogBffOk | null;
   freshLibertyCatalog: AnilibertyCatalogBffOk | null;
   freshHikkaCatalog: HikkaCatalogBffOk | null;
   preserveEpisodeNum: string | null;
@@ -77,7 +77,7 @@ export function applyWatchCatalogSuccess(
     menuSetters,
     setAnimeInfo,
     setEpisodes,
-    setAnicoreCatalogProviderId,
+    setAnimepaheCatalogProviderId,
     setAnilibertyCatalogProviderId,
     setHikkaCatalogProviderId,
     setTotalEpisodes,
@@ -91,7 +91,7 @@ export function applyWatchCatalogSuccess(
 
   const {
     forceFuzzy,
-    freshAnicoreCatalog,
+    freshPaheCatalog,
     freshLibertyCatalog,
     freshHikkaCatalog,
     preserveEpisodeNum,
@@ -117,10 +117,10 @@ export function applyWatchCatalogSuccess(
       restoreCachedAlternateLanguageMenu(animeId, 'hikka', menuSetters);
     }
   } else {
-    if (freshAnicoreCatalog) {
-      writeVerifiedAnicoreMapping(animeId, providerId, freshAnicoreCatalog.hasSeriesDub === true);
+    if (freshPaheCatalog) {
+      writeVerifiedPaheMapping(animeId, providerId, freshPaheCatalog.hasSeriesDub === true);
     }
-    setAnicoreCatalogProviderId(providerId);
+    setAnimepaheCatalogProviderId(providerId);
     if (!forceFuzzy) {
       const cachedHikka = readVerifiedHikkaMapping(animeId);
       const cachedLiberty = readVerifiedLibertyMapping(animeId);
@@ -156,12 +156,12 @@ export function applyWatchCatalogSuccess(
   setTotalEpisodes(mergedEpisodes.length > 0 ? mergedEpisodes.length : null);
 
   const seriesDubHint =
-    watchStreamProvider === 'anicore' &&
-    (freshAnicoreCatalog?.hasSeriesDub === true ||
-      readVerifiedAnicoreMapping(animeId)?.hasSeriesDub === true);
-  if (watchStreamProvider === 'anicore') {
+    watchStreamProvider === 'animepahe' &&
+    (freshPaheCatalog?.hasSeriesDub === true ||
+      readVerifiedPaheMapping(animeId)?.hasSeriesDub === true);
+  if (watchStreamProvider === 'animepahe') {
     const counts = aggregateTvInfoStreamCounts(mergedEpisodes, {
-      provider: 'anicore',
+      provider: 'animepahe',
       seriesDubHint,
     });
     setAnimeInfo((prev) => {

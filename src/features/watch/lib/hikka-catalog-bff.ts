@@ -1,5 +1,5 @@
 import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
-import type { AnicoreCatalogBffBody } from '@/features/watch/lib/anicore-catalog-bff';
+import type { AnimepaheCatalogBffBody } from '@/lib/animepahe-catalog-bff';
 import type { HikkaWatchSource } from '@/services/hikka/hikkaTypes';
 
 export interface HikkaCatalogBffOk {
@@ -18,7 +18,7 @@ export interface HikkaCatalogBffErr {
 }
 
 export async function postHikkaCatalog(
-  body: AnicoreCatalogBffBody,
+  body: AnimepaheCatalogBffBody,
   signal?: AbortSignal
 ): Promise<HikkaCatalogBffOk | HikkaCatalogBffErr> {
   const res = await fetch('/api/hikka/catalog', {

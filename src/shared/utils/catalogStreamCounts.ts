@@ -16,7 +16,7 @@ export function aggregateCatalogStreamCounts(episodes: EpisodesTypes[]): {
 export function aggregateTvInfoStreamCounts(
   episodes: EpisodesTypes[],
   opts: {
-    provider: 'anicore' | 'aniliberty' | 'hikka';
+    provider: 'animepahe' | 'aniliberty' | 'hikka';
     seriesDubHint?: boolean;
   }
 ): { has_sub: number; has_dub: number } {

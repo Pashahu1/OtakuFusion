@@ -13,7 +13,7 @@ import {
 import { isLibertyCatalogAcceptableForAnime } from './watchAnimeCatalogUtils';
 import {
   clearVerifiedLibertyMapping,
-  clearVerifiedAnicoreMapping,
+  clearVerifiedPaheMapping,
   getMappingCacheKey,
 } from './watchAnimeMappingCache';
 
@@ -29,7 +29,7 @@ export interface RunWatchCatalogPipelineParams {
   signal: AbortSignal;
   isAborted: () => boolean;
   applyCtx: ApplyWatchCatalogSuccessContext;
-  setAnicoreCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
+  setAnimepaheCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setAnilibertyCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setHikkaCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setAnilibertyLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -48,7 +48,7 @@ function emptyCatalogErrorMessage(provider: WatchStreamProvider): string {
   if (provider === 'hikka') {
     return 'Ukrainian sources returned an empty episode list. Try another provider.';
   }
-  return 'Anicore returned an empty episode list. Refresh the page or try again later.';
+  return 'Animepahe returned an empty episode list. Refresh the page or try again later.';
 }
 
 export async function runWatchCatalogPipeline(
@@ -66,7 +66,7 @@ export async function runWatchCatalogPipeline(
     signal,
     isAborted,
     applyCtx,
-    setAnicoreCatalogProviderId,
+    setAnimepaheCatalogProviderId,
     setAnilibertyCatalogProviderId,
     setHikkaCatalogProviderId,
     setAnilibertyLanguageMenuEligible,
@@ -82,7 +82,7 @@ export async function runWatchCatalogPipeline(
     animeId,
     forceFuzzy,
     isAborted,
-    setAnicoreCatalogProviderId: (id) => setAnicoreCatalogProviderId(id),
+    setAnimepaheCatalogProviderId: (id) => setAnimepaheCatalogProviderId(id),
     setAnilibertyCatalogProviderId: (id) => setAnilibertyCatalogProviderId(id),
   });
 
@@ -98,11 +98,11 @@ export async function runWatchCatalogPipeline(
     });
   } catch (err) {
     if (
-      watchStreamProvider === 'anicore' &&
+      watchStreamProvider === 'animepahe' &&
       err instanceof Error &&
-      err.message.includes('anicore_catalog_not_found')
+      err.message.includes('animepahe_catalog_not_found')
     ) {
-      clearVerifiedAnicoreMapping(animeId);
+      clearVerifiedPaheMapping(animeId);
     }
     throw err;
   }
@@ -123,7 +123,7 @@ export async function runWatchCatalogPipeline(
       return;
     }
     setError(emptyCatalogErrorMessage(watchStreamProvider));
-    setAnicoreCatalogProviderId(null);
+    setAnimepaheCatalogProviderId(null);
     setAnilibertyCatalogProviderId(null);
     setHikkaCatalogProviderId(null);
     setAnilibertyLanguageMenuEligible(false);
@@ -149,7 +149,7 @@ export async function runWatchCatalogPipeline(
 
   const applyOpts: ApplyWatchCatalogSuccessOpts = {
     forceFuzzy,
-    freshAnicoreCatalog: fetched.freshAnicoreCatalog,
+    freshPaheCatalog: fetched.freshPaheCatalog,
     freshLibertyCatalog: fetched.freshLibertyCatalog,
     freshHikkaCatalog: fetched.freshHikkaCatalog,
     preserveEpisodeNum,

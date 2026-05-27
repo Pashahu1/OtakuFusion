@@ -1,35 +1,32 @@
-import { postAnicoreCatalog } from '@/features/watch/lib/anicore-catalog-bff';
-import { getAnicoreEpisodesFromBff } from '@/lib/anicore-episodes-bff';
-import { patchEpisodesSeriesDub } from '@/services/anicore/patchEpisodesSeriesDub';
+﻿import { postAnimepaheCatalog } from '@/lib/animepahe-catalog-bff';
+import { getAnimePaheEpisodesFromBff } from '@/lib/animepahe-episodes-bff';
+import { patchEpisodesSeriesDub } from '@/services/animepahe/patchEpisodesSeriesDub';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
-import {
-  clearVerifiedAnicoreMapping,
-  readVerifiedAnicoreMapping,
-} from './watchAnimeMappingCache';
+import { clearVerifiedPaheMapping, readVerifiedPaheMapping } from './watchAnimeMappingCache';
 
-export async function fetchAnicoreCatalogEpisodes(
+export async function fetchAnimepaheCatalogEpisodes(
   params: CatalogFetchBaseParams
 ): Promise<ProviderCatalogFetchResult> {
   const { animeId, catalogPayload, signal, forceFuzzy, isAborted } = params;
 
   let providerId: string | null = null;
   let list: ProviderCatalogFetchResult['episodes'] = [];
-  let freshAnicoreCatalog: ProviderCatalogFetchResult['freshAnicoreCatalog'] = null;
+  let freshPaheCatalog: ProviderCatalogFetchResult['freshPaheCatalog'] = null;
 
   if (!forceFuzzy) {
-    const cached = readVerifiedAnicoreMapping(animeId);
-    if (cached?.anicoreId) {
+    const cached = readVerifiedPaheMapping(animeId);
+    if (cached?.paheId) {
       try {
-        const cachedEp = await getAnicoreEpisodesFromBff(cached.anicoreId, signal);
+        const cachedEp = await getAnimePaheEpisodesFromBff(cached.paheId, signal);
         if (!isAborted() && (cachedEp.episodes?.length ?? 0) > 0) {
-          providerId = cached.anicoreId.trim();
+          providerId = cached.paheId.trim();
           list = patchEpisodesSeriesDub(
             cachedEp.episodes ?? [],
             cached.hasSeriesDub === true
           );
         }
       } catch {
-        clearVerifiedAnicoreMapping(animeId);
+        clearVerifiedPaheMapping(animeId);
         providerId = null;
         list = [];
       }
@@ -37,25 +34,25 @@ export async function fetchAnicoreCatalogEpisodes(
   }
 
   if (!providerId || !list.length) {
-    const catalog = await postAnicoreCatalog(catalogPayload, signal);
+    const catalog = await postAnimepaheCatalog(catalogPayload, signal);
     if (isAborted()) {
       throw new DOMException('Aborted', 'AbortError');
     }
     if (!catalog.success) {
       throw new Error(catalog.error);
     }
-    if (!catalog.anicoreId?.trim()) {
-      throw new Error('anicore_catalog_bad_shape');
+    if (!catalog.paheId?.trim()) {
+      throw new Error('animepahe_catalog_bad_shape');
     }
-    freshAnicoreCatalog = catalog;
-    providerId = catalog.anicoreId.trim();
+    freshPaheCatalog = catalog;
+    providerId = catalog.paheId.trim();
     list = catalog.episodes ?? [];
   }
 
   return {
     providerId,
     episodes: list,
-    freshAnicoreCatalog,
+    freshPaheCatalog,
     freshLibertyCatalog: null,
     freshHikkaCatalog: null,
   };

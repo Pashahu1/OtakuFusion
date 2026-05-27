@@ -64,7 +64,7 @@ export function syncPlayerLanguageMenu(
     data_id?: number;
     serverName?: string;
     type?: string;
-    __mode?: 'anicore-sub' | 'anicore-dub' | 'aniliberty' | 'hikka';
+    __mode?: 'animepahe-sub' | 'animepahe-dub' | 'aniliberty' | 'hikka';
   };
 
   const flatLanguage: LangMenuLeaf[] = [];
@@ -73,12 +73,12 @@ export function syncPlayerLanguageMenu(
     flatLanguage.push({
       html: jp.serverName?.trim() || 'Japanese',
       default:
-        watchStreamProvider === 'anicore' &&
+        watchStreamProvider === 'animepahe' &&
         String(jp.data_id) === String(langActiveId),
       data_id: jp.data_id,
       serverName: jp.serverName,
       type: jp.type,
-      __mode: 'anicore-sub',
+      __mode: 'animepahe-sub',
     });
   }
 
@@ -86,12 +86,12 @@ export function syncPlayerLanguageMenu(
     flatLanguage.push({
       html: en.serverName?.trim() || 'English',
       default:
-        watchStreamProvider === 'anicore' &&
+        watchStreamProvider === 'animepahe' &&
         String(en.data_id) === String(langActiveId),
       data_id: en.data_id,
       serverName: en.serverName,
       type: en.type,
-      __mode: 'anicore-dub',
+      __mode: 'animepahe-dub',
     });
   }
 
@@ -152,8 +152,8 @@ export function syncPlayerLanguageMenu(
         }
         return typeof item.html === 'string' ? item.html : '';
       }
-      if (mode === 'anicore-sub') {
-        setWatchStreamProvider('anicore');
+      if (mode === 'animepahe-sub') {
+        setWatchStreamProvider('animepahe');
         const dataId = item.data_id != null ? String(item.data_id) : null;
         if (dataId) setActiveServerId(dataId);
         if (typeof item.serverName === 'string')
@@ -162,8 +162,8 @@ export function syncPlayerLanguageMenu(
           localStorage.setItem('server_type', item.type);
         return typeof item.html === 'string' ? item.html : '';
       }
-      if (mode === 'anicore-dub') {
-        setWatchStreamProvider('anicore');
+      if (mode === 'animepahe-dub') {
+        setWatchStreamProvider('animepahe');
         const dataId = item.data_id != null ? String(item.data_id) : null;
         if (dataId) setActiveServerId(dataId);
         if (typeof item.serverName === 'string')

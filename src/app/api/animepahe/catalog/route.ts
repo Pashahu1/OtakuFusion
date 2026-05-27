@@ -1,20 +1,17 @@
 ﻿import { z } from 'zod';
 import { getCrysolineApiKey } from '@/server/crysoline/config';
-import { getAnicoreEpisodesCached } from '@/server/anicore/episodesCached';
-import { resolveAnicoreCatalogIdCached } from '@/server/anicore/catalogMatchCached';
+import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
+import { resolveAnimepahePaheIdCached } from '@/server/animepahe/catalogMatchCached';
 import {
-  buildCatalogSearchTermsFromFields,
-  type CatalogHints,
-} from '@/services/catalog/catalogHints';
-import {
-  seriesHasDubFromAnicoreEpisodes,
-} from '@/services/anicore/mapCrysolineAnicoreEpisodes';
-import { getAnicoreEpisodeRowsCached } from '@/server/anicore/episodesCached';
+  buildAnimepaheSearchTermsFromFields,
+  type AnimepaheCatalogHints,
+} from '@/services/animepahe/catalogHints';
+import { enrichEpisodesWithSeriesDubIfNeeded } from '@/server/animepahe/dubProbe';
 
 type CatalogJsonResponse = {
   success: boolean;
   error?: string;
-  anicoreId?: string;
+  paheId?: string;
   episodes?: unknown[];
   totalEpisodes?: number;
   hasSeriesDub?: boolean;
@@ -34,7 +31,9 @@ const BodySchema = z.object({
   synonyms: z.string().optional(),
 });
 
-function hintsFromBody(b: z.infer<typeof BodySchema>): CatalogHints {
+function hintsFromBody(
+  b: z.infer<typeof BodySchema>
+): AnimepaheCatalogHints {
   const prem = b.premiered?.trim();
   let seasonYear: number | null = null;
   if (prem && /^\d{4}$/.test(prem)) {
@@ -92,43 +91,49 @@ export async function POST(req: Request) {
 
   const body = parsed.data;
   const hints = hintsFromBody(body);
-  const baseTerms = buildCatalogSearchTermsFromFields({
+  const baseTerms = buildAnimepaheSearchTermsFromFields({
     title: body.title,
     romaji_title: body.romaji_title,
     japanese_title: body.japanese_title,
     synonyms: body.synonyms,
   });
-  if (!baseTerms.length && hints.anilistId == null) {
+  if (!baseTerms.length) {
     return Response.json(
-      { success: false, error: 'anicore_no_search_terms' },
+      { success: false, error: 'animepahe_no_search_terms' },
       { status: 400, headers: { 'Cache-Control': 'no-store' } }
     );
   }
+
+  const skipDubProbe =
+    process.env.ANIMEPAHE_SKIP_SERIES_DUB_PROBE === '1' ||
+    process.env.ANIMEPAHE_SKIP_SERIES_DUB_PROBE === 'true';
 
   const anilistKey = body.anilistId.trim();
 
   const runCatalog = async (): Promise<CatalogJsonResponse> => {
     try {
-      const anicoreId = await resolveAnicoreCatalogIdCached(body, hints, baseTerms);
-      if (!anicoreId) {
-        return { success: false, error: 'anicore_catalog_not_found' };
+      const paheId = await resolveAnimepahePaheIdCached(body, hints, baseTerms);
+      if (!paheId) {
+        return { success: false, error: 'animepahe_catalog_not_found' };
       }
 
-      const { episodes, totalEpisodes } = await getAnicoreEpisodesCached(anicoreId);
-      const rawRows = await getAnicoreEpisodeRowsCached(anicoreId).catch(() => []);
-      const hasSeriesDub = seriesHasDubFromAnicoreEpisodes(rawRows);
-
+      const { episodes, totalEpisodes } = await getAnimePaheEpisodesCached(paheId);
+      const episodesOut = skipDubProbe
+        ? episodes
+        : await enrichEpisodesWithSeriesDubIfNeeded(paheId, episodes);
+      const hasSeriesDub =
+        !skipDubProbe && episodesOut.some((e) => e.hasDub === true);
       return {
         success: true,
-        anicoreId,
-        episodes,
+        paheId,
+        episodes: episodesOut,
         totalEpisodes,
         hasSeriesDub,
       };
     } catch (e) {
       return {
         success: false,
-        error: e instanceof Error ? e.message : 'anicore_episodes_failed',
+        error: e instanceof Error ? e.message : 'animepahe_episodes_failed',
       };
     }
   };
@@ -136,11 +141,7 @@ export async function POST(req: Request) {
   const existing = inflightCatalogByAnilistId.get(anilistKey);
   if (existing) {
     const shared = await existing;
-    const status = shared.success
-      ? 200
-      : shared.error === 'anicore_catalog_not_found'
-        ? 404
-        : 502;
+    const status = shared.success ? 200 : shared.error === 'animepahe_catalog_not_found' ? 404 : 502;
     return Response.json(shared, {
       status,
       headers: { 'Cache-Control': 'no-store' },
@@ -157,7 +158,7 @@ export async function POST(req: Request) {
   const result = await promise;
   const status = result.success
     ? 200
-    : result.error === 'anicore_catalog_not_found'
+    : result.error === 'animepahe_catalog_not_found'
       ? 404
       : 502;
   return Response.json(result, {

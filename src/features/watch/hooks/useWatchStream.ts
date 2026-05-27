@@ -8,12 +8,6 @@ import { resolveWatchStream } from '@/services/resolveWatchStream';
 import { inferStreamMediaKind, urlLooksLikeHlsStream } from '@/lib/streamMediaType';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 import {
-  clearAnicorePlaybackServerHintForAnime,
-  isValidAnicorePlaybackServerHint,
-  readAnicorePlaybackServerHintForAnime,
-  writeAnicorePlaybackServerHintForAnime,
-} from '@/features/watch/lib/anicore-playback-server-preference';
-import {
   clearAnilibertyPlaybackQualityHint,
   heightFromAnilibertyServerLabel,
   readAnilibertyPlaybackQualityHint,
@@ -98,11 +92,11 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   no_working_source:
     'Could not play this HLS source — it may be blocked or no longer available. Try another episode, provider, or later.',
   'no_working_source|aniliberty_sources_empty':
-    'Anilibria did not return an HLS playlist for this episode. Try Anicore or another episode.',
+    'Anilibria did not return an HLS playlist for this episode. Try Japanese or another episode.',
   'no_working_source|hikka_m3u8_not_found':
     'Could not extract a playable stream from the Ukrainian source page. Try another episode or provider.',
   'no_working_source|hikka_stream_probe_failed':
-    'Ukrainian stream is blocked or unavailable. Try Anicore or refresh later.',
+    'Ukrainian stream is blocked or unavailable. Try Japanese or refresh later.',
   hikka_catalog_not_found:
     'No Ukrainian dub catalog was found for this title on Hikka Features.',
   hikka_features_forbidden:
@@ -110,7 +104,7 @@ const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   'ani_id is required (Hikka slug from catalog)':
     'Ukrainian catalog is still loading or missing. Wait a moment, refresh, or switch to Japanese and back.',
   aniliberty_episode_count_mismatch:
-    'Anilibria episode count does not match this title. Try Anicore instead.',
+    'Anilibria episode count does not match this title. Try Japanese instead.',
   'lang must be sub or dub':
     'Invalid stream language parameter. Refresh the page or toggle Sub/Dub.',
 };
@@ -139,10 +133,6 @@ function clearStoredServerHint(
 ): void {
   if (typeof window === 'undefined') return;
   try {
-    if (provider === 'anicore') {
-      clearAnicorePlaybackServerHintForAnime(localAnimeId);
-      return;
-    }
     if (provider === 'aniliberty') {
       clearAnilibertyPlaybackQualityHint();
       return;
@@ -328,24 +318,10 @@ export function useWatchStream(
       const tracks = [] as VideoTrack[];
 
       const resolvedServerLabel = result.stream.server?.trim();
-      const anicoreServer = result.debug?.anicore_server?.trim();
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && activeOpts.watchStreamProvider === 'aniliberty') {
         try {
-          if (
-            activeOpts.watchStreamProvider === 'anicore' &&
-            anicoreServer &&
-            isValidAnicorePlaybackServerHint(anicoreServer)
-          ) {
-            writeAnicorePlaybackServerHintForAnime(
-              activeOpts.animeId,
-              anicoreServer
-            );
-          } else if (activeOpts.watchStreamProvider === 'aniliberty') {
-            const h = heightFromAnilibertyServerLabel(
-              resolvedServerLabel ?? ''
-            );
-            if (h != null) writeAnilibertyPlaybackQualityHint(h);
-          }
+          const h = heightFromAnilibertyServerLabel(resolvedServerLabel ?? '');
+          if (h != null) writeAnilibertyPlaybackQualityHint(h);
         } catch {
 
         }
@@ -449,7 +425,7 @@ export function useWatchStream(
             ? ('aniliberty' as const)
             : activeOpts.watchStreamProvider === 'hikka'
               ? ('hikka' as const)
-              : ('anicore' as const),
+              : ('animepahe' as const),
         anilibertyCatalogVerified:
           activeOpts.watchStreamProvider === 'aniliberty' &&
           activeOpts.anilibertyCatalogVerified === true,
@@ -457,13 +433,11 @@ export function useWatchStream(
 
       const hadServerHint =
         typeof window !== 'undefined' &&
-        (activeOpts.watchStreamProvider === 'anicore'
-          ? Boolean(
-              readAnicorePlaybackServerHintForAnime(activeOpts.animeId)
-            )
-          : activeOpts.watchStreamProvider === 'aniliberty'
-            ? Boolean(readAnilibertyPlaybackQualityHint())
-            : Boolean(localStorage.getItem(STORAGE_SERVER_NAME)?.trim()));
+        (activeOpts.watchStreamProvider === 'aniliberty'
+          ? Boolean(readAnilibertyPlaybackQualityHint())
+          : activeOpts.watchStreamProvider === 'hikka'
+            ? Boolean(localStorage.getItem(STORAGE_SERVER_NAME)?.trim())
+            : false);
 
       let result: Awaited<ReturnType<typeof resolveWatchStream>>;
       try {

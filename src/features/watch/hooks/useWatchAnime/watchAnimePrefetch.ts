@@ -1,4 +1,4 @@
-import { postAnicoreCatalog } from '@/features/watch/lib/anicore-catalog-bff';
+import { postAnimepaheCatalog } from '@/lib/animepahe-catalog-bff';
 import { postAnilibertyCatalog, type AnilibertyCatalogBffOk } from '@/features/watch/lib/aniliberty-catalog-bff';
 import { postHikkaCatalog, type HikkaCatalogBffOk } from '@/features/watch/lib/hikka-catalog-bff';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
@@ -8,10 +8,10 @@ import {
 } from './watchAnimeCatalogUtils';
 import {
   clearVerifiedLibertyMapping,
-  readVerifiedAnicoreMapping,
+  readVerifiedPaheMapping,
   writeVerifiedHikkaMapping,
   writeVerifiedLibertyMapping,
-  writeVerifiedAnicoreMapping,
+  writeVerifiedPaheMapping,
 } from './watchAnimeMappingCache';
 
 async function delayMs(ms: number, signal: AbortSignal): Promise<void> {
@@ -122,22 +122,22 @@ export function startAlternateProviderWarmup(
   );
 }
 
-export function prefetchAnicoreMapping(
+export function prefetchAnimepaheMapping(
   dataForResolve: AnimeData,
   localAnimeId: string,
   signal: AbortSignal,
   isCancelled: () => boolean,
-  onMapped: (anicoreId: string) => void
+  onMapped: (paheId: string) => void
 ): void {
-  if (readVerifiedAnicoreMapping(localAnimeId)?.anicoreId) return;
+  if (readVerifiedPaheMapping(localAnimeId)?.paheId) return;
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
     try {
-      const alt = await postAnicoreCatalog(catalogPayload, signal);
+      const alt = await postAnimepaheCatalog(catalogPayload, signal);
       if (isCancelled() || signal.aborted) return;
-      if (!alt.success || !alt.anicoreId?.trim()) return;
-      writeVerifiedAnicoreMapping(localAnimeId, alt.anicoreId.trim(), alt.hasSeriesDub === true);
-      onMapped(alt.anicoreId.trim());
+      if (!alt.success || !alt.paheId?.trim()) return;
+      writeVerifiedPaheMapping(localAnimeId, alt.paheId.trim(), alt.hasSeriesDub === true);
+      onMapped(alt.paheId.trim());
     } catch {
 
     }

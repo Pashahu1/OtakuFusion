@@ -1,9 +1,10 @@
 import { unstable_cache } from 'next/cache';
-import { getAnicoreEpisodesCached, getAnicoreEpisodeRowsCached } from '@/server/anicore/episodesCached';
-import { pickAnicoreSourcesWithProbe } from '@/server/anicore/pickAnicoreSources';
+import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
+import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
 import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
 import { getAnilibertySourcesCached } from '@/server/aniliberty/sourcesCached';
 import type { CrysolineAnilibertySourcesPayload } from '@/server/crysoline/anilibertyClient';
+import { buildAnimepaheStreamCandidates } from '@/services/animepahe/buildAnimepaheStreamCandidates';
 import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
 import { isAnilibertyEpisodeCountAcceptable } from '@/services/aniliberty/anilibertyEpisodeMatch';
 import {
@@ -28,7 +29,7 @@ import { HikkaFeaturesForbiddenError } from '@/services/hikka/hikkaOutboundFetch
 
 type WatchLang = 'sub' | 'dub';
 
-type WatchResolveStreamProvider = 'anicore' | 'aniliberty' | 'hikka';
+type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
 
 const inflightResolve = new Map<string, Promise<Response>>();
 
@@ -338,7 +339,7 @@ async function attachAnilibriaSegmentHints(
   }
 }
 
-async function computeAnicoreWatchResolveOutcome(params: {
+async function computeAnimepaheWatchResolveOutcome(params: {
   startedAt: number;
   episode: number;
   lang: WatchLang;
@@ -366,13 +367,13 @@ async function computeAnicoreWatchResolveOutcome(params: {
   } = params;
 
   try {
-    let epToken = epTokenOverride?.trim() ?? '';
+    let epHash = epTokenOverride?.trim() ?? '';
     let targetEpisode: EpisodesTypes | null = null;
 
-    if (!epToken || episodeHasDub == null) {
-      const episodesResult = await getAnicoreEpisodesCached(seriesId);
+    if (!epHash || episodeHasDub == null) {
+      const episodesResult = await getAnimePaheEpisodesCached(seriesId);
       targetEpisode = pickEpisodeByNumber(episodesResult.episodes, episode);
-      if (!epToken) epToken = targetEpisode?.ep_token?.trim() ?? String(episode);
+      if (!epHash) epHash = targetEpisode?.ep_token?.trim() ?? '';
     } else {
       targetEpisode = {
         episode_no: episode,
@@ -381,19 +382,19 @@ async function computeAnicoreWatchResolveOutcome(params: {
         jname: '',
         title: '',
         japanese_title: '',
-        ep_token: epToken,
+        ep_token: epHash,
         hasSub: true,
         hasDub: episodeHasDub === true,
       };
     }
 
-    if (!epToken) {
+    if (!epHash) {
       return {
         status: 404,
         body: {
           success: false,
           error: 'episode_not_found',
-          reason: `Episode ${episode} is missing in Anicore catalog`,
+          reason: `Episode ${episode} is missing in Animepahe catalog`,
         },
       };
     }
@@ -404,29 +405,23 @@ async function computeAnicoreWatchResolveOutcome(params: {
       targetEpisode.hasDub !== true &&
       anilistId != null;
 
-    const rawRows = await getAnicoreEpisodeRowsCached(seriesId);
-    const episodeRow =
-      rawRows.find((r) => r.id?.trim() === epToken) ??
-      rawRows.find((r) => Math.floor(r.number) === episode) ??
-      null;
-
-    const picked = await pickAnicoreSourcesWithProbe({
-      seriesId,
-      episodeId: epToken,
-      episodeRow,
-      lang,
-      origin,
-      probeCfg,
-      preferredServerHint: preferredHint,
-      episodeHasDub: targetEpisode?.hasDub ?? episodeHasDub ?? null,
-    });
+    const sourcesPayload = await getAnimePaheSourcesCached(seriesId, epHash);
+    let candidates = buildAnimepaheStreamCandidates(sourcesPayload, lang);
+    candidates = prioritizeByServerHint(candidates, preferredHint);
 
     let primary: StreamingType | null = null;
-    let candidates: StreamingType[] = [];
 
-    if (picked) {
-      candidates = picked.candidates;
-      primary = picked.verifiedCandidate;
+    if (candidates.length > 0) {
+      try {
+        primary = await resolveFirstWorkingAnimePaheCandidate(
+          candidates,
+          origin,
+          probeCfg,
+          lang
+        );
+      } catch {
+        primary = null;
+      }
     }
 
     if (!primary && tryMirunoGapDub) {
@@ -439,12 +434,22 @@ async function computeAnicoreWatchResolveOutcome(params: {
     }
 
     if (!primary) {
+      if (!candidates.length) {
+        return {
+          status: 404,
+          body: {
+            success: false,
+            error: 'no_working_source',
+            reason: 'animepahe_sources_empty',
+          },
+        };
+      }
       return {
         status: 404,
         body: {
           success: false,
           error: 'no_working_source',
-          reason: picked ? `${lang}_not_available` : 'anicore_sources_empty',
+          reason: `${lang}_not_available`,
         },
       };
     }
@@ -455,7 +460,7 @@ async function computeAnicoreWatchResolveOutcome(params: {
 
     const body: Record<string, unknown> = {
       success: true,
-      stream_provider: 'anicore',
+      stream_provider: 'animepahe',
       resolved_anime: {
         ani_id: seriesId,
         slug: seriesId,
@@ -464,7 +469,7 @@ async function computeAnicoreWatchResolveOutcome(params: {
       },
       episode: {
         number: episode,
-        ep_token: epToken,
+        ep_token: epHash,
         hasSub: Boolean(targetEpisode?.hasSub ?? true),
         hasDub: fromMiruno ? false : Boolean(targetEpisode?.hasDub ?? false),
       },
@@ -490,7 +495,6 @@ async function computeAnicoreWatchResolveOutcome(params: {
       debug: {
         latency_ms: Date.now() - startedAt,
         requested_lang: lang,
-        anicore_server: picked?.server ?? null,
         ...(fromMiruno ? { miruno_dub_gap_fill: true } : {}),
       },
     };
@@ -866,7 +870,7 @@ async function computeWatchResolveOutcome(
             ? 'ani_id is required (Aniliberty release id from catalog)'
             : provider === 'hikka'
               ? 'ani_id is required (Hikka slug from catalog)'
-              : 'ani_id is required (Anicore series id from catalog)',
+              : 'ani_id is required (Animepahe series id from catalog)',
       },
     };
   }
@@ -900,7 +904,7 @@ async function computeWatchResolveOutcome(
     });
   }
 
-  return computeAnicoreWatchResolveOutcome({
+  return computeAnimepaheWatchResolveOutcome({
     startedAt,
     episode,
     lang,
@@ -935,7 +939,7 @@ async function handleWatchResolve(req: Request): Promise<Response> {
         if (o.status !== 200) throw new WatchResolveNonOkError(o);
         return o.body;
       },
-      ['watch-resolve-data-v8', cacheKey, publicOrigin],
+      ['watch-resolve-data-v9-animepahe', cacheKey, publicOrigin],
       { revalidate: watchResolveCacheRevalidateSec() }
     );
 
