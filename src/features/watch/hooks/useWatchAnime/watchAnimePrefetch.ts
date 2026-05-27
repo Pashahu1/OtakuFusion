@@ -6,6 +6,8 @@ import {
   catalogBodyFromAnimeData,
   isLibertyCatalogAcceptableForAnime,
 } from './watchAnimeCatalogUtils';
+import type { MutableRefObject } from 'react';
+import type { WarmAlternateCatalogEntry } from './types';
 import {
   clearVerifiedLibertyMapping,
   readVerifiedPaheMapping,
@@ -13,6 +15,8 @@ import {
   writeVerifiedLibertyMapping,
   writeVerifiedPaheMapping,
 } from './watchAnimeMappingCache';
+import { writeLibertyEpisodesCache } from './anilibertyEpisodesCache';
+import { upsertWarmHikkaCatalog, upsertWarmLibertyCatalog } from './watchAnimeWarmCatalog';
 
 async function delayMs(ms: number, signal: AbortSignal): Promise<void> {
   if (signal.aborted) return;
@@ -36,15 +40,23 @@ export function prefetchAnilibertyMapping(
   signal: AbortSignal,
   isCancelled: () => boolean,
   onEligible: () => void,
-  onWarm?: (catalog: AnilibertyCatalogBffOk) => void
+  onWarm?: (catalog: AnilibertyCatalogBffOk) => void,
+  warmCatalogsRef?: MutableRefObject<WarmAlternateCatalogEntry | null>
 ): void {
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
     try {
       let alt = await postAnilibertyCatalog(catalogPayload, signal);
       if (isCancelled() || signal.aborted) return;
-      if (!alt.success || !alt.libertyId?.trim()) {
-        await delayMs(1400, signal);
+      const errMsg = !alt.success ? alt.error : '';
+      const shouldRetry =
+        !alt.success &&
+        (errMsg.includes('502') ||
+          errMsg.includes('503') ||
+          errMsg.includes('429') ||
+          errMsg.includes('catalog_failed'));
+      if (shouldRetry) {
+        await delayMs(600, signal);
         if (isCancelled() || signal.aborted) return;
         alt = await postAnilibertyCatalog(catalogPayload, signal);
       }
@@ -55,7 +67,15 @@ export function prefetchAnilibertyMapping(
         clearVerifiedLibertyMapping(localAnimeId);
         return;
       }
-      writeVerifiedLibertyMapping(localAnimeId, alt.libertyId.trim());
+      const libertyId = alt.libertyId.trim();
+      writeVerifiedLibertyMapping(localAnimeId, libertyId);
+      const episodes = alt.episodes ?? [];
+      if (episodes.length > 0) {
+        writeLibertyEpisodesCache(localAnimeId, libertyId, episodes, actualCount);
+        if (warmCatalogsRef) {
+          upsertWarmLibertyCatalog(warmCatalogsRef, localAnimeId, libertyId, episodes);
+        }
+      }
       onWarm?.(alt);
       onEligible();
     } catch {
@@ -70,7 +90,8 @@ export function prefetchHikkaMapping(
   signal: AbortSignal,
   isCancelled: () => boolean,
   onEligible: () => void,
-  onWarm?: (catalog: HikkaCatalogBffOk) => void
+  onWarm?: (catalog: HikkaCatalogBffOk) => void,
+  warmCatalogsRef?: MutableRefObject<WarmAlternateCatalogEntry | null>
 ): void {
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
@@ -85,7 +106,12 @@ export function prefetchHikkaMapping(
       if (isCancelled() || signal.aborted) return;
       if (!alt.success || !alt.hikkaSlug?.trim()) return;
       if (!(alt.episodes?.length ?? 0)) return;
-      writeVerifiedHikkaMapping(localAnimeId, alt.hikkaSlug.trim());
+      const slug = alt.hikkaSlug.trim();
+      writeVerifiedHikkaMapping(localAnimeId, slug);
+      const episodes = alt.episodes ?? [];
+      if (episodes.length > 0 && warmCatalogsRef) {
+        upsertWarmHikkaCatalog(warmCatalogsRef, localAnimeId, slug, episodes);
+      }
       onWarm?.(alt);
       onEligible();
     } catch {
@@ -102,7 +128,8 @@ export function startAlternateProviderWarmup(
   onHikkaEligible: () => void,
   onLibertyEligible: () => void,
   onHikkaWarm: (catalog: HikkaCatalogBffOk) => void,
-  onLibertyWarm: (catalog: AnilibertyCatalogBffOk) => void
+  onLibertyWarm: (catalog: AnilibertyCatalogBffOk) => void,
+  warmCatalogsRef?: MutableRefObject<WarmAlternateCatalogEntry | null>
 ): void {
   prefetchAnilibertyMapping(
     dataForResolve,
@@ -110,7 +137,8 @@ export function startAlternateProviderWarmup(
     signal,
     isCancelled,
     onLibertyEligible,
-    onLibertyWarm
+    onLibertyWarm,
+    warmCatalogsRef
   );
   prefetchHikkaMapping(
     dataForResolve,
@@ -118,7 +146,8 @@ export function startAlternateProviderWarmup(
     signal,
     isCancelled,
     onHikkaEligible,
-    onHikkaWarm
+    onHikkaWarm,
+    warmCatalogsRef
   );
 }
 

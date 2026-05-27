@@ -1,6 +1,7 @@
-﻿import { useCallback } from 'react';
+import { useCallback } from 'react';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
+import type { WarmAlternateCatalogEntry } from './types';
 import {
   prefetchAnilibertyMapping,
   prefetchAnimepaheMapping,
@@ -9,6 +10,7 @@ import {
 
 export interface UseWatchAnimeDeferredPrefetchParams {
   animeId: string;
+  warmCatalogsRef: React.MutableRefObject<WarmAlternateCatalogEntry | null>;
   deferredOppositePrefetchRef: React.MutableRefObject<{
     animeId: string;
     data: AnimeData;
@@ -26,6 +28,7 @@ export function useWatchAnimeDeferredPrefetch(
 ): () => void {
   const {
     animeId,
+    warmCatalogsRef,
     deferredOppositePrefetchRef,
     oppositePrefetchDoneRef,
     oppositePrefetchAbortRef,
@@ -56,7 +59,9 @@ export function useWatchAnimeDeferredPrefetch(
           if (!isCancelled() && !signal.aborted) {
             setAnilibertyLanguageMenuEligible(true);
           }
-        }
+        },
+        undefined,
+        warmCatalogsRef
       );
       prefetchHikkaMapping(
         pending.data,
@@ -67,7 +72,9 @@ export function useWatchAnimeDeferredPrefetch(
           if (!isCancelled() && !signal.aborted) {
             setHikkaLanguageMenuEligible(true);
           }
-        }
+        },
+        undefined,
+        warmCatalogsRef
       );
       return;
     }
@@ -93,7 +100,9 @@ export function useWatchAnimeDeferredPrefetch(
           if (!isCancelled() && !signal.aborted) {
             setAnilibertyLanguageMenuEligible(true);
           }
-        }
+        },
+        undefined,
+        warmCatalogsRef
       );
       return;
     }
@@ -118,10 +127,13 @@ export function useWatchAnimeDeferredPrefetch(
         if (!isCancelled() && !signal.aborted) {
           setHikkaLanguageMenuEligible(true);
         }
-      }
+      },
+      undefined,
+      warmCatalogsRef
     );
   }, [
     animeId,
+    warmCatalogsRef,
     deferredOppositePrefetchRef,
     oppositePrefetchAbortRef,
     oppositePrefetchDoneRef,

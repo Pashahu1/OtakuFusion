@@ -1,7 +1,8 @@
-﻿import { postAnilibertyCatalog } from '@/features/watch/lib/aniliberty-catalog-bff';
+import { postAnilibertyCatalog } from '@/features/watch/lib/aniliberty-catalog-bff';
 import { getAnilibertyEpisodesFromBff } from '@/lib/aniliberty-episodes-bff';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
 import { isLibertyCatalogAcceptableForAnime } from './watchAnimeCatalogUtils';
+import { writeLibertyEpisodesCache } from './anilibertyEpisodesCache';
 import {
   clearVerifiedLibertyMapping,
   readVerifiedLibertyMapping,
@@ -29,6 +30,12 @@ export async function fetchAnilibertyCatalogEpisodes(
         ) {
           providerId = cachedL.libertyId.trim();
           list = cachedEp.episodes ?? [];
+          writeLibertyEpisodesCache(
+            animeId,
+            providerId,
+            list,
+            cachedCount
+          );
         } else if (!isAborted()) {
           clearVerifiedLibertyMapping(animeId);
         }
@@ -53,6 +60,14 @@ export async function fetchAnilibertyCatalogEpisodes(
     freshLibertyCatalog = catalog;
     providerId = catalog.libertyId.trim();
     list = catalog.episodes ?? [];
+    if (list.length > 0) {
+      writeLibertyEpisodesCache(
+        animeId,
+        providerId,
+        list,
+        catalog.totalEpisodes ?? list.length
+      );
+    }
   }
 
   return {

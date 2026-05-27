@@ -1,4 +1,4 @@
-﻿import {
+import {
   useState,
   useMemo,
   useEffect,
@@ -280,6 +280,18 @@ export function useWatch(
   );
 
   const stream = useWatchStream(watchResolveOptions);
+
+  useEffect(() => {
+    if (!anime.animeInfo || anime.animeInfoLoading) return;
+    if (watchStreamProvider !== 'animepahe') return;
+    anime.runDeferredOppositeProviderPrefetch();
+  }, [
+    anime.animeInfo,
+    anime.animeInfoLoading,
+    watchStreamProvider,
+    animeId,
+    anime.runDeferredOppositeProviderPrefetch,
+  ]);
 
   useEffect(() => {
     if (!stream.streamUrl) return;

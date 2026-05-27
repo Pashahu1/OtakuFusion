@@ -18,6 +18,8 @@ import {
   writeVerifiedPaheMapping,
   readVerifiedPaheMapping,
 } from './watchAnimeMappingCache';
+import { writeLibertyEpisodesCache } from './anilibertyEpisodesCache';
+import { upsertWarmHikkaCatalog, upsertWarmLibertyCatalog } from './watchAnimeWarmCatalog';
 
 export interface ApplyWatchCatalogSuccessContext {
   animeId: string;
@@ -187,6 +189,20 @@ export function applyWatchCatalogSuccess(
       initialEpisodeRef.current
     )
   );
+
+  if (!getIsCancelled() && mergedEpisodes.length > 0) {
+    if (watchStreamProvider === 'aniliberty') {
+      upsertWarmLibertyCatalog(warmCatalogsRef, animeId, providerId, mergedEpisodes);
+      writeLibertyEpisodesCache(
+        animeId,
+        providerId,
+        mergedEpisodes,
+        mergedEpisodes.length
+      );
+    } else if (watchStreamProvider === 'hikka') {
+      upsertWarmHikkaCatalog(warmCatalogsRef, animeId, providerId, mergedEpisodes);
+    }
+  }
 
   stableWatchLoad.current = {
     animeId,

@@ -10,6 +10,11 @@ import type { ApplyWatchCatalogSuccessContext } from './applyWatchCatalogSuccess
 import { applyWatchCatalogSuccess } from './applyWatchCatalogSuccess';
 import { getWatchAnimeErrorMessage, restoreCachedAlternateLanguageMenu } from './watchAnimeCatalogUtils';
 import { runWatchCatalogPipeline } from './runWatchCatalogPipeline';
+import {
+  fetchAnilibertyEpisodesForProviderSwap,
+  trySyncAnilibertyProviderSwap,
+} from './anilibertyProviderSwap';
+import { readVerifiedLibertyMapping } from './watchAnimeMappingCache';
 
 export interface WatchAnimeCatalogLoadParams {
   animeId: string;
@@ -205,27 +210,90 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
         };
       }
 
-      if (
-        watchStreamProvider === 'aniliberty' &&
-        warm?.animeId === animeId &&
-        warm.liberty?.libertyId &&
-        (warm.liberty.episodes?.length ?? 0) > 0
-      ) {
-        applyWarmProviderSwap(
-          warm.liberty.episodes,
-          warm.liberty.libertyId,
-          'aniliberty'
-        );
+      if (watchStreamProvider === 'aniliberty') {
+        if (
+          trySyncAnilibertyProviderSwap({
+            animeId,
+            dataForResolve,
+            warm,
+            preserveEpisodeNum: preserveEpisodeNum ?? null,
+            applyCtx,
+            warmCatalogsRef,
+            setAnilibertyCatalogProviderId,
+            setAnilibertyLanguageMenuEligible,
+          })
+        ) {
+          return () => {
+            cancelled = true;
+            controller.abort();
+          };
+        }
+
+        restoreCachedAlternateLanguageMenu(animeId, 'aniliberty', menuSetters);
+        const cachedLiberty = readVerifiedLibertyMapping(animeId);
+
+        void (async () => {
+          try {
+            if (cachedLiberty?.libertyId) {
+              const episodesOnly = await fetchAnilibertyEpisodesForProviderSwap({
+                animeId,
+                libertyId: cachedLiberty.libertyId,
+                dataForResolve,
+                signal,
+                isAborted,
+              });
+              if (isAborted()) return;
+              if (episodesOnly?.length) {
+                if (
+                  trySyncAnilibertyProviderSwap({
+                    animeId,
+                    dataForResolve,
+                    warm: {
+                      animeId,
+                      liberty: {
+                        libertyId: cachedLiberty.libertyId,
+                        episodes: episodesOnly,
+                      },
+                    },
+                    preserveEpisodeNum: preserveEpisodeNum ?? null,
+                    applyCtx,
+                    warmCatalogsRef,
+                    setAnilibertyCatalogProviderId,
+                    setAnilibertyLanguageMenuEligible,
+                  })
+                ) {
+                  return;
+                }
+              }
+            }
+
+            await runPipeline({
+              dataForResolve,
+              forceFuzzy: false,
+              preserveEpisodeNum: preserveEpisodeNum ?? null,
+              settleLoading,
+              allowEmptyCatalogRemap: false,
+            });
+          } catch (episodesError) {
+            if (isAborted()) return;
+            console.warn('[useWatchAnime] provider swap catalog:', episodesError);
+            setError(getWatchAnimeErrorMessage(episodesError));
+            setEpisodes([]);
+            setTotalEpisodes(0);
+            setEpisodeId(null);
+            setProviderCatalogPending(false);
+          }
+        })();
+
         return () => {
           cancelled = true;
           controller.abort();
+          setProviderCatalogPending(false);
         };
       }
 
       if (watchStreamProvider === 'hikka') {
         setHikkaCatalogProviderId(null);
-      } else if (watchStreamProvider === 'aniliberty') {
-        setAnilibertyCatalogProviderId(null);
       }
 
       void (async () => {

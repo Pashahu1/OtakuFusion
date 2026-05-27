@@ -3,8 +3,15 @@ import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
 import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
 import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
 import { getAnilibertySourcesCached } from '@/server/aniliberty/sourcesCached';
-import type { CrysolineAnilibertySourcesPayload } from '@/server/crysoline/anilibertyClient';
+import type {
+  CrysolineAnilibertyEpisodeRow,
+  CrysolineAnilibertySourcesPayload,
+} from '@/server/crysoline/anilibertyClient';
 import { buildAnimepaheStreamCandidates } from '@/services/animepahe/buildAnimepaheStreamCandidates';
+import {
+  buildAnilibertyStreamCandidatesFromEpisodeRow,
+  buildAnilibertyStreamCandidatesFromSources,
+} from '@/services/aniliberty/buildAnilibertyStreamCandidates';
 import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
 import { isAnilibertyEpisodeCountAcceptable } from '@/services/aniliberty/anilibertyEpisodeMatch';
 import {
@@ -192,17 +199,6 @@ function qualityVariantsFromCandidates(
   return out;
 }
 
-const ANILIBRIA_STREAM_HEADERS: Record<string, string> = {
-  Referer: 'https://www.anilibria.tv/',
-  Origin: 'https://www.anilibria.tv',
-};
-
-function inferAnilibertyResolutionLabel(urlStr: string): string {
-  const m = urlStr.match(/\/(480|720|1080)\//);
-  if (m) return `${m[1]}p`;
-  return 'Auto';
-}
-
 function normalizeSkipSegmentBlock(
   block: { start?: number | null; end?: number | null } | null | undefined
 ): { start: number; end: number } | null {
@@ -215,35 +211,36 @@ function normalizeSkipSegmentBlock(
   return { start: s, end: e };
 }
 
-function buildAnilibertyStreamCandidates(payload: CrysolineAnilibertySourcesPayload): StreamingType[] {
-  const sources = Array.isArray(payload.sources) ? payload.sources : [];
-  const rows = sources.filter(
-    (s) =>
-      (s.type ?? '').trim().toLowerCase() === 'hls' &&
-      typeof s.url === 'string' &&
-      s.url.trim().length > 0
-  );
-  const scored = rows.map((s) => {
-    const file = s.url!.trim();
-    const label = inferAnilibertyResolutionLabel(file);
-    const rank = resolutionRank(label);
-    return { file, label, rank };
-  });
-  const sorted = [...scored].sort((a, b) => b.rank - a.rank);
-  const out: StreamingType[] = [];
-  let nid = 0;
-  for (const row of sorted) {
-    nid += 1;
-    out.push({
-      id: nid,
-      type: 'sub',
-      link: { file: row.file, type: 'hls' },
-      tracks: [],
-      server: `${row.label} · Anilibria`,
-      request_headers: { ...ANILIBRIA_STREAM_HEADERS },
-    });
+function findAnilibertyEpisodeRow(
+  rows: CrysolineAnilibertyEpisodeRow[],
+  episode: number,
+  epToken: string
+): CrysolineAnilibertyEpisodeRow | undefined {
+  const token = epToken.trim();
+  if (token) {
+    const byId = rows.find((r) => r.id?.trim() === token);
+    if (byId) return byId;
   }
-  return out;
+  return rows.find(
+    (r) => Number.isFinite(r.number) && Math.floor(r.number) === episode
+  );
+}
+
+function normalizeSkipFromEpisodeTiming(
+  block: { start?: number | null; stop?: number | null } | null | undefined
+): { start: number; end: number } | null {
+  if (!block) return null;
+  const s = block.start;
+  const e = block.stop;
+  if (
+    typeof s !== 'number' ||
+    typeof e !== 'number' ||
+    !Number.isFinite(s) ||
+    !Number.isFinite(e)
+  ) {
+    return null;
+  }
+  return { start: s, end: e };
 }
 
 function prioritizeByServerHint(
@@ -747,8 +744,15 @@ async function computeAnilibertyWatchResolveOutcome(params: {
       };
     }
 
-    const sourcesPayload = await getAnilibertySourcesCached(seriesId, epToken);
-    let candidates = buildAnilibertyStreamCandidates(sourcesPayload);
+    const rawRow = findAnilibertyEpisodeRow(rows, episode, epToken);
+    let candidates = buildAnilibertyStreamCandidatesFromEpisodeRow(rawRow);
+    let sourcesPayload: CrysolineAnilibertySourcesPayload | null = null;
+
+    if (!candidates.length) {
+      sourcesPayload = await getAnilibertySourcesCached(seriesId, epToken);
+      candidates = buildAnilibertyStreamCandidatesFromSources(sourcesPayload);
+    }
+
     if (!candidates.length) {
       return {
         status: 404,
@@ -769,8 +773,12 @@ async function computeAnilibertyWatchResolveOutcome(params: {
       'sub'
     );
 
-    const intro = normalizeSkipSegmentBlock(sourcesPayload.intro);
-    const outro = normalizeSkipSegmentBlock(sourcesPayload.outro);
+    let intro = normalizeSkipSegmentBlock(sourcesPayload?.intro);
+    let outro = normalizeSkipSegmentBlock(sourcesPayload?.outro);
+    if (!intro && !outro && rawRow?.metadata) {
+      intro = normalizeSkipFromEpisodeTiming(rawRow.metadata.opening);
+      outro = normalizeSkipFromEpisodeTiming(rawRow.metadata.ending);
+    }
 
     const body: Record<string, unknown> = {
       success: true,

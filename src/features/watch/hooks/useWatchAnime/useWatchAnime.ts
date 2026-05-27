@@ -95,6 +95,7 @@ export function useWatchAnime(
 
   const runDeferredOppositeProviderPrefetch = useWatchAnimeDeferredPrefetch({
     animeId,
+    warmCatalogsRef,
     deferredOppositePrefetchRef,
     oppositePrefetchDoneRef,
     oppositePrefetchAbortRef,

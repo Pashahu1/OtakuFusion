@@ -36,6 +36,7 @@ export function clearVerifiedLibertyMapping(localAnimeId: string): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(getMappingCacheKey(localAnimeId, 'aniliberty'));
+    localStorage.removeItem(`aniliberty:episodes:${localAnimeId.trim()}`);
   } catch {
 
   }
