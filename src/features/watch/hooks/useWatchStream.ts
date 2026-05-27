@@ -66,10 +66,15 @@ function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): boolean {
   const epSource = opts.episodesSourceProvider;
 
   if (epSource != null && epSource !== sp) return true;
-  if (opts.providerCatalogPending === true && (sp === 'hikka' || sp === 'aniliberty')) {
-    return true;
-  }
+  if (opts.providerCatalogPending === true) return true;
+
   const providerId = opts.providerAnimeId?.trim() ?? '';
+  if (sp === 'animepahe') {
+    if (!providerId) return true;
+    if (!opts.episodeEpToken?.trim()) return true;
+    return false;
+  }
+
   const needsProviderCatalog = sp === 'hikka' || sp === 'aniliberty';
   if (needsProviderCatalog && !providerId) return true;
   return false;
@@ -527,6 +532,7 @@ export function useWatchStream(
     watchResolveOptions?.watchStreamProvider,
     watchResolveOptions?.streamLangRevision,
     watchResolveOptions?.episodeDubStateKey,
+    watchResolveOptions?.episodeEpToken,
     watchResolveOptions?.expectedEpisodes,
     watchResolveOptions?.anilistStillAiring,
     watchResolveOptions?.providerCatalogPending,

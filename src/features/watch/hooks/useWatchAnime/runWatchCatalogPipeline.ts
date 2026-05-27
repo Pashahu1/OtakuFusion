@@ -131,6 +131,7 @@ export async function runWatchCatalogPipeline(
     setEpisodes([]);
     setTotalEpisodes(0);
     setEpisodeId(null);
+    applyCtx.setProviderCatalogPending(false);
     return;
   }
 

@@ -266,6 +266,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
       setNextEpisodeSchedule(null);
     }
     setAnimeInfoLoading(true);
+    setProviderCatalogPending(true);
     setError(null);
     setAnilibertyLanguageMenuEligible(false);
     setHikkaLanguageMenuEligible(false);
@@ -318,11 +319,13 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
           setEpisodes([]);
           setTotalEpisodes(0);
           setEpisodeId(null);
+          setProviderCatalogPending(false);
         }
       } catch (err) {
         if (isAborted()) return;
         console.error('Error fetching initial data:', err);
         setError(getWatchAnimeErrorMessage(err));
+        setProviderCatalogPending(false);
       } finally {
         if (!cancelled && settleLoading.current) setAnimeInfoLoading(false);
       }
@@ -332,6 +335,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
     return () => {
       cancelled = true;
       controller.abort();
+      setProviderCatalogPending(false);
     };
   }, [
     animeId,

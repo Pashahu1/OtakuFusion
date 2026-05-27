@@ -196,7 +196,7 @@ export function applyWatchCatalogSuccess(
 
   if (!getIsCancelled() && settleLoading.current) setAnimeInfoLoading(false);
 
-  if (!getIsCancelled() && (watchStreamProvider === 'hikka' || watchStreamProvider === 'aniliberty')) {
+  if (!getIsCancelled()) {
     setProviderCatalogPending(false);
   }
 }
