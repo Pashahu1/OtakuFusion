@@ -1,15 +1,15 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { Loader2 } from 'lucide-react';
-import { getNextEpisodesAnime } from '@/services/getNextEpisodesAnime';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import type { ScheduleAnime } from '@/shared/types/GlobalAnimeTypes';
 import { AnimeCalendarComponent as AnimeCalendar } from '@/components/AnimeCalendar/AnimeCalendar';
 import { ErrorState } from '@/components/ui/states/ErrorState';
 import { normalizeError } from '@/lib/errors/normalizeError';
 import { toast } from '@/lib/toast';
+import { useScheduleQuery } from '@/hooks/queries';
 
 const timeZone = 'Europe/Kyiv';
 const now = new Date();
@@ -18,16 +18,24 @@ const kyivTime = toZonedTime(now, timeZone);
 const formattedKyivTime = format(kyivTime, 'yyyy-MM-dd');
 
 export default function SchedulePage() {
-  const [events, setEvents] = useState<ScheduleAnime[]>([]);
   const [selectedDate, setSelectedDate] = useState(formattedKyivTime);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<ReturnType<typeof normalizeError> | null>(
-    null
-  );
-  /** After the first completed request — overlay instead of full-page loader */
-  const [hasCompletedInitialFetch, setHasCompletedInitialFetch] =
-    useState(false);
-  const fetchCompletedOnceRef = useRef(false);
+
+  const {
+    data: events = [],
+    isPending,
+    isFetching,
+    isError,
+    error,
+    isFetched,
+  } = useScheduleQuery(selectedDate);
+
+  useEffect(() => {
+    if (!isError || !isFetched || events.length === 0) return;
+    const normalizedError = normalizeError(error);
+    toast.error(
+      normalizedError.message ?? 'Could not load the schedule for this day.',
+    );
+  }, [isError, isFetched, events.length, error]);
 
   const handleDateChange = useCallback(
     ({ year, month, day }: { year: number; month: number; day: number }) => {
@@ -35,62 +43,36 @@ export default function SchedulePage() {
       const formatted = format(toZonedTime(date, timeZone), 'yyyy-MM-dd');
       setSelectedDate(formatted);
     },
-    []
+    [],
   );
 
-  const event = events.map((item) => {
-    const start = toZonedTime(`${item.releaseDate}T${item.time}`, timeZone);
-    const end = new Date(start.getTime() + 30 * 60 * 1000);
-    return {
-      id: item.id,
-      title: item.title,
-      episodeNumber: item.episode_no,
-      posterUrl: item.poster,
-      format: item.format,
-      start,
-      end,
-    };
-  });
+  const calendarEvents = useMemo(
+    () =>
+      events.map((item: ScheduleAnime) => {
+        const start = toZonedTime(`${item.releaseDate}T${item.time}`, timeZone);
+        const end = new Date(start.getTime() + 30 * 60 * 1000);
+        return {
+          id: item.id,
+          title: item.title,
+          episodeNumber: item.episode_no,
+          posterUrl: item.poster,
+          format: item.format,
+          start,
+          end,
+        };
+      }),
+    [events],
+  );
 
-  useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-
-    const fetchScheduleAnime = async () => {
-      try {
-        const res = await getNextEpisodesAnime(selectedDate);
-        setEvents(res);
-      } catch (err) {
-        const normalizedError = normalizeError(err);
-        console.error('failed data fetching schedule anime', err);
-        if (fetchCompletedOnceRef.current) {
-          toast.error(
-            normalizedError.message ??
-              'Could not load the schedule for this day.'
-          );
-        } else {
-          setEvents([]);
-          setError(normalizedError);
-        }
-      } finally {
-        setIsLoading(false);
-        fetchCompletedOnceRef.current = true;
-        setHasCompletedInitialFetch(true);
-      }
-    };
-
-    void fetchScheduleAnime();
-  }, [selectedDate]);
-
-  if (!hasCompletedInitialFetch && isLoading) {
+  if (isPending) {
     return <InitialLoader />;
   }
 
-  if (error) {
+  if (isError && events.length === 0) {
     return <ErrorState fullPage message="Failed to load schedule." />;
   }
 
-  const showCalendarOverlay = isLoading && hasCompletedInitialFetch;
+  const showCalendarOverlay = isFetching && isFetched;
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -98,7 +80,7 @@ export default function SchedulePage() {
         <div className="relative w-full min-w-0 overflow-x-auto">
           <AnimeCalendar
             selectedDate={selectedDate}
-            events={event}
+            events={calendarEvents}
             onDateChange={handleDateChange}
           />
           {showCalendarOverlay ? (
@@ -120,7 +102,7 @@ export default function SchedulePage() {
             </div>
           ) : null}
         </div>
-        {!isLoading && events.length === 0 ? (
+        {isFetched && !isFetching && events.length === 0 ? (
           <p className="mt-6 max-w-md text-center text-sm text-zinc-400">
             No releases on this day — pick another date in the calendar.
           </p>

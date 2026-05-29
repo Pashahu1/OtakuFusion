@@ -1,7 +1,6 @@
-import {
-  ANIME_SEARCH_MIN_QUERY_LENGTH,
-  getAnimeSearch,
-} from '@/services/getAnimeSearch';
+'use client';
+
+import { ANIME_SEARCH_MIN_QUERY_LENGTH } from '@/services/getAnimeSearch';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import {
@@ -9,9 +8,11 @@ import {
   ANIME_CAROUSEL_POSTER_SIZES,
 } from '@/lib/anime-card-poster';
 import { EmptyState } from '@/components/ui/states/EmptyState';
+import { SearchSkeleton } from '@/components/ui/Skeleton/SearchSkeleton';
+import { useAnimeSearchQuery } from '@/hooks/queries';
 import type { AnimeSearchItems } from '@/shared/types/AnimeSearchTypes';
 
-export async function SearchData({ keyword }: { keyword: string }) {
+export function SearchData({ keyword }: { keyword: string }) {
   const trimmed = keyword.trim();
 
   if (!trimmed) {
@@ -20,20 +21,23 @@ export async function SearchData({ keyword }: { keyword: string }) {
 
   if (trimmed.length < ANIME_SEARCH_MIN_QUERY_LENGTH) {
     return (
-      <EmptyState message={`Enter at least ${ANIME_SEARCH_MIN_QUERY_LENGTH} characters to search.`} />
+      <EmptyState
+        message={`Enter at least ${ANIME_SEARCH_MIN_QUERY_LENGTH} characters to search.`}
+      />
     );
   }
 
-  let results: AnimeSearchItems[] | null = null;
-  let hasError = false;
+  return <SearchResults keyword={trimmed} />;
+}
 
-  try {
-    results = await getAnimeSearch(keyword);
-  } catch {
-    hasError = true;
+function SearchResults({ keyword }: { keyword: string }) {
+  const { data: results, isPending, isError, isFetching } = useAnimeSearchQuery(keyword);
+
+  if (isPending && !results) {
+    return <SearchSkeleton />;
   }
 
-  if (hasError) {
+  if (isError && !results) {
     return (
       <div className="px-4 py-8 sm:p-10">
         <EmptyState message="Search service is temporarily unavailable." />
@@ -50,15 +54,17 @@ export async function SearchData({ keyword }: { keyword: string }) {
   }
 
   return (
-    <AnimeListLayout>
-      {results.map((anime: AnimeSearchItems, idx: number) => (
-        <Card
-          key={anime.id || idx}
-          anime={anime}
-          posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
-          posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
-        />
-      ))}
-    </AnimeListLayout>
+    <div className={isFetching ? 'opacity-80 transition-opacity' : undefined}>
+      <AnimeListLayout>
+        {results.map((anime: AnimeSearchItems, idx: number) => (
+          <Card
+            key={anime.id || idx}
+            anime={anime}
+            posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
+            posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
+          />
+        ))}
+      </AnimeListLayout>
+    </div>
   );
 }

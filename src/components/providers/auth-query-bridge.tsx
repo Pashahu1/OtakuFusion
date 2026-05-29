@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { favoritesQueryKey } from '@/lib/api/favorites';
+import { queryKeys } from '@/lib/query/keys';
 
 export function AuthQueryBridge() {
   const { user } = useAuth();
@@ -11,7 +11,7 @@ export function AuthQueryBridge() {
 
   useEffect(() => {
     if (!user) {
-      queryClient.removeQueries({ queryKey: favoritesQueryKey });
+      queryClient.removeQueries({ queryKey: queryKeys.favorites });
     }
   }, [user, queryClient]);
 

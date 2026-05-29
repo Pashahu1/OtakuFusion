@@ -2,23 +2,22 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { favoritesQueryKey, fetchFavorites } from '@/lib/api/favorites';
+import { fetchFavorites } from '@/lib/api/favorites';
+import { queryKeys } from '@/lib/query/keys';
+import { STALE_TIME } from '@/lib/query/stale-time';
 
 export function useFavoritesQuery(enabled: boolean) {
   return useQuery({
-    queryKey: favoritesQueryKey,
+    queryKey: queryKeys.favorites,
     queryFn: fetchFavorites,
     enabled,
+    staleTime: STALE_TIME.favorites,
   });
 }
 
-/** Same query key as `FavoriteBookmark`; React Query serves one cached request. */
+/** Same key as `FavoriteBookmark` — one request shared by all subscribers. */
 export function useIsFavoriteAnime(animeId: string) {
   const { user } = useAuth();
-  const { data: favorites = [] } = useQuery({
-    queryKey: favoritesQueryKey,
-    queryFn: fetchFavorites,
-    enabled: Boolean(user),
-  });
+  const { data: favorites = [] } = useFavoritesQuery(Boolean(user));
   return favorites.some((item) => item.id === animeId);
 }

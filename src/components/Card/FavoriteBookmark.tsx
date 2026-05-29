@@ -1,14 +1,11 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bookmark } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import {
-  addFavoriteAnime,
-  favoritesQueryKey,
-  fetchFavorites,
-  removeFavoriteAnime,
-} from '@/lib/api/favorites';
+import { addFavoriteAnime, removeFavoriteAnime } from '@/lib/api/favorites';
+import { useFavoritesQuery } from '@/hooks/useFavorites';
+import { queryKeys } from '@/lib/query/keys';
 import { toast } from '@/lib/toast';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { cn } from '@/lib/utils';
@@ -22,11 +19,7 @@ export function FavoriteBookmark({ anime, iconClassName }: FavoriteBookmarkProps
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: favorites = [] } = useQuery({
-    queryKey: favoritesQueryKey,
-    queryFn: fetchFavorites,
-    enabled: Boolean(user),
-  });
+  const { data: favorites = [] } = useFavoritesQuery(Boolean(user));
 
   const isFavorite = favorites.some((item) => item.id === anime.id);
 
@@ -36,7 +29,7 @@ export function FavoriteBookmark({ anime, iconClassName }: FavoriteBookmarkProps
       else await addFavoriteAnime(anime.id);
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: favoritesQueryKey });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.favorites });
     },
     onError: (err: Error) => {
       const msg =
