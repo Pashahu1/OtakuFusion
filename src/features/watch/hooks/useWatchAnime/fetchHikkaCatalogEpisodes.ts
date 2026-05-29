@@ -1,4 +1,4 @@
-﻿import { postHikkaCatalog } from '@/features/watch/lib/hikka-catalog-bff';
+import { postHikkaCatalog } from '@/lib/bff/watch/hikka-catalog';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
 import { readVerifiedHikkaMapping } from '@/features/watch/lib/provider-mapping-cache';
 

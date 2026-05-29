@@ -1,6 +1,6 @@
-import { postAnimepaheCatalog } from '@/lib/animepahe-catalog-bff';
-import { postAnilibertyCatalog, type AnilibertyCatalogBffOk } from '@/features/watch/lib/aniliberty-catalog-bff';
-import { postHikkaCatalog, type HikkaCatalogBffOk } from '@/features/watch/lib/hikka-catalog-bff';
+import { postAnimepaheCatalog } from '@/lib/bff/watch/animepahe-catalog';
+import { postAnilibertyCatalog, type AnilibertyCatalogBffOk } from '@/lib/bff/watch/aniliberty-catalog';
+import { postHikkaCatalog, type HikkaCatalogBffOk } from '@/lib/bff/watch/hikka-catalog';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import {
   catalogBodyFromAnimeData,

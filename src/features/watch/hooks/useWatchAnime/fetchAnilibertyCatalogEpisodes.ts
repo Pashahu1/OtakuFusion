@@ -1,5 +1,5 @@
-import { postAnilibertyCatalog } from '@/features/watch/lib/aniliberty-catalog-bff';
-import { getAnilibertyEpisodesFromBff } from '@/lib/aniliberty-episodes-bff';
+import { postAnilibertyCatalog } from '@/lib/bff/watch/aniliberty-catalog';
+import { getAnilibertyEpisodesFromBff } from '@/lib/bff/watch/aniliberty-episodes';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
 import { isLibertyCatalogAcceptableForAnime } from './watchAnimeCatalogUtils';
 import {

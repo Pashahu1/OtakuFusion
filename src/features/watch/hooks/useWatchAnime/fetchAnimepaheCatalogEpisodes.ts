@@ -1,5 +1,5 @@
-import { postAnimepaheCatalog } from '@/lib/animepahe-catalog-bff';
-import { getAnimePaheEpisodesFromBff } from '@/lib/animepahe-episodes-bff';
+import { postAnimepaheCatalog } from '@/lib/bff/watch/animepahe-catalog';
+import { getAnimePaheEpisodesFromBff } from '@/lib/bff/watch/animepahe-episodes';
 import { patchEpisodesSeriesDub } from '@/lib/catalog/providers/animepahe/patchEpisodesSeriesDub';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
 import {

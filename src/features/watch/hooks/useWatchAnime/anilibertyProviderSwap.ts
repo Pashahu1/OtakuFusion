@@ -1,4 +1,4 @@
-import { getAnilibertyEpisodesFromBff } from '@/lib/aniliberty-episodes-bff';
+import { getAnilibertyEpisodesFromBff } from '@/lib/bff/watch/aniliberty-episodes';
 import { alignEpisodesToAnilistSeasonStart } from '@/features/watch/lib/alignEpisodesToAnilistSeason';
 import { applyAnilistEpisodeDisplayTitles } from '@/features/watch/lib/anilistEpisodeDisplayTitles';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';

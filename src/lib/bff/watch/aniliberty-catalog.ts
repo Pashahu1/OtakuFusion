@@ -1,5 +1,5 @@
 import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
-import type { AnimepaheCatalogBffBody } from '@/lib/animepahe-catalog-bff';
+import type { WatchCatalogBffBody } from '@/lib/bff/watch/catalog-body';
 
 export interface AnilibertyCatalogBffOk {
   success: true;
@@ -14,7 +14,7 @@ export interface AnilibertyCatalogBffErr {
 }
 
 export async function postAnilibertyCatalog(
-  body: AnimepaheCatalogBffBody,
+  body: WatchCatalogBffBody,
   signal?: AbortSignal
 ): Promise<AnilibertyCatalogBffOk | AnilibertyCatalogBffErr> {
   const res = await fetch('/api/aniliberty/catalog', {

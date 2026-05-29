@@ -1,4 +1,4 @@
-﻿import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
+import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
 
 export async function getAnimePaheEpisodesFromBff(
   paheId: string,

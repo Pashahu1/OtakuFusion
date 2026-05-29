@@ -1,23 +1,12 @@
-﻿import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
-
-export interface AnimepaheCatalogBffBody {
-  anilistId: string;
-  title: string;
-  romaji_title?: string;
-  japanese_title?: string;
-  showType?: string;
-  premiered?: string;
-  episodeTotal?: string;
-  mal_id?: number | null;
-  synonyms?: string;
-}
+import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
+import type { WatchCatalogBffBody } from '@/lib/bff/watch/catalog-body';
 
 export interface AnimepaheCatalogBffOk {
   success: true;
   paheId: string;
   episodes: GetEpisodesResult['episodes'];
   totalEpisodes: number;
-  /** ╨ù `POST /catalog` ╨┐╤û╤ü╨╗╤Å dub-probe; ╨┤╨╗╤Å ╨║╨╡╤ê╤â ╨▓ localStorage. */
+  /** З `POST /catalog` після dub-probe; для кешу в localStorage. */
   hasSeriesDub?: boolean;
 }
 
@@ -30,12 +19,12 @@ export type AnimepaheCatalogBffResult = AnimepaheCatalogBffOk | AnimepaheCatalog
 
 const inFlightCatalogByAnilistId = new Map<string, Promise<AnimepaheCatalogBffResult>>();
 
-function catalogDedupeKey(body: AnimepaheCatalogBffBody): string {
+function catalogDedupeKey(body: WatchCatalogBffBody): string {
   return body.anilistId.trim();
 }
 
 async function fetchAnimepaheCatalog(
-  body: AnimepaheCatalogBffBody,
+  body: WatchCatalogBffBody,
   signal?: AbortSignal
 ): Promise<AnimepaheCatalogBffResult> {
   const res = await fetch('/api/animepahe/catalog', {
@@ -73,9 +62,9 @@ async function fetchAnimepaheCatalog(
   return ok;
 }
 
-/** ╨₧╨┤╨╕╨╜ in-flight POST /catalog ╨╜╨░ anilistId ΓÇö ╨╝╨╡╨╜╤ê╨╡ 429 ╨┐╤Ç╨╕ ╤ê╨▓╨╕╨┤╨║╨╕╤à ╨┐╨╡╤Ç╨╡╤à╨╛╨┤╨░╤à ╨┐╨╛ ╨║╨░╤Ç╤é╨║╨░╤à. */
+/** Один in-flight POST /catalog на anilistId — менше 429 при швидких переходах по картках. */
 export async function postAnimepaheCatalog(
-  body: AnimepaheCatalogBffBody,
+  body: WatchCatalogBffBody,
   signal?: AbortSignal
 ): Promise<AnimepaheCatalogBffResult> {
   const key = catalogDedupeKey(body);
