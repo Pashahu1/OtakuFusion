@@ -12,7 +12,7 @@ type ChapterPlugin = {
 };
 
 /**
- * Мітки intro/outro на таймлайні після `ready` (коли відома тривалість відео).
+ * Intro/outro markers on timeline after `ready` (when video duration is known).
  */
 export function attachArtplayerSkipSegmentsOnReady(
   art: Artplayer,
@@ -31,7 +31,7 @@ export function attachArtplayerSkipSegmentsOnReady(
     try {
       chapterPlugin?.update?.({ chapters: clamped });
     } catch {
-      /* різна тривалість релізу / некоректні мітки */
+      /* different release duration / invalid markers */
     }
   };
 

@@ -4,8 +4,8 @@ const ANILIST_GRAPHQL_URL = 'https://graphql.anilist.co';
 const MAX_BODY_BYTES = 200_000;
 
 /**
- * Проксі GraphQL AniList для клієнта: браузерні `fetch` на graphql.anilist.co блокуються CORS.
- * Серверні виклики йдуть напряму з `anilist.ts` без цього маршруту.
+ * AniList GraphQL proxy for client: browser `fetch` to graphql.anilist.co is blocked by CORS.
+ * Server calls go directly via `anilist.ts` without this route.
  */
 export async function POST(req: NextRequest) {
   const len = req.headers.get('content-length');

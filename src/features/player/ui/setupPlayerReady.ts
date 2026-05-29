@@ -1,7 +1,7 @@
 import Artplayer from 'artplayer';
 import { captionIcon } from './PlayerIcons';
 import { syncPlayerLanguageMenu } from './syncPlayerLanguageMenu';
-import { ANIKAI_PAGE_REFERER, LOGO_HIDE_DELAY_MS, M3U8_PROXY_URL, PROXY_URL } from './playerConstants';
+import { ANIKAI_PAGE_REFERER, LOGO_HIDE_DELAY_MS, M3U8_PROXY_URL } from './playerConstants';
 import { isHlsDirectHostUrl } from './playerStream';
 import { artplayerPluginVttThumbnail } from './artPlayerPluginVttThumbnail';
 import { handlePlayerKeydown } from './playerKeydown';
@@ -19,9 +19,9 @@ function toPlayableAssetUrl(url: string): string {
   if (!raw) return raw;
   if (raw.startsWith('blob:') || raw.startsWith('data:')) return raw;
   if (!/^https?:\/\//i.test(raw)) return raw;
-  /** Той самий список, що й для головного HLS — інакше субтитри/прев’ю б’ють по проксі й множать 403. */
+  /** Same list as main HLS — otherwise subtitles/preview hit the proxy and multiply 403s. */
   if (isHlsDirectHostUrl(raw)) return raw;
-  const proxyBase = (PROXY_URL || M3U8_PROXY_URL || '/api/m3u8-proxy?url=').trim();
+  const proxyBase = M3U8_PROXY_URL.trim();
   if (!proxyBase) return raw;
   const encoded = encodeURIComponent(raw);
   const headers = encodeURIComponent(
@@ -69,11 +69,11 @@ export function setupPlayerReady(
   activeServerIdRef: React.RefObject<string | null>,
   watchStreamProvider: WatchStreamProvider,
   setWatchStreamProvider: (next: WatchStreamProvider) => void,
-  /** Каталог Anilibria знайшов реліз — показувати пункт у меню Language. */
+  /** Anilibria catalog found a release — show item in Language menu. */
   anilibertyLanguageMenuEligible: boolean,
-  /** Каталог Hikka Features (українська озвучка). */
+  /** Hikka Features catalog (Ukrainian dub). */
   hikkaLanguageMenuEligible: boolean,
-  /** Маркери OP/ED (з Aniliberty або з resolve за мапінгом). */
+  /** OP/ED markers (from Aniliberty or resolve mapping). */
   skipSegments: StreamingData['skipSegments'] | null | undefined
 ) {
   let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -114,7 +114,7 @@ export function setupPlayerReady(
     requestAnimationFrame(tryPlayWhenBuffered);
   };
 
-  /** Після canplay чекаємо трохи буфера перед play — менше мікрозависань на старті HLS. */
+  /** After canplay, wait for a bit of buffer before play — fewer micro-stutters on HLS start. */
   art.once('video:canplay', tryPlayWhenBuffered);
 
   art.on('pause', () => {

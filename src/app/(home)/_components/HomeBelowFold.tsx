@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
-/** Нижче згину: Swiper у окремих чанках — менше parse/eval на main thread при старті (TBT). */
+/** Below fold: Swiper in separate chunks — less parse/eval on main thread at start (TBT). */
 const ContinueWatchingSection = dynamic(
   () =>
     import('@/components/ContinueWatchingSection/ContinueWatchingSection').then(

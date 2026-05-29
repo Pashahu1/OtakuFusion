@@ -100,8 +100,3 @@ export function unwrapCrysolinePlaybackUrl(streamUrl: string): string {
   }
   return raw;
 }
-
-export function isDeadAnicoreCdnUrl(streamUrl: string): boolean {
-  const u = decodeStreamUrlForInspection(streamUrl).toLowerCase();
-  return u.includes('fast4speed') || u.includes('_dnld');
-}

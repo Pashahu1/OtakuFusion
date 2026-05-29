@@ -10,7 +10,7 @@ import type { Viewport } from 'next';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { AuthQueryBridge } from '@/components/providers/auth-query-bridge';
 
-/** Не імпортувати `@/lib/env` у root layout — `EnvSchema.parse` падає на `next build` без усіх секретів на Vercel. */
+/** Do not import `@/lib/env` in root layout — `EnvSchema.parse` fails on `next build` without all secrets on Vercel. */
 const siteUrl =
   (typeof process.env.NEXT_PUBLIC_SITE_URL === 'string' &&
   process.env.NEXT_PUBLIC_SITE_URL.trim()

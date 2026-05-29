@@ -17,11 +17,11 @@ export interface AnimeData {
   mal_id: number | null;
   title: string;
   /**
-   * Назви серій з AniList `streamingEpisodes` (ключ — номер серії як рядок).
-   * Для списку на watch застосовується `applyAnilistEpisodeDisplayTitles`: рядок з мапи або fallback «title - Episode N».
+   * Episode titles from AniList `streamingEpisodes` (key — episode number as string).
+   * Watch list uses `applyAnilistEpisodeDisplayTitles`: map string or fallback "title - Episode N".
    */
   anilistEpisodeTitles?: Record<string, string>;
-  /** AniList `title.romaji` — для зіставлення з джерелами каталогу надійніше за англ. локалізацію. */
+  /** AniList `title.romaji` — more reliable for catalog source matching than English localization. */
   romaji_title?: string;
   japanese_title: string;
   poster: string;

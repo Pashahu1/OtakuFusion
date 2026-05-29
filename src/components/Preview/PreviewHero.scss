@@ -274,7 +274,7 @@
   }
 }
 
-/* Мобільні: вужчий блок тайтлу, менше вертикального з’їдання контенту */
+/* Mobile: narrower title block, less vertical content clipping */
 @media (max-width: 767px) {
   .hero__content {
     padding-bottom: clamp(210px, 30vh, 300px);
@@ -311,7 +311,7 @@
   }
 }
 
-/* Планшет (768–1023px): той самий вертикальний hero, що й на телефоні */
+/* Tablet (768–1023px): same vertical hero as phone */
 @media (min-width: 768px) and (max-width: 1023px) {
   .hero__content {
     padding-bottom: clamp(260px, 31vh, 340px);
@@ -365,7 +365,7 @@
   overflow: hidden;
 }
 
-/* До ініціалізації Swiper fade ще не застосований — ховаємо всі слайди крім першого, щоб не було «ghosting». */
+/* Before Swiper init fade is not applied — hide all slides except first to avoid ghosting */
 .hero__slider .swiper:not(.swiper-initialized) .swiper-slide:not(:first-of-type) {
   opacity: 0;
   visibility: hidden;
@@ -630,7 +630,7 @@
   }
 }
 
-/* Анімація лише transform (композитор), без left — інакше reflow щокадру, CLS + «non-composited animations» у Lighthouse */
+/* Animate transform only (compositor), not left — otherwise per-frame reflow, CLS + non-composited animations in Lighthouse */
 .preview__shine {
   display: none;
 

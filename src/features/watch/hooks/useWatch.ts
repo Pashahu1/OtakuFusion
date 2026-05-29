@@ -201,7 +201,7 @@ export function useWatch(
     return undefined;
   }, [anime.episodes, anime.episodeId]);
 
-  /** Лише при зміні епізоду: якщо в каталозі немає dub — старт з Japanese. Не чіпати ручний вибір English. */
+  /** Only on episode change: if catalog has no dub — start with Japanese. Do not override manual English choice. */
   useEffect(() => {
     if (watchStreamProvider !== 'animepahe') return;
     if (episodeHasDubForResolve !== false) return;

@@ -1,4 +1,4 @@
-/** Crysoline HLS: сумісність плейлистів часто зривається на hls.js > 1.5.x — див. pinned у package.json. */
+/** Crysoline HLS: playlist compatibility often breaks on hls.js > 1.5.x — see pinned version in package.json. */
 import Hls from 'hls.js';
 import Artplayer from 'artplayer';
 import { buildM3u8ProxyPlaylistUrl } from '@/lib/m3u8ProxyPublicBase';
@@ -63,7 +63,7 @@ function pickStreamingLinkForPlaylist(
 }
 
 /**
- * Заголовки для M3U8-проксі: `request_headers` з API, інакше Referer під embed CDN.
+ * Headers for M3U8 proxy: `request_headers` from API, otherwise Referer for embed CDN.
  */
 export function getStreamHeaders(
   streamInfo: StreamInfoForHeaders | null,
@@ -126,7 +126,7 @@ export function getStreamHeaders(
   return headers;
 }
 
-/** Домени HLS, які безпечніше тягнути з клієнта напряму (не через /api/m3u8-proxy) — інакше кожен сегмент б’є по Vercel Fast Origin Transfer. */
+/** HLS hosts safer to fetch directly from the client (not via /api/m3u8-proxy) — otherwise each segment hits Vercel Fast Origin Transfer. */
 const HLS_DIRECT_HOST_SUFFIXES_BUILTIN = [] as const;
 
 function readHlsDirectHostSuffixes(): string[] {
@@ -160,7 +160,7 @@ function hostMatchesHlsDirectSuffix(hostname: string, suffixes: string[]): boole
   return false;
 }
 
-/** Пряме завантаження з браузера (CORS дозволений) — головний плейлист, субтитри, прев’ю. */
+/** Direct browser fetch (CORS allowed) — main playlist, subtitles, preview. */
 export function isHlsDirectHostUrl(streamUrl: string): boolean {
   const raw = streamUrl.trim();
   if (!raw || !/^https?:\/\//i.test(raw)) return false;
@@ -189,11 +189,11 @@ export function getStreamFullUrl(
 
 export interface PlayM3u8Hooks {
   /**
-   * Після `new Hls`, **до** `loadSource`: підписатися на `MANIFEST_PARSED`, зафіксувати рівень і викликати
-   * `hls.startLoad()` (при `autoStartLoad: false` у конфігу) — інакше перші фрагменти йдуть у гонці з ABR.
+   * After `new Hls`, **before** `loadSource`: subscribe to `MANIFEST_PARSED`, lock level and call
+   * `hls.startLoad()` (with `autoStartLoad: false` in config) — otherwise first fragments race with ABR.
    */
   onHlsBeforeLoad?: (hls: InstanceType<typeof Hls>) => void;
-  /** Викликається синхронно після `art.hls = hls` (Artplayer ставить url асинхронно — зовні `art.hls` одразу після `new Artplayer` ще може бути `null`). */
+  /** Called synchronously after `art.hls = hls` (Artplayer sets url async — externally `art.hls` may still be `null` right after `new Artplayer`). */
   onHlsInstance?: (hls: InstanceType<typeof Hls>) => void;
 }
 
@@ -205,24 +205,24 @@ export function playM3u8(
 ): void {
   if (Hls.isSupported()) {
     if (art.hls) art.hls.destroy();
-    // VoD: стабільний буфер на нестабільних/проксі-серверах.
-    // `autoStartLoad: false` + `startLoad()` у `MANIFEST_PARSED` (див. onHlsBeforeLoad): інакше ABR
-    // інколи встигає запросити «чужий» рівень до фіксації — bufferAddCodec / bufferAppend на owocdn.
+    // VoD: stable buffer on flaky/proxy origins.
+    // `autoStartLoad: false` + `startLoad()` in `MANIFEST_PARSED` (see onHlsBeforeLoad): otherwise ABR
+    // sometimes requests the wrong level before lock — bufferAddCodec / bufferAppend on owocdn.
     const hls = new Hls({
       /**
-       * У Chromium `enableWorker: true` інколи дає `bufferAddCodecError` / `bufferAppendError` на деяких
-       * CDN (owocdn / «.jpg»-сегменти) — трансмукс у головному потоці надійніший.
+       * On Chromium `enableWorker: true` sometimes causes `bufferAddCodecError` / `bufferAppendError` on some
+       * CDNs (owocdn / ".jpg" segments) — transmux on main thread is more reliable.
        */
       enableWorker: false,
       /**
-       * `true` на частині збірок Chromium дає `bufferAddCodecError` / `bufferAppendError` на HLS (owocdn / fMP4).
-       * Класичний MediaSource стабільніший для цього пайплайну.
+       * `true` on some Chromium builds causes `bufferAddCodecError` / `bufferAppendError` on HLS (owocdn / fMP4).
+       * Classic MediaSource is more stable for this pipeline.
        */
       preferManagedMediaSource: false,
       /**
-       * Через власний m3u8-проксі сегменти часто йдуть повільніше: мало ретраїв + короткий таймаут
-       * дають «сіра смуга завмерла одразу після playhead» — hls.js перестає підвантажувати далі.
-       * Ретраї обмежені, щоб при жорсткому 4xx не зациклити тисячі XHR (fallback лишається в React).
+       * Via our m3u8 proxy segments are often slower: few retries + short timeout
+       * cause "gray bar frozen right after playhead" — hls.js stops loading ahead.
+       * Retries capped so hard 4xx does not loop thousands of XHR (fallback stays in React).
        */
       manifestLoadingMaxRetry: 2,
       levelLoadingMaxRetry: 3,
@@ -235,46 +235,46 @@ export function playM3u8(
       levelLoadingTimeOut: 28000,
       fragLoadingTimeOut: 45000,
       /**
-       * VoD: ціль у секундах уперед від playhead. Разом із maxBufferSize задає, скільки «наперед»
-       * тримаємо (орієнтовно десятки секунд — кілька хв залежно від бітрейту).
+       * VoD: target seconds ahead of playhead. With maxBufferSize sets how far
+       * we buffer (roughly tens of seconds — a few minutes depending on bitrate).
        */
       maxBufferLength: 120,
       maxMaxBufferLength: 900,
       /**
-       * Жорсткий ліміт буфера в байтах: при 1080p часто спрацьовує раніше за maxBufferLength.
+       * Hard buffer cap in bytes: at 1080p often hits before maxBufferLength.
        */
       maxBufferSize: 256 * 1024 * 1024,
-      /** Дозволяємо невеликі дірки між сегментами, щоб рідше «застрягати» без appends. */
+      /** Allow small gaps between segments to reduce stalls without appends. */
       maxBufferHole: 0.85,
       lowLatencyMode: false,
       /**
-       * Завжди false: єдиний старт у `MANIFEST_PARSED` (`onM3u8HlsBeforeLoad`) — інакше на Anikage/24stream
-       * ABR встигає підхопити «чужий» рівень до фіксації рівня (bufferAddCodec / чорний екран).
+       * Always false: single start in `MANIFEST_PARSED` (`onM3u8HlsBeforeLoad`) — otherwise on Anikage/24stream
+       * ABR picks the wrong level before lock (bufferAddCodec / black screen).
        */
       autoStartLoad: false,
-      /** Старт з нижнього рунду; фактичний рівень одразу підміняється в `MANIFEST_PARSED`. */
+      /** Start at lowest rung; actual level replaced immediately in `MANIFEST_PARSED`. */
       startLevel: 0,
-      /** false: префетч іншого рівня під час ABR інколи змішує init-сегменти → append/codec помилки на owocdn. */
+      /** false: prefetching another level during ABR sometimes mixes init segments → append/codec errors on owocdn. */
       startFragPrefetch: false,
-      /** Не піднімати сходинку вище за розмір відео — менше стрибків кодека на вузькому вікні. */
+      /** Do not raise level above video size — fewer codec jumps on narrow viewport. */
       capLevelToPlayerSize: true,
-      /** Повільніший «набір» якості після старту — стабільніший MSE на чужих CDN. */
+      /** Slower quality ramp after start — more stable MSE on third-party CDNs. */
       abrBandWidthUpFactor: 2.4,
       abrBandWidthFactor: 0.92,
       maxStarvationDelay: 12,
       maxLoadingDelay: 12,
       /**
-       * Стартовий оцінювач бітрейту (б/с). Занижений відносно 1080p, щоб до застосування cap у плеєрі
-       * рідше підхоплювався найвищий рівень одразу після парсу маніфесту.
+       * Initial bitrate estimate (bps). Kept below 1080p so before player cap applies
+       * the top level is less often picked right after manifest parse.
        */
       abrEwmaDefaultEstimate: 2_000_000,
-      /** Менше тримаємо позад playhead — трохи більше бюджету на фрагменти вперед на слабких пристроях. */
+      /** Less behind playhead — slightly more budget for forward fragments on weak devices. */
       backBufferLength: 45,
       ...(typeof process !== 'undefined' && process.env.NODE_ENV === 'development'
         ? {
             /**
-             * У Chrome DevTools часто видно «200 (disk cache)» для `/api/m3u8-proxy` — застарілий плейлист
-             * з протухлими токенами дає фатальні помилки Hls після нашого виправлення підписки на ERROR.
+             * Chrome DevTools often shows "200 (disk cache)" for `/api/m3u8-proxy` — stale playlist
+             * with expired tokens causes fatal Hls errors after our ERROR subscription fix.
              */
             xhrSetup(xhr: XMLHttpRequest, url: string) {
               const pub = process.env.NEXT_PUBLIC_M3U8_PROXY_URL?.trim() ?? '';

@@ -28,7 +28,7 @@ export function mapHikkaCatalogCaughtError(err: unknown): CatalogRouteFailure {
   };
 }
 
-/** Hikka: resolve + pick team + map episodes — все в resolveHikkaCatalogCached. */
+/** Hikka: resolve + pick team + map episodes — all in resolveHikkaCatalogCached. */
 export async function runHikkaCatalog(
   ctx: CatalogRouteContext
 ): Promise<CatalogRoutePayload> {

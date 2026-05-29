@@ -12,7 +12,7 @@ import type { AnimeData, AnimeResults } from '@/shared/types/animeDetailsTypes';
 
 const ANILIST_GRAPHQL_URL = 'https://graphql.anilist.co';
 
-/** У браузері AniList не віддає CORS на сторонні origin — йдемо через `/api/anilist/graphql`. */
+/** In browser AniList blocks CORS for third-party origins — use `/api/anilist/graphql`. */
 function getAnilistGraphqlFetchUrl(): string {
   if (typeof window !== 'undefined') {
     return '/api/anilist/graphql';
@@ -64,7 +64,7 @@ interface AniListMedia {
     airingAt?: number | null;
     episode?: number | null;
   } | null;
-  /** Останні стрімінгові епізоди з метаданих AniList (часто Crunchyroll-формат «Episode N - …»). */
+  /** Latest streaming episodes from AniList metadata (often Crunchyroll format "Episode N - …"). */
   streamingEpisodes?: Array<{ title?: string | null } | null> | null;
   recommendations?: {
     nodes?: Array<{
@@ -111,8 +111,8 @@ function pickTitle(title?: AniListTitle | null): string {
 }
 
 /**
- * Витягує номер епізоду з рядка `streamingEpisodes` (різні формати Crunchyroll / ін.).
- * Повертає [номер як рядок, повний raw-рядок для мапи].
+ * Extract episode number from `streamingEpisodes` string (various Crunchyroll / other formats).
+ * Returns [number as string, full raw string for map].
  */
 function parseStreamingEpisodeNumber(raw: string): [string, string] | null {
   const t = raw.trim();
@@ -129,7 +129,7 @@ function parseStreamingEpisodeNumber(raw: string): [string, string] | null {
   return null;
 }
 
-/** Будує мапу номер серії → рядок з `streamingEpisodes` (перший збіг на номер). */
+/** Build map episode number → string from `streamingEpisodes` (first match per number). */
 function buildAnilistEpisodeTitleRecord(
   streaming?: ReadonlyArray<{ title?: string | null } | null> | null
 ): Record<string, string> | undefined {
@@ -447,7 +447,7 @@ export async function getAniListMediaPage(
   return data.Page;
 }
 
-/** Легкий запит для сторінки пошуку (без description/banner). */
+/** Lightweight query for search page (no description/banner). */
 export async function getAniListSearchPage(params: {
   search: string;
   page?: number;

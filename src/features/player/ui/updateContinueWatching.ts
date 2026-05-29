@@ -2,7 +2,7 @@ import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 export const CONTINUE_WATCHING_STORAGE_KEY = 'continueWatching';
 
-/** Скільки тайтів тримаємо в localStorage (MRU). */
+/** How many titles to keep in localStorage (MRU). */
 const MAX_STORED_ENTRIES = 40;
 
 type StoredEntry = {
@@ -14,7 +14,7 @@ type StoredEntry = {
   poster?: string;
   title?: string;
   japanese_title?: string;
-  /** Час останнього оновлення прогресу (ms). */
+  /** Last progress update time (ms). */
   updatedAt?: number;
 };
 
@@ -39,8 +39,8 @@ function persistAndNotify(list: StoredEntry[]): void {
 }
 
 /**
- * Оновлює «Continue watching»: при повторному перегляді тайтл переходить у кінець списку (MRU),
- * щоб slice по хвосту не «викидував» щойно переглянуте.
+ * Updates continue watching: on rewatch title moves to end of list (MRU),
+ * so tail slice does not drop the title just watched.
  */
 export function updateContinueWatching(
   animeInfo: AnimeInfo | null,
@@ -82,7 +82,7 @@ export function updateContinueWatching(
   }
 }
 
-/** Прибрати тайтл після перегляду останнього епізоду (або вручну). */
+/** Remove title after watching last episode (or manually). */
 export function removeFromContinueWatching(
   animeId: string,
   data_id: number

@@ -1,9 +1,9 @@
 /**
- * Публічний HLS-проксі (Next інлайнить `NEXT_PUBLIC_*` у клієнтський бандл).
+ * Public HLS proxy (Next inlines `NEXT_PUBLIC_*` into client bundle).
  *
- * - **Локальний Next** `/api/m3u8-proxy`: `?url=` + `&headers=<json>`.
- * - **DeveloperJosh m3u8-proxy** (напр. `m3u8proxy.fly.dev`): шлях **`/fetch/?url=`** + **`&ref=`**, без `headers`.
- * - Якщо в env вказано `*.fly.dev`, а сайт відкритий на **localhost** — автоматично лишається **same-origin `/api/m3u8-proxy`**, бо публічний Fly часто віддає 404/403.
+ * - **Local Next** `/api/m3u8-proxy`: `?url=` + `&headers=<json>`.
+ * - **DeveloperJosh m3u8-proxy** (e.g. `m3u8proxy.fly.dev`): path **`/fetch/?url=`** + **`&ref=`**, no `headers`.
+ * - If env points to `*.fly.dev` but site is on **localhost** — auto **same-origin `/api/m3u8-proxy`**, because public Fly often returns 404/403.
  */
 
 function isBareOriginHttpsUrl(s: string): boolean {
@@ -21,7 +21,7 @@ function shouldAutoFetchForDeveloperJoshFlyStyle(originUrl: string): boolean {
   try {
     const u = new URL(originUrl);
     const h = u.hostname.toLowerCase();
-    /** Публічні інстанси DeveloperJosh/m3u8-proxy часто на `*.fly.dev` з «m3u8» у імені. */
+    /** Public DeveloperJosh/m3u8-proxy instances often on `*.fly.dev` with "m3u8" in hostname. */
     return h.endsWith('.fly.dev') && h.includes('m3u8');
   } catch {
     return false;
@@ -33,8 +33,8 @@ function rawM3u8ProxyEnv(): string {
 }
 
 /**
- * Публічні інстанси на Fly часто дають 403/404; на localhost надійніше тягнути через власний `/api/m3u8-proxy`.
- * `siteOrigin` — з `buildM3u8ProxyRequestUrl` (серверний probe); у браузері перевіряється `window.location`.
+ * Public Fly instances often return 403/404; on localhost prefer own `/api/m3u8-proxy`.
+ * `siteOrigin` — from `buildM3u8ProxyRequestUrl` (server probe); in browser uses `window.location`.
  */
 function shouldForceSameOriginM3u8Proxy(siteOrigin?: string): boolean {
   const raw = rawM3u8ProxyEnv();
@@ -74,7 +74,7 @@ export function getM3u8ProxyUrlPrefix(siteOrigin?: string): string {
         base = `${u.origin}/fetch/`;
       }
     } catch {
-      /* відносний URL — лишаємо як є */
+      /* relative URL — leave as-is */
     }
   }
   if (!/[?&]url=/i.test(base)) {
@@ -85,7 +85,7 @@ export function getM3u8ProxyUrlPrefix(siteOrigin?: string): string {
   return base;
 }
 
-/** Екземпляри m3u8-proxy (DeveloperJosh): pathname `/fetch` + query `url` + `ref`. */
+/** m3u8-proxy instances (DeveloperJosh): pathname `/fetch` + query `url` + `ref`. */
 function usesDevJoshFetchStyle(prefix: string): boolean {
   if (!/^https?:\/\//i.test(prefix)) return false;
   try {
@@ -99,7 +99,7 @@ function usesDevJoshFetchStyle(prefix: string): boolean {
 }
 
 /**
- * Повний URL першого запиту плейлиста (як у плеєрі Artplayer / hls.js).
+ * Full URL of first playlist request (as in Artplayer / hls.js player).
  */
 export function buildM3u8ProxyPlaylistUrl(
   streamUrl: string,
@@ -115,7 +115,7 @@ export function buildM3u8ProxyPlaylistUrl(
   return `${prefix}${enc}&headers=${encodeURIComponent(JSON.stringify(headers))}`;
 }
 
-/** Абсолютний URL для серверного `fetch` (probe watch/resolve). */
+/** Absolute URL for server `fetch` (probe watch/resolve). */
 export function buildM3u8ProxyRequestUrl(
   origin: string,
   streamUrl: string,

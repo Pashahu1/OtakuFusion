@@ -10,7 +10,7 @@ export interface UseArtplayerContinueWatchingParams {
 }
 
 /**
- * Оновлення «продовжити перегляд» після готовності плеєра; refs — без зайвих ремоунтів.
+ * Update continue watching after player ready; refs avoid unnecessary remounts.
  */
 export function useArtplayerContinueWatching({
   animeInfo,

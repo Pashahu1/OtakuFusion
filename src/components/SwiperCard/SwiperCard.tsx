@@ -15,7 +15,7 @@ import {
   ANIME_CAROUSEL_POSTER_SIZES,
 } from '@/lib/anime-card-poster';
 
-/** Має збігатися з відступом у SwiperCard.scss для стану до `swiper-initialized`. */
+/** Must match gap in SwiperCard.scss until `swiper-initialized`. */
 const SPACING_BETWEEN_SLIDES = 20;
 
 function slugify(s: string): string {

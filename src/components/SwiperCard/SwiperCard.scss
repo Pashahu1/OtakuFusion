@@ -30,7 +30,7 @@
   }
 }
 
-/* До ініціалізації Swiper не ставить margin між слайдами (spaceBetween лише з JS) — FOUC «зліплені» картки. Значення = SPACING_BETWEEN_SLIDES у SwiperCard.tsx */
+/* Before Swiper init no margin between slides (spaceBetween from JS only) — FOUC stacked cards. Value = SPACING_BETWEEN_SLIDES in SwiperCard.tsx */
 .swiper-card .swiper:not(.swiper-initialized) .swiper-slide:not(:last-child) {
   margin-right: 20px;
 }

@@ -3,7 +3,7 @@ const M3U8_IN_PLAYERJS =
 
 const M3U8_GENERIC = /(https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*)/i;
 
-/** Ім’я змінної на moonanime ротується (`_3BHrk`, `_2J1eM`, …). */
+/** Variable name on moonanime rotates (`_3BHrk`, `_2J1eM`, …). */
 const MOON_OBFUSCATED_ATOB = /var\s+_\w+\s*=\s*atob\(\s*"([^"]+)"\s*\)/;
 const MOON_FILE_XOR = /file\s*:\s*_0xd\(\s*"([^"]+)"\s*\)/;
 
@@ -21,7 +21,7 @@ function isMoonanimeHost(pageUrl: string): boolean {
   }
 }
 
-/** XOR як у `function _0xd(e)` на moonanime.art iframe. */
+/** XOR as in `function _0xd(e)` on moonanime.art iframe. */
 export function decodeMoonanimeXorBlob(b64: string): string {
   const key = 'mAnK';
   const raw = Buffer.from(b64, 'base64').toString('binary');

@@ -82,7 +82,7 @@ function makeProviderSwapCleanup(
   };
 }
 
-/** Cleanup для effect при зміні лише провайдера (без повного перезавантаження сторінки). */
+/** Cleanup for effect when only provider changes (no full page reload). */
 export function runProviderOnlyCatalogLoad(
   input: ProviderOnlyCatalogLoadInput
 ): () => void {

@@ -32,7 +32,7 @@ function splitTenPointRating(rating: string): { score: string; outOfTen?: string
   return { score: trimmed };
 }
 
-/** Другий рядок під назвою: метадані AniList, коли ще немає лічильників каталогу (has_sub / has_dub). */
+/** Second line under title: AniList metadata when catalog counters (has_sub / has_dub) are not yet available. */
 function buildCardFooterFallbackLine(
   tv: AnimeInfo['tvInfo']
 ): string | null {

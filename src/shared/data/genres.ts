@@ -1,6 +1,6 @@
 /**
- * Жанри для навігації (mega-menu / mobile): 15 шт., сітка 3×5.
- * Рядок має збігатися з AniList `GenreCollection` — сторінки `/anime/category/[name]` приймають будь-який валідний жанр і в URL.
+ * Genres for navigation (mega-menu / mobile): 15 items, 3×5 grid.
+ * String must match AniList `GenreCollection` — `/anime/category/[name]` pages accept any valid genre in URL.
  */
 export const genres = [
   'Action',

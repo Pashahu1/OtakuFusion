@@ -6,8 +6,8 @@ export interface ParallelCatalogSearchOptions {
 }
 
 /**
- * Паралельні запити search до Crysoline (замість послідовного for).
- * Помилки окремого запиту ігноруються — інші результати все одно зливаються.
+ * Parallel Crysoline search requests (instead of sequential for).
+ * Per-request errors are ignored — other results still merge.
  */
 export async function mergeParallelCatalogSearch<T>(
   queue: string[],

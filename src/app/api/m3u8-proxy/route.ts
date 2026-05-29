@@ -4,7 +4,7 @@ import {
   unwrapCrysolinePlaybackUrl,
 } from '@/lib/streamMediaType';
 
-/** Локальний проксі для HLS (.m3u8 + сегменти), щоб не залежати від зовнішніх сервісів на кшталт m3u8proxy.fly.dev. */
+/** Local proxy for HLS (.m3u8 + segments) — no dependency on external services like m3u8proxy.fly.dev. */
 export const runtime = 'nodejs';
 
 const MAX_PLAYLIST_BYTES = 4 * 1024 * 1024;
@@ -37,7 +37,7 @@ function isTargetUrlAllowed(urlStr: string): boolean {
   }
 }
 
-/** Базові заголовки «як браузер» — деякі CDN (megaup тощо) ріжуть голий Node fetch / 403. */
+/** Browser-like default headers — some CDNs (megaup etc.) block bare Node fetch / 403. */
 const DEFAULT_UPSTREAM_FETCH_HEADERS: Record<string, string> = {
   'User-Agent':
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
@@ -75,7 +75,7 @@ function dropRangeHeader(headers: Record<string, string>): Record<string, string
   return out;
 }
 
-/** Crysoline / Anikage JWT-проксі без розширення — зазвичай m3u8, не mp4-сегмент. */
+/** Crysoline / Anikage JWT proxy without extension — usually m3u8, not mp4 segment. */
 function targetUrlLooksLikePlaylistOrProxy(targetUrl: string): boolean {
   const u = targetUrl.toLowerCase();
   if (u.includes('.m3u8') || u.includes('mpegurl')) return true;
@@ -92,8 +92,8 @@ function targetUrlLooksLikePlaylistOrProxy(targetUrl: string): boolean {
 }
 
 /**
- * Range з браузера (`bytes=0-`) на m3u8 обрізає великі media-playlist (Anicore) —
- * hls.js отримує уривок без кінця плейлиста і зациклює XHR.
+ * Browser Range (`bytes=0-`) on m3u8 truncates large media-playlists (Anicore) —
+ * hls.js gets a fragment without playlist end and loops XHR.
  */
 function shouldForwardClientRange(targetUrl: string, rangeHeader: string | null): boolean {
   const range = rangeHeader?.trim();
@@ -236,8 +236,8 @@ export async function GET(req: NextRequest) {
     });
     if (!upstreamResponse.ok && forwardHeaders.Origin) {
       /**
-       * Частина CDN відкидає Origin для HLS-запитів (особливо cross-site),
-       * але пропускає ті самі запити лише з Referer.
+       * Some CDNs reject Origin for HLS requests (especially cross-site),
+       * but allow the same requests with Referer only.
        */
       const retryHeaders = dropOriginHeader(forwardHeaders);
       const retryRes = await fetch(fetchUrl, {
@@ -261,8 +261,8 @@ export async function GET(req: NextRequest) {
   const parsedLen = contentLength ? Number(contentLength) : NaN;
 
   /**
-   * Відео/аудіо сегменти та дуже великі blob — стрімимо без повної буферизації.
-   * Плейлисти (часто `octet-stream`) лишаємо в RAM лише до MAX_PLAYLIST_BYTES + rewrite.
+   * Video/audio segments and very large blobs — stream without full buffering.
+   * Playlists (often `octet-stream`) stay in RAM only up to MAX_PLAYLIST_BYTES + rewrite.
    */
   const streamAsPassthrough =
     upstreamResponse.ok &&
@@ -316,7 +316,7 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch {
-      /* непарсений плейлист — віддаємо raw */
+      /* unparseable playlist — return raw */
     }
   }
 

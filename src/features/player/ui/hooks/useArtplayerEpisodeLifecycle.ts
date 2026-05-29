@@ -22,7 +22,7 @@ export interface PlaybackSurfaceReadySession {
 }
 
 /**
- * Кінець епізоду (play next / continue watching), surface-ready та userPaused для Artplayer.
+ * Episode end (play next / continue watching), surface-ready, and userPaused for Artplayer.
  */
 export function useArtplayerEpisodeLifecycle({
   episodeId,

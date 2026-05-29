@@ -8,7 +8,7 @@ export async function extractHikkaM3u8Cached(pageUrl: string): Promise<string | 
   const cached = unstable_cache(
     async () => {
       const url = await extractM3u8FromEmbedPage(key);
-      // Не кешувати промах — інакше 15 хв «зламаний» Ukrainian після фіксу парсера
+      // Do not cache misses — otherwise 15 min of broken Ukrainian after parser fix
       if (!url) throw new Error('hikka_m3u8_miss');
       return url;
     },

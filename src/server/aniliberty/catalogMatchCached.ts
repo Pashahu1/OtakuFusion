@@ -39,7 +39,7 @@ async function searchAndPickLibertyId(
   return String(Math.floor(best.id));
 }
 
-/** Кешований пошук AniList → Anilibria release id (без завантаження епізодів). */
+/** Cached AniList → Anilibria release id lookup (without loading episodes). */
 export function resolveAnilibertyLibertyIdCached(
   body: CatalogLookupBody,
   hints: CatalogHints,

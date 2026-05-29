@@ -183,7 +183,7 @@ export function getPlayerLayers(userPausedRef: React.RefObject<boolean>) {
       style: {
         display: 'none',
         position: 'absolute',
-        /** Однаково «над» контролами: не 22% від низу (занадто високо). */
+        /** Same offset above controls: not 22% from bottom (too high). */
         bottom: 'calc(env(safe-area-inset-bottom, 0px) + clamp(56px, 11dvh, 96px))',
         right: 'max(16px, env(safe-area-inset-right, 0px))',
         left: 'auto',

@@ -9,9 +9,9 @@ function trimmed(value: unknown): string | undefined {
 }
 
 /**
- * Базовий origin для `fetch` до маршрутів цього ж Next-застосунку.
- * У браузері — порожній рядок (відносні шляхи `/api/...`).
- * На сервері — `NEXT_PUBLIC_SITE_URL`, інакше `VERCEL_URL`, інакше localhost.
+ * Base origin for `fetch` to this Next app's routes.
+ * In browser — empty string (relative `/api/...` paths).
+ * On server — `NEXT_PUBLIC_SITE_URL`, else `VERCEL_URL`, else localhost.
  */
 export function getPublicAppOrigin(): string {
   if (typeof window !== 'undefined') {

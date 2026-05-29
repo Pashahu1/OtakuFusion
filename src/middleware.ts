@@ -4,9 +4,9 @@ import { SignJWT, jwtVerify } from 'jose';
 import { authSessionCookieDefaults } from '@/lib/auth-cookie-options';
 
 /**
- * Edge middleware не може надійно використовувати `jsonwebtoken` (Node crypto).
- * `jose` працює в Edge — інакше verify/sign падають у runtime і всі protected
- * маршрути редіректять на логін.
+ * Edge middleware cannot reliably use `jsonwebtoken` (Node crypto).
+ * `jose` works on Edge — otherwise verify/sign fail at runtime and all protected
+ * routes redirect to login.
  */
 function getMiddlewareJwtSecrets(): { access: string; refresh: string } | null {
   const access =
@@ -43,7 +43,7 @@ export async function middleware(req: NextRequest) {
       await jwtVerify(accessToken, accessKey, { algorithms: ['HS256'] });
       return NextResponse.next();
     } catch {
-      // пробуємо оновити з refresh
+      // try refresh token update
     }
   }
 

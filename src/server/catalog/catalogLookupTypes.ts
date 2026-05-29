@@ -1,6 +1,6 @@
 import type { CatalogRequestBody } from '@/server/catalog/catalogRequestSchema';
 
-/** Тіло POST catalog — спільне для match cache (джерело правди: Zod schema). */
+/** POST catalog body — shared for match cache (source of truth: Zod schema). */
 export type CatalogLookupBody = CatalogRequestBody;
 
 export function catalogMatchCacheKey(body: CatalogLookupBody): string {

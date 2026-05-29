@@ -50,7 +50,7 @@ export async function getVttArray(vttUrl: string = ''): Promise<VttThumbItem[]> 
   }
 
   if (!response.ok) {
-    /** CDN часто віддає 403 без «правильного» Referer — превʼю на таймлайні просто вимикається. */
+    /** CDN often returns 403 without correct Referer — timeline preview is disabled. */
     return [];
   }
 

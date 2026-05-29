@@ -15,14 +15,14 @@ import './ContinueWatchingSection.scss';
 import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
 
 const STORAGE_KEY = CONTINUE_WATCHING_STORAGE_KEY;
-/** Має збігатися з відступом у ContinueWatchingSection.scss до `swiper-initialized`. */
+/** Must match gap in ContinueWatchingSection.scss until `swiper-initialized`. */
 const SPACE_BETWEEN_SLIDES = 12;
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-/** Легка валідація без Zod — інакше ~90 KiB zod у клієнтському чанку головної (TBT). */
+/** Light validation without Zod — otherwise ~90 KiB zod in home client chunk (TBT). */
 function parseContinueWatchingList(
   raw: string | null
 ): ContinueWatchingEntry[] {
@@ -99,7 +99,7 @@ export function ContinueWatchingSection() {
   }, []);
 
   useEffect(() => {
-    /** Не синхронно в тілі ефекта — інакше cascading renders (eslint react-hooks/set-state-in-effect). */
+    /** Not synchronously in effect body — avoids cascading renders (eslint react-hooks/set-state-in-effect). */
     let cancelled = false;
     queueMicrotask(() => {
       if (!cancelled) refreshList();

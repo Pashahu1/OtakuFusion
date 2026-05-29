@@ -11,14 +11,14 @@ import type { WatchStreamProvider } from '@/lib/watch-provider';
 export interface UseWatchReturn {
   error: string | null;
   buffering: boolean;
-  /** Підпис під лоадером під час авто-retry resolve (англійською). */
+  /** Caption under loader during auto-retry resolve (English). */
   streamLoadingMessage: string | null;
   streamInfo: StreamingData | null;
   animeInfo: AnimeData | null;
   episodes: EpisodesTypes[] | null;
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   animeInfoLoading: boolean;
-  /** Плеєр ще не готовий (аніме/епізоди/ep_token) — не показувати «помилку» до завантаження. */
+  /** Player not ready yet (anime/episodes/ep_token) — do not show error until loaded. */
   playerShellPending: boolean;
   totalEpisodes: number | null;
   servers: ServerInfo[] | null;
@@ -35,13 +35,13 @@ export interface UseWatchReturn {
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (provider: WatchStreamProvider) => void;
   streamErrorCode: string | null;
-  /** Пункт Anilibria в меню плеєра лише після успішного каталогу Anilibria (порожній пошук — приховано). */
+  /** Anilibria menu item only after successful Anilibria catalog (empty search — hidden). */
   anilibertyLanguageMenuEligible: boolean;
-  /** Пункт «Українська» (Hikka Features) у меню Language. */
+  /** Ukrainian (Hikka Features) item in Language menu. */
   hikkaLanguageMenuEligible: boolean;
   /**
-   * Текст оверлею плеєра при фатальній помилці стріму (англійською).
-   * `null` — плеєр не в стані «фатальної помилки» (ще завантаження або є URL).
+   * Player overlay text on fatal stream error (English).
+   * `null` — player not in fatal error state (still loading or URL present).
    */
   streamOverlayMessage: { title: string; subtitle: string } | null;
 }

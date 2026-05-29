@@ -1,4 +1,4 @@
-/** Поля AniList для ранжування пошуку (як на картці + метрики). */
+/** AniList fields for search ranking (same as card + metrics). */
 export interface AnimeSearchRankMedia {
   id: number;
   title?: {
@@ -44,7 +44,7 @@ export function isCjkSearchQuery(queryNorm: string): boolean {
   return /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(queryNorm);
 }
 
-/** Та сама логіка, що `pickTitle` на картці. */
+/** Same logic as card `pickTitle`. */
 export function getAnimeDisplayTitle(media: AnimeSearchRankMedia): string {
   const t = media.title;
   return t?.english?.trim() || t?.romaji?.trim() || t?.native?.trim() || '';

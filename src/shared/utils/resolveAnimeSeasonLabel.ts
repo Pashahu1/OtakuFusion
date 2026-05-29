@@ -165,7 +165,7 @@ function buildSeasonTitleVariants(base: string, season: number): string[] {
   return variants;
 }
 
-/** Показувати текст «Season N» лише якщо TVDB не дав сезонно-специфічний матч. */
+/** Show "Season N" text only if TVDB did not return a season-specific match. */
 export function resolveSpotlightSeasonLabel(input: {
   title: string;
   description?: string;
@@ -186,7 +186,7 @@ export function resolveSpotlightSeasonLabel(input: {
   return formatSeasonLabel(season);
 }
 
-/** Багато варіантів запиту — спочатку сезонні, потім загальні. */
+/** Many query variants — season-specific first, then general. */
 export function buildTvdbSearchTitles(input: {
   title: string;
   description?: string;

@@ -36,7 +36,7 @@ function scoreHit(
   terms: string[]
 ): number {
   const text = qualityOfMatch(terms, hit);
-  /** Без збігу назви — не довіряємо лише року / лічильнику. */
+  /** Without title match — do not trust year / count alone. */
   if (text < 42) return -Infinity;
 
   let score = text;

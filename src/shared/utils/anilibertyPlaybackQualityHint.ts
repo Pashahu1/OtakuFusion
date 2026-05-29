@@ -1,4 +1,4 @@
-/** Остання робочна якість Anilibria (720p тощо) — не плутати з `server_name` / Anicore. */
+/** Last working Anilibria quality (720p etc.) — not to be confused with `server_name` / Anicore. */
 
 export const STORAGE_ANILIBERTY_PLAYBACK_QUALITY = 'aniliberty_playback_quality';
 

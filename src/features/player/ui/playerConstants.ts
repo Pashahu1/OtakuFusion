@@ -1,5 +1,3 @@
-/** Без `process.env.NEXT_PUBLIC_*` у клієнтському плеєрі — лише фіксовані значення (перевірка поведінки / бандлу). */
-
 export const KEY_CODES = {
   M: 'm',
   I: 'i',
@@ -15,19 +13,13 @@ export const KEY_CODES = {
 
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
 
-/** Загальний проксі для плеєра (раніше `NEXT_PUBLIC_PROXY_URL`). */
-export const PROXY_URL = '';
-
-/**
- * HLS часто вимагає коректний Referer — same-origin проксі.
- * (Раніше можна було перевизначити через `NEXT_PUBLIC_M3U8_PROXY_URL` / `direct`.)
- */
+/** Same-origin HLS proxy (override via `NEXT_PUBLIC_M3U8_PROXY_URL` in `m3u8ProxyPublicBase`). */
 export const M3U8_PROXY_URL = '/api/m3u8-proxy?url=';
 
-/** Резерв, якщо немає embed_url у відповіді source. */
+/** Fallback when source response has no embed_url. */
 export const ANIKAI_PAGE_REFERER = 'https://anikai.to/';
 
-/** Резервний Referer/Origin для HLS, коли немає `request_headers` з API (Anicore / Anikage). */
+/** Fallback Referer/Origin for HLS when API omits `request_headers`. */
 export const HLS_CDN_FALLBACK_REFERER = 'https://anikage.cc/';
 export const HLS_CDN_FALLBACK_ORIGIN = 'https://anikage.cc';
 

@@ -40,7 +40,7 @@ function pushCandidate(
   });
 }
 
-/** Прямі HLS з metadata епізоду (Crysoline `/episodes`) — без другого запиту `/sources`. */
+/** Direct HLS from episode metadata (Crysoline `/episodes`) — no second `/sources` request. */
 export function buildAnilibertyStreamCandidatesFromEpisodeRow(
   row: CrysolineAnilibertyEpisodeRow | null | undefined
 ): StreamingType[] {

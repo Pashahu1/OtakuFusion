@@ -30,7 +30,7 @@ import { HeroSlideGenres } from './HeroSlideGenres';
 import { HeroSlideMeta } from './HeroSlideMeta';
 import { HeroSlideTitle } from './HeroSlideTitle';
 
-/** Кастомний `el` для pagination монтується після Swiper — прив’язуємо після init без remount (див. Swiper + React: custom pagination). */
+/** Custom pagination `el` mounts after Swiper — bind after init without remount (see Swiper + React: custom pagination). */
 function bindHeroPagination(swiper: SwiperType, el: HTMLDivElement | null) {
   if (!el || swiper.destroyed) return;
 
@@ -57,11 +57,11 @@ type Props = {
 
 export const Preview = ({ spotlights, trending }: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  /** Доки Swiper не прив’язав pagination до ref, контейнер порожній — показуємо статичні «смужки» без затримки. */
+  /** Until Swiper binds pagination to ref, container is empty — show static bars without delay. */
   const [paginationReady, setPaginationReady] = useState(false);
   const swiperRef = useRef<SwiperType | null>(null);
   const paginationRef = useRef<HTMLDivElement | null>(null);
-  /** Уникаємо подвійного destroy/init на тому ж інстансі; після remount (Strict Mode) інстанс новий — прив’язка повториться. */
+  /** Avoid double destroy/init on same instance; after remount (Strict Mode) instance is new — bind again. */
   const paginationBoundSwiperRef = useRef<SwiperType | null>(null);
 
   const attachPaginationOnce = useCallback((swiper: SwiperType, el: HTMLDivElement) => {

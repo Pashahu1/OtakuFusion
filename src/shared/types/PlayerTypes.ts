@@ -27,9 +27,9 @@ export interface PlayerProps {
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (provider: WatchStreamProvider) => void;
   onPlaybackError?: () => void;
-  /** Перший стабільний кадр / відтворення — щоб оболонка могла прибрати лоадер без бліку. */
+  /** First stable frame / playback — so shell can remove loader without flash. */
   onPlaybackSurfaceReady?: () => void;
-  /** Якщо false — пункт Anilibria в меню Language не додається. */
+  /** If false — Anilibria item is not added to Language menu. */
   anilibertyLanguageMenuEligible?: boolean;
   hikkaLanguageMenuEligible?: boolean;
 }

@@ -6,7 +6,7 @@ export interface AnimepaheCatalogBffOk {
   paheId: string;
   episodes: GetEpisodesResult['episodes'];
   totalEpisodes: number;
-  /** З `POST /catalog` після dub-probe; для кешу в localStorage. */
+  /** From `POST /catalog` after dub-probe; for localStorage cache. */
   hasSeriesDub?: boolean;
 }
 
@@ -62,7 +62,7 @@ async function fetchAnimepaheCatalog(
   return ok;
 }
 
-/** Один in-flight POST /catalog на anilistId — менше 429 при швидких переходах по картках. */
+/** Single in-flight POST /catalog per anilistId — fewer 429s when browsing cards quickly. */
 export async function postAnimepaheCatalog(
   body: WatchCatalogBffBody,
   signal?: AbortSignal

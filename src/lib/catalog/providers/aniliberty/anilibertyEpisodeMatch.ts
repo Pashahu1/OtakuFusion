@@ -1,7 +1,7 @@
 import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
 import type { CatalogHints } from '@/lib/catalog/catalog-hints';
 
-/** Допустима різниця для завершених релізів. */
+/** Allowed difference for completed releases. */
 export const ANILIBERTY_EPISODE_COUNT_MAX_DELTA = 2;
 
 export function isAnilistStillAiringFromStatus(
@@ -49,9 +49,9 @@ function isLenientEpisodeCountMode(options?: {
 }
 
 /**
- * Завершений тайтл: кількість має збігатися (±2).
- * Ще виходить (AniList / Crysoline ongoing): менше епізодів у джерелі — OK.
- * Занадто багато епізодів у джерелі — не той реліз.
+ * Completed title: counts must match (±2).
+ * Still airing (AniList / Crysoline ongoing): fewer episodes in source — OK.
+ * Too many episodes in source — wrong release.
  */
 export function isAnilibertyEpisodeCountAcceptable(
   expected: number | null | undefined,

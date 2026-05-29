@@ -31,7 +31,7 @@ export function inferArtplayerMediaType(
   return inferStreamMediaKind(streamUrl) === 'mp4' ? 'mp4' : 'm3u8';
 }
 
-/** Після зриву HLS `art.duration` скидається, а текст у `.art-progress-tip` може лишатися — прибираємо «спалах» тривалості. */
+/** After HLS failure `art.duration` resets but `.art-progress-tip` text may linger — clear duration flash. */
 export function resetArtplayerProgressHoverUi(art: Artplayer) {
   try {
     const $player = art.template?.$player;
@@ -44,7 +44,7 @@ export function resetArtplayerProgressHoverUi(art: Artplayer) {
   }
 }
 
-/** У dev за замовчуванням відкладаємо створення Hls на наступний macrotask — обхід подвійного mount Strict Mode. */
+/** In dev, defer Hls creation to next macrotask by default — workaround for Strict Mode double mount. */
 export function readPlayerDeferStrictInit(): boolean {
   if (typeof process === 'undefined' || process.env.NODE_ENV !== 'development') {
     return false;
@@ -74,7 +74,7 @@ export function buildArtplayerHlsRuntime(
 ): ArtplayerHlsRuntime {
   let hasReportedError = false;
   let hlsRecoverNetworkTried = false;
-  /** 0 = ще не пробували; 1 = recoverMediaError; 2 = swapAudioCodec + recoverMediaError */
+  /** 0 = not tried yet; 1 = recoverMediaError; 2 = swapAudioCodec + recoverMediaError */
   let hlsMediaRecoveryStep = 0;
 
   const reportError = (art: Artplayer) => {

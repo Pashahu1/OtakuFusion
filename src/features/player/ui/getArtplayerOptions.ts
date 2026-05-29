@@ -23,13 +23,13 @@ import { getPlayerLayers } from './getPlayerLayers';
 
 export function getArtplayerOptions(
   userPausedRef: React.RefObject<boolean>,
-  /** Підписка на Hls після інстансування (Artplayer відкладає виклик customType). */
+  /** Subscribe to Hls after instantiation (Artplayer defers customType call). */
   onM3u8HlsInstance?: (hls: InstanceType<typeof Hls>, art: Artplayer) => void,
   /**
-   * До першого `loadSource`: `MANIFEST_PARSED` → фікс рівня → `startLoad()` (див. `autoStartLoad` у `playM3u8`).
+   * Before first `loadSource`: `MANIFEST_PARSED` → lock level → `startLoad()` (see `autoStartLoad` in `playM3u8`).
    */
   onM3u8HlsBeforeLoad?: (hls: InstanceType<typeof Hls>) => void,
-  /** Окремі плейлисти за роздільністю — вимикаємо ABR-індикатор hls-control (інакше «сміття» в меню). */
+  /** Separate playlists per resolution — disable hls-control ABR indicator (otherwise menu clutter). */
   useManualStreamQuality?: boolean
 ) {
   return {
@@ -37,7 +37,7 @@ export function getArtplayerOptions(
       artplayerPluginHlsControl({
         quality: {
           control: !useManualStreamQuality,
-          /** Лише індикатор у панелі зліва від шестерні — без окремого рядка в меню налаштувань. */
+          /** Indicator in panel left of gear only — no separate row in settings menu. */
           setting: false,
           getName: (level: { height?: number }) =>
             String(level?.height ?? '') + 'P',

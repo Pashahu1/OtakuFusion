@@ -2,7 +2,7 @@ import './InitialLoader.scss';
 import { cn } from '@/lib/utils';
 
 interface InitialLoaderProps {
-  /** `viewport` — як при першому завантаженні; `container` — на всю висоту батька (оверлей під хедером). */
+  /** `viewport` — like first page load; `container` — full parent height (overlay under header). */
   variant?: 'viewport' | 'container';
   className?: string;
 }

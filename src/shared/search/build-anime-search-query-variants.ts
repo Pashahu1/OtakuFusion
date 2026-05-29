@@ -28,8 +28,8 @@ function stripEdgePunct(w: string): string {
 }
 
 /**
- * Варіанти від «як у користувача» до коротшого ядра — AniList інколи нічого не дає на довгий / «шумний» рядок.
- * Порядок: від більш специфічного до ширшого; пошук зупиняється на першому варіанті з результатами.
+ * Variants from user input to shorter core — AniList sometimes returns nothing for long / noisy strings.
+ * Order: more specific to broader; search stops at first variant with results.
  */
 export function buildAnimeSearchQueryVariants(raw: string): string[] {
   const t = raw.trim().normalize('NFKC').replace(/\s+/g, ' ');

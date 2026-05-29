@@ -77,7 +77,7 @@ export async function crysolineAnilibertyEpisodes(
 
 /**
  * Crysoline: GET …/aniliberty/sources?id={releaseId}&episodeId={episodeUuid}
- * (`episodeId` — рядок UUID з рядка епізоду в `/episodes/{releaseId}`).
+ * (`episodeId` — UUID string from episode row in `/episodes/{releaseId}`).
  */
 export async function crysolineAnilibertySources(
   releaseId: string,

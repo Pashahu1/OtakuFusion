@@ -16,7 +16,7 @@ export interface UseArtplayerLanguageMenuParams {
 }
 
 /**
- * Синхронізація меню мови/провайдера в Artplayer (refs + реакція на зміну eligibility/сервера).
+ * Sync language/provider menu in Artplayer (refs + react to eligibility/server changes).
  */
 export function useArtplayerLanguageMenu({
   artInstanceRef,

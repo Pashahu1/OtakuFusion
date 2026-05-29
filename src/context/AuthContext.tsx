@@ -26,12 +26,12 @@ interface AuthContextType {
   user: User | null;
   isAuth: boolean;
   isLoading: boolean;
-  /** Під час збереження профілю — InitialLoader поверх контенту. */
+  /** While saving profile — InitialLoader over content. */
   profileSavePending: boolean;
   setProfileSavePending: (pending: boolean) => void;
   /**
-   * Після успішного аплоаду аватара: тримати непрозорий скелетон у меню,
-   * доки нове зображення не декодується (без миготіння старого фото).
+   * After successful avatar upload: keep opaque skeleton in menu
+   * until new image decodes (no flash of old photo).
    */
   profileNavbarAvatarHold: boolean;
   setProfileNavbarAvatarHold: (hold: boolean) => void;

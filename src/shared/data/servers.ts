@@ -11,7 +11,7 @@ export const SERVER_PRIORITY_ORDER = [
 export const STORAGE_SERVER_NAME = 'server_name';
 export const STORAGE_SERVER_TYPE = 'server_type';
 
-/** Частина після «Sub ·» / «Dub ·» — для порівняння збереженого імені сервера з каталогом. */
+/** Part after "Sub ·" / "Dub ·" — compare saved server name with catalog. */
 export function mirrorServerLabel(serverName: string): string {
   const parts = serverName.split('·');
   if (parts.length >= 2) return parts.slice(1).join('·').trim();

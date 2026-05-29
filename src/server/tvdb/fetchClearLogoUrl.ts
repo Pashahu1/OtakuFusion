@@ -30,7 +30,7 @@ interface TvdbArtwork {
 
 export interface TvdbClearLogoResult {
   url: string | null;
-  /** Знайдено серію, у назві якої є номер сезону. */
+  /** Found series whose title includes season number. */
   matchedSeasonSpecific: boolean;
 }
 

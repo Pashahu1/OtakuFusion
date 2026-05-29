@@ -29,8 +29,8 @@ Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
 
 /**
- * Фасад: compound hooks + один mount-ефект для Artplayer.
- * Remount лише за `streamBootKey`; episode/callbacks — через refs у під-хуках.
+ * Facade: compound hooks + single mount effect for Artplayer.
+ * Remount only on `streamBootKey`; episode/callbacks via refs in sub-hooks.
  */
 export function useArtplayerInstance({
   streamUrl,

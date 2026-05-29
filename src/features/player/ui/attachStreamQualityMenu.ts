@@ -7,8 +7,8 @@ import {
 import { getStreamFullUrl, getStreamHeaders } from './playerStream';
 
 /**
- * Окремі HLS-плейлисти на кожну роздільність (Anicore / Aniliberty через Crysoline),
- * а не один master з ABR — перемикання через `switchUrl`, не через `hls.currentLevel`.
+ * Separate HLS playlists per resolution (Anicore / Aniliberty via Crysoline),
+ * not one ABR master — switch via `switchUrl`, not `hls.currentLevel`.
  */
 export function attachStreamQualityMenu(
   art: Artplayer,

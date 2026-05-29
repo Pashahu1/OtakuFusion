@@ -26,7 +26,7 @@ export function skipSegmentsToChapterItems(
   return out;
 }
 
-/** Обрізає інтервали під фактичну тривалість відео — інакше `artplayerPluginChapter` кидає помилку. */
+/** Clamp intervals to actual video duration — otherwise `artplayerPluginChapter` throws. */
 export function clampChaptersToDuration(
   chapters: ChapterItem[],
   durationSec: number

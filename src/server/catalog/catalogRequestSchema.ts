@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { CatalogHints } from '@/lib/catalog/catalog-hints';
 import { isAnilistStillAiringFromStatus } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 
-/** Спільне тіло POST catalog routes (AniList / MAL metadata для match). */
+/** Shared POST catalog route body (AniList / MAL metadata for match). */
 export const CatalogRequestBodySchema = z.object({
   anilistId: z.string().min(1),
   title: z.string().min(1),
@@ -15,7 +15,7 @@ export const CatalogRequestBodySchema = z.object({
   synonyms: z.string().optional(),
 });
 
-/** Aniliberty: додатково статус AniList для ongoing / partial catalog. */
+/** Aniliberty: also AniList status for ongoing / partial catalog. */
 export const CatalogRequestBodyWithAnilistStatusSchema =
   CatalogRequestBodySchema.extend({
     anilistStatus: z.string().optional(),

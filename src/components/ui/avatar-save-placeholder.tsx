@@ -1,12 +1,12 @@
 import { cn } from '@/lib/utils';
 
 interface AvatarSavePlaceholderProps {
-  /** Розмір сторони квадрата / діаметра кола (px). */
+  /** Square side / circle diameter size (px). */
   sizePx: number;
   className?: string;
 }
 
-/** Круглий скелетон для слоту аватара (оверлей під час збереження). */
+/** Round skeleton for avatar slot (overlay while saving). */
 export function AvatarSavePlaceholder({
   sizePx,
   className,

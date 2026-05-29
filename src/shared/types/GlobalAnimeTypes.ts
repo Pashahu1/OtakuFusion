@@ -13,16 +13,16 @@ export interface TvInfo {
   duration: string;
   releaseDate: string;
   quality: string;
-  /** Загальна кількість епізодів з AniList (метадані). */
+  /** Total episode count from AniList (metadata). */
   episodeTotal?: string;
   /**
-   * Кількість епізодів у каталозі з субами (після синку з API епізодів).
-   * На картках: > 0 означає наявність Sub у каталозі.
+   * Episode count in catalog with subs (after episode API sync).
+   * On cards: > 0 means Sub is available in catalog.
    */
   has_sub?: number;
   /**
-   * Кількість епізодів у каталозі з озвучкою.
-   * На картках: > 0 означає наявність Dub.
+   * Episode count in catalog with dub.
+   * On cards: > 0 means Dub is available in catalog.
    */
   has_dub?: number;
   rating?: string;
@@ -44,15 +44,15 @@ export interface SpotlightAnime {
   japanese_title: string;
   description: string;
   tvInfo: TvInfo;
-  /** AniList averageScore (0–100), для hero-бейджа «78%». */
+  /** AniList averageScore (0–100), for hero badge e.g. "78%". */
   scorePercent?: number;
   genres?: string[];
   malId?: number;
-  /** TVDB clearlogo (як на anikage.cc), якщо є TVDB_API_KEY. */
+  /** TVDB clearlogo (as on anikage.cc), when TVDB_API_KEY is set. */
   clearLogoUrl?: string;
-  /** Підпис сезону в hero, якщо в назві/clearlogo його немає (напр. «Season 4»). */
+  /** Season label in hero when missing from title/clearlogo (e.g. "Season 4"). */
   seasonLabel?: string;
-  /** AniList synonyms — для TVDB-пошуку, у UI не показуємо. */
+  /** AniList synonyms — for TVDB search, not shown in UI. */
   synonyms?: string[];
 }
 
@@ -63,7 +63,7 @@ export interface TrendingAnime {
   poster: string;
   title: string;
   japanese_title: string;
-  /** Як у `AnimeInfo` — для карток у каруселі «Trending». */
+  /** Same as `AnimeInfo` — for cards in Trending carousel. */
   tvInfo?: TvInfo;
 }
 
@@ -72,9 +72,9 @@ export interface ScheduleAnime {
   data_id: number;
   title: string;
   japanese_title: string;
-  /** Постер з AniList `coverImage` (може бути порожнім рядком). */
+  /** Poster from AniList `coverImage` (may be empty string). */
   poster: string;
-  /** AniList `MediaFormat` (TV, ONA тощо), якщо є. */
+  /** AniList `MediaFormat` (TV, ONA, etc.), when present. */
   format?: string;
   releaseDate: string;
   time: string;
@@ -97,7 +97,7 @@ export type ServerInfo = {
   data_id: number;
   server_id: number;
   serverName: string;
-  /** Опційний ідентифікатор джерела (залежить від провайдера). */
+  /** Optional source identifier (provider-specific). */
   link_id?: string;
 };
 

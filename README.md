@@ -1,127 +1,299 @@
+<div align="center">
+
 # OtakuFusion
 
-**Modern anime streaming platform** — fast search, custom video player, and a clean, responsive UI. Built with Next.js, TypeScript, and Tailwind CSS.
+**A modern anime streaming web app** — fast discovery, a custom HLS player, and multi-source playback in one polished UI.
 
-![OtakuFusion — anime streaming platform](https://github.com/user-attachments/assets/632f8d00-be8c-404e-ad81-cf83c97322e0)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+[Features](#features) · [Quick start](#quick-start) · [Environment](#environment-variables) · [Deploy](#deployment-vercel) · [Contributing](#contributing)
+
+</div>
+
+![OtakuFusion — home page with spotlight hero and trending carousel](./docs/readme-banner.png)
+
+---
+
+## Overview
+
+OtakuFusion is a full-stack **Next.js** application for browsing and watching anime. Metadata comes from **AniList**; playable streams are resolved server-side through the **[Crysoline API](https://docs.crysoline.moe/)** (Animepahe, Anilibria) with optional extra providers. Playback runs in the browser via **Artplayer** and **HLS.js**, with a same-origin **`/api/m3u8-proxy`** when streams require Referer or CORS handling.
+
+| You get | How |
+|--------|-----|
+| Japanese + English (sub/dub) | Animepahe via Crysoline |
+| Ukrainian dub | Anilibria via Crysoline |
+| Optional third source | Hikka (may need a Cloudflare relay on Vercel) |
+| Accounts & favorites | MongoDB + JWT (HTTP-only cookies) |
+| Hero clear logos (optional) | TheTVDB API |
+
+---
+
+## Table of contents
+
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Quick start](#quick-start)
+- [Environment variables](#environment-variables)
+- [Scripts](#scripts)
+- [Project structure](#project-structure)
+- [Deployment (Vercel)](#deployment-vercel)
+- [Contributing](#contributing)
+- [Author](#author)
 
 ---
 
 ## Features
 
-- **Watch** — Custom player (HLS), multiple servers, skip intro/outro, autonext, progress saving, related anime
-- **Search** — Instant search with debounce, autocomplete
-- **Home** — Spotlight slider, trending carousel, adaptive layout
-- **Auth** — Login, register, email verification, profile (avatar, preferences)
-- **Schedule** — Anime calendar / release schedule
-- **UI** — Mobile-friendly, optimized images, loading and error states
+### Watch
+
+- Custom **Artplayer** UI with HLS quality switching, subtitles, thumbnails
+- **Skip intro / outro** when segment hints are available
+- **Continue watching** and per-episode progress
+- **Provider switch** (Animepahe ↔ Anilibria ↔ Hikka) with warm catalog cache for faster swaps
+- Server-side **stream resolve** with probing, retries, and quality variants
+
+### Discover
+
+- Home **spotlight carousel** and trending rows
+- **Search** with debounce and genre browsing
+- **Release schedule** calendar
+
+### Account
+
+- Register / login with **email verification** (SMTP)
+- Profile, avatar upload (**Cloudinary**, optional)
+- **Favorites** synced to your account
 
 ---
 
 ## Tech stack
 
-| Layer        | Stack |
-|-------------|--------|
-| Framework   | Next.js 16 (App Router), React 19 |
-| Language    | TypeScript |
-| Styling     | Tailwind CSS 4, SCSS |
-| Video       | Artplayer, HLS.js |
-| State / Data | React state, Local Storage, MongoDB (auth/profile) |
-| Auth        | JWT (access + refresh), HTTP-only cookies |
-| Email       | Nodemailer (SMTP) |
-| Media       | Cloudinary (avatars) |
+| Area | Technologies |
+|------|----------------|
+| App | Next.js 16 (App Router), React 19, TypeScript |
+| Styling | Tailwind CSS 4, SCSS |
+| Video | Artplayer, HLS.js, `/api/m3u8-proxy` |
+| Data (UI) | TanStack Query (home, search, details) |
+| Data (watch) | React hooks + `localStorage` mapping cache |
+| API layer | Next.js Route Handlers, Zod validation |
+| Auth | JWT access + refresh, HTTP-only cookies |
+| Database | MongoDB (Mongoose) |
+| Streams | [Crysoline](https://docs.crysoline.moe/) |
+| Tests | Vitest |
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph client [Browser]
+    Pages[App Router pages]
+    Player[Artplayer + HLS.js]
+    Pages --> Player
+  end
+
+  subgraph bff [Next.js BFF]
+    Catalog["/api/{provider}/catalog"]
+    Resolve["/api/watch/resolve"]
+    Proxy["/api/m3u8-proxy"]
+  end
+
+  subgraph server [Server modules]
+    WR[watch-resolve providers]
+    Cryo[crysoline client]
+    WR --> Cryo
+  end
+
+  subgraph external [External]
+    Crysoline[Crysoline API]
+    AniList[AniList GraphQL]
+    DB[(MongoDB)]
+  end
+
+  Pages --> Catalog
+  Pages --> Resolve
+  Player --> Proxy
+  Catalog --> WR
+  Resolve --> WR
+  Cryo --> Crysoline
+  Pages --> AniList
+  Pages --> DB
+```
+
+**Resolve flow (simplified):**
+
+1. Client loads anime + episode list from `/api/{provider}/catalog`.
+2. `GET /api/watch/resolve` picks a playable HLS URL (probe, cache, optional Miruno dub fallback).
+3. Player plays the stream directly or through `/api/m3u8-proxy`.
 
 ---
 
 ## Prerequisites
 
-- **Node.js** 18+ (recommended: 20 LTS)
-- **MongoDB** (e.g. [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)) — for auth and user data
-- **SMTP** — for verification and transactional emails (e.g. Gmail, SendGrid)
-- **Cloudinary** (optional) — for avatar uploads
+| Requirement | Required? | Notes |
+|-------------|-----------|--------|
+| [Node.js](https://nodejs.org/) 20 LTS | Yes | 18+ may work |
+| [MongoDB](https://www.mongodb.com/cloud/atlas) | Yes | Auth, favorites |
+| SMTP provider | Yes | Verification emails |
+| [Crysoline API key](https://docs.crysoline.moe/) | Yes | Catalogs + playback |
+| `NEXT_PUBLIC_SITE_URL` | Recommended | Metadata & server-side origin |
+| [Cloudinary](https://cloudinary.com/) | Optional | Avatar uploads only |
+| [TVDB API key](https://thetvdb.com/) | Optional | Hero clear logos |
+| [Cloudflare Worker](workers/hikka-features-relay/) | Optional | If Hikka is blocked on your host |
 
 ---
 
 ## Quick start
 
-### 1. Clone and install
+### 1. Clone & install
 
 ```bash
-git clone https://github.com/your-username/OtakuFusion.git
+git clone https://github.com/Pashahu1/OtakuFusion.git
 cd OtakuFusion
 npm install
 ```
 
-### 2. Environment variables
-
-Copy the example env file and fill in your values:
+### 2. Configure environment
 
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
 
-Edit `.env`. **Required for a minimal run:**
+**Minimum `.env.local`:**
 
-- `MONGODB_URI` — MongoDB connection string
-- `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` — strong random strings (e.g. `openssl rand -base64 32`)
-- Set `NEXT_JWT_ACCESS_SECRET` and `NEXT_JWT_REFRESH_SECRET` to the same values as above (used by login/me routes)
-- `SMTP_*` — SMTP credentials for verification emails
+```env
+MONGODB_URI=mongodb+srv://...
+NEXT_JWT_ACCESS_SECRET=   # openssl rand -base64 32
+NEXT_JWT_REFRESH_SECRET=  # different random string
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+CRYSOLINE_API_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-Recommended:
+Full reference: **[`.env.example`](.env.example)** (grouped by feature, with optional tuning vars).
 
-- `NEXT_PUBLIC_SITE_URL` — canonical site URL (used for server-side `fetch` to this app and metadata; on Vercel, `VERCEL_URL` is used as fallback if unset)
-
-Optional:
-
-- `NEXT_PUBLIC_PROXY_URL`, `NEXT_PUBLIC_M3U8_PROXY_URL` — if your player needs a proxy for streams
-- `CLOUDINARY_*` — for profile avatar uploads
-
-All variable names and short descriptions are in **`.env.example`**. Never commit `.env` or real secrets.
-
-### 3. Run
+### 3. Run locally
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open **[http://localhost:3000](http://localhost:3000)**.
+
+### 4. Pre-deploy check
+
+```bash
+npm run predeploy
+```
+
+Runs `lint` → `tsc` → `test` → `build` in one go.
+
+---
+
+## Environment variables
+
+### Required
+
+| Variable | Purpose |
+|----------|---------|
+| `MONGODB_URI` | Database connection |
+| `NEXT_JWT_ACCESS_SECRET` | Access token signing |
+| `NEXT_JWT_REFRESH_SECRET` | Refresh token signing |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Transactional email |
+| `CRYSOLINE_API_KEY` | Stream catalogs & resolve |
+
+### Recommended
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_SITE_URL` | Canonical site URL. Falls back to `VERCEL_URL` on Vercel if unset. |
+
+### Optional (enable extra behaviour)
+
+| Variable | Purpose |
+|----------|---------|
+| `CRYSOLINE_API_BASE_URL` | Custom Crysoline host (default `https://api.crysoline.moe`) |
+| `NEXT_PUBLIC_M3U8_PROXY_URL` | External m3u8 proxy instead of `/api/m3u8-proxy` |
+| `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | Comma-separated CDN suffixes to skip proxy |
+| `WATCH_PROBE_SKIP_VARIANT` | Faster resolve (`1` = skip variant playlist probe) |
+| `MIRUNO_API_BASE_URL` | English dub gap-fill when Animepahe has no dub |
+| `HIKKA_FEATURES_RELAY_BASE` | Relay URL when Hikka blocks server IP (see `workers/`) |
+| `TVDB_API_KEY` | Clear logos on home hero |
+| `CLOUDINARY_*` | Profile avatar upload |
+
+Use **`.env.local`** for development. Never commit secrets.
 
 ---
 
 ## Scripts
 
 | Command | Description |
-|--------|-------------|
-| `npm run dev` | Start dev server (Next.js + Turbopack) |
+|---------|-------------|
+| `npm run dev` | Development server |
 | `npm run build` | Production build |
-| `npm run start` | Run production server |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format with Prettier |
-| `npm run format:check` | Check formatting without writing |
+| `npm run start` | Serve production build |
+| `npm run lint` | ESLint |
+| `npm run test` | Vitest unit tests |
+| `npm run test:watch` | Vitest watch mode |
+| `npm run format` | Prettier (write) |
+| `npm run format:check` | Prettier (check only) |
+| `npm run predeploy` | Full CI-style check before release |
+| `npm run analyze` | Bundle analyzer build |
 
 ---
 
-## Project structure (overview)
+## Project structure
 
 ```
 src/
-├── app/              # Next.js App Router (pages, layouts, API routes)
-├── components/       # React components (UI, Player, Layout, etc.)
-├── context/         # React context (e.g. Auth)
-├── hooks/           # Custom hooks (watch, localStorage, debounce, etc.)
-├── lib/             # Shared utilities (api client, auth, db, mailer)
-├── services/        # API/data services (anime, episodes, streams)
-├── shared/          # Types, constants, data
-└── style/           # Global SCSS (reset, variables, mixins)
+├── app/                      # Pages & API routes
+│   └── api/
+│       ├── watch/resolve/    # Thin export → server/watch-resolve
+│       ├── m3u8-proxy/
+│       ├── animepahe/        # Catalog BFF
+│       ├── aniliberty/
+│       └── hikka/
+├── features/
+│   ├── watch/                # Watch hooks, episode list, provider swap
+│   └── player/               # Artplayer, HLS lifecycle
+├── server/
+│   ├── watch-resolve/        # Per-provider resolve strategies
+│   ├── catalog/              # Shared createCatalogRoute factory
+│   └── crysoline/            # HTTP client + rate-limit handling
+├── lib/
+│   ├── bff/watch/            # Client catalog fetch helpers
+│   ├── catalog/providers/    # Search matching, stream candidates
+│   └── env.ts                # Validated server env (Zod)
+├── components/               # Shared UI & layout
+└── shared/                   # Types & utilities
+
+workers/hikka-features-relay/ # Optional Cloudflare Worker
+docs/readme-banner.png        # README screenshot
 ```
 
 ---
 
-## Deployment
+## Deployment (Vercel)
 
-- **Vercel** — recommended: connect the repo, set env vars, deploy.
-- **Other hosts** — run `npm run build` and `npm run start`; set all required env vars in the host’s dashboard.
+**Checklist:**
 
-Ensure `NEXT_PUBLIC_*` and server-side variables (e.g. `MONGODB_URI`, `JWT_*`, `SMTP_*`) are set in the deployment environment.
+- [ ] Set all **required** env vars in the Vercel project settings
+- [ ] Set `NEXT_PUBLIC_SITE_URL` to your production domain
+- [ ] Redeploy after any `NEXT_PUBLIC_*` change (inlined at build time)
+- [ ] If using **Hikka**: deploy `workers/hikka-features-relay` and set `HIKKA_FEATURES_RELAY_BASE`
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Pashahu1/OtakuFusion)
+
+> You still need to add `CRYSOLINE_API_KEY`, MongoDB, SMTP, and JWT secrets in the Vercel dashboard after importing.
 
 ---
 
@@ -129,21 +301,12 @@ Ensure `NEXT_PUBLIC_*` and server-side variables (e.g. `MONGODB_URI`, `JWT_*`, `
 
 Contributions are welcome.
 
-1. Open an issue to discuss bugs or features.
-2. Fork the repo and create a branch (`fix/...` or `feat/...`).
-3. Follow existing code style (TypeScript, functional components, named exports where used).
-4. Add a clear description in the PR and reference any related issues.
+1. Open an issue for bugs or feature ideas.
+2. Fork → branch (`feat/...` or `fix/...`).
+3. Run `npm run predeploy` before opening a PR.
+4. Keep PRs focused; follow patterns in `src/features/`.
 
----
-
-## Reporting issues
-
-When reporting bugs or asking for features, please include:
-
-- A short, clear description
-- Steps to reproduce (for bugs)
-- What you expected vs what happened
-- Environment (Node version, OS, browser if relevant)
+When reporting bugs, include steps to reproduce, expected vs actual behaviour, and your environment — **never paste API keys**.
 
 ---
 
@@ -151,10 +314,14 @@ When reporting bugs or asking for features, please include:
 
 **Pavlo Chudyn** — Frontend Developer (React / Next.js)
 
-- GitHub: [Pashahu1](https://github.com/Pashahu1)
-- LinkedIn: [pavlo-chudyn](https://www.linkedin.com/in/pavlo-chudyn-978547246)
-- Telegram: [PashaChudin](https://t.me/PashaChudin)
+[![GitHub](https://img.shields.io/badge/GitHub-Pashahu1-181717?style=flat-square&logo=github)](https://github.com/Pashahu1)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-pavlo--chudyn-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/pavlo-chudyn-978547246)
+[![Telegram](https://img.shields.io/badge/Telegram-PashaChudin-26A5E4?style=flat-square&logo=telegram)](https://t.me/PashaChudin)
 
 ---
 
-If you find this project useful, consider giving it a **star** on GitHub.
+<div align="center">
+
+If OtakuFusion is useful to you, consider giving the repo a **star**.
+
+</div>

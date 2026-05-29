@@ -4,7 +4,7 @@ const HLS_QUALITY_KEY = 'otakufusion:player:hls-quality';
 export const DEFAULT_HLS_QUALITY_HEIGHT = 720;
 const SUBTITLE_PREF_KEY = 'otakufusion:player:subtitle';
 
-/** Збережений вибір якості HLS: `auto` (ABR лише до 720p), `best-display`, конкретна висота, або порожньо — старт ~720p. */
+/** Stored HLS quality choice: `auto` (ABR capped at 720p), `best-display`, specific height, or empty — start ~720p. */
 export type HlsQualityPreference =
   | 'auto'
   | 'best-display'
@@ -14,7 +14,7 @@ type SubtitlePreference =
   | { mode: 'off' }
   | { mode: 'on'; label: string };
 
-/** HTTP 4xx від edge/CDN — не намагаємося recover через Hls.startLoad. */
+/** HTTP 4xx from edge/CDN — do not recover via Hls.startLoad. */
 export function isHardHttpFailure(data: unknown): boolean {
   if (!data || typeof data !== 'object') return false;
   const d = data as { response?: { code?: unknown } };
@@ -23,7 +23,7 @@ export function isHardHttpFailure(data: unknown): boolean {
 }
 
 /**
- * Орієнтовна «коротка» сторона екрана в фізичних пікселях (для підбору сходинки під монітор / DPR).
+ * Approximate display short side in physical pixels (pick level for monitor / DPR).
  */
 export function getApproxDisplayShortSidePx(): number {
   if (typeof window === 'undefined') return 1080;
@@ -34,8 +34,8 @@ export function getApproxDisplayShortSidePx(): number {
 }
 
 /**
- * Найвища доступна сходинка, що не перевищує можливості екрана; якщо в маніфесті лише нижчі —
- * береться найвища з доступних (найкраща картинка при 2K тощо).
+ * Highest available level not exceeding display; if manifest only has lower levels —
+ * take highest available (best picture on 2K etc.).
  */
 export function getBestLevelIndexForDisplay(
   levels: Array<{ height?: number; bitrate?: number }>
@@ -59,7 +59,7 @@ export function getBestLevelIndexForDisplay(
   return ranked[ranked.length - 1].index;
 }
 
-/** Найвища сходинка не вище 720p; якщо в маніфесті лише вищі — найнижча з доступних. */
+/** Highest level not above 720p; if manifest only has higher — lowest available. */
 export function getPreferred720LevelIndex(
   levels: Array<{ height?: number }>
 ): number {
@@ -78,7 +78,7 @@ export function getPreferred720LevelIndex(
   return above720[0].index;
 }
 
-/** Дефолтний рівень якості (найвищий не вище 1080p), якщо в localStorage ще немає вибору. */
+/** Default quality level (highest not above 1080p) when localStorage has no choice yet. */
 export function getPreferred1080LevelIndex(
   levels: Array<{ height?: number }>
 ): number {
@@ -128,7 +128,7 @@ export function writeHlsQualityPreference(pref: HlsQualityPreference): void {
   }
 }
 
-/** Індекс рівня; `auto` більше не повертає −1 — лише cap до 720p (див. `resolveLevelIndexForStoredQuality`). */
+/** Level index; `auto` no longer returns −1 — only cap to 720p (see `resolveLevelIndexForStoredQuality`). */
 export function resolveLevelIndexForStoredQuality(
   levels: Array<{ height?: number; bitrate?: number }>,
   pref: HlsQualityPreference | null
@@ -168,13 +168,13 @@ function readAutoLevelFlag(hls: { loadLevel?: number; autoLevelEnabled?: boolean
 }
 
 export interface AttachHlsQualityPersistOptions {
-  /** Не записувати у storage одразу після ініціалізації (зменшує гонку з початковим lock рівня). */
+  /** Do not write to storage right after init (reduces race with initial level lock). */
   muteInitialPersistenceMs?: number;
 }
 
 /**
- * Після вибору якості в artplayer-plugin-hls-control змінюється loadLevel / autoLevelEnabled.
- * Не викликати до завершення початкового apply (інакше затремо дефолт у сховище).
+ * After quality pick in artplayer-plugin-hls-control loadLevel / autoLevelEnabled change.
+ * Do not call before initial apply completes (otherwise default overwrites storage).
  */
 export function attachHlsQualityPreferencePersistence(
   hls: InstanceType<typeof Hls>,
@@ -228,7 +228,7 @@ export function attachHlsQualityPreferencePersistence(
         return;
       }
       if (Number.isFinite(h) && h > 0 && idx >= 0) {
-        /** Дефолт/`auto`: не записуємо у LS 1080 через короткий ABR-сплеск до застосування cap. */
+        /** Default/`auto`: do not persist 1080 to LS from brief ABR spike before cap applies. */
         if ((stored === null || stored === 'auto') && h > 720) {
           onAfterPersist?.();
           return;

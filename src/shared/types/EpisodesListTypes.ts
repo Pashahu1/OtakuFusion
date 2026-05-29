@@ -6,7 +6,7 @@ export interface EpisodesTypes {
   title: string;
   japanese_title: string;
   filler?: boolean;
-  /** Внутрішній ідентифікатор епізоду в провайдері (hash / slug). */
+  /** Internal episode id at provider (hash / slug). */
   ep_token?: string;
   variant?: string;
   hasSub?: boolean;

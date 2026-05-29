@@ -1,4 +1,4 @@
-/** Спільне тіло POST /catalog для всіх watch-провайдерів. */
+/** Shared POST /catalog body for all watch providers. */
 export interface WatchCatalogBffBody {
   anilistId: string;
   title: string;

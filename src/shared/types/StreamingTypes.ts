@@ -1,6 +1,6 @@
 import type { VideoTrack } from "./VideoTrackTypes";
 
-/** Варіанти якості, коли API віддає окремі HLS на кожну роздільність (Anicore / Aniliberty). */
+/** Quality variants when API returns separate HLS per resolution (Anicore / Aniliberty). */
 export interface StreamQualityVariant {
   height: number;
   label: string;
@@ -11,12 +11,12 @@ export interface StreamQualityVariant {
 export interface StreamingData {
   streamingLink: StreamingType[];
   servers: StreamServer[];
-  /** Опційні інтервали (секунди), напр. з Aniliberty / Crysoline `sources`. */
+  /** Optional intervals (seconds), e.g. from Aniliberty / Crysoline `sources`. */
   skipSegments?: {
     intro: { start: number; end: number } | null;
     outro: { start: number; end: number } | null;
   };
-  /** Окремі плейлисти за роздільністю з `watch/resolve` (`quality_variants`). */
+  /** Separate playlists per resolution from `watch/resolve` (`quality_variants`). */
   qualityVariants?: StreamQualityVariant[];
 }
 

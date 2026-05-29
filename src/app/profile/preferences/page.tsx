@@ -6,7 +6,7 @@ export default function SettingsProfile() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-8 sm:gap-10 sm:py-10 md:px-0">
       <ChangePasswordForm />
 
-      {/* Окрема зона: візуально й змістовно відділена від «звичайних» налаштувань */}
+      {/* Separate zone: visually and semantically apart from regular settings */}
       <section
         className="pt-2 sm:pt-4"
         aria-labelledby="danger-zone-heading"

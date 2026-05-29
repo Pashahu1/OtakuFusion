@@ -7,6 +7,6 @@ export interface ContinueWatchingEntry {
   title?: string;
   japanese_title?: string;
   adultContent?: boolean;
-  /** Для сортування MRU (старі записи без поля → 0). */
+  /** For MRU sort (legacy entries without field → 0). */
   updatedAt?: number;
 }

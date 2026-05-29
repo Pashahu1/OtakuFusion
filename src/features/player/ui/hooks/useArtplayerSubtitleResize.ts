@@ -2,7 +2,7 @@ import type Artplayer from 'artplayer';
 
 type ArtplayerWithSubtitleRaf = Artplayer & { __subtitleResizeRaf?: number };
 
-/** Адаптивний розмір субтитрів при зміні розміру плеєра. */
+/** Adaptive subtitle size when player dimensions change. */
 export function attachArtplayerSubtitleResize(art: Artplayer) {
   art.on('resize', () => {
     const typed = art as ArtplayerWithSubtitleRaf;
