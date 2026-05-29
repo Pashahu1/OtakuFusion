@@ -14,7 +14,7 @@ import {
   fetchAnilibertyEpisodesForProviderSwap,
   trySyncAnilibertyProviderSwap,
 } from './anilibertyProviderSwap';
-import { readVerifiedLibertyMapping } from './watchAnimeMappingCache';
+import { readVerifiedLibertyMapping } from '@/features/watch/lib/provider-mapping-cache';
 
 export interface WatchAnimeCatalogLoadParams {
   animeId: string;

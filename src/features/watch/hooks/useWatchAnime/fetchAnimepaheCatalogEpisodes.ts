@@ -2,7 +2,10 @@
 import { getAnimePaheEpisodesFromBff } from '@/lib/animepahe-episodes-bff';
 import { patchEpisodesSeriesDub } from '@/services/animepahe/patchEpisodesSeriesDub';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
-import { clearVerifiedPaheMapping, readVerifiedPaheMapping } from './watchAnimeMappingCache';
+import {
+  clearVerifiedPaheMapping,
+  readVerifiedPaheMapping,
+} from '@/features/watch/lib/provider-mapping-cache';
 
 export async function fetchAnimepaheCatalogEpisodes(
   params: CatalogFetchBaseParams

@@ -8,7 +8,7 @@ import { fetchHikkaCatalogEpisodes } from './fetchHikkaCatalogEpisodes';
 import {
   readVerifiedLibertyMapping,
   readVerifiedPaheMapping,
-} from './watchAnimeMappingCache';
+} from '@/features/watch/lib/provider-mapping-cache';
 
 export function hydrateCachedProviderIds(params: {
   animeId: string;

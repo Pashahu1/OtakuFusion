@@ -1,20 +1,9 @@
+import { readVerifiedLibertyMapping } from '@/features/watch/lib/provider-mapping-cache';
 import { readAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
 
-const ANILIBERTY_MAPPING_PREFIX = 'aniliberty:mapping:';
-
 function readStoredAnilibertyReleaseId(localAnimeId: string | undefined): string | undefined {
-  if (typeof window === 'undefined' || !localAnimeId?.trim()) return undefined;
-  try {
-    const raw = localStorage.getItem(`${ANILIBERTY_MAPPING_PREFIX}${localAnimeId.trim()}`);
-    if (!raw) return undefined;
-    const parsed = JSON.parse(raw) as { libertyId?: string };
-    if (parsed && typeof parsed.libertyId === 'string' && parsed.libertyId.trim()) {
-      return parsed.libertyId.trim();
-    }
-  } catch {
-
-  }
-  return undefined;
+  if (!localAnimeId?.trim()) return undefined;
+  return readVerifiedLibertyMapping(localAnimeId.trim())?.libertyId;
 }
 
 export type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';

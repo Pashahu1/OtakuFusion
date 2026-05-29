@@ -13,12 +13,12 @@ import { restoreCachedAlternateLanguageMenu } from './watchAnimeCatalogUtils';
 import {
   readVerifiedHikkaMapping,
   readVerifiedLibertyMapping,
+  readVerifiedPaheMapping,
+  writeLibertyEpisodesCache,
   writeVerifiedHikkaMapping,
   writeVerifiedLibertyMapping,
   writeVerifiedPaheMapping,
-  readVerifiedPaheMapping,
-} from './watchAnimeMappingCache';
-import { writeLibertyEpisodesCache } from './anilibertyEpisodesCache';
+} from '@/features/watch/lib/provider-mapping-cache';
 import { upsertWarmHikkaCatalog, upsertWarmLibertyCatalog } from './watchAnimeWarmCatalog';
 
 export interface ApplyWatchCatalogSuccessContext {

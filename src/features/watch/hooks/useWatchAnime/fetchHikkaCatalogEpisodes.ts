@@ -1,6 +1,6 @@
 ﻿import { postHikkaCatalog } from '@/features/watch/lib/hikka-catalog-bff';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
-import { readVerifiedHikkaMapping } from './watchAnimeMappingCache';
+import { readVerifiedHikkaMapping } from '@/features/watch/lib/provider-mapping-cache';
 
 export async function fetchHikkaCatalogEpisodes(
   params: CatalogFetchBaseParams

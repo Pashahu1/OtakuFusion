@@ -6,13 +6,11 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ApplyWatchCatalogSuccessContext } from './applyWatchCatalogSuccess';
 import { applyWatchCatalogSuccess } from './applyWatchCatalogSuccess';
 import {
-  readLibertyEpisodesCache,
-  writeLibertyEpisodesCache,
-} from './anilibertyEpisodesCache';
-import {
   clearVerifiedLibertyMapping,
+  readLibertyEpisodesCache,
   readVerifiedLibertyMapping,
-} from './watchAnimeMappingCache';
+  writeLibertyEpisodesCache,
+} from '@/features/watch/lib/provider-mapping-cache';
 import { isLibertyCatalogAcceptableForAnime } from './watchAnimeCatalogUtils';
 import type { MutableRefObject } from 'react';
 import type { WarmAlternateCatalogEntry } from './types';

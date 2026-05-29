@@ -15,7 +15,7 @@ import {
   clearVerifiedLibertyMapping,
   clearVerifiedPaheMapping,
   getMappingCacheKey,
-} from './watchAnimeMappingCache';
+} from '@/features/watch/lib/provider-mapping-cache';
 
 export interface RunWatchCatalogPipelineParams {
   watchStreamProvider: WatchStreamProvider;

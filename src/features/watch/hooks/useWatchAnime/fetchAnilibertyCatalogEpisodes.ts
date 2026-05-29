@@ -2,11 +2,11 @@ import { postAnilibertyCatalog } from '@/features/watch/lib/aniliberty-catalog-b
 import { getAnilibertyEpisodesFromBff } from '@/lib/aniliberty-episodes-bff';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
 import { isLibertyCatalogAcceptableForAnime } from './watchAnimeCatalogUtils';
-import { writeLibertyEpisodesCache } from './anilibertyEpisodesCache';
 import {
   clearVerifiedLibertyMapping,
   readVerifiedLibertyMapping,
-} from './watchAnimeMappingCache';
+  writeLibertyEpisodesCache,
+} from '@/features/watch/lib/provider-mapping-cache';
 
 export async function fetchAnilibertyCatalogEpisodes(
   params: CatalogFetchBaseParams

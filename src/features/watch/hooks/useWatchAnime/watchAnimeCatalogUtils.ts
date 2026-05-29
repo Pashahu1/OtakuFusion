@@ -8,7 +8,7 @@ import type { AlternateLanguageMenuSetters } from './types';
 import {
   readVerifiedHikkaMapping,
   readVerifiedLibertyMapping,
-} from './watchAnimeMappingCache';
+} from '@/features/watch/lib/provider-mapping-cache';
 
 export function getWatchAnimeErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : 'An error occurred.';

@@ -11,11 +11,11 @@ import type { WarmAlternateCatalogEntry } from './types';
 import {
   clearVerifiedLibertyMapping,
   readVerifiedPaheMapping,
+  writeLibertyEpisodesCache,
   writeVerifiedHikkaMapping,
   writeVerifiedLibertyMapping,
   writeVerifiedPaheMapping,
-} from './watchAnimeMappingCache';
-import { writeLibertyEpisodesCache } from './anilibertyEpisodesCache';
+} from '@/features/watch/lib/provider-mapping-cache';
 import { upsertWarmHikkaCatalog, upsertWarmLibertyCatalog } from './watchAnimeWarmCatalog';
 
 async function delayMs(ms: number, signal: AbortSignal): Promise<void> {
