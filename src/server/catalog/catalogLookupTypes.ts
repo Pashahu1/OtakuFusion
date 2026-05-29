@@ -1,15 +1,7 @@
-/** Тіло POST catalog (Anicore / Aniliberty / Hikka) — спільне для match cache. */
-export interface CatalogLookupBody {
-  anilistId: string;
-  title: string;
-  romaji_title?: string;
-  japanese_title?: string;
-  showType?: string;
-  premiered?: string;
-  episodeTotal?: string;
-  mal_id?: number | null;
-  synonyms?: string;
-}
+import type { CatalogRequestBody } from '@/server/catalog/catalogRequestSchema';
+
+/** Тіло POST catalog — спільне для match cache (джерело правди: Zod schema). */
+export type CatalogLookupBody = CatalogRequestBody;
 
 export function catalogMatchCacheKey(body: CatalogLookupBody): string {
   return [

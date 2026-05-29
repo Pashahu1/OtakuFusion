@@ -6,39 +6,10 @@ import {
   type HikkaCatalogPick,
 } from '@/services/hikka/mapHikkaCatalog';
 import { resolveHikkaSlug } from '@/services/hikka/resolveHikkaSlug';
-import {
-  buildCatalogSearchTermsFromFields,
-  type CatalogHints,
-} from '@/services/catalog/catalogHints';
+import { buildCatalogSearchTermsFromFields } from '@/services/catalog/catalogHints';
+import { catalogHintsFromBody } from '@/server/catalog/catalogRequestSchema';
+import type { CatalogLookupBody } from '@/server/catalog/catalogLookupTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-
-export interface HikkaCatalogMatchInput {
-  anilistId: string;
-  title: string;
-  romaji_title?: string;
-  japanese_title?: string;
-  showType?: string;
-  premiered?: string;
-  episodeTotal?: string;
-  mal_id?: number | null;
-  synonyms?: string;
-}
-
-function hintsFromInput(input: HikkaCatalogMatchInput): CatalogHints {
-  const prem = input.premiered?.trim();
-  let seasonYear: number | null = null;
-  if (prem && /^\d{4}$/.test(prem)) seasonYear = parseInt(prem, 10);
-  const et = input.episodeTotal?.trim();
-  let episodeCount: number | null = null;
-  if (et && /^\d+$/.test(et)) episodeCount = parseInt(et, 10);
-  let anilistId: number | null = null;
-  if (/^\d+$/.test(input.anilistId.trim())) anilistId = parseInt(input.anilistId.trim(), 10);
-  const malId =
-    typeof input.mal_id === 'number' && Number.isFinite(input.mal_id) && input.mal_id > 0
-      ? Math.floor(input.mal_id)
-      : null;
-  return { format: input.showType?.trim() || null, seasonYear, episodeCount, anilistId, malId };
-}
 
 export interface HikkaCatalogResolved {
   hikkaSlug: string;
@@ -48,9 +19,9 @@ export interface HikkaCatalogResolved {
 }
 
 async function resolveHikkaCatalogUncached(
-  input: HikkaCatalogMatchInput
+  input: CatalogLookupBody
 ): Promise<HikkaCatalogResolved | null> {
-  const hints = hintsFromInput(input);
+  const hints = catalogHintsFromBody(input);
   const slug = await resolveHikkaSlug({
     malId: hints.malId,
     title: input.title,
@@ -79,7 +50,7 @@ async function resolveHikkaCatalogUncached(
   };
 }
 
-function catalogCacheKey(input: HikkaCatalogMatchInput): string {
+function catalogCacheKey(input: CatalogLookupBody): string {
   const terms = buildCatalogSearchTermsFromFields({
     title: input.title,
     romaji_title: input.romaji_title,
@@ -91,7 +62,7 @@ function catalogCacheKey(input: HikkaCatalogMatchInput): string {
 }
 
 export async function resolveHikkaCatalogCached(
-  input: HikkaCatalogMatchInput
+  input: CatalogLookupBody
 ): Promise<HikkaCatalogResolved | null> {
   const key = catalogCacheKey(input);
   const cached = unstable_cache(
