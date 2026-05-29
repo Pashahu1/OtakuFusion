@@ -1,8 +1,9 @@
 import { unstable_cache } from 'next/cache';
 import {
   buildTvdbSearchTitles,
-  resolveAnimeSeasonNumber,
+  parseSeasonNumberFromText,
   resolveSpotlightSeasonLabel,
+  stripSeasonFromTitle,
   titleMentionsSeason,
 } from '@/shared/utils/resolveAnimeSeasonLabel';
 
@@ -70,6 +71,30 @@ function normalizeTitle(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
+/** TVDB only: cour in title is not a TV season index (e.g. Dr. Stone S4 cour 3 → season 4). */
+function resolveTvdbSeasonNumber(input: {
+  title: string;
+  description?: string;
+  synonyms?: string[];
+}): number | null {
+  const fromDescription = parseSeasonNumberFromText(input.description);
+  if (fromDescription !== null) return fromDescription;
+
+  for (const synonym of input.synonyms ?? []) {
+    const fromSynonym = parseSeasonNumberFromText(synonym);
+    if (fromSynonym !== null) return fromSynonym;
+  }
+
+  const t = input.title.trim();
+  const courOnly =
+    /\bcour\s+\d{1,2}\b/i.test(t) &&
+    !/\bseason\s+\d{1,2}\b/i.test(t) &&
+    !/\b\d{1,2}(?:st|nd|rd|th)\s+season\b/i.test(t);
+  if (courOnly) return null;
+
+  return parseSeasonNumberFromText(input.title);
+}
+
 function hitIsSeries(hit: TvdbSearchHit): boolean {
   const t = (hit.type ?? hit.primary_type ?? '').toLowerCase();
   return t === 'series';
@@ -102,28 +127,79 @@ function hitMentionsSeason(hit: TvdbSearchHit, season: number): boolean {
   );
 }
 
+const STOP_WORDS = new Set(['the', 'and', 'of', 'a', 'an']);
+
+function tokenizeForMatch(value: string): string[] {
+  return normalizeTitle(value)
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter((t) => t.length >= 2 && !STOP_WORDS.has(t));
+}
+
+/** Score how well a TVDB series title matches our anime (avoid Pokémon on "Season 3" alone). */
+function scoreHitTitleMatch(
+  query: string,
+  franchiseBase: string | undefined,
+  hit: TvdbSearchHit
+): number {
+  const queries = [query, franchiseBase].filter((q): q is string => Boolean(q?.trim()));
+  const candidates = hitTitleCandidates(hit);
+  let best = 0;
+
+  for (const q of queries) {
+    const tokens = tokenizeForMatch(q);
+    if (!tokens.length) continue;
+
+    for (const candidate of candidates) {
+      let score = 0;
+      for (const token of tokens) {
+        if (candidate.includes(token)) score += 12;
+      }
+      if (tokens.length >= 2 && tokens.every((token) => candidate.includes(token))) {
+        score += 24;
+      }
+      best = Math.max(best, score);
+    }
+  }
+
+  return best;
+}
+
+const MIN_TVDB_TITLE_SCORE = 24;
+
 function pickBestSeriesHit(
   hits: TvdbSearchHit[],
   query: string,
-  preferSeason?: number | null
+  preferSeason?: number | null,
+  franchiseBase?: string
 ): TvdbSearchHit | null {
   const series = hits.filter(hitIsSeries);
   if (!series.length) return null;
 
   const want = normalizeTitle(query);
+  const base = franchiseBase?.trim() ? normalizeTitle(franchiseBase) : '';
 
-  if (preferSeason && preferSeason >= 1) {
-    const seasonal = series.filter((hit) => hitMentionsSeason(hit, preferSeason));
-    if (seasonal.length) {
-      const exactSeason = seasonal.find((hit) =>
-        hitTitleCandidates(hit).includes(want)
-      );
-      return exactSeason ?? seasonal[0] ?? null;
-    }
-  }
+  const rank = (hit: TvdbSearchHit) => {
+    const titleScore = scoreHitTitleMatch(query, franchiseBase, hit);
+    const seasonMatch =
+      preferSeason && preferSeason >= 1 ? hitMentionsSeason(hit, preferSeason) : false;
+    const exact =
+      hitTitleCandidates(hit).includes(want) ||
+      (base.length > 0 && hitTitleCandidates(hit).includes(base));
+    return { hit, titleScore, seasonMatch, exact };
+  };
 
-  const exact = series.find((hit) => hitTitleCandidates(hit).includes(want));
-  return exact ?? series[0] ?? null;
+  const ranked = series.map(rank).filter((r) => r.titleScore >= MIN_TVDB_TITLE_SCORE);
+
+  if (!ranked.length) return null;
+
+  ranked.sort((a, b) => {
+    if (a.exact !== b.exact) return a.exact ? -1 : 1;
+    if (a.seasonMatch !== b.seasonMatch) return a.seasonMatch ? -1 : 1;
+    return b.titleScore - a.titleScore;
+  });
+
+  return ranked[0]?.hit ?? null;
 }
 
 function seriesIdFromHit(hit: TvdbSearchHit): string | null {
@@ -164,7 +240,8 @@ async function tvdbFetchJson<T>(
 async function searchTvdbSeriesHit(
   token: string,
   query: string,
-  preferSeason?: number | null
+  preferSeason?: number | null,
+  franchiseBase?: string
 ): Promise<TvdbSearchHit | null> {
   const q = encodeURIComponent(query.trim());
   if (!q) return null;
@@ -174,7 +251,7 @@ async function searchTvdbSeriesHit(
     token,
     60 * 60 * 24
   );
-  return pickBestSeriesHit(searchJson?.data ?? [], query, preferSeason);
+  return pickBestSeriesHit(searchJson?.data ?? [], query, preferSeason, franchiseBase);
 }
 
 async function fetchClearLogoForSeries(
@@ -199,9 +276,10 @@ async function tryQueryForLogo(
   token: string,
   query: string,
   season: number | null,
-  requireSeasonInHit: boolean
+  requireSeasonInHit: boolean,
+  franchiseBase: string
 ): Promise<{ url: string; matchedSeasonSpecific: boolean } | null> {
-  const hit = await searchTvdbSeriesHit(token, query, season);
+  const hit = await searchTvdbSeriesHit(token, query, season, franchiseBase);
   if (!hit) return null;
 
   const mentionsSeason = season ? hitMentionsSeason(hit, season) : false;
@@ -233,7 +311,7 @@ async function fetchClearLogoUncached(input: {
   const token = await tvdbLogin(apiKey);
   if (!token) return empty;
 
-  const season = resolveAnimeSeasonNumber({
+  const season = resolveTvdbSeasonNumber({
     title: input.title,
     description: input.description,
     synonyms: input.synonyms,
@@ -245,15 +323,17 @@ async function fetchClearLogoUncached(input: {
     synonyms: input.synonyms,
   });
 
+  const franchiseBase = stripSeasonFromTitle(input.title);
+
   if (season) {
     for (const query of searchTitles) {
-      const hit = await tryQueryForLogo(token, query, season, true);
+      const hit = await tryQueryForLogo(token, query, season, true, franchiseBase);
       if (hit) return hit;
     }
   }
 
   for (const query of searchTitles) {
-    const hit = await tryQueryForLogo(token, query, season, false);
+    const hit = await tryQueryForLogo(token, query, season, false, franchiseBase);
     if (hit) return hit;
   }
 
@@ -263,7 +343,12 @@ async function fetchClearLogoUncached(input: {
       token,
       60 * 60 * 24 * 7
     );
-    const malHit = pickBestSeriesHit(malSearch?.data ?? [], input.title, season);
+    const malHit = pickBestSeriesHit(
+      malSearch?.data ?? [],
+      input.title,
+      season,
+      franchiseBase
+    );
     const seriesId = malHit ? seriesIdFromHit(malHit) : null;
     if (seriesId) {
       const url = await fetchClearLogoForSeries(token, seriesId);
@@ -292,7 +377,7 @@ export async function fetchTvdbClearLogoUrl(input: {
   if (!getTvdbApiKey()) return { url: null, matchedSeasonSpecific: false };
 
   const cacheKey = [
-    'tvdb-clearlogo-v4',
+    'tvdb-clearlogo-v5',
     title.toLowerCase(),
     input.malId ? String(input.malId) : 'no-mal',
     input.description?.slice(0, 40) ?? '',
