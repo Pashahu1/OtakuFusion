@@ -312,7 +312,7 @@ When reporting bugs, include steps to reproduce, expected vs actual behaviour, a
 
 ## Author
 
-**Pavlo Chudyn** — Frontend Developer (React / Next.js)
+**Pavlo Chudyn** — Software Engineer
 
 [![GitHub](https://img.shields.io/badge/GitHub-Pashahu1-181717?style=flat-square&logo=github)](https://github.com/Pashahu1)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-pavlo--chudyn-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/pavlo-chudyn-978547246)
