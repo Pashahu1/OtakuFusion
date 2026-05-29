@@ -1,12 +1,12 @@
-﻿import { unstable_cache } from 'next/cache';
-import { fetchHikkaWatchV2 } from '@/services/hikka/hikkaFeaturesClient';
+import { unstable_cache } from 'next/cache';
+import { fetchHikkaWatchV2 } from '@/lib/catalog/providers/hikka/hikkaFeaturesClient';
 import {
   mapHikkaTeamEpisodes,
   pickDefaultHikkaCatalog,
   type HikkaCatalogPick,
-} from '@/services/hikka/mapHikkaCatalog';
-import { resolveHikkaSlug } from '@/services/hikka/resolveHikkaSlug';
-import { buildCatalogSearchTermsFromFields } from '@/services/catalog/catalogHints';
+} from '@/lib/catalog/providers/hikka/mapHikkaCatalog';
+import { resolveHikkaSlug } from '@/lib/catalog/providers/hikka/resolveHikkaSlug';
+import { buildCatalogSearchTermsFromFields } from '@/lib/catalog/catalog-hints';
 import { catalogHintsFromBody } from '@/server/catalog/catalogRequestSchema';
 import type { CatalogLookupBody } from '@/server/catalog/catalogLookupTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';

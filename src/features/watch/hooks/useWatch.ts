@@ -16,7 +16,7 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
-import { isAnilistStillAiringFromStatus } from '@/services/aniliberty/anilibertyEpisodeMatch';
+import { isAnilistStillAiringFromStatus } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 import { useWatchAnime } from './useWatchAnime';
 import { useWatchStream, type WatchStreamAnimeMeta } from './useWatchStream';
 

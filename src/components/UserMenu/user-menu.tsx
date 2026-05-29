@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { useDropdown } from '@/hooks/useDropdown';
 import Image from 'next/image';
-import { cloudinaryAvatarUrl } from '@/helper/cloudinaryAvatarUrl';
+import { cloudinaryAvatarUrl } from '@/shared/utils/cloudinary-avatar-url';
 import { VerifiedSealIcon } from '@/components/icons/verified-seal-icon';
 import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
 

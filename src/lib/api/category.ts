@@ -67,3 +67,10 @@ export const getCategory = async (
     },
   };
 };
+
+export async function getCategoryInfo(
+  path: string,
+  page: string
+): Promise<ApiResponse<CategoryResults>> {
+  return getCategory(path, Number(page));
+}

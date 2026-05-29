@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query/keys';
 import { STALE_TIME } from '@/lib/query/stale-time';
-import { getHomePage } from '@/services/getHomePage';
+import { getHomePage } from '@/lib/api/home';
 
 /**
  * Client-side home cache. `HomeContent` stays RSC today (better LCP);

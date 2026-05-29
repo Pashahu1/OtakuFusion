@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
-import { cloudinaryAvatarUrl } from '@/helper/cloudinaryAvatarUrl';
+import { cloudinaryAvatarUrl } from '@/shared/utils/cloudinary-avatar-url';
 
 const API_ERROR_FALLBACK = 'Something went wrong.';
 

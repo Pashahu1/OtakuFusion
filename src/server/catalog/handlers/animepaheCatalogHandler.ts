@@ -1,4 +1,4 @@
-import type { AnimepaheCatalogHints } from '@/services/animepahe/catalogHints';
+import type { AnimepaheCatalogHints } from '@/lib/catalog/providers/animepahe/catalogHints';
 import { getAnimePaheEpisodesCached } from '@/server/animepahe/episodesCached';
 import { resolveAnimepahePaheIdCached } from '@/server/animepahe/catalogMatchCached';
 import { enrichEpisodesWithSeriesDubIfNeeded } from '@/server/animepahe/dubProbe';

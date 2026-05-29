@@ -1,6 +1,6 @@
 import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
 import type { AnimepaheCatalogBffBody } from '@/lib/animepahe-catalog-bff';
-import type { HikkaWatchSource } from '@/services/hikka/hikkaTypes';
+import type { HikkaWatchSource } from '@/lib/catalog/providers/hikka/hikkaTypes';
 
 export interface HikkaCatalogBffOk {
   success: true;

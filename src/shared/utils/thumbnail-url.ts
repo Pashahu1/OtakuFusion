@@ -5,7 +5,7 @@ export const LIST_THUMBNAIL_RES = '300x400';
 
 export const HERO_THUMBNAIL_RES = '1200x1800';
 
-export function Convertor(url: string, resolution = LIST_THUMBNAIL_RES) {
+export function thumbnailUrl(url: string, resolution = LIST_THUMBNAIL_RES): string {
   if (!url || typeof url !== 'string') return '';
   let u = url.trim();
   if (u === '') return u;

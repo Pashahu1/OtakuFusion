@@ -1,4 +1,4 @@
-import { getCategory } from '@/services/getCategory';
+import { getCategory } from '@/lib/api/category';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import {

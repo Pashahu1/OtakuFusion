@@ -1,13 +1,13 @@
-﻿import { unstable_cache } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 import { crysolineAnilibertySearch } from '@/server/crysoline/anilibertyClient';
 import { mergeParallelCatalogSearch } from '@/server/crysoline/parallelCatalogSearch';
 import {
   buildCatalogSearchQueryQueue,
   buildCatalogSearchTermsFromFields,
   type CatalogHints,
-} from '@/services/catalog/catalogHints';
-import { pickBestAnilibertySearchHit } from '@/services/aniliberty/pickAnilibertySearchHit';
-import { isAnilibertyHitEligible } from '@/services/aniliberty/anilibertyEpisodeMatch';
+} from '@/lib/catalog/catalog-hints';
+import { pickBestAnilibertySearchHit } from '@/lib/catalog/providers/aniliberty/pickAnilibertySearchHit';
+import { isAnilibertyHitEligible } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
 import {
   catalogMatchCacheKey,

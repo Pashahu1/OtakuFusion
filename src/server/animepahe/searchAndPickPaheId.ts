@@ -1,4 +1,4 @@
-﻿import {
+import {
   crysolineAnimepaheSearch,
   type CrysolineAnimepaheSearchRow,
 } from '@/server/crysoline/animepaheClient';
@@ -6,11 +6,11 @@ import {
   buildAnimepaheSearchQueryQueue,
   normalizeCatalogSearchQuery,
   type AnimepaheCatalogHints,
-} from '@/services/animepahe/catalogHints';
+} from '@/lib/catalog/providers/animepahe/catalogHints';
 import {
   pickBestAnimepaheSearchHit,
   pickBestAnimepaheSearchHitRelaxed,
-} from '@/services/animepahe/pickAnimepaheSearchHit';
+} from '@/lib/catalog/providers/animepahe/pickAnimepaheSearchHit';
 import type { CatalogLookupBody } from '@/server/catalog/catalogLookupTypes';
 
 const MAX_SEARCH_QUERIES = 3;

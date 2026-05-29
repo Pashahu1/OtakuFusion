@@ -1,4 +1,4 @@
-import { getHomePage } from '@/services/getHomePage';
+import { getHomePage } from '@/lib/api/home';
 import { ErrorState } from '@/components/ui/states/ErrorState';
 import { Preview } from '@/components/Preview/PreviewHero';
 import { HomeBelowFold } from './HomeBelowFold';

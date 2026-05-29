@@ -1,6 +1,6 @@
-﻿import { unstable_cache } from 'next/cache';
-import { buildAnimepaheSearchTermsFromFields } from '@/services/animepahe/catalogHints';
-import type { AnimepaheCatalogHints } from '@/services/animepahe/catalogHints';
+import { unstable_cache } from 'next/cache';
+import { buildAnimepaheSearchTermsFromFields } from '@/lib/catalog/providers/animepahe/catalogHints';
+import type { AnimepaheCatalogHints } from '@/lib/catalog/providers/animepahe/catalogHints';
 import { searchAndPickPaheId } from '@/server/animepahe/searchAndPickPaheId';
 import {
   catalogMatchCacheKey,

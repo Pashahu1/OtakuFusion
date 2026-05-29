@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
-import { truncateText } from '@/helper/truncateText';
+import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
+import { truncateText } from '@/shared/utils/truncate-text';
 import { Bookmark, Play, Star } from 'lucide-react';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { cn } from '@/lib/utils';
@@ -130,7 +130,7 @@ export function Card({
           <Image
             src={
               anime.poster
-                ? Convertor(anime.poster, LIST_THUMBNAIL_RES)
+                ? thumbnailUrl(anime.poster, LIST_THUMBNAIL_RES)
                 : '/sukuna-error.jpg'
             }
             alt=""

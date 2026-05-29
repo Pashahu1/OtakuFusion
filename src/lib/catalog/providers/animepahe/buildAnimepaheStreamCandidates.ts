@@ -2,7 +2,7 @@ import type {
   CrysolineAnimepaheSourceRow,
   CrysolineAnimepaheSourcesPayload,
 } from '@/server/crysoline/animepaheClient';
-import { inferAnimepaheSourceIsDub } from '@/services/animepahe/inferAnimepaheSourceIsDub';
+import { inferAnimepaheSourceIsDub } from '@/lib/catalog/providers/animepahe/inferAnimepaheSourceIsDub';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
 export type WatchLang = 'sub' | 'dub';

@@ -1,10 +1,10 @@
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import { encodeHikkaEpToken } from '@/services/hikka/hikkaEpToken';
+import { encodeHikkaEpToken } from '@/lib/catalog/providers/hikka/hikkaEpToken';
 import type {
   HikkaWatchSource,
   HikkaWatchTeamIframeSource,
   HikkaWatchV2Response,
-} from '@/services/hikka/hikkaTypes';
+} from '@/lib/catalog/providers/hikka/hikkaTypes';
 
 const SOURCE_ORDER: HikkaWatchSource[] = ['ashdi', 'tortuga', 'moon'];
 

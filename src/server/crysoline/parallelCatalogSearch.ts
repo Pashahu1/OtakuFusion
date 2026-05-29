@@ -1,4 +1,4 @@
-import { normalizeCatalogSearchQuery } from '@/services/catalog/catalogHints';
+import { normalizeCatalogSearchQuery } from '@/lib/catalog/catalog-hints';
 
 export interface ParallelCatalogSearchOptions {
   maxQueries?: number;

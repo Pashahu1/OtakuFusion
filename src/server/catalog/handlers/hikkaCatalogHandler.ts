@@ -1,5 +1,5 @@
 import { resolveHikkaCatalogCached } from '@/server/hikka/catalogMatchCached';
-import { HikkaFeaturesForbiddenError } from '@/services/hikka/hikkaOutboundFetch';
+import { HikkaFeaturesForbiddenError } from '@/lib/catalog/providers/hikka/hikkaOutboundFetch';
 import type {
   CatalogRouteContext,
   CatalogRouteFailure,

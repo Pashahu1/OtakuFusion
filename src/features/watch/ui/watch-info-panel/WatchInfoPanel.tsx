@@ -16,7 +16,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Bookmark } from 'lucide-react';
 import { useIsFavoriteAnime } from '@/hooks/useFavorites';
-import { Convertor, LIST_THUMBNAIL_RES } from '@/helper/Convertor';
+import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
 
 function animeDataToAnimeInfo(data: AnimeData): AnimeInfo {
   return {
@@ -58,7 +58,7 @@ export const WatchInfoPanel = ({
           {animeInfo?.poster && (
             <Image
               ref={posterImgRef}
-              src={Convertor(animeInfo.poster, LIST_THUMBNAIL_RES)}
+              src={thumbnailUrl(animeInfo.poster, LIST_THUMBNAIL_RES)}
               alt={
                 animeInfo.title ? `Poster: ${animeInfo.title}` : 'Anime poster'
               }

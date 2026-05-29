@@ -1,11 +1,11 @@
 import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
 import { resolveAnilibertyLibertyIdCached } from '@/server/aniliberty/catalogMatchCached';
-import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
+import { mapCrysolineAnilibertyEpisodes } from '@/lib/catalog/providers/aniliberty/mapAnilibertyEpisodes';
 import {
   buildAnilibertyEpisodeMatchOptions,
   isAnilibertyEpisodeCountAcceptable,
   parseExpectedEpisodeCountFromHints,
-} from '@/services/aniliberty/anilibertyEpisodeMatch';
+} from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 import type { CatalogRequestBodyWithAnilistStatus } from '@/server/catalog/catalogRequestSchema';
 import type {
   CatalogRouteContext,

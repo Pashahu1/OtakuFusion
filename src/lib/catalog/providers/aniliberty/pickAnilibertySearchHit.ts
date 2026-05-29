@@ -1,9 +1,9 @@
-﻿import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
-import type { CatalogHints } from '@/services/catalog/catalogHints';
+import type { CrysolineAnilibertySearchRow } from '@/server/crysoline/anilibertyClient';
+import type { CatalogHints } from '@/lib/catalog/catalog-hints';
 import {
   isAnilibertyHitEligible,
   readAnilibertySearchEpisodeCount,
-} from '@/services/aniliberty/anilibertyEpisodeMatch';
+} from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 
 function normalizeFormat(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();

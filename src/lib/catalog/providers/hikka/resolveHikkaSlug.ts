@@ -1,8 +1,8 @@
-﻿import {
+import {
   buildCatalogSearchTermsFromFields,
   type CatalogHints,
-} from '@/services/catalog/catalogHints';
-import { hikkaIoFetch, hikkaIoUrl } from '@/services/hikka/hikkaIoFetch';
+} from '@/lib/catalog/catalog-hints';
+import { hikkaIoFetch, hikkaIoUrl } from '@/lib/catalog/providers/hikka/hikkaIoFetch';
 
 interface HikkaAnimeRow {
   slug?: string;

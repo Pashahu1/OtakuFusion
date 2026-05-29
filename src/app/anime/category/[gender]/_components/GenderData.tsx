@@ -1,4 +1,4 @@
-import { getGenreAnime } from '@/services/getGenreAnime';
+import { getGenreAnime } from '@/lib/api/genre';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import { Pagination } from '@/components/Pagination/Pagination';

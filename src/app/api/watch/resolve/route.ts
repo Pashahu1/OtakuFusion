@@ -7,13 +7,13 @@ import type {
   CrysolineAnilibertyEpisodeRow,
   CrysolineAnilibertySourcesPayload,
 } from '@/server/crysoline/anilibertyClient';
-import { buildAnimepaheStreamCandidates } from '@/services/animepahe/buildAnimepaheStreamCandidates';
+import { buildAnimepaheStreamCandidates } from '@/lib/catalog/providers/animepahe/buildAnimepaheStreamCandidates';
 import {
   buildAnilibertyStreamCandidatesFromEpisodeRow,
   buildAnilibertyStreamCandidatesFromSources,
-} from '@/services/aniliberty/buildAnilibertyStreamCandidates';
-import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
-import { isAnilibertyEpisodeCountAcceptable } from '@/services/aniliberty/anilibertyEpisodeMatch';
+} from '@/lib/catalog/providers/aniliberty/buildAnilibertyStreamCandidates';
+import { mapCrysolineAnilibertyEpisodes } from '@/lib/catalog/providers/aniliberty/mapAnilibertyEpisodes';
+import { isAnilibertyEpisodeCountAcceptable } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 import {
   buildProbeHeaders,
   isPlayableViaProxy,
@@ -23,16 +23,16 @@ import {
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 import { tryResolveMirunoDubHls } from '@/server/miruno/fetchMirunoDubStream';
-import { decodeHikkaEpToken } from '@/services/hikka/hikkaEpToken';
-import { fetchHikkaWatchV2 } from '@/services/hikka/hikkaFeaturesClient';
+import { decodeHikkaEpToken } from '@/lib/catalog/providers/hikka/hikkaEpToken';
+import { fetchHikkaWatchV2 } from '@/lib/catalog/providers/hikka/hikkaFeaturesClient';
 import {
   mapHikkaTeamEpisodes,
   pickDefaultHikkaCatalog,
-} from '@/services/hikka/mapHikkaCatalog';
-import { refererForHikkaPageUrl } from '@/services/hikka/extractPageM3u8';
+} from '@/lib/catalog/providers/hikka/mapHikkaCatalog';
+import { refererForHikkaPageUrl } from '@/lib/catalog/providers/hikka/extractPageM3u8';
 import { extractHikkaM3u8Cached } from '@/server/hikka/extractM3u8Cached';
 import { normalizeWatchStreamProvider } from '@/features/watch/lib/watch-provider';
-import { HikkaFeaturesForbiddenError } from '@/services/hikka/hikkaOutboundFetch';
+import { HikkaFeaturesForbiddenError } from '@/lib/catalog/providers/hikka/hikkaOutboundFetch';
 
 type WatchLang = 'sub' | 'dub';
 

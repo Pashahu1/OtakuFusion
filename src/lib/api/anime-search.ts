@@ -4,8 +4,8 @@ import {
   filterAnimeSearchResults,
   normalizeAnimeSearchQuery,
   rankAnimeSearchMedia,
-} from '@/services/animeSearchRank';
-import { buildAnimeSearchQueryVariants } from '@/services/buildAnimeSearchQueryVariants';
+} from '@/shared/search/anime-search-rank';
+import { buildAnimeSearchQueryVariants } from '@/shared/search/build-anime-search-query-variants';
 
 export const ANIME_SEARCH_MIN_QUERY_LENGTH = 2;
 export const ANIME_SEARCH_RESULT_LIMIT = 24;

@@ -13,7 +13,7 @@ import {
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
-import { onEpisodeWatched as markWatchedInStorage } from '@/helper/WatchedEpisodes';
+import { onEpisodeWatched as markWatchedInStorage } from '@/lib/watch/watched-episodes';
 
 export default function Watch() {
   const searchParams = useSearchParams();

@@ -5,8 +5,8 @@ import {
   catalogHintsFromBody,
   type CatalogRequestBody,
 } from '@/server/catalog/catalogRequestSchema';
-import { buildCatalogSearchTermsFromFields } from '@/services/catalog/catalogHints';
-import type { CatalogHints } from '@/services/catalog/catalogHints';
+import { buildCatalogSearchTermsFromFields } from '@/lib/catalog/catalog-hints';
+import type { CatalogHints } from '@/lib/catalog/catalog-hints';
 
 const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 

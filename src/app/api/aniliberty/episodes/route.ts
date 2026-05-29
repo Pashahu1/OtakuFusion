@@ -1,6 +1,6 @@
 import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
 import { getCrysolineApiKey } from '@/server/crysoline/config';
-import { mapCrysolineAnilibertyEpisodes } from '@/services/aniliberty/mapAnilibertyEpisodes';
+import { mapCrysolineAnilibertyEpisodes } from '@/lib/catalog/providers/aniliberty/mapAnilibertyEpisodes';
 
 export async function GET(req: Request) {
   try {

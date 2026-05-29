@@ -1,5 +1,5 @@
-﻿import type { CrysolineAnimepaheSearchRow } from '@/server/crysoline/animepaheClient';
-import type { AnimepaheCatalogHints } from '@/services/animepahe/catalogHints';
+import type { CrysolineAnimepaheSearchRow } from '@/server/crysoline/animepaheClient';
+import type { AnimepaheCatalogHints } from '@/lib/catalog/providers/animepahe/catalogHints';
 
 function normalizeFormat(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();

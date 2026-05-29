@@ -3,7 +3,7 @@ import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import {
   isAnilibertyEpisodeCountAcceptable,
   isAnilistStillAiringFromStatus,
-} from '@/services/aniliberty/anilibertyEpisodeMatch';
+} from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 import type { AlternateLanguageMenuSetters } from './types';
 import {
   readVerifiedHikkaMapping,

@@ -1,6 +1,6 @@
-﻿import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
+import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import { inferAnimepaheSourceIsDub } from '@/services/animepahe/inferAnimepaheSourceIsDub';
+import { inferAnimepaheSourceIsDub } from '@/lib/catalog/providers/animepahe/inferAnimepaheSourceIsDub';
 
 function sourcesPayloadHasDub(payload: {
   sources?: Array<{ isDub?: boolean; quality?: string }>;

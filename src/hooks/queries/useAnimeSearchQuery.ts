@@ -6,7 +6,7 @@ import { STALE_TIME } from '@/lib/query/stale-time';
 import {
   ANIME_SEARCH_MIN_QUERY_LENGTH,
   getAnimeSearch,
-} from '@/services/getAnimeSearch';
+} from '@/lib/api/anime-search';
 
 interface UseAnimeSearchQueryOptions {
   enabled?: boolean;

@@ -1,8 +1,18 @@
 import {
   getAniListMediaById,
+  getAniListScheduleByDate,
   mapAniListMediaToNextEpisodeSchedule,
 } from '@/lib/anilist';
-import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
+import type {
+  NextEpisodeScheduleResult,
+  ScheduleAnime,
+} from '@/shared/types/GlobalAnimeTypes';
+
+export const getNextEpisodesAnime = async (
+  date: string
+): Promise<ScheduleAnime[]> => {
+  return getAniListScheduleByDate(date);
+};
 
 export async function getNextEpisodeSchedule(
   id: string

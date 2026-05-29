@@ -3,7 +3,7 @@
 import { useQuery, type QueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query/keys';
 import { STALE_TIME } from '@/lib/query/stale-time';
-import { getAnimeInfo } from '@/services/getAnimeInfo';
+import { getAnimeInfo } from '@/lib/api/anime-info';
 
 interface UseAnimeInfoQueryOptions {
   enabled?: boolean;

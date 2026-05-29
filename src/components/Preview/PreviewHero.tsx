@@ -7,7 +7,7 @@ import {
 } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Swiper as SwiperType } from 'swiper';
-import { Convertor, HERO_THUMBNAIL_RES } from '@/helper/Convertor';
+import { thumbnailUrl, HERO_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
 import 'swiper/css/effect-fade';
 import { EffectFade } from 'swiper/modules';
 
@@ -171,7 +171,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
               <SwiperSlide key={anime.id}>
                 <div className="relative h-full min-h-0 w-full">
                   <Image
-                    src={Convertor(anime.poster, HERO_THUMBNAIL_RES)}
+                    src={thumbnailUrl(anime.poster, HERO_THUMBNAIL_RES)}
                     alt={anime.title}
                     fill
                     sizes="100vw"

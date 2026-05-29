@@ -1,6 +1,6 @@
-﻿import { postAnimepaheCatalog } from '@/lib/animepahe-catalog-bff';
+import { postAnimepaheCatalog } from '@/lib/animepahe-catalog-bff';
 import { getAnimePaheEpisodesFromBff } from '@/lib/animepahe-episodes-bff';
-import { patchEpisodesSeriesDub } from '@/services/animepahe/patchEpisodesSeriesDub';
+import { patchEpisodesSeriesDub } from '@/lib/catalog/providers/animepahe/patchEpisodesSeriesDub';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
 import {
   clearVerifiedPaheMapping,

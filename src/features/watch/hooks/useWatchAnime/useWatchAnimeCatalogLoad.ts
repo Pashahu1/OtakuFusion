@@ -1,6 +1,6 @@
 import { useEffect, type MutableRefObject, type RefObject } from 'react';
-import { getAnimeInfo } from '@/services/getAnimeInfo';
-import { getNextEpisodeSchedule } from '@/services/getNextEpisodeSchedule';
+import { getAnimeInfo } from '@/lib/api/anime-info';
+import { getNextEpisodeSchedule } from '@/lib/api/schedule';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';

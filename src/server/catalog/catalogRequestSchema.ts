@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { CatalogHints } from '@/services/catalog/catalogHints';
-import { isAnilistStillAiringFromStatus } from '@/services/aniliberty/anilibertyEpisodeMatch';
+import type { CatalogHints } from '@/lib/catalog/catalog-hints';
+import { isAnilistStillAiringFromStatus } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 
 /** Спільне тіло POST catalog routes (AniList / MAL metadata для match). */
 export const CatalogRequestBodySchema = z.object({

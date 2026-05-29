@@ -1,6 +1,6 @@
 'use client';
 
-import { ANIME_SEARCH_MIN_QUERY_LENGTH } from '@/services/getAnimeSearch';
+import { ANIME_SEARCH_MIN_QUERY_LENGTH } from '@/lib/api/anime-search';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import {

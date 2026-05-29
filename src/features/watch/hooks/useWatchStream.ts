@@ -4,7 +4,7 @@ import type { StreamingData, StreamQualityVariant } from '@/shared/types/Streami
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { pickPreferredQualityVariant } from '@/features/player/ui/pickPreferredStreamQuality';
-import { resolveWatchStream } from '@/services/resolveWatchStream';
+import { resolveWatchStream } from '@/features/watch/lib/resolve-watch-stream';
 import { inferStreamMediaKind, urlLooksLikeHlsStream } from '@/lib/streamMediaType';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 import {

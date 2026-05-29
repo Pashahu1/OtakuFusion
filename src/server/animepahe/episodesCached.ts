@@ -1,6 +1,6 @@
-﻿import { unstable_cache } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 import { crysolineAnimepaheEpisodes } from '@/server/crysoline/animepaheClient';
-import { mapCrysolineAnimepaheEpisodes } from '@/services/animepahe/mapCrysolineEpisodes';
+import { mapCrysolineAnimepaheEpisodes } from '@/lib/catalog/providers/animepahe/mapCrysolineEpisodes';
 import type { GetEpisodesResult } from '@/shared/types/EpisodesListTypes';
 
 export async function getAnimePaheEpisodesCached(

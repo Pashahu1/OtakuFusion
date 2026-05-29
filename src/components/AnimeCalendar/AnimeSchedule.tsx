@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { format, isSameDay } from 'date-fns';
 import './AnimeCalendar.scss';
 import { useRouter } from 'next/navigation';
-import { Convertor } from '@/helper/Convertor';
+import { thumbnailUrl } from '@/shared/utils/thumbnail-url';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 
@@ -132,7 +132,7 @@ export const AnimeSchedule: React.FC<Props> = ({
       <div key={cellKey} className="schedule-cell">
         {dayEvents.map((event, eventIndex) => {
           const resolvedPoster = event.posterUrl?.trim()
-            ? Convertor(event.posterUrl.trim(), CALENDAR_POSTER_THUMB)
+            ? thumbnailUrl(event.posterUrl.trim(), CALENDAR_POSTER_THUMB)
             : '';
           const showPosterColumn = Boolean(resolvedPoster);
           const episodeLabel =

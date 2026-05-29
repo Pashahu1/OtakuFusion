@@ -1,5 +1,5 @@
-import { fetchHikkaFeaturesJson } from '@/services/hikka/hikkaOutboundFetch';
-import type { HikkaWatchV2Response } from '@/services/hikka/hikkaTypes';
+import { fetchHikkaFeaturesJson } from '@/lib/catalog/providers/hikka/hikkaOutboundFetch';
+import type { HikkaWatchV2Response } from '@/lib/catalog/providers/hikka/hikkaTypes';
 
 export async function fetchHikkaWatchV2(slug: string): Promise<HikkaWatchV2Response | null> {
   const s = slug.trim();

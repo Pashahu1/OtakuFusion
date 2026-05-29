@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache';
-import { extractM3u8FromEmbedPage } from '@/services/hikka/extractPageM3u8';
+import { extractM3u8FromEmbedPage } from '@/lib/catalog/providers/hikka/extractPageM3u8';
 
 export async function extractHikkaM3u8Cached(pageUrl: string): Promise<string | null> {
   const key = pageUrl.trim();

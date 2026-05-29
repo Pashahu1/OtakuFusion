@@ -1,4 +1,4 @@
-import type { HikkaEpTokenPayload, HikkaWatchSource } from '@/services/hikka/hikkaTypes';
+import type { HikkaEpTokenPayload, HikkaWatchSource } from '@/lib/catalog/providers/hikka/hikkaTypes';
 
 const PREFIX = 'hk1:';
 

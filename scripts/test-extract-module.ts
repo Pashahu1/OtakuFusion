@@ -1,4 +1,4 @@
-import { extractM3u8FromEmbedPage } from '../src/services/hikka/extractPageM3u8';
+import { extractM3u8FromEmbedPage } from '../src/lib/catalog/providers/hikka/extractPageM3u8';
 
 async function main() {
   const url = 'https://moonanime.art/iframe/sepr4nzpfy6j1g1gx7dn9';
