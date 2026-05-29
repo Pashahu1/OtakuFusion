@@ -50,8 +50,8 @@ describe('pickBestAnilibertySearchHit', () => {
       anilibertyHit({ id: 1, ...base }),
       anilibertyHit({
         id: 2,
-        title: { english: 'Frieren: Beyond Journey\'s End (Special)', other: null },
         ...base,
+        title: { english: 'Frieren: Beyond Journey\'s End (Special)', other: null },
       }),
     ];
     const hints: CatalogHints = { seasonYear: 2023, episodeCount: 28 };
