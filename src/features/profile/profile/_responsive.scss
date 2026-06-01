@@ -1,0 +1,34 @@
+﻿@media (max-width: 960px) {
+  .profile-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-stats__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-hero__banner {
+    height: 6rem;
+  }
+
+  .profile-hero__avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .profile-hero__name {
+    font-size: 1.25rem;
+  }
+
+  .profile-stats__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-heatmap__peak {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.25rem;
+  }
+}

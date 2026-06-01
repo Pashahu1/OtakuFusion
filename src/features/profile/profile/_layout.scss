@@ -1,0 +1,131 @@
+﻿.profile-shell {
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-bottom: 3rem;
+}
+
+.profile-hero {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.profile-hero__banner {
+  height: 7.5rem;
+  border-radius: 1rem 1rem 0 0;
+  background: #141519;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: none;
+}
+
+.profile-hero__body {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-top: -2.75rem;
+  padding: 0 1.25rem 1rem;
+}
+
+.profile-hero__avatar {
+  width: 5.5rem;
+  height: 5.5rem;
+  flex-shrink: 0;
+  border: 3px solid #141519;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: #0a0a0c;
+}
+
+.profile-hero__meta {
+  min-width: 0;
+  padding-bottom: 0.35rem;
+}
+
+.profile-hero__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.profile-hero__email {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #a1a1aa;
+}
+
+.profile-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0 0.25rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 1.5rem;
+}
+
+.profile-nav__link {
+  padding: 0.5rem 0.875rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  transition: color 0.15s, background 0.15s;
+}
+
+.profile-nav__link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.profile-nav__link--active {
+  color: #fff;
+  background: rgba(249, 115, 22, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.35);
+}
+
+.profile-dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.profile-dashboard--loading {
+  min-height: 20rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-dashboard__main,
+.profile-dashboard__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.profile-panel {
+  padding: 1.125rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #141519;
+}
+
+.profile-panel__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.profile-panel__empty {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #71717a;
+  line-height: 1.5;
+}
+
