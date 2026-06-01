@@ -1,8 +1,4 @@
-import { getAnilibertyEpisodesCached } from '@/server/aniliberty/episodesCached';
-import { getAnilibertySourcesCached } from '@/server/aniliberty/sourcesCached';
 import type { CrysolineAnilibertyEpisodeRow } from '@/server/crysoline/anilibertyClient';
-import { mapCrysolineAnilibertyEpisodes } from '@/lib/catalog/providers/aniliberty/mapAnilibertyEpisodes';
-import { pickEpisodeByNumber } from '@/server/watch-resolve/episodes';
 
 export function normalizeSkipSegmentBlock(
   block: { start?: number | null; end?: number | null } | null | undefined
@@ -46,32 +42,4 @@ export function findAnilibertyEpisodeRow(
   return rows.find(
     (r) => Number.isFinite(r.number) && Math.floor(r.number) === episode
   );
-}
-
-function shouldFetchAnilibriaSegmentHints(): boolean {
-  const v = process.env.WATCH_RESOLVE_FETCH_SEGMENT_HINTS?.trim().toLowerCase();
-  return v === '1' || v === 'true';
-}
-
-export async function attachAnilibriaSegmentHints(
-  body: Record<string, unknown>,
-  libertyId: string,
-  episode: number
-): Promise<void> {
-  if (!shouldFetchAnilibriaSegmentHints()) return;
-  try {
-    const rows = await getAnilibertyEpisodesCached(libertyId);
-    const { episodes: libertyEpisodes } = mapCrysolineAnilibertyEpisodes(rows);
-    const libertyTarget = pickEpisodeByNumber(libertyEpisodes, episode);
-    const libertyEpToken = libertyTarget?.ep_token?.trim();
-    if (!libertyEpToken) return;
-    const segPayload = await getAnilibertySourcesCached(libertyId, libertyEpToken);
-    const intro = normalizeSkipSegmentBlock(segPayload.intro);
-    const outro = normalizeSkipSegmentBlock(segPayload.outro);
-    if (intro || outro) {
-      body.segments = { intro, outro };
-    }
-  } catch {
-    // optional enrichment
-  }
 }

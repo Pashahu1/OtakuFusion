@@ -3,7 +3,6 @@ import {
   qualityVariantsFromCandidates,
 } from '@/server/watch-resolve/candidates';
 import { buildProbeHeaders } from '@/server/watch-resolve/probe';
-import { attachAnilibriaSegmentHints } from '@/server/watch-resolve/segments';
 import type { WatchLang } from '@/server/watch-resolve/types';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
@@ -17,7 +16,6 @@ export async function buildAnimepaheResolveSuccessBody(input: {
   targetEpisode: EpisodesTypes | null;
   primary: StreamingType;
   candidates: StreamingType[];
-  anilibertyReleaseId?: string | null;
   fromMiruno: boolean;
   fallbackApplied: boolean;
   usedLang: WatchLang;
@@ -31,7 +29,6 @@ export async function buildAnimepaheResolveSuccessBody(input: {
     targetEpisode,
     primary,
     candidates,
-    anilibertyReleaseId,
     fromMiruno,
     fallbackApplied,
     usedLang,
@@ -76,11 +73,6 @@ export async function buildAnimepaheResolveSuccessBody(input: {
   const qualityVariants = qualityVariantsFromCandidates(candidates);
   if (qualityVariants.length > 1) {
     body.quality_variants = qualityVariants;
-  }
-
-  const libertyId = anilibertyReleaseId?.trim() ?? null;
-  if (libertyId) {
-    await attachAnilibriaSegmentHints(body, libertyId, episode);
   }
 
   return body;

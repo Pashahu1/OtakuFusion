@@ -17,7 +17,6 @@ export interface AnimepaheResolveParams {
   origin: string;
   seriesId: string;
   preferredHint: string | null;
-  anilibertyReleaseId: string | null;
   anilistId: number | null;
   epTokenOverride?: string | null;
   episodeHasDub?: boolean | null;
@@ -51,7 +50,6 @@ export interface WatchResolveRequestContext {
   seriesId: string;
   provider: WatchResolveStreamProvider;
   preferredHint: string | null;
-  anilibertyReleaseId: string | null;
   anilistId: number | null;
   epTokenOverride: string | null;
   episodeHasDub: boolean | null;

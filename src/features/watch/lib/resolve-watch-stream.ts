@@ -1,10 +1,4 @@
-import { readVerifiedLibertyMapping } from '@/features/watch/lib/provider-mapping-cache';
 import { readAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
-
-function readStoredAnilibertyReleaseId(localAnimeId: string | undefined): string | undefined {
-  if (!localAnimeId?.trim()) return undefined;
-  return readVerifiedLibertyMapping(localAnimeId.trim())?.libertyId;
-}
 
 export type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
 
@@ -105,11 +99,6 @@ export async function resolveWatchStream(
     'stream_provider',
     sp === 'aniliberty' ? 'aniliberty' : sp === 'hikka' ? 'hikka' : 'animepahe'
   );
-
-  if (sp === 'animepahe') {
-    const libertyId = readStoredAnilibertyReleaseId(params.localAnimeId);
-    if (libertyId) query.set('aniliberty_release_id', libertyId);
-  }
 
   if (sp === 'aniliberty') {
     const qualityHint = readAnilibertyPlaybackQualityHint();

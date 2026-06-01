@@ -39,8 +39,6 @@ export async function computeWatchResolveOutcome(
   const seriesId = url.searchParams.get('ani_id')?.trim();
   const provider = getStreamProvider(url.searchParams);
   const preferredHint = url.searchParams.get('preferred_server_hint')?.trim() ?? null;
-  const anilibertyReleaseId =
-    url.searchParams.get('aniliberty_release_id')?.trim() ?? null;
   const anilistId = parseAnilistId(url.searchParams);
 
   if (!seriesId) {
@@ -87,7 +85,6 @@ export async function computeWatchResolveOutcome(
     origin,
     seriesId,
     preferredHint,
-    anilibertyReleaseId,
     anilistId,
     epTokenOverride,
     episodeHasDub,
