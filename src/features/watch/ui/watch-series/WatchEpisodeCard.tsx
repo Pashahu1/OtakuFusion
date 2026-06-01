@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { Play } from 'lucide-react';
+import { WATCH_EPISODE_THUMB_QUALITY } from '@/lib/anime-card-poster';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
 import './WatchEpisodeCard.scss';
@@ -42,7 +43,9 @@ export function WatchEpisodeCard({
             src={thumbSrc}
             alt=""
             fill
+            loading="lazy"
             sizes="(max-width: 640px) 45vw, (max-width: 1200px) 22vw, 280px"
+            quality={WATCH_EPISODE_THUMB_QUALITY}
             className="watch-episode-card__img"
           />
         ) : null}

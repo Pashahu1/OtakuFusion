@@ -4,6 +4,10 @@ import { useState, useTransition } from 'react';
 import { Card } from '@/components/Card/Card';
 import { loadDiscoverBrowsePage } from '@/app/discover/[section]/actions';
 import type { DiscoverBrowseResult } from '@/lib/api/discover';
+import {
+  ABOVE_THE_FOLD_CARD_COUNT,
+  ANIME_GRID_POSTER_QUALITY,
+} from '@/lib/anime-card-poster';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 interface DiscoverBrowseLoadMoreProps {
@@ -52,9 +56,8 @@ export function DiscoverBrowseLoadMore({
           <Card
             key={anime.id}
             anime={anime}
-            priority={index < 6}
-            posterEager={index < 12}
-            posterQuality={58}
+            priority={index < ABOVE_THE_FOLD_CARD_COUNT}
+            posterQuality={ANIME_GRID_POSTER_QUALITY}
           />
         ))}
       </div>

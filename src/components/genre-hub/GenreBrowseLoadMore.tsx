@@ -6,6 +6,10 @@ import type { GenreBrowseResult } from '@/lib/api/genre-hub';
 import type { GenreMediaFilter } from '@/shared/data/genre-hub';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { loadGenreBrowsePage } from '@/app/anime/category/[gender]/browse/[section]/actions';
+import {
+  ABOVE_THE_FOLD_CARD_COUNT,
+  ANIME_GRID_POSTER_QUALITY,
+} from '@/lib/anime-card-poster';
 
 interface GenreBrowseLoadMoreProps {
   genre: string;
@@ -59,9 +63,8 @@ export function GenreBrowseLoadMore({
           <Card
             key={anime.id}
             anime={anime}
-            priority={index < 6}
-            posterEager={index < 12}
-            posterQuality={58}
+            priority={index < ABOVE_THE_FOLD_CARD_COUNT}
+            posterQuality={ANIME_GRID_POSTER_QUALITY}
           />
         ))}
       </div>

@@ -8,7 +8,6 @@ import type { Swiper as SwiperType } from 'swiper';
 
 import { spotlightHeroBackgroundUrl } from '@/shared/utils/thumbnail-url';
 import type { SpotlightAnime } from '@/shared/types/GlobalAnimeTypes';
-import { heroSlideUsesAniListSource } from '../heroSlideImage';
 
 interface PreviewHeroSliderProps {
   spotlights: SpotlightAnime[];
@@ -66,14 +65,13 @@ export function PreviewHeroSlider({
                 src={spotlightHeroBackgroundUrl(anime)}
                 alt={anime.title}
                 fill
-                sizes="100vw"
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1600px"
                 priority={index === 0}
                 className="object-cover object-center brightness-75 contrast-110"
                 decoding="async"
                 fetchPriority={index === 0 ? 'high' : 'auto'}
                 loading={index === 0 ? 'eager' : 'lazy'}
-                quality={index === 0 ? 95 : 90}
-                unoptimized={heroSlideUsesAniListSource(anime)}
+                quality={index === 0 ? 82 : 72}
               />
               <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
               <div className="preview__shine" />

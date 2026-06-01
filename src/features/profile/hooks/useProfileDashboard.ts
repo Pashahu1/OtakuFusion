@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 
 import { useFavoritesQuery } from '@/hooks/useFavorites';
 import { buildProfileDashboardData } from '../lib/profile-stats';
@@ -20,9 +20,23 @@ function subscribeWatchActivity(onStoreChange: () => void) {
   };
 }
 
+const EMPTY_ACTIVITY: WatchActivityEntry[] = [];
+
+let cachedActivitySnapshot: WatchActivityEntry[] = EMPTY_ACTIVITY;
+let cachedActivitySnapshotKey = '';
+
 function readActivitySnapshot(): WatchActivityEntry[] {
-  if (typeof window === 'undefined') return [];
-  return readWatchActivityLog();
+  if (typeof window === 'undefined') return EMPTY_ACTIVITY;
+
+  const next = readWatchActivityLog();
+  const snapshotKey = JSON.stringify(next);
+  if (snapshotKey === cachedActivitySnapshotKey) {
+    return cachedActivitySnapshot;
+  }
+
+  cachedActivitySnapshotKey = snapshotKey;
+  cachedActivitySnapshot = next;
+  return cachedActivitySnapshot;
 }
 
 function readWatchedCountSnapshot(): number {
@@ -33,15 +47,33 @@ function readWatchedCountSnapshot(): number {
 export function useProfileDashboard(enabled: boolean) {
   const { data: favorites = [] } = useFavoritesQuery(enabled);
 
+  const subscribeActivity = useCallback(
+    (onStoreChange: () => void) => {
+      if (!enabled) return () => {};
+      return subscribeWatchActivity(onStoreChange);
+    },
+    [enabled],
+  );
+
+  const getActivitySnapshot = useCallback(() => {
+    if (!enabled) return EMPTY_ACTIVITY;
+    return readActivitySnapshot();
+  }, [enabled]);
+
+  const getWatchedCountSnapshot = useCallback(() => {
+    if (!enabled) return 0;
+    return readWatchedCountSnapshot();
+  }, [enabled]);
+
   const activity = useSyncExternalStore(
-    enabled ? subscribeWatchActivity : () => () => {},
-    enabled ? readActivitySnapshot : () => [],
-    () => [],
+    subscribeActivity,
+    getActivitySnapshot,
+    () => EMPTY_ACTIVITY,
   );
 
   const watchedFromStorage = useSyncExternalStore(
-    enabled ? subscribeWatchActivity : () => () => {},
-    enabled ? readWatchedCountSnapshot : () => 0,
+    subscribeActivity,
+    getWatchedCountSnapshot,
     () => 0,
   );
 

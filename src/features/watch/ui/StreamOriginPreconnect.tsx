@@ -2,9 +2,12 @@
 
 import { useEffect } from 'react';
 
-function streamUrlToOrigin(streamUrl: string): string | null {
+import { getStreamFullUrl, getStreamHeaders } from '@/features/player/ui/playerStream';
+import type { StreamingData } from '@/shared/types/StreamingTypes';
+
+function playbackUrlToOrigin(playbackUrl: string): string | null {
   try {
-    const u = new URL(streamUrl.trim());
+    const u = new URL(playbackUrl.trim());
     if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
     return `${u.protocol}//${u.hostname}`;
   } catch {
@@ -12,29 +15,38 @@ function streamUrlToOrigin(streamUrl: string): string | null {
   }
 }
 
+interface StreamOriginPreconnectProps {
+  streamUrl: string | null;
+  streamInfo?: StreamingData | null;
+}
 
-export function StreamOriginPreconnect({ streamUrl }: { streamUrl: string | null }) {
+/** Preconnect only to the origin Artplayer/hls.js actually hits (skip same-origin proxy). */
+export function StreamOriginPreconnect({
+  streamUrl,
+  streamInfo,
+}: StreamOriginPreconnectProps) {
   useEffect(() => {
     if (!streamUrl?.trim()) return;
-    const href = streamUrlToOrigin(streamUrl);
-    if (!href) return;
 
-    const created: HTMLLinkElement[] = [];
-    for (const rel of ['preconnect', 'dns-prefetch'] as const) {
-      const link = document.createElement('link');
-      link.rel = rel;
-      link.href = href;
-      link.crossOrigin = 'anonymous';
-      document.head.appendChild(link);
-      created.push(link);
+    const headers = getStreamHeaders(streamInfo ?? null, streamUrl);
+    const playbackUrl = getStreamFullUrl(streamUrl, headers);
+    const origin = playbackUrlToOrigin(playbackUrl);
+    if (!origin) return;
+
+    if (typeof window !== 'undefined' && origin === window.location.origin) {
+      return;
     }
 
+    const link = document.createElement('link');
+    link.rel = 'preconnect';
+    link.href = origin;
+    link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+
     return () => {
-      for (const link of created) {
-        link.remove();
-      }
+      link.remove();
     };
-  }, [streamUrl]);
+  }, [streamUrl, streamInfo]);
 
   return null;
 }

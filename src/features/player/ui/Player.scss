@@ -3,6 +3,77 @@
   --art-loaded-color: rgba(255, 255, 255, 0.52);
 }
 
+/* Player welcome logo — brand preset + delayed fade-out (see attachLogoReveal). */
+.otakufusion-player-logo-layer {
+  transform: translateY(-10px) scale(0.96);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.otakufusion-player-logo-layer--visible {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1);
+}
+
+.otakufusion-player-logo-layer--hiding {
+  opacity: 0 !important;
+  transform: translateY(-8px) scale(0.98);
+  transition-duration: 0.9s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.otakufusion-player-logo__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: linear-gradient(
+    145deg,
+    rgba(26, 26, 26, 0.94) 0%,
+    rgba(42, 42, 42, 0.82) 100%
+  );
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(244, 117, 33, 0.22);
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 0 24px rgba(244, 117, 33, 0.08);
+}
+
+.otakufusion-player-logo__brand {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  color: var(--color-brand-text-primary, #fff);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.otakufusion-player-logo__brand-accent {
+  color: var(--color-brand-orange, #f47521);
+}
+
+.otakufusion-player-logo__tagline {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--color-brand-text-secondary, #dadada);
+}
+
+.otakufusion-player-logo__sparkle {
+  font-size: 0.7rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px rgba(244, 117, 33, 0.45));
+}
+
 .art-subtitle {
   padding-inline: 0px !important;
   gap: 2px !important;

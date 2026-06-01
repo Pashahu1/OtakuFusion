@@ -2,14 +2,6 @@ const nextConfig = {
   experimental: {
     inlineCss: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/favicon.ico',
-        destination: '/language.png',
-      },
-    ];
-  },
   images: {
     remotePatterns: [
       {
@@ -61,7 +53,8 @@ const nextConfig = {
       384,
     ],
     /** Має містити всі значення `quality` з `<Image />` (див. PreviewHero 90/95 тощо). */
-    qualities: [52, 55, 58, 60, 62, 65, 68, 70, 75, 80, 85, 90, 95],
+    qualities: [52, 55, 58, 60, 62, 65, 68, 70, 72, 75, 80, 82, 85, 90, 95],
+    formats: ['image/avif', 'image/webp'],
     /**
      * У dev Next 16 інколи сипле LRU при записі дискового кешу оптимізатора (`calculateSize === 0`).
      * Без серверної оптимізації в розробці помилки зникають; у production залишається оптимізація.

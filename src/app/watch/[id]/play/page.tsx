@@ -71,7 +71,7 @@ export default function WatchPlayPage() {
 
   return (
     <div className="watch-play-page">
-      <StreamOriginPreconnect streamUrl={watch.streamUrl} />
+      <StreamOriginPreconnect streamUrl={watch.streamUrl} streamInfo={watch.streamInfo} />
       <WatchPlayShell
         animeId={animeId}
         watchedEpisodes={watchedEpisodes}

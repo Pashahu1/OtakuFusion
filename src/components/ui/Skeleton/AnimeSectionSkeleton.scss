@@ -1,0 +1,8 @@
+.anime-section-skeleton {
+  &__title {
+    height: 1.75rem;
+    width: clamp(7rem, 28vw, 11rem);
+    border-radius: 0.375rem;
+    background: rgba(255, 255, 255, 0.1);
+  }
+}

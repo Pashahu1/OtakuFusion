@@ -69,7 +69,12 @@ export const Preview = ({ spotlights, trending }: Props) => {
             message="Please check back later."
           />
         ) : (
-          <SwiperCard title="Trending" catalog={safeTrending} sectionId="trending" />
+          <SwiperCard
+            title="Trending"
+            catalog={safeTrending}
+            sectionId="trending"
+            prioritySlideCount={4}
+          />
         )}
       </div>
     </>

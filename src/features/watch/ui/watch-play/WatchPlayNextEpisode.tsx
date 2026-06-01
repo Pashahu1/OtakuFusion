@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { WATCH_PLAY_NEXT_THUMB_QUALITY } from '@/lib/anime-card-poster';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
@@ -45,7 +46,9 @@ export function WatchPlayNextEpisode({
               src={thumbSrc}
               alt=""
               fill
+              loading="lazy"
               sizes="160px"
+              quality={WATCH_PLAY_NEXT_THUMB_QUALITY}
               className="watch-play-next__img"
             />
           ) : null}

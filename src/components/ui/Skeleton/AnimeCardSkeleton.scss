@@ -1,0 +1,41 @@
+.anime-card-skeleton {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: #000;
+
+  &__poster {
+    aspect-ratio: 2 / 3;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  &__footer {
+    display: flex;
+    min-height: 3.25rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem;
+    background: #000;
+  }
+
+  &__line {
+    height: 0.8125rem;
+    border-radius: 0.25rem;
+    background: rgba(255, 255, 255, 0.1);
+
+    &--title {
+      width: 92%;
+      height: 0.875rem;
+    }
+
+    &--sub {
+      width: 58%;
+      height: 0.75rem;
+      background: rgba(255, 255, 255, 0.06);
+    }
+  }
+}

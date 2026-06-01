@@ -1,19 +1,18 @@
-import { AnimeCardSkeleton } from '@/components/ui/Skeleton/AnimeCardSkeleton';
 import '@/components/Layout/anime-card-feed.scss';
-import '@/components/genre-hub/GenreBrowseFilters.scss';
+import '@/components/genre-hub/genre-browse-layout.scss';
+
+import { AnimeCardSkeleton } from '@/components/ui/Skeleton/AnimeCardSkeleton';
 
 export function GenreBrowseSkeleton() {
   return (
-    <div className="genre-browse-layout animate-pulse" aria-hidden>
-      <div className="genre-browse-toolbar genre-browse-layout__toolbar">
-        <div className="genre-browse-toolbar__heading">
-          <div className="flex flex-wrap items-baseline gap-2">
-            <div className="h-8 w-24 rounded bg-white/10" />
-            <div className="h-6 w-3 rounded bg-white/5" />
-            <div className="h-8 w-32 rounded bg-white/10" />
-          </div>
+    <div className="genre-browse-layout" aria-hidden>
+      <div className="mb-6 space-y-3">
+        <div className="h-10 w-56 max-w-[70%] animate-pulse rounded bg-white/10" />
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-9 w-20 animate-pulse rounded-md bg-white/5" />
+          ))}
         </div>
-        <div className="h-10 w-[5.5rem] shrink-0 rounded-lg bg-white/10" />
       </div>
       <div className="anime-card-feed">
         {Array.from({ length: 12 }).map((_, i) => (

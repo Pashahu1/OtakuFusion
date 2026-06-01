@@ -31,7 +31,7 @@ export function HeroSlideTitle({ anime, priority = false }: HeroSlideTitleProps)
             sizes="(max-width: 767px) min(92vw, 340px), (max-width: 1023px) min(460px, 92vw), 520px"
             className="hero__title-logo h-auto w-auto max-w-full"
             priority={priority}
-            unoptimized
+            quality={80}
             onError={() => setLogoFailed(true)}
           />
         </div>

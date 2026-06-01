@@ -32,6 +32,7 @@ export function SwiperCard({
   catalog,
   sectionId,
   viewAllHref,
+  prioritySlideCount = 0,
 }: SwiperCardProps) {
   const reactId = useId().replace(/:/g, '');
   const slug = sectionId ? slugify(sectionId) : '';
@@ -99,13 +100,17 @@ export function SwiperCard({
           slidesPerView="auto"
           spaceBetween={SPACING_BETWEEN_SLIDES}
           navigation={navigation}
+          watchOverflow
         >
-          {catalog.map((anime) => (
+          {catalog.map((anime, index) => (
             <SwiperSlide className="swiper-card__slide" key={anime.id}>
               <Card
                 anime={anime}
                 posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
                 posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
+                priority={
+                  prioritySlideCount > 0 && index < prioritySlideCount
+                }
               />
             </SwiperSlide>
           ))}

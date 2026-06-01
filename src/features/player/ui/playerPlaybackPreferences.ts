@@ -5,7 +5,6 @@ export {
   getPreferred720LevelIndex,
   getPreferred1080LevelIndex,
   getHighestAvailableLevelIndex,
-  getDataSaverLevelIndex,
   getNextLowerLevelIndex,
 } from './playback-preferences/hlsQualityLevels';
 export {
@@ -24,7 +23,3 @@ export {
   readSubtitlePreference,
   writeSubtitlePreference,
 } from './playback-preferences/subtitlePreferences';
-export {
-  readPlaybackAutostartEnabled,
-  writePlaybackAutostartEnabled,
-} from './playback-preferences/playbackAutostartPreferences';

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Play } from 'lucide-react';
@@ -11,10 +12,17 @@ import { useHeroImageAccent } from '@/features/watch/hooks/useHeroImageAccent';
 import type { SpotlightAnime } from '@/shared/types/GlobalAnimeTypes';
 import type { WatchCtaVariant } from '@/features/watch/lib/resolve-continue-watching-cta';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
-import { spotlightHeroBackgroundUrl } from '@/shared/utils/thumbnail-url';
+import { WATCH_HERO_BG_QUALITY } from '@/lib/anime-card-poster';
+import {
+  HERO_THUMBNAIL_RES,
+  spotlightHeroBackgroundUrl,
+  thumbnailUrl,
+} from '@/shared/utils/thumbnail-url';
 import { WatchSeriesSaveButton } from './WatchSeriesSaveButton';
 import './WatchSeriesHero.scss';
 import './WatchSeriesSaveButton.scss';
+
+const TVDB_HERO_UPGRADE_IDLE_MS = 2500;
 
 function animeDataToFavorite(anime: AnimeData) {
   return {
@@ -27,13 +35,6 @@ function animeDataToFavorite(anime: AnimeData) {
     tvInfo: anime.animeInfo?.tvInfo,
     adultContent: anime.adultContent,
   };
-}
-
-function heroUsesAniListPoster(hero: SpotlightAnime): boolean {
-  return (
-    !hero.heroImageUrl?.trim() &&
-    (hero.poster.includes('anilist.co') || hero.poster.includes('s4.anilist.co'))
-  );
 }
 
 interface WatchSeriesHeroProps {
@@ -55,14 +56,42 @@ export function WatchSeriesHero({
   isDetailsExpanded,
   onToggleDetails,
 }: WatchSeriesHeroProps) {
-  const bgSrc = spotlightHeroBackgroundUrl(hero);
+  const posterBgSrc = useMemo(
+    () => thumbnailUrl(hero.poster, HERO_THUMBNAIL_RES),
+    [hero.poster],
+  );
+  const tvdbBgSrc = hero.heroImageUrl?.trim() || null;
+  const preferredBgSrc = spotlightHeroBackgroundUrl(hero);
+
+  const [bgSrc, setBgSrc] = useState(() => posterBgSrc || preferredBgSrc);
+
+  useEffect(() => {
+    if (!tvdbBgSrc || tvdbBgSrc === posterBgSrc) {
+      setBgSrc(preferredBgSrc);
+      return;
+    }
+
+    setBgSrc(posterBgSrc);
+
+    const upgradeToTvdb = () => setBgSrc(tvdbBgSrc);
+    if (typeof requestIdleCallback !== 'undefined') {
+      const idleId = requestIdleCallback(upgradeToTvdb, {
+        timeout: TVDB_HERO_UPGRADE_IDLE_MS,
+      });
+      return () => cancelIdleCallback(idleId);
+    }
+
+    const timerId = window.setTimeout(upgradeToTvdb, TVDB_HERO_UPGRADE_IDLE_MS);
+    return () => window.clearTimeout(timerId);
+  }, [tvdbBgSrc, posterBgSrc, preferredBgSrc]);
+
   const accent = useHeroImageAccent(bgSrc);
 
   const heroStyle = {
     '--watch-hero-accent-border': accent.borderColor,
     '--watch-hero-accent-tint': accent.panelTint,
     '--watch-hero-accent': accent.accentColor,
-  } as React.CSSProperties;
+  } as CSSProperties;
 
   return (
     <section
@@ -76,9 +105,12 @@ export function WatchSeriesHero({
           alt=""
           fill
           priority
-          sizes="100vw"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
+          quality={WATCH_HERO_BG_QUALITY}
           className="watch-series-hero__bg"
-          unoptimized={heroUsesAniListPoster(hero)}
         />
         <div className="watch-series-hero__shade watch-series-hero__shade--top" />
         <div className="watch-series-hero__shade watch-series-hero__shade--bottom" />

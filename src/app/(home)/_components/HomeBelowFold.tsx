@@ -43,7 +43,12 @@ export function HomeBelowFold({
   return (
     <div className={HOME_FEED_SECTION_CLASS}>
       <ContinueWatchingSection />
-      <SwiperCard title="Top Airing" catalog={topAiring} sectionId="top-airing" />
+      <SwiperCard
+        title="Top Airing"
+        catalog={topAiring}
+        sectionId="top-airing"
+        prioritySlideCount={4}
+      />
       <SwiperCard
         title="Most Favorite"
         catalog={mostFavorite}

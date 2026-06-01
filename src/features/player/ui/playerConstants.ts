@@ -35,4 +35,5 @@ export const SUBTITLE_DEFAULT_STYLE: Record<string, string> = {
   color: '#fff',
 };
 
-export const LOGO_HIDE_DELAY_MS = 2500;
+export const LOGO_HIDE_DELAY_MS = 4500;
+export const LOGO_FADE_OUT_MS = 900;

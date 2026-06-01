@@ -1,3 +1,4 @@
+import { AnimeCardSkeleton } from './AnimeCardSkeleton';
 import './SwiperSectionSkeleton.scss';
 
 interface SwiperSectionSkeletonProps {
@@ -20,26 +21,18 @@ export function SwiperSectionSkeleton({
     >
       <div className="swiper-section-skeleton__header">
         {title ? (
-          <div
-            className="swiper-section-skeleton__title animate-pulse"
-            aria-hidden
-          />
+          <div className="swiper-section-skeleton__title animate-pulse" aria-hidden />
         ) : (
           <span />
         )}
         {showViewAll ? (
-          <div
-            className="swiper-section-skeleton__view-all animate-pulse"
-            aria-hidden
-          />
+          <div className="swiper-section-skeleton__view-all animate-pulse" aria-hidden />
         ) : null}
       </div>
       <div className="swiper-section-skeleton__row">
         {Array.from({ length: slideCount }).map((_, i) => (
-          <div key={i} className="swiper-section-skeleton__slide animate-pulse">
-            <div className="swiper-section-skeleton__poster" />
-            <div className="swiper-section-skeleton__line w-[88%]" />
-            <div className="swiper-section-skeleton__line swiper-section-skeleton__line--short" />
+          <div key={i} className="swiper-section-skeleton__slide">
+            <AnimeCardSkeleton />
           </div>
         ))}
       </div>

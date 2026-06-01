@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { Card } from '@/components/Card/Card';
 import {
-  ANIME_CAROUSEL_POSTER_QUALITY,
   ANIME_CAROUSEL_POSTER_SIZES,
+  ABOVE_THE_FOLD_CARD_COUNT,
+  ANIME_GRID_POSTER_QUALITY,
 } from '@/lib/anime-card-poster';
 import '@/components/Layout/anime-card-feed.scss';
 import { EmptyState } from '@/components/ui/states/EmptyState';
@@ -76,12 +77,13 @@ export default function FavoritesPage() {
         </p>
       </div>
       <div className="anime-card-feed">
-        {favorites.map((anime) => (
+        {favorites.map((anime, index) => (
           <Card
             key={anime.id}
             anime={anime}
             posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
-            posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
+            posterQuality={ANIME_GRID_POSTER_QUALITY}
+            priority={index < ABOVE_THE_FOLD_CARD_COUNT}
           />
         ))}
       </div>

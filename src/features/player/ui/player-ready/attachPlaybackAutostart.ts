@@ -1,7 +1,5 @@
 import type Artplayer from 'artplayer';
 
-import { readPlaybackAutostartEnabled } from '../playerPlaybackPreferences';
-
 const MIN_BUFFER_AHEAD_SEC = 0.7;
 const MAX_BUFFER_WAIT_MS = 2800;
 
@@ -29,11 +27,6 @@ export function attachPlaybackAutostart(
   userPausedRef: React.RefObject<boolean>,
   artRef: React.RefObject<HTMLDivElement | null>,
 ): void {
-  if (!readPlaybackAutostartEnabled()) {
-    userPausedRef.current = true;
-    return;
-  }
-
   userPausedRef.current = false;
   let started = false;
 

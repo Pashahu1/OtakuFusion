@@ -8,7 +8,6 @@ import type { CalendarEvent } from './scheduleTypes';
 import {
   CALENDAR_POSTER_THUMB,
   formatScheduleTag,
-  isAniListCdnHost,
   slotStartForHour,
 } from './scheduleUtils';
 
@@ -62,7 +61,7 @@ export function ScheduleGridCell({
                   fill
                   className="schedule-event__poster-img"
                   sizes="(max-width: 1023px) 40px, 48px"
-                  unoptimized={isAniListCdnHost(resolvedPoster)}
+                  quality={70}
                 />
               </span>
             ) : null}

@@ -1,26 +1,42 @@
 import type Artplayer from 'artplayer';
-import { LOGO_HIDE_DELAY_MS } from '../playerConstants';
+
+import { LOGO_FADE_OUT_MS, LOGO_HIDE_DELAY_MS } from '../playerConstants';
+import { SITE_LOGO_LAYER_CLASS } from '../player-layers/siteLogoLayer';
 
 export function attachLogoReveal(art: Artplayer): () => void {
   const logoLayer = art.layers.siteLogo as HTMLElement | undefined;
-  let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let hideTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  let fadeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  if (logoLayer) {
+    logoLayer.classList.add(SITE_LOGO_LAYER_CLASS);
+  }
 
   requestAnimationFrame(() => {
     if (!logoLayer) return;
-    logoLayer.style.opacity = '1';
-    logoLayer.style.transform = 'translateY(0) scale(1)';
+    logoLayer.style.visibility = 'visible';
+    logoLayer.classList.add(`${SITE_LOGO_LAYER_CLASS}--visible`);
   });
 
-  logoHideTimeoutId = setTimeout(() => {
+  hideTimeoutId = setTimeout(() => {
     if (!logoLayer) return;
-    logoLayer.style.opacity = '0';
-    logoLayer.style.transform = 'translateY(-10px) scale(0.95)';
+    logoLayer.classList.remove(`${SITE_LOGO_LAYER_CLASS}--visible`);
+    logoLayer.classList.add(`${SITE_LOGO_LAYER_CLASS}--hiding`);
+
+    fadeTimeoutId = setTimeout(() => {
+      if (!logoLayer) return;
+      logoLayer.style.visibility = 'hidden';
+    }, LOGO_FADE_OUT_MS);
   }, LOGO_HIDE_DELAY_MS);
 
   return () => {
-    if (logoHideTimeoutId) {
-      clearTimeout(logoHideTimeoutId);
-      logoHideTimeoutId = null;
+    if (hideTimeoutId) {
+      clearTimeout(hideTimeoutId);
+      hideTimeoutId = null;
+    }
+    if (fadeTimeoutId) {
+      clearTimeout(fadeTimeoutId);
+      fadeTimeoutId = null;
     }
   };
 }

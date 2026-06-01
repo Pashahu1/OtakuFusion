@@ -5,6 +5,7 @@ import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import { attachPlaybackAutostart } from './attachPlaybackAutostart';
 import { attachLogoReveal } from './attachLogoReveal';
+import { attachPlayerA11y } from './attachPlayerA11y';
 import { attachSkipIntroOutroOverlay } from './attachSkipIntroOutroOverlay';
 import { attachSubtitleMenu } from './attachSubtitleMenu';
 import { attachMobileSeekGestures } from './attachMobileSeekGestures';
@@ -25,6 +26,7 @@ export function setupPlayerReady(
 
   attachPlaybackAutostart(art, userPausedRef, artRef);
   const clearLogoReveal = attachLogoReveal(art);
+  const clearPlayerA11y = attachPlayerA11y(art);
   const clearSkipOverlay = attachSkipIntroOutroOverlay(art, skipSegments);
   attachPreviewThumbnail(art, thumbnail, assetRequestHeaders);
   attachSubtitleMenu(art, subtitles, streamLang, assetRequestHeaders);
@@ -39,5 +41,6 @@ export function setupPlayerReady(
     document.removeEventListener('keydown', onKeydown);
     clearSkipOverlay();
     clearLogoReveal();
+    clearPlayerA11y();
   });
 }

@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from 'react';
 
+import { nextImageProxyUrl } from '@/shared/utils/thumbnail-url';
+
+const ACCENT_SAMPLE_WIDTH = 48;
+const ACCENT_SAMPLE_QUALITY = 40;
+
 const FALLBACK_ACCENT = 'rgb(249 115 22 / 0.45)';
 const FALLBACK_ACCENT_SOFT = 'rgb(249 115 22 / 0.12)';
 const FALLBACK_BORDER = 'rgb(255 255 255 / 0.14)';
@@ -65,7 +70,7 @@ function sampleImageAccent(url: string): Promise<HeroImageAccent | null> {
     };
 
     img.onerror = () => resolve(null);
-    img.src = url;
+    img.src = nextImageProxyUrl(url, ACCENT_SAMPLE_WIDTH, ACCENT_SAMPLE_QUALITY);
   });
 }
 

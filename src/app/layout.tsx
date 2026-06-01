@@ -21,48 +21,54 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#141414' },
+    { media: '(prefers-color-scheme: light)', color: '#141414' },
+  ],
 };
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
+  applicationName: 'OtakuFusion',
   title: {
-    default: 'OtakuFusion — Watch Anime Online Free | Sub & Dub HD',
-    template: '%s | OtakuFusion',
+    default: 'OtakuFusion — Free Anime Streaming in HD',
+    template: '%s · OtakuFusion',
   },
   description:
-    'Watch anime online free in HD. Stream sub and dub anime, track your progress, discover new series. Your place for anime streaming.',
+    'Stream anime online in HD with subtitles and dubs. Pick up where you left off, browse new releases, and save favorites on OtakuFusion.',
   keywords: [
-    'anime',
-    'watch anime online',
+    'OtakuFusion',
     'anime streaming',
+    'watch anime online',
     'anime sub',
     'anime dub',
-    'free anime',
-    'anime episodes',
-    'OtakuFusion',
+    'HD anime',
+    'continue watching anime',
   ],
+  authors: [{ name: 'OtakuFusion' }],
+  creator: 'OtakuFusion',
   openGraph: {
     type: 'website',
-    locale: 'en',
+    locale: 'en_US',
     url: siteUrl,
     siteName: 'OtakuFusion',
-    title: 'OtakuFusion — Watch Anime Online Free | Sub & Dub HD',
+    title: 'OtakuFusion — Free Anime Streaming in HD',
     description:
-      'Watch anime online free in HD. Stream sub and dub anime, track your progress, discover new series.',
+      'Stream anime online in HD with subtitles and dubs. Continue watching, discover series, and save favorites.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'OtakuFusion — Watch Anime Online Free',
+    title: 'OtakuFusion — Free Anime Streaming in HD',
     description:
-      'Watch anime online free in HD. Stream sub and dub anime, track your progress.',
+      'Stream anime online in HD with subtitles and dubs on OtakuFusion.',
   },
   robots: {
     index: true,
     follow: true,
-  },
-  icons: {
-    icon: '/language.png',
-    apple: '/language.png',
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 };
 
@@ -89,7 +95,10 @@ export default function RootLayout({
 }) {
   return (
     <html className="dark" lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="dns-prefetch" href="https://s4.anilist.co" />
+        <link rel="dns-prefetch" href="https://artworks.thetvdb.com" />
+      </head>
       <body
         className={`${montserrat.className} ${rubik.className} ${playfair.variable}`}
         suppressHydrationWarning

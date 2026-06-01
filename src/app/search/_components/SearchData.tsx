@@ -4,8 +4,9 @@ import { ANIME_SEARCH_MIN_QUERY_LENGTH } from '@/lib/api/anime-search';
 import { AnimeListLayout } from '@/components/Layout/AnimeListLayout';
 import { Card } from '@/components/Card/Card';
 import {
-  ANIME_CAROUSEL_POSTER_QUALITY,
   ANIME_CAROUSEL_POSTER_SIZES,
+  ABOVE_THE_FOLD_CARD_COUNT,
+  ANIME_GRID_POSTER_QUALITY,
 } from '@/lib/anime-card-poster';
 import { EmptyState } from '@/components/ui/states/EmptyState';
 import { SearchSkeleton } from '@/components/ui/Skeleton/SearchSkeleton';
@@ -84,7 +85,8 @@ export function SearchData({
             key={anime.id || idx}
             anime={anime}
             posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
-            posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
+            posterQuality={ANIME_GRID_POSTER_QUALITY}
+            priority={idx < ABOVE_THE_FOLD_CARD_COUNT}
           />
         ))}
       </AnimeListLayout>
