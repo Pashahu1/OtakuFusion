@@ -18,7 +18,6 @@ export function isAniListCdnHost(url: string): boolean {
   }
 }
 
-/** Downscale AniList cover CDN paths (large PNG/JPG → medium for cards). */
 export function anilistCoverUrl(url: string, size: 'medium' | 'large'): string {
   if (!url?.trim()) return '';
   let u = url.trim();
@@ -36,7 +35,7 @@ export function spotlightHeroBackgroundUrl(input: {
   return thumbnailUrl(input.poster, HERO_THUMBNAIL_RES);
 }
 
-/** Same-origin Next optimizer URL — for tiny canvas samples (accent extraction). */
+/** Same-origin optimizer URL for canvas accent sampling (avoids full-size CDN fetch). */
 export function nextImageProxyUrl(
   src: string,
   width: number,

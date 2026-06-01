@@ -1,4 +1,3 @@
-/** Inner card markup for the player welcome logo (styles in Player.scss). */
 export const SITE_LOGO_INNER_HTML = `
   <div class="otakufusion-player-logo__card">
     <div class="otakufusion-player-logo__brand">

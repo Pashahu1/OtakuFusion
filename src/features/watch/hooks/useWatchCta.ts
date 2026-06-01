@@ -18,7 +18,6 @@ export interface UseWatchCtaParams {
   episodes: EpisodeRef[] | null;
 }
 
-/** Hero / series CTA: play href + label from continueWatching + watched state. */
 export function useWatchCta({
   animeId,
   dataId,

@@ -1,6 +1,5 @@
 import { getAnimePaheSourcesCached } from '@/server/animepahe/sourcesCached';
 import { buildAnimepaheStreamCandidates } from '@/lib/catalog/providers/animepahe/buildAnimepaheStreamCandidates';
-import { tryResolveMirunoDubHls } from '@/server/miruno/fetchMirunoDubStream';
 import { prioritizeByServerHint } from '@/server/watch-resolve/candidates';
 import { watchResolveErrorOutcome } from '@/server/watch-resolve/outcome';
 import { resolveFirstWorkingStreamCandidate } from '@/server/watch-resolve/probe';
@@ -21,7 +20,6 @@ export async function computeAnimepaheWatchResolveOutcome(
     origin,
     seriesId,
     preferredHint,
-    anilistId,
     epTokenOverride,
     episodeHasDub,
   } = params;
@@ -45,12 +43,6 @@ export async function computeAnimepaheWatchResolveOutcome(
       };
     }
 
-    const tryMirunoGapDub =
-      lang === 'dub' &&
-      targetEpisode != null &&
-      targetEpisode.hasDub !== true &&
-      anilistId != null;
-
     const sourcesPayload = await getAnimePaheSourcesCached(seriesId, epHash);
     let candidates = buildAnimepaheStreamCandidates(sourcesPayload, lang);
     candidates = prioritizeByServerHint(candidates, preferredHint);
@@ -68,15 +60,6 @@ export async function computeAnimepaheWatchResolveOutcome(
       } catch {
         primary = null;
       }
-    }
-
-    if (!primary && tryMirunoGapDub) {
-      primary = await tryResolveMirunoDubHls({
-        anilistId: anilistId as number,
-        episode,
-        origin,
-        probeCfg,
-      });
     }
 
     if (!primary) {
@@ -100,9 +83,8 @@ export async function computeAnimepaheWatchResolveOutcome(
       };
     }
 
-    const fromMiruno = primary.server?.toLowerCase().includes('miruno') ?? false;
     const usedLang = primary.type === 'dub' ? 'dub' : 'sub';
-    const fallbackApplied = !fromMiruno && lang !== usedLang;
+    const fallbackApplied = lang !== usedLang;
 
     const body = await buildAnimepaheResolveSuccessBody({
       startedAt,
@@ -113,7 +95,6 @@ export async function computeAnimepaheWatchResolveOutcome(
       targetEpisode,
       primary,
       candidates,
-      fromMiruno,
       fallbackApplied,
       usedLang,
     });

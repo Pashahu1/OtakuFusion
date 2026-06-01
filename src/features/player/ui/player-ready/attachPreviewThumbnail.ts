@@ -18,7 +18,6 @@ export function attachPreviewThumbnail(
         })
       );
     } catch {
-      /* noop */
     }
   });
 }

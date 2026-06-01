@@ -55,7 +55,6 @@ export function attachPlaybackAutostart(
         ahead = buf.end(buf.length - 1) - v.currentTime;
       }
     } catch {
-      /* noop */
     }
     const elapsed =
       (typeof performance !== 'undefined' ? performance.now() : Date.now()) -

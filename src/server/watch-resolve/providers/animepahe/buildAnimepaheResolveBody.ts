@@ -16,7 +16,6 @@ export async function buildAnimepaheResolveSuccessBody(input: {
   targetEpisode: EpisodesTypes | null;
   primary: StreamingType;
   candidates: StreamingType[];
-  fromMiruno: boolean;
   fallbackApplied: boolean;
   usedLang: WatchLang;
 }): Promise<Record<string, unknown>> {
@@ -29,7 +28,6 @@ export async function buildAnimepaheResolveSuccessBody(input: {
     targetEpisode,
     primary,
     candidates,
-    fromMiruno,
     fallbackApplied,
     usedLang,
   } = input;
@@ -47,12 +45,12 @@ export async function buildAnimepaheResolveSuccessBody(input: {
       number: episode,
       ep_token: epHash,
       hasSub: Boolean(targetEpisode?.hasSub ?? true),
-      hasDub: fromMiruno ? false : Boolean(targetEpisode?.hasDub ?? false),
+      hasDub: Boolean(targetEpisode?.hasDub ?? false),
     },
     stream: {
       url: primary.link.file,
       format: inferStreamFormat(primary),
-      lang: fromMiruno ? 'dub' : usedLang,
+      lang: usedLang,
       server: primary.server,
       request_headers: buildProbeHeaders(primary),
       tracks: primary.tracks ?? [],
@@ -66,7 +64,6 @@ export async function buildAnimepaheResolveSuccessBody(input: {
     debug: {
       latency_ms: Date.now() - startedAt,
       requested_lang: lang,
-      ...(fromMiruno ? { miruno_dub_gap_fill: true } : {}),
     },
   };
 

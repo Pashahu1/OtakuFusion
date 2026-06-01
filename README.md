@@ -129,7 +129,7 @@ flowchart LR
 **Resolve flow (simplified):**
 
 1. Client loads anime + episode list from `/api/{provider}/catalog`.
-2. `GET /api/watch/resolve` picks a playable HLS URL (probe, cache, optional Miruno dub fallback).
+2. `GET /api/watch/resolve` picks a playable HLS URL (probe, cache).
 3. Player plays the stream directly or through `/api/m3u8-proxy`.
 
 ---
@@ -211,23 +211,29 @@ Runs `lint` → `tsc` → `test` → `build` in one go.
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Transactional email |
 | `CRYSOLINE_API_KEY` | Stream catalogs & resolve |
 
-### Recommended
+### Recommended on Vercel
 
 | Variable | Purpose |
 |----------|---------|
-| `NEXT_PUBLIC_SITE_URL` | Canonical site URL. Falls back to `VERCEL_URL` on Vercel if unset. |
+| `NEXT_PUBLIC_SITE_URL` | Canonical site URL (`https://your-app.vercel.app`). Falls back to `VERCEL_URL` if unset. |
+| `WATCH_PROBE_SKIP_VARIANT=1` | Faster watch resolve (skip variant playlist probe). |
 
-### Optional (enable extra behaviour)
+### Optional (enable only what you need)
 
 | Variable | Purpose |
 |----------|---------|
 | `CRYSOLINE_API_BASE_URL` | Custom Crysoline host (default `https://api.crysoline.moe`) |
-| `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | Comma-separated CDN suffixes to skip same-origin `/api/m3u8-proxy` |
-| `WATCH_PROBE_SKIP_VARIANT` | Faster resolve (`1` = skip variant playlist probe) |
-| `MIRUNO_API_BASE_URL` | English dub gap-fill when Animepahe has no dub |
-| `HIKKA_FEATURES_RELAY_BASE` | Relay URL when Hikka blocks server IP (see `workers/`) |
-| `TVDB_API_KEY` | Clear logos on home hero |
-| `CLOUDINARY_*` | Profile avatar upload |
+| `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | Comma-separated CDN host suffixes to skip `/api/m3u8-proxy` (not a proxy URL) |
+| `TVDB_API_KEY` | Clear logos & fanart on home / watch hero |
+| `CLOUDINARY_*` (all three) | Profile avatar upload |
+| `HIKKA_FEATURES_RELAY_BASE` | Hikka relay when server IP is blocked (see `workers/`) |
+
+### Local dev only
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_IMAGE_OPTIMIZE_IN_DEV=true` | Next.js image optimizer in `npm run dev` |
+| `NEXT_PUBLIC_PLAYER_DEFER_STRICT_INIT=0` | Player HLS init debugging |
 
 Use **`.env.local`** for development. Never commit secrets.
 

@@ -23,14 +23,9 @@ import { getPlayerLayers } from './getPlayerLayers';
 
 export function getArtplayerOptions(
   userPausedRef: React.RefObject<boolean>,
-  /** Subscribe to Hls after instantiation (Artplayer defers customType call). */
   onM3u8HlsInstance?: (hls: InstanceType<typeof Hls>, art: Artplayer) => void,
-  /**
-   * Before first `loadSource`: `MANIFEST_PARSED` → lock level → `startLoad()` (see `autoStartLoad` in `playM3u8`).
-   */
   onM3u8HlsBeforeLoad?: (hls: InstanceType<typeof Hls>) => void,
-  /** Separate playlists per resolution — disable hls-control ABR indicator (otherwise menu clutter). */
-  useManualStreamQuality?: boolean
+  useManualStreamQuality?: boolean,
 ) {
   return {
     plugins: [

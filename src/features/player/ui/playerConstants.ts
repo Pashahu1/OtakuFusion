@@ -13,10 +13,9 @@ export const KEY_CODES = {
 
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
 
-/** Fallback when source response has no embed_url. */
 export const ANIKAI_PAGE_REFERER = 'https://anikai.to/';
 
-/** Fallback Referer/Origin for HLS when API omits `request_headers`. */
+/** Referer/Origin fallback when watch resolve omits `request_headers`. */
 export const HLS_CDN_FALLBACK_REFERER = 'https://anikage.cc/';
 export const HLS_CDN_FALLBACK_ORIGIN = 'https://anikage.cc';
 

@@ -5,10 +5,10 @@ import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { useFavoritesQuery } from '@/hooks/useFavorites';
 import { buildProfileDashboardData } from '../lib/profile-stats';
 import {
-  countWatchedEpisodesInStorage,
-  readWatchActivityLog,
-  type WatchActivityEntry,
-} from '../lib/watch-activity-log';
+  EMPTY_WATCH_ACTIVITY,
+  getStableWatchActivitySnapshot,
+} from '../lib/watch-activity-snapshot';
+import { countWatchedEpisodesInStorage } from '../lib/watch-activity-log';
 
 function subscribeWatchActivity(onStoreChange: () => void) {
   if (typeof window === 'undefined') return () => {};
@@ -18,25 +18,6 @@ function subscribeWatchActivity(onStoreChange: () => void) {
     window.removeEventListener('watchActivityUpdated', onStoreChange);
     window.removeEventListener('storage', onStoreChange);
   };
-}
-
-const EMPTY_ACTIVITY: WatchActivityEntry[] = [];
-
-let cachedActivitySnapshot: WatchActivityEntry[] = EMPTY_ACTIVITY;
-let cachedActivitySnapshotKey = '';
-
-function readActivitySnapshot(): WatchActivityEntry[] {
-  if (typeof window === 'undefined') return EMPTY_ACTIVITY;
-
-  const next = readWatchActivityLog();
-  const snapshotKey = JSON.stringify(next);
-  if (snapshotKey === cachedActivitySnapshotKey) {
-    return cachedActivitySnapshot;
-  }
-
-  cachedActivitySnapshotKey = snapshotKey;
-  cachedActivitySnapshot = next;
-  return cachedActivitySnapshot;
 }
 
 function readWatchedCountSnapshot(): number {
@@ -56,8 +37,8 @@ export function useProfileDashboard(enabled: boolean) {
   );
 
   const getActivitySnapshot = useCallback(() => {
-    if (!enabled) return EMPTY_ACTIVITY;
-    return readActivitySnapshot();
+    if (!enabled) return EMPTY_WATCH_ACTIVITY;
+    return getStableWatchActivitySnapshot();
   }, [enabled]);
 
   const getWatchedCountSnapshot = useCallback(() => {
@@ -68,7 +49,7 @@ export function useProfileDashboard(enabled: boolean) {
   const activity = useSyncExternalStore(
     subscribeActivity,
     getActivitySnapshot,
-    () => EMPTY_ACTIVITY,
+    () => EMPTY_WATCH_ACTIVITY,
   );
 
   const watchedFromStorage = useSyncExternalStore(
