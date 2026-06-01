@@ -1,8 +1,20 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { ContinueWatchingSectionSkeleton } from '@/components/ui/Skeleton/ContinueWatchingSectionSkeleton';
 import { SwiperSectionSkeleton } from '@/components/ui/Skeleton/SwiperSectionSkeleton';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
+
+const ContinueWatchingSection = dynamic(
+  () =>
+    import('@/components/ContinueWatchingSection/ContinueWatchingSection').then(
+      (m) => m.ContinueWatchingSection,
+    ),
+  {
+    ssr: false,
+    loading: () => <ContinueWatchingSectionSkeleton />,
+  },
+);
 
 const SwiperCard = dynamic(
   () => import('@/components/SwiperCard/SwiperCard').then((m) => m.SwiperCard),
@@ -30,6 +42,7 @@ export function HomeBelowFold({
 }: HomeBelowFoldProps) {
   return (
     <div className={HOME_FEED_SECTION_CLASS}>
+      <ContinueWatchingSection />
       <SwiperCard title="Top Airing" catalog={topAiring} sectionId="top-airing" />
       <SwiperCard
         title="Most Favorite"

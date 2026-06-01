@@ -37,7 +37,6 @@ export function getArtplayerOptions(
       artplayerPluginHlsControl({
         quality: {
           control: !useManualStreamQuality,
-          /** Indicator in panel left of gear only — no separate row in settings menu. */
           setting: false,
           getName: (level: { height?: number }) => {
             const h = level?.height ?? 0;

@@ -19,7 +19,7 @@ export function setupPlayerReady(
   streamLang: 'sub' | 'dub' | null,
   skipSegments: StreamingData['skipSegments'] | null | undefined,
   streamInfo: StreamingData | null | undefined,
-  streamUrl: string | null | undefined
+  streamUrl: string | null | undefined,
 ): void {
   const assetRequestHeaders = getStreamHeaders(streamInfo ?? null, streamUrl ?? null);
 

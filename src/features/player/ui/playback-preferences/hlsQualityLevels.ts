@@ -54,6 +54,56 @@ export function getPreferred720LevelIndex(
   return above720[0].index;
 }
 
+/** Highest level in manifest (1080p+ when available). */
+export function getHighestAvailableLevelIndex(
+  levels: Array<{ height?: number; bitrate?: number }>,
+): number {
+  if (!levels.length) return -1;
+  const ranked = levels
+    .map((level, index) => ({
+      index,
+      height: Number(level.height ?? 0),
+      bitrate: Number(level.bitrate ?? 0),
+    }))
+    .filter((x) => Number.isFinite(x.height) && x.height > 0)
+    .sort((a, b) => b.height - a.height || b.bitrate - a.bitrate);
+  if (!ranked.length) return levels.length - 1;
+  return ranked[0].index;
+}
+
+/** Prefer 480p; otherwise lowest available level. */
+export function getDataSaverLevelIndex(levels: Array<{ height?: number }>): number {
+  if (!levels.length) return -1;
+  const withHeight = levels
+    .map((level, index) => ({ index, height: Number(level.height ?? 0) }))
+    .filter((item) => Number.isFinite(item.height) && item.height > 0);
+  if (!withHeight.length) return levels.length - 1;
+
+  const atOrBelow480 = withHeight
+    .filter((item) => item.height <= 480)
+    .sort((a, b) => b.height - a.height);
+  if (atOrBelow480.length) return atOrBelow480[0].index;
+
+  return withHeight.sort((a, b) => a.height - b.height)[0].index;
+}
+
+/** Step down one level when the current rendition fails to load. */
+export function getNextLowerLevelIndex(
+  levels: Array<{ height?: number }>,
+  currentIndex: number,
+): number | null {
+  if (!levels.length || currentIndex < 0) return null;
+  const currentHeight = Number(levels[currentIndex]?.height ?? 0);
+  if (!Number.isFinite(currentHeight) || currentHeight <= 0) return null;
+
+  const lower = levels
+    .map((level, index) => ({ index, height: Number(level.height ?? 0) }))
+    .filter((item) => Number.isFinite(item.height) && item.height > 0 && item.height < currentHeight)
+    .sort((a, b) => b.height - a.height);
+
+  return lower[0]?.index ?? null;
+}
+
 /** Default quality level (highest not above 1080p) when localStorage has no choice yet. */
 export function getPreferred1080LevelIndex(
   levels: Array<{ height?: number }>,

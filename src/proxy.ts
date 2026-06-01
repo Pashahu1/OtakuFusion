@@ -4,11 +4,11 @@ import { SignJWT, jwtVerify } from 'jose';
 import { authSessionCookieDefaults } from '@/lib/auth-cookie-options';
 
 /**
- * Edge middleware cannot reliably use `jsonwebtoken` (Node crypto).
+ * Edge proxy cannot reliably use `jsonwebtoken` (Node crypto).
  * `jose` works on Edge — otherwise verify/sign fail at runtime and all protected
  * routes redirect to login.
  */
-function getMiddlewareJwtSecrets(): { access: string; refresh: string } | null {
+function getProxyJwtSecrets(): { access: string; refresh: string } | null {
   const access =
     process.env.NEXT_JWT_ACCESS_SECRET?.trim() ||
     process.env.JWT_ACCESS_SECRET?.trim();
@@ -28,8 +28,8 @@ function payloadIdToString(id: unknown): string | null {
   return null;
 }
 
-export async function middleware(req: NextRequest) {
-  const secrets = getMiddlewareJwtSecrets();
+export async function proxy(req: NextRequest) {
+  const secrets = getProxyJwtSecrets();
   if (!secrets) {
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }

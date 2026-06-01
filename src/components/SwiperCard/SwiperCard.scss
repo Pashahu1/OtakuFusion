@@ -138,24 +138,22 @@
     );
   }
 
-  &:hover {
-    &--left {
-      background: linear-gradient(
-        to right,
-        rgb(0 0 0 / 0.96) 0%,
-        rgb(0 0 0 / 0.72) 55%,
-        transparent 100%
-      );
-    }
+  &--left:hover {
+    background: linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.96) 0%,
+      rgb(0 0 0 / 0.72) 55%,
+      transparent 100%
+    );
+  }
 
-    &--right {
-      background: linear-gradient(
-        to left,
-        rgb(0 0 0 / 0.96) 0%,
-        rgb(0 0 0 / 0.72) 55%,
-        transparent 100%
-      );
-    }
+  &--right:hover {
+    background: linear-gradient(
+      to left,
+      rgb(0 0 0 / 0.96) 0%,
+      rgb(0 0 0 / 0.72) 55%,
+      transparent 100%
+    );
   }
 
   svg {

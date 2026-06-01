@@ -34,6 +34,7 @@ export default function WatchPlayPage() {
   const watch = useWatch(animeId || '', urlEp ?? undefined);
 
   const errorBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasAppliedSavedEpisodeRef = useRef(false);
 
   useWatchPageEffects(
     animeId,
@@ -41,6 +42,7 @@ export default function WatchPlayPage() {
     watch.episodeId,
     watch.episodes,
     urlEp,
+    hasAppliedSavedEpisodeRef,
     watch.buffering,
     watch.streamUrl,
     watch.playerShellPending,

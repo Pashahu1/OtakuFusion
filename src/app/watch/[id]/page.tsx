@@ -57,8 +57,9 @@ export default function WatchSeriesPage() {
     animeInfo?.animeInfo?.tvInfo?.duration
   );
 
-  const { playHref, ctaLabel } = useWatchCta({
+  const { playHref, ctaLabel, variant: ctaVariant } = useWatchCta({
     animeId,
+    dataId: animeInfo?.data_id,
     urlEp,
     episodes,
   });
@@ -84,6 +85,7 @@ export default function WatchSeriesPage() {
           animeInfo={animeInfo}
           playHref={playHref}
           ctaLabel={ctaLabel}
+          ctaVariant={ctaVariant}
           isDetailsExpanded={isDetailsExpanded}
           onToggleDetails={() => setIsDetailsExpanded((v) => !v)}
         />

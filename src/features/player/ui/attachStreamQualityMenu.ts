@@ -1,9 +1,7 @@
 import type Artplayer from 'artplayer';
-import type { StreamingData, StreamQualityVariant } from '@/shared/types/StreamingTypes';
-import {
-  DEFAULT_PLAYBACK_QUALITY_HEIGHT,
-  pickPreferredQualityVariant,
-} from './pickPreferredStreamQuality';
+import type { StreamingData } from '@/shared/types/StreamingTypes';
+import { writeHlsQualityPreference } from './playerPlaybackPreferences';
+import { pickPreferredQualityVariant } from './pickPreferredStreamQuality';
 import { getStreamFullUrl, getStreamHeaders } from './playerStream';
 
 /**
@@ -13,7 +11,7 @@ import { getStreamFullUrl, getStreamHeaders } from './playerStream';
 export function attachStreamQualityMenu(
   art: Artplayer,
   streamInfo: StreamingData | null,
-  rawPlaylistUrl: string
+  rawPlaylistUrl: string,
 ): void {
   const variants = streamInfo?.qualityVariants;
   if (!variants?.length || variants.length < 2) return;
@@ -22,15 +20,17 @@ export function attachStreamQualityMenu(
   const preferred = pickPreferredQualityVariant(variants, raw);
   const active =
     variants.find((v) => v.url.trim() === preferred.url) ??
-    variants.find((v) => v.height === DEFAULT_PLAYBACK_QUALITY_HEIGHT) ??
+    variants.find((v) => v.height === preferred.height) ??
     variants[0];
   const initialTooltip =
-    Number.isFinite(active?.height) && active.height > 0 ? `${active.height}p` : '720p';
+    Number.isFinite(active?.height) && active.height > 0 ? `${active.height}p` : '1080p';
 
-  const selector = variants.map((v) => ({
-    html: `${v.height}p`,
-    default: v.url.trim() === preferred.url,
-  }));
+  const selector = [...variants]
+    .sort((a, b) => b.height - a.height)
+    .map((v) => ({
+      html: `${v.height}p`,
+      default: v.url.trim() === preferred.url,
+    }));
 
   art.setting.add({
     name: 'streamQuality',
@@ -41,15 +41,17 @@ export function attachStreamQualityMenu(
     onSelect(item, _el, _event) {
       const m = /^(\d{3,4})p$/i.exec(String(item.html ?? '').trim());
       const height = m ? Number(m[1]) : NaN;
-      const v = Number.isFinite(height)
-        ? variants.find((x) => x.height === height)
-        : undefined;
+      const v = Number.isFinite(height) ? variants.find((x) => x.height === height) : undefined;
       if (!v?.url?.trim()) return item.html ?? 'Quality';
+
+      writeHlsQualityPreference({ height });
+
       const t = art.currentTime;
       const wasPaused = art.playing === false;
       const headers = getStreamHeaders(streamInfo, v.url.trim());
       const nextFull = getStreamFullUrl(v.url.trim(), headers);
       const label = String(item.html ?? '').trim() || `${height}p`;
+
       void art.switchUrl(nextFull).then(() => {
         if (Number.isFinite(t) && t > 0) {
           const dur = art.video?.duration ?? art.duration;

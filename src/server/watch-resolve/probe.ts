@@ -12,7 +12,7 @@ import { dedupeStreamingCandidatesByHeight } from '@/server/watch-resolve/candid
 import type { WatchLang } from '@/server/watch-resolve/types';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
-const PREFERRED_PROBE_HEIGHT = 720;
+const PREFERRED_PROBE_HEIGHT = 1080;
 
 async function tryResolveStreamingCandidate(
   stream: StreamingType,

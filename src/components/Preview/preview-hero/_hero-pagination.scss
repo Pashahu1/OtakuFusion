@@ -10,20 +10,10 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-
-  @media (max-width: 1023px) {
-    justify-content: center;
-    margin-inline: auto;
-  }
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
   --hero-pagination-padding-start: 0px;
   --hero-pagination-padding-end: 0px;
   --swiper-pagination-bottom: auto;
@@ -32,6 +22,15 @@
   --swiper-pagination-right: auto;
   padding: 0;
   margin: 0;
+
+  @media (max-width: 1023px) {
+    justify-content: center;
+    margin-inline: auto;
+  }
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .hero__pagination-placeholder {

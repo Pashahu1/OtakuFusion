@@ -40,7 +40,7 @@ export function PreviewHeroSpotlightPanel({
             {'\u00a0'}
           </p>
         )}
-        <HeroSlideActions animeId={anime.id} />
+        <HeroSlideActions animeId={anime.id} dataId={anime.data_id} />
         {spotlights.length > 1 ? (
           <div className="hero__footer">
             {slideCounter ? (

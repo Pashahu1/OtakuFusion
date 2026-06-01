@@ -2,12 +2,14 @@ import type Artplayer from 'artplayer';
 import Hls from 'hls.js';
 
 import { isHardHttpFailure } from '../../playerPlaybackPreferences';
+import { tryDowngradeHlsQualityLevel } from '../../playback-preferences/hlsQualityFallback';
 
 import type { ArtplayerHlsRuntimeContext } from './types';
 
 export interface HlsRecoveryState {
   hlsRecoverNetworkTried: boolean;
   hlsMediaRecoveryStep: number;
+  hlsQualityDowngrades: number;
 }
 
 function logHlsErrorInDev(data: {
@@ -40,10 +42,24 @@ function logHlsErrorInDev(data: {
 
 function tryRecoverHlsError(
   hls: InstanceType<typeof Hls>,
-  data: { type?: string; fatal?: boolean },
+  data: { type?: string; fatal?: boolean; details?: string },
   recoveryState: HlsRecoveryState,
 ): boolean {
   if (!data.fatal) return false;
+
+  const isLevelLoadFailure =
+    data.type === Hls.ErrorTypes.NETWORK_ERROR &&
+    (data.details === Hls.ErrorDetails.LEVEL_LOAD_ERROR ||
+      data.details === Hls.ErrorDetails.FRAG_LOAD_ERROR);
+
+  if (
+    isLevelLoadFailure &&
+    recoveryState.hlsQualityDowngrades < 4 &&
+    tryDowngradeHlsQualityLevel(hls)
+  ) {
+    recoveryState.hlsQualityDowngrades += 1;
+    return true;
+  }
 
   if (data.type === Hls.ErrorTypes.NETWORK_ERROR && !recoveryState.hlsRecoverNetworkTried) {
     recoveryState.hlsRecoverNetworkTried = true;
@@ -81,7 +97,7 @@ export function bindM3u8HlsInstanceHandler(
   return (hls: InstanceType<typeof Hls>, art: Artplayer) => {
     hls.on(
       Hls.Events.ERROR,
-      (_evt: unknown, data: { fatal?: boolean; type?: string; response?: { code?: number } }) => {
+      (_evt: unknown, data: { fatal?: boolean; type?: string; response?: { code?: number }; details?: string }) => {
         if (!ctx.effectActive()) return;
 
         logHlsErrorInDev(data as Parameters<typeof logHlsErrorInDev>[0]);

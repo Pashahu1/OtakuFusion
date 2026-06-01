@@ -1,33 +1,27 @@
-import {
-  getBestLevelIndexForDisplay,
-  getPreferred720LevelIndex,
-} from './hlsQualityLevels';
+import { getBestLevelIndexForDisplay, getPreferred1080LevelIndex } from './hlsQualityLevels';
 
 const HLS_QUALITY_KEY = 'otakufusion:player:hls-quality';
-export const DEFAULT_HLS_QUALITY_HEIGHT = 720;
 
-/** Stored HLS quality choice: `auto` (ABR capped at 720p), `best-display`, specific height, or empty — start ~720p. */
-export type HlsQualityPreference =
-  | 'auto'
-  | 'best-display'
-  | { height: number };
+export const DEFAULT_HLS_QUALITY_HEIGHT = 1080;
+
+/** Stored HLS quality: `auto`, `best-display`, explicit height, or empty → start at 1080p. */
+export type HlsQualityPreference = 'auto' | 'best-display' | { height: number };
 
 export function readHlsQualityPreference(): HlsQualityPreference | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(HLS_QUALITY_KEY)?.trim();
-    if (!raw) return { height: DEFAULT_HLS_QUALITY_HEIGHT };
+    if (!raw) return null;
+    if (raw === 'highest') return null;
+    if (raw === 'moderate') return { height: 720 };
+    if (raw === 'data-saver') return { height: 480 };
     if (raw === 'auto') return 'auto';
     if (raw === 'best-display' || raw === 'best') return 'best-display';
     const n = Number(raw);
-    if (Number.isFinite(n) && n > 0) {
-      const h = Math.floor(n);
-      if (h < DEFAULT_HLS_QUALITY_HEIGHT) return { height: DEFAULT_HLS_QUALITY_HEIGHT };
-      return { height: h };
-    }
-    return { height: DEFAULT_HLS_QUALITY_HEIGHT };
+    if (Number.isFinite(n) && n > 0) return { height: Math.floor(n) };
+    return null;
   } catch {
-    return { height: DEFAULT_HLS_QUALITY_HEIGHT };
+    return null;
   }
 }
 
@@ -35,26 +29,22 @@ export function writeHlsQualityPreference(pref: HlsQualityPreference): void {
   if (typeof window === 'undefined') return;
   try {
     if (pref === 'auto') localStorage.setItem(HLS_QUALITY_KEY, 'auto');
-    else if (pref === 'best-display')
-      localStorage.setItem(HLS_QUALITY_KEY, 'best-display');
+    else if (pref === 'best-display') localStorage.setItem(HLS_QUALITY_KEY, 'best-display');
     else localStorage.setItem(HLS_QUALITY_KEY, String(pref.height));
   } catch {
     /* ignore */
   }
 }
 
-/** Level index; `auto` no longer returns −1 — only cap to 720p (see `resolveLevelIndexForStoredQuality`). */
+/** Level index; `null` → prefer 1080p, then next available. */
 export function resolveLevelIndexForStoredQuality(
   levels: Array<{ height?: number; bitrate?: number }>,
   pref: HlsQualityPreference | null,
 ): number {
   if (!levels.length) return -1;
-  if (pref === 'auto' || pref === null) {
-    return getPreferred720LevelIndex(levels);
-  }
-  if (pref === 'best-display') {
-    return getBestLevelIndexForDisplay(levels);
-  }
+  if (pref === null) return getPreferred1080LevelIndex(levels);
+  if (pref === 'auto') return getPreferred1080LevelIndex(levels);
+  if (pref === 'best-display') return getBestLevelIndexForDisplay(levels);
 
   const target = pref.height;
   const ranked = levels

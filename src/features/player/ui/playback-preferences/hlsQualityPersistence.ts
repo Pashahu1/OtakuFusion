@@ -1,9 +1,6 @@
 import Hls from 'hls.js';
 
-import {
-  getBestLevelIndexForDisplay,
-  getPreferred720LevelIndex,
-} from './hlsQualityLevels';
+import { getPreferred1080LevelIndex } from './hlsQualityLevels';
 import {
   readHlsQualityPreference,
   writeHlsQualityPreference,
@@ -11,7 +8,6 @@ import {
 } from './hlsQualityStorage';
 
 export interface AttachHlsQualityPersistOptions {
-  /** Do not write to storage right after init (reduces race with initial level lock). */
   muteInitialPersistenceMs?: number;
 }
 
@@ -20,10 +16,6 @@ function readAutoLevelFlag(hls: { loadLevel?: number; autoLevelEnabled?: boolean
   return hls.loadLevel === -1;
 }
 
-/**
- * After quality pick in artplayer-plugin-hls-control loadLevel / autoLevelEnabled change.
- * Do not call before initial apply completes (otherwise default overwrites storage).
- */
 export function attachHlsQualityPreferencePersistence(
   hls: InstanceType<typeof Hls>,
   onAfterPersist?: () => void,
@@ -56,24 +48,12 @@ export function attachHlsQualityPreferencePersistence(
 
     if (stored === 'best-display' || stored === null || stored === 'auto') {
       const levelsArr = hls.levels as Array<{ height?: number; bitrate?: number }>;
-      const expected =
-        stored === 'best-display'
-          ? getBestLevelIndexForDisplay(levelsArr)
-          : getPreferred720LevelIndex(levelsArr);
+      const expected = getPreferred1080LevelIndex(levelsArr);
       if (idx === expected && Number.isFinite(h) && h > 0 && idx >= 0) {
-        if (stored === 'best-display') {
-          writeHlsQualityPreference('best-display');
-        } else if (stored === 'auto') {
-          writeHlsQualityPreference('auto');
-        }
         onAfterPersist?.();
         return;
       }
       if (Number.isFinite(h) && h > 0 && idx >= 0) {
-        if ((stored === null || stored === 'auto') && h > 720) {
-          onAfterPersist?.();
-          return;
-        }
         writeHlsQualityPreference({ height: h });
       }
       onAfterPersist?.();

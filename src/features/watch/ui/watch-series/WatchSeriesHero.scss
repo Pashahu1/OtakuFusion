@@ -1,5 +1,5 @@
 ﻿@use '../../../../style/mixins' as *;
 @use './watch-series-tags';
-@import './watch-series-hero/shell-media';
-@import './watch-series-hero/content-actions';
-@import './watch-series-hero/rating';
+@use './watch-series-hero/shell-media';
+@use './watch-series-hero/content-actions';
+@use './watch-series-hero/rating';

@@ -99,16 +99,16 @@
     font-size: clamp(1.5rem, 6.5vw, 2rem);
     line-height: 1.12;
     text-align: inherit;
-
-    @media (min-width: 768px) {
-      font-size: clamp(2rem, 5vw, 3.25rem);
-      line-height: 1.15;
-    }
     color: #fff;
     text-shadow:
       0 2px 12px rgba(0, 0, 0, 0.55),
       0 4px 24px rgba(0, 0, 0, 0.8);
     margin: 0;
+
+    @media (min-width: 768px) {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      line-height: 1.15;
+    }
 
     @media (max-width: 1023px) {
       width: 100%;

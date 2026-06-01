@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import type Artplayer from 'artplayer';
 
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
+import { removeFromContinueWatching } from '../updateContinueWatching';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
 
 const PLAYBACK_SURFACE_READY_TIMEOUT_MS = 7200;
@@ -69,6 +70,7 @@ export function useArtplayerEpisodeLifecycle({
       if (hasTriggeredNextRef.current) return;
 
       const next = list?.[idx + 1];
+      const info = animeInfoRef.current;
 
       if (next) {
         const nextId = getEpisodeNumberFromId(next.id);
@@ -76,6 +78,10 @@ export function useArtplayerEpisodeLifecycle({
           hasTriggeredNextRef.current = true;
           playNextPropRef.current(nextId);
         }
+        return;
+      }
+      if (info?.id && info.data_id != null && list && list.length > 0 && idx >= 0) {
+        removeFromContinueWatching(info.id, info.data_id);
       }
     });
   }, []);

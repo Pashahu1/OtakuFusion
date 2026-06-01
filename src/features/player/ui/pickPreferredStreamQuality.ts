@@ -1,39 +1,47 @@
 import type { StreamQualityVariant } from '@/shared/types/StreamingTypes';
 
-export const DEFAULT_PLAYBACK_QUALITY_HEIGHT = 720;
+export const DEFAULT_PLAYBACK_QUALITY_HEIGHT = 1080;
 
+export interface QualityVariantPick {
+  url: string;
+  request_headers?: Record<string, string>;
+  height: number;
+}
+
+function variantHeight(v: StreamQualityVariant): number {
+  return Number(v.height ?? 0);
+}
+
+function sortedByHeightDesc(variants: StreamQualityVariant[]): StreamQualityVariant[] {
+  return [...variants]
+    .filter((v) => v.url?.trim() && variantHeight(v) > 0)
+    .sort((a, b) => variantHeight(b) - variantHeight(a));
+}
+
+function toVariantResult(v: StreamQualityVariant): QualityVariantPick {
+  return {
+    url: v.url.trim(),
+    request_headers: v.request_headers,
+    height: variantHeight(v),
+  };
+}
+
+/** Prefer 1080p, then highest below 1080, else lowest above. */
 export function pickPreferredQualityVariant(
   variants: StreamQualityVariant[] | undefined,
-  fallbackUrl: string
-): { url: string; request_headers?: Record<string, string> } {
+  fallbackUrl: string,
+): QualityVariantPick {
   const raw = fallbackUrl.trim();
-  if (!variants?.length) {
-    return { url: raw };
-  }
+  if (!variants?.length) return { url: raw, height: 0 };
 
-  const exact720 = variants.find((v) => v.height === DEFAULT_PLAYBACK_QUALITY_HEIGHT);
-  if (exact720?.url?.trim()) {
-    return {
-      url: exact720.url.trim(),
-      request_headers: exact720.request_headers,
-    };
-  }
+  const ranked = sortedByHeightDesc(variants);
+  if (!ranked.length) return { url: raw, height: 0 };
 
-  const atOrBelow720 = [...variants]
-    .filter((v) => v.height > 0 && v.height <= DEFAULT_PLAYBACK_QUALITY_HEIGHT)
-    .sort((a, b) => b.height - a.height);
-  if (atOrBelow720[0]?.url?.trim()) {
-    return {
-      url: atOrBelow720[0].url.trim(),
-      request_headers: atOrBelow720[0].request_headers,
-    };
-  }
+  const exact1080 = ranked.find((v) => variantHeight(v) === DEFAULT_PLAYBACK_QUALITY_HEIGHT);
+  if (exact1080) return toVariantResult(exact1080);
 
-  const sorted = [...variants].sort((a, b) => b.height - a.height);
-  const best = sorted[0];
-  if (best?.url?.trim()) {
-    return { url: best.url.trim(), request_headers: best.request_headers };
-  }
+  const atOrBelow1080 = ranked.filter((v) => variantHeight(v) <= DEFAULT_PLAYBACK_QUALITY_HEIGHT);
+  if (atOrBelow1080[0]) return toVariantResult(atOrBelow1080[0]);
 
-  return { url: raw };
+  return toVariantResult(ranked[ranked.length - 1]);
 }

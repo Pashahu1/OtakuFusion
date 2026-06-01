@@ -3,8 +3,13 @@
 import { useEffect, useRef, useMemo } from 'react';
 import Artplayer from 'artplayer';
 
+import { useArtplayerContinueWatching } from './useArtplayerContinueWatching';
+import { useArtplayerPlaybackProgress } from './useArtplayerPlaybackProgress';
 import { useArtplayerEpisodeLifecycle } from './useArtplayerEpisodeLifecycle';
 import { useArtplayerLanguageMenu } from './useArtplayerLanguageMenu';
+import { findContinueWatchingEntry } from '@/features/watch/lib/resolve-continue-watching-cta';
+import { readContinueWatchingList } from '@/features/watch/lib/continue-watching-list';
+import { continueWatchingEpisodeParam } from '@/features/watch/lib/continue-watching-display';
 import { destroyArtplayerInstance, readPlayerDeferStrictInit } from './useArtplayerHls';
 import { buildArtplayerStreamBootKey } from './artplayer-instance/buildArtplayerStreamBootKey';
 import { mountArtplayerInstance } from './artplayer-instance/mountArtplayerInstance';
@@ -49,22 +54,43 @@ export function useArtplayerInstance({
     onPlaybackErrorRef.current = onPlaybackError;
   });
 
+  const { scheduleContinueWatchingUpdate } = useArtplayerContinueWatching({
+    animeInfo,
+    episodeId,
+    episodeNum,
+  });
+
+  let savedPositionSeconds: number | undefined;
+  if (animeInfo?.id && episodeId != null && episodeId !== '') {
+    const entry = findContinueWatchingEntry(
+      readContinueWatchingList(),
+      animeInfo.id,
+      animeInfo.data_id,
+    );
+    if (entry?.positionSeconds != null) {
+      const savedEp = continueWatchingEpisodeParam(entry);
+      if (savedEp === String(episodeId)) {
+        savedPositionSeconds = entry.positionSeconds;
+      }
+    }
+  }
+
+  const { attachPlaybackProgressHandlers } = useArtplayerPlaybackProgress({
+    scheduleContinueWatchingUpdate,
+    savedPositionSeconds,
+  });
+
   const streamBootKey = useMemo(
     () =>
       buildArtplayerStreamBootKey({
         watchStreamProvider,
+        episodeId,
         streamUrl,
         thumbnail,
         subtitles,
         streamInfo,
       }),
-    [
-      watchStreamProvider,
-      streamUrl,
-      thumbnail,
-      subtitles,
-      streamInfo,
-    ],
+    [watchStreamProvider, episodeId, streamUrl, thumbnail, subtitles, streamInfo],
   );
 
   const { syncLanguageMenuIfReady } = useArtplayerLanguageMenu({
@@ -127,6 +153,8 @@ export function useArtplayerInstance({
         attachPlaybackSurfaceOnReady,
         artInstanceRef,
         isEffectActive: () => effectActive,
+        scheduleContinueWatchingUpdate,
+        attachPlaybackProgressHandlers,
       });
 
       createdPlayer = mounted.art;
@@ -144,6 +172,7 @@ export function useArtplayerInstance({
 
     return () => {
       effectActive = false;
+      onPlaybackErrorRef.current = undefined;
       if (initTimer != null) {
         window.clearTimeout(initTimer);
         initTimer = null;
@@ -164,6 +193,8 @@ export function useArtplayerInstance({
     syncLanguageMenuIfReady,
     attachEpisodeEndedHandler,
     attachPlaybackSurfaceOnReady,
+    scheduleContinueWatchingUpdate,
+    attachPlaybackProgressHandlers,
   ]);
 
   return { artRef };

@@ -4,6 +4,9 @@ export {
   getBestLevelIndexForDisplay,
   getPreferred720LevelIndex,
   getPreferred1080LevelIndex,
+  getHighestAvailableLevelIndex,
+  getDataSaverLevelIndex,
+  getNextLowerLevelIndex,
 } from './playback-preferences/hlsQualityLevels';
 export {
   DEFAULT_HLS_QUALITY_HEIGHT,
@@ -16,7 +19,12 @@ export {
   attachHlsQualityPreferencePersistence,
   type AttachHlsQualityPersistOptions,
 } from './playback-preferences/hlsQualityPersistence';
+export { tryDowngradeHlsQualityLevel } from './playback-preferences/hlsQualityFallback';
 export {
   readSubtitlePreference,
   writeSubtitlePreference,
 } from './playback-preferences/subtitlePreferences';
+export {
+  readPlaybackAutostartEnabled,
+  writePlaybackAutostartEnabled,
+} from './playback-preferences/playbackAutostartPreferences';

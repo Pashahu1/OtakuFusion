@@ -4,6 +4,7 @@ import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 
 export interface BuildStreamBootKeyParams {
   watchStreamProvider: WatchStreamProvider;
+  episodeId?: string | null;
   streamUrl: string;
   thumbnail?: string | null;
   subtitles?: SubtitleItem[] | null;
@@ -13,6 +14,7 @@ export interface BuildStreamBootKeyParams {
 /** Stable remount key: provider, URL, subs, skip segments, quality variants. */
 export function buildArtplayerStreamBootKey({
   watchStreamProvider,
+  episodeId,
   streamUrl,
   thumbnail,
   subtitles,
@@ -30,5 +32,7 @@ export function buildArtplayerStreamBootKey({
         seg.outro ? `${seg.outro.start}-${seg.outro.end}` : '',
       ].join('|')
     : '';
-  return [watchStreamProvider, streamUrl, thumbnail ?? '', subKey, segKey, qvKey].join('\f');
+  return [watchStreamProvider, episodeId ?? '', streamUrl, thumbnail ?? '', subKey, segKey, qvKey].join(
+    '\f',
+  );
 }

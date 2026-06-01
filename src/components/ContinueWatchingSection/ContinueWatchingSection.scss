@@ -1,0 +1,134 @@
+.continue-watching-slider {
+  position: relative;
+  overflow: hidden;
+}
+
+.continue-watching-swiper.swiper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.continue-watching-swiper:not(.swiper-initialized) .swiper-slide:not(:last-child) {
+  margin-right: 12px;
+}
+
+.continue-watching-nav {
+  position: absolute;
+  top: 0;
+  width: 48px;
+  height: 100%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  transition:
+    opacity 0.2s ease,
+    background 0.2s ease;
+
+  &.continue-watching-nav--left {
+    left: 0;
+  }
+
+  &.continue-watching-nav--right {
+    right: 0;
+  }
+
+  &:hover {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.45), transparent);
+  }
+
+  &.continue-watching-nav--right:hover {
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.45), transparent);
+  }
+
+  &.swiper-button-disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.continue-watching-card__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.continue-watching-card__thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.continue-watching-card__play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.continue-watching-card:hover .continue-watching-card__play {
+  opacity: 1;
+}
+
+.continue-watching-card__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--brand-accent, #f47521);
+  border-radius: 0 2px 0 0;
+  max-width: 100%;
+}
+
+.continue-watching-card__time-left {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.2rem;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.continue-watching-card__adult {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  border-radius: 0.2rem;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: #b91c1c;
+}
+
+.continue-watching-card__series {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.55);
+  line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.continue-watching-card__episode {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+}

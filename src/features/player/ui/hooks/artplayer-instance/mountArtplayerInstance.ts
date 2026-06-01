@@ -29,6 +29,8 @@ export interface MountArtplayerInstanceParams {
   attachPlaybackSurfaceOnReady: (art: Artplayer) => { clear: () => void };
   artInstanceRef: React.MutableRefObject<Artplayer | null>;
   isEffectActive: () => boolean;
+  scheduleContinueWatchingUpdate?: () => void;
+  attachPlaybackProgressHandlers?: (art: Artplayer) => void;
 }
 
 export interface MountArtplayerInstanceResult {
@@ -50,6 +52,8 @@ export function mountArtplayerInstance({
   attachPlaybackSurfaceOnReady,
   artInstanceRef,
   isEffectActive,
+  scheduleContinueWatchingUpdate,
+  attachPlaybackProgressHandlers,
 }: MountArtplayerInstanceParams): MountArtplayerInstanceResult {
   let suppressPlaybackError = false;
   let clearSurfaceReady: (() => void) | null = null;
@@ -74,7 +78,7 @@ export function mountArtplayerInstance({
     container,
     url: fullURL,
     type: playerMediaType,
-    autoplay: false,
+    autoplay: true,
     volume: 1,
     setting: true,
     playbackRate: true,
@@ -132,6 +136,8 @@ export function mountArtplayerInstance({
     attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);
     attachArtplayerSkipSegmentsOnReady(art, streamInfo?.skipSegments);
     hlsRuntime.attachQualityPersistenceOnReady(art);
+    scheduleContinueWatchingUpdate?.();
+    attachPlaybackProgressHandlers?.(art);
     clearSurfaceReady = attachPlaybackSurfaceOnReady(art).clear;
   });
 
