@@ -7,7 +7,9 @@ import {
 } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Swiper as SwiperType } from 'swiper';
-import { thumbnailUrl, HERO_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
+import {
+  spotlightHeroBackgroundUrl,
+} from '@/shared/utils/thumbnail-url';
 import 'swiper/css/effect-fade';
 import { EffectFade } from 'swiper/modules';
 
@@ -121,6 +123,10 @@ export const Preview = ({ spotlights, trending }: Props) => {
     return url.includes('anilist.co') || url.includes('s4.anilist.co');
   }
 
+  function heroSlideUsesAniListSource(anime: SpotlightAnime): boolean {
+    return !anime.heroImageUrl?.trim() && isAniListImage(anime.poster);
+  }
+
   return (
     <>
       <div className="hero relative w-full">
@@ -171,7 +177,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
               <SwiperSlide key={anime.id}>
                 <div className="relative h-full min-h-0 w-full">
                   <Image
-                    src={thumbnailUrl(anime.poster, HERO_THUMBNAIL_RES)}
+                    src={spotlightHeroBackgroundUrl(anime)}
                     alt={anime.title}
                     fill
                     sizes="100vw"
@@ -181,7 +187,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
                     fetchPriority={index === 0 ? 'high' : 'auto'}
                     loading={index === 0 ? 'eager' : 'lazy'}
                     quality={index === 0 ? 95 : 90}
-                    unoptimized={isAniListImage(anime.poster)}
+                    unoptimized={heroSlideUsesAniListSource(anime)}
                   />
                   <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="preview__shine" />

@@ -27,11 +27,25 @@ interface TvdbArtwork {
   image?: string;
   type?: number;
   score?: number;
+  width?: number;
+  height?: number;
 }
+
+/** TVDB v4: 1 = banner, 2 = poster, 3 = background / fanart */
+const TVDB_ARTWORK_BACKGROUND = 3;
+const TVDB_ARTWORK_BANNER = 1;
+
+const MIN_HERO_PIXEL_AREA = 1280 * 720;
 
 export interface TvdbClearLogoResult {
   url: string | null;
   /** Found series whose title includes season number. */
+  matchedSeasonSpecific: boolean;
+}
+
+export interface TvdbSpotlightArtworkResult {
+  clearLogoUrl: string | null;
+  heroImageUrl: string | null;
   matchedSeasonSpecific: boolean;
 }
 
@@ -209,12 +223,73 @@ function seriesIdFromHit(hit: TvdbSearchHit): string | null {
   return raw.startsWith('series-') ? raw.slice('series-'.length) : raw;
 }
 
+function isTvdbThumbnailUrl(url: string): boolean {
+  return /_t\.(jpg|jpeg|png|webp)$/i.test(url);
+}
+
+function artworkPixelArea(art: TvdbArtwork): number {
+  const w = art.width ?? 0;
+  const h = art.height ?? 0;
+  return w > 0 && h > 0 ? w * h : 0;
+}
+
+function compareArtworksForHero(a: TvdbArtwork, b: TvdbArtwork): number {
+  const areaA = artworkPixelArea(a);
+  const areaB = artworkPixelArea(b);
+  const aMeets = areaA >= MIN_HERO_PIXEL_AREA;
+  const bMeets = areaB >= MIN_HERO_PIXEL_AREA;
+  if (aMeets !== bMeets) return aMeets ? -1 : 1;
+  if (areaA !== areaB) return areaB - areaA;
+
+  const typeRank = (type: number) =>
+    type === TVDB_ARTWORK_BACKGROUND ? 2 : type === TVDB_ARTWORK_BANNER ? 1 : 0;
+  const typeDiff = typeRank(b.type ?? 0) - typeRank(a.type ?? 0);
+  if (typeDiff !== 0) return typeDiff;
+
+  return (b.score ?? 0) - (a.score ?? 0);
+}
+
+function isHeroBackdropCandidate(art: TvdbArtwork): boolean {
+  const url = art.image?.trim();
+  if (!url || isTvdbThumbnailUrl(url)) return false;
+
+  const type = art.type ?? 0;
+  if (type === TVDB_ARTWORK_BACKGROUND) return true;
+
+  if (type === TVDB_ARTWORK_BANNER) {
+    const area = artworkPixelArea(art);
+    if (area >= MIN_HERO_PIXEL_AREA) return true;
+    const w = art.width ?? 0;
+    const h = art.height ?? 0;
+    return w > h && w >= 1000;
+  }
+
+  return url.includes('/fanart/original/');
+}
+
 function pickClearLogoFromArtworks(artworks: TvdbArtwork[]): string | null {
   const clear = artworks.filter((art) => art.image?.includes('/clearlogo/'));
   if (!clear.length) return null;
 
   clear.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   return clear[0]?.image?.trim() ?? null;
+}
+
+function pickHeroBackdropFromArtworks(artworks: TvdbArtwork[]): string | null {
+  const candidates = artworks.filter(isHeroBackdropCandidate);
+  if (!candidates.length) return null;
+
+  candidates.sort(compareArtworksForHero);
+  return candidates[0]?.image?.trim() ?? null;
+}
+
+function pickSpotlightArtworkFromList(
+  artworks: TvdbArtwork[]
+): Pick<TvdbSpotlightArtworkResult, 'clearLogoUrl' | 'heroImageUrl'> {
+  return {
+    clearLogoUrl: pickClearLogoFromArtworks(artworks),
+    heroImageUrl: pickHeroBackdropFromArtworks(artworks),
+  };
 }
 
 async function tvdbFetchJson<T>(
@@ -254,31 +329,29 @@ async function searchTvdbSeriesHit(
   return pickBestSeriesHit(searchJson?.data ?? [], query, preferSeason, franchiseBase);
 }
 
-async function fetchClearLogoForSeries(
+async function fetchSeriesArtworks(
   token: string,
   seriesId: string
-): Promise<string | null> {
+): Promise<TvdbArtwork[]> {
   const artJson = await tvdbFetchJson<{
     data?: { artworks?: TvdbArtwork[] } | TvdbArtwork[];
   }>(`${TVDB_API}/series/${seriesId}/artworks`, token, 60 * 60 * 24 * 7);
 
   const raw = artJson?.data;
-  const list: TvdbArtwork[] = Array.isArray(raw)
+  return Array.isArray(raw)
     ? raw
     : Array.isArray(raw?.artworks)
       ? raw.artworks
       : [];
-
-  return pickClearLogoFromArtworks(list);
 }
 
-async function tryQueryForLogo(
+async function tryQueryForSpotlightArtwork(
   token: string,
   query: string,
   season: number | null,
   requireSeasonInHit: boolean,
   franchiseBase: string
-): Promise<{ url: string; matchedSeasonSpecific: boolean } | null> {
+): Promise<TvdbSpotlightArtworkResult | null> {
   const hit = await searchTvdbSeriesHit(token, query, season, franchiseBase);
   if (!hit) return null;
 
@@ -288,28 +361,34 @@ async function tryQueryForLogo(
   const seriesId = seriesIdFromHit(hit);
   if (!seriesId) return null;
 
-  const url = await fetchClearLogoForSeries(token, seriesId);
-  if (!url) return null;
+  const artworks = await fetchSeriesArtworks(token, seriesId);
+  const { clearLogoUrl, heroImageUrl } = pickSpotlightArtworkFromList(artworks);
+  if (!clearLogoUrl && !heroImageUrl) return null;
 
-  return { url, matchedSeasonSpecific: Boolean(season && mentionsSeason) };
+  return {
+    clearLogoUrl,
+    heroImageUrl,
+    matchedSeasonSpecific: Boolean(season && mentionsSeason),
+  };
 }
 
-async function fetchClearLogoUncached(input: {
+const emptySpotlightArtwork: TvdbSpotlightArtworkResult = {
+  clearLogoUrl: null,
+  heroImageUrl: null,
+  matchedSeasonSpecific: false,
+};
+
+async function fetchSpotlightArtworkUncached(input: {
   title: string;
   malId?: number;
   description?: string;
   synonyms?: string[];
-}): Promise<TvdbClearLogoResult> {
-  const empty: TvdbClearLogoResult = {
-    url: null,
-    matchedSeasonSpecific: false,
-  };
-
+}): Promise<TvdbSpotlightArtworkResult> {
   const apiKey = getTvdbApiKey();
-  if (!apiKey) return empty;
+  if (!apiKey) return emptySpotlightArtwork;
 
   const token = await tvdbLogin(apiKey);
-  if (!token) return empty;
+  if (!token) return emptySpotlightArtwork;
 
   const season = resolveTvdbSeasonNumber({
     title: input.title,
@@ -327,13 +406,25 @@ async function fetchClearLogoUncached(input: {
 
   if (season) {
     for (const query of searchTitles) {
-      const hit = await tryQueryForLogo(token, query, season, true, franchiseBase);
+      const hit = await tryQueryForSpotlightArtwork(
+        token,
+        query,
+        season,
+        true,
+        franchiseBase
+      );
       if (hit) return hit;
     }
   }
 
   for (const query of searchTitles) {
-    const hit = await tryQueryForLogo(token, query, season, false, franchiseBase);
+    const hit = await tryQueryForSpotlightArtwork(
+      token,
+      query,
+      season,
+      false,
+      franchiseBase
+    );
     if (hit) return hit;
   }
 
@@ -351,10 +442,11 @@ async function fetchClearLogoUncached(input: {
     );
     const seriesId = malHit ? seriesIdFromHit(malHit) : null;
     if (seriesId) {
-      const url = await fetchClearLogoForSeries(token, seriesId);
-      if (url) {
+      const artworks = await fetchSeriesArtworks(token, seriesId);
+      const picked = pickSpotlightArtworkFromList(artworks);
+      if (picked.clearLogoUrl || picked.heroImageUrl) {
         return {
-          url,
+          ...picked,
           matchedSeasonSpecific: Boolean(
             season && malHit && hitMentionsSeason(malHit, season)
           ),
@@ -363,7 +455,31 @@ async function fetchClearLogoUncached(input: {
     }
   }
 
-  return empty;
+  return emptySpotlightArtwork;
+}
+
+export async function fetchTvdbSpotlightArtwork(input: {
+  title: string;
+  malId?: number;
+  description?: string;
+  synonyms?: string[];
+}): Promise<TvdbSpotlightArtworkResult> {
+  const title = input.title?.trim();
+  if (!title) return emptySpotlightArtwork;
+  if (!getTvdbApiKey()) return emptySpotlightArtwork;
+
+  const cacheKey = [
+    'tvdb-spotlight-art-v1',
+    title.toLowerCase(),
+    input.malId ? String(input.malId) : 'no-mal',
+    input.description?.slice(0, 40) ?? '',
+  ];
+
+  return unstable_cache(
+    () => fetchSpotlightArtworkUncached(input),
+    cacheKey,
+    { revalidate: 60 * 60 * 24 * 7 }
+  )();
 }
 
 export async function fetchTvdbClearLogoUrl(input: {
@@ -372,22 +488,11 @@ export async function fetchTvdbClearLogoUrl(input: {
   description?: string;
   synonyms?: string[];
 }): Promise<TvdbClearLogoResult> {
-  const title = input.title?.trim();
-  if (!title) return { url: null, matchedSeasonSpecific: false };
-  if (!getTvdbApiKey()) return { url: null, matchedSeasonSpecific: false };
-
-  const cacheKey = [
-    'tvdb-clearlogo-v5',
-    title.toLowerCase(),
-    input.malId ? String(input.malId) : 'no-mal',
-    input.description?.slice(0, 40) ?? '',
-  ];
-
-  return unstable_cache(
-    () => fetchClearLogoUncached(input),
-    cacheKey,
-    { revalidate: 60 * 60 * 24 * 7 }
-  )();
+  const result = await fetchTvdbSpotlightArtwork(input);
+  return {
+    url: result.clearLogoUrl,
+    matchedSeasonSpecific: result.matchedSeasonSpecific,
+  };
 }
 
 export async function enrichSpotlightsWithClearLogos<
@@ -396,6 +501,7 @@ export async function enrichSpotlightsWithClearLogos<
     description?: string;
     malId?: number;
     clearLogoUrl?: string;
+    heroImageUrl?: string;
     seasonLabel?: string;
     synonyms?: string[];
   },
@@ -405,12 +511,13 @@ export async function enrichSpotlightsWithClearLogos<
   return Promise.all(
     spotlights.map(async (spotlight) => {
       const synonyms = spotlight.synonyms;
-      const { url, matchedSeasonSpecific } = await fetchTvdbClearLogoUrl({
-        title: spotlight.title,
-        malId: spotlight.malId,
-        description: spotlight.description,
-        synonyms,
-      });
+      const { clearLogoUrl, heroImageUrl, matchedSeasonSpecific } =
+        await fetchTvdbSpotlightArtwork({
+          title: spotlight.title,
+          malId: spotlight.malId,
+          description: spotlight.description,
+          synonyms,
+        });
 
       const seasonLabel = resolveSpotlightSeasonLabel({
         title: spotlight.title,
@@ -421,7 +528,8 @@ export async function enrichSpotlightsWithClearLogos<
 
       return {
         ...spotlight,
-        ...(url ? { clearLogoUrl: url } : {}),
+        ...(clearLogoUrl ? { clearLogoUrl } : {}),
+        ...(heroImageUrl ? { heroImageUrl } : {}),
         ...(seasonLabel ? { seasonLabel } : { seasonLabel: undefined }),
       };
     })

@@ -50,6 +50,8 @@ export interface SpotlightAnime {
   malId?: number;
   /** TVDB clearlogo (as on anikage.cc), when TVDB_API_KEY is set. */
   clearLogoUrl?: string;
+  /** TVDB fanart/background for hero (16:9), when TVDB_API_KEY is set. */
+  heroImageUrl?: string;
   /** Season label in hero when missing from title/clearlogo (e.g. "Season 4"). */
   seasonLabel?: string;
   /** AniList synonyms — for TVDB search, not shown in UI. */

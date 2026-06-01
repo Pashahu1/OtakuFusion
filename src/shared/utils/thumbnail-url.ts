@@ -5,6 +5,15 @@ export const LIST_THUMBNAIL_RES = '300x400';
 
 export const HERO_THUMBNAIL_RES = '1200x1800';
 
+export function spotlightHeroBackgroundUrl(input: {
+  heroImageUrl?: string;
+  poster: string;
+}): string {
+  const tvdb = input.heroImageUrl?.trim();
+  if (tvdb) return tvdb;
+  return thumbnailUrl(input.poster, HERO_THUMBNAIL_RES);
+}
+
 export function thumbnailUrl(url: string, resolution = LIST_THUMBNAIL_RES): string {
   if (!url || typeof url !== 'string') return '';
   let u = url.trim();
