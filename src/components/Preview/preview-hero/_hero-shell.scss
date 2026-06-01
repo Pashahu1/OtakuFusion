@@ -1,0 +1,45 @@
+@use '../../../style/mixins' as *;
+
+.hero {
+  position: relative;
+  z-index: 1;
+  overscroll-behavior-y: contain;
+
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  height: 100svh;
+  min-height: 100svh;
+
+  @media (min-width: 1024px) {
+    height: clamp(540px, 88svh, 920px);
+    min-height: clamp(540px, 88svh, 920px);
+  }
+
+  @media (min-width: 1024px) and (min-height: 1081px) {
+    height: 100dvb;
+    min-height: 100dvb;
+  }
+
+  @include respond(laptop) {
+    height: clamp(500px, 82svh, 860px);
+    min-height: clamp(500px, 82svh, 860px);
+  }
+
+  @include respond(laptop-compact) {
+    height: clamp(460px, 78svh, 720px);
+    min-height: clamp(460px, 78svh, 720px);
+  }
+}
+
+.hero img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.hero__slider .swiper,
+.hero__slider .swiper-wrapper,
+.hero__slider .swiper-slide {
+  height: 100%;
+  min-height: 100%;
+}

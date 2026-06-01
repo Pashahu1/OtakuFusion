@@ -1,0 +1,81 @@
+@use '../../../style/mixins' as *;
+
+.hero {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    padding-bottom: clamp(240px, 32vh, 360px);
+
+    @media (max-width: 1023px) {
+      align-items: center;
+    }
+
+    @media (min-width: 1024px) {
+      padding-top: 72px;
+      padding-bottom: clamp(220px, 26vh, 360px);
+    }
+
+    @include respond(laptop) {
+      padding-top: 64px;
+      padding-bottom: clamp(180px, 22vh, 280px);
+    }
+
+    @include respond(laptop-compact) {
+      padding-top: 56px;
+      padding-bottom: clamp(160px, 20vh, 240px);
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 60%;
+      max-width: 720px;
+      background: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.92) 0%,
+        rgba(0, 0, 0, 0.6) 50%,
+        transparent 100%
+      );
+      pointer-events: none;
+
+      @media (max-width: 1023px) {
+        width: 100%;
+        max-width: none;
+        background: linear-gradient(
+          to top,
+          rgba(0, 0, 0, 0.94) 0%,
+          rgba(0, 0, 0, 0.68) 48%,
+          transparent 92%
+        );
+      }
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 800px;
+    padding-left: clamp(16px, 5vw, 64px);
+    padding-right: 16px;
+    position: relative;
+    z-index: 1;
+
+    @media (max-width: 1023px) {
+      width: 100%;
+      max-width: min(100%, 36rem);
+      margin-inline: auto;
+      padding-left: clamp(16px, 5vw, 32px);
+      padding-right: clamp(16px, 5vw, 32px);
+      text-align: center;
+      align-items: center;
+    }
+  }
+}

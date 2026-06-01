@@ -1,0 +1,156 @@
+@use '../../../style/mixins' as *;
+
+/* Mobile: tighter vertical stack, logo fits narrow viewports */
+@media (max-width: 767px) {
+  .hero__content {
+    padding-bottom: clamp(210px, 30vh, 300px);
+  }
+
+  .hero__info {
+    gap: 10px;
+    max-width: 100%;
+    padding-left: clamp(14px, 4vw, 24px);
+    padding-right: clamp(14px, 4vw, 24px);
+  }
+
+  .hero__title-logo-wrap > span {
+    max-width: min(92vw, 340px) !important;
+    max-height: clamp(54px, 14vw, 80px) !important;
+  }
+
+  .hero__title-logo {
+    max-width: min(92vw, 340px) !important;
+    max-height: clamp(54px, 14vw, 80px) !important;
+  }
+
+  .hero__title {
+    font-size: clamp(1.45rem, 6.2vw, 1.9rem);
+  }
+}
+
+@media (max-width: 767px) and (max-height: 700px) {
+  .hero__title-logo-wrap > span,
+  .hero__title-logo {
+    max-height: 68px !important;
+  }
+
+  .hero__content {
+    padding-bottom: clamp(190px, 28vh, 255px);
+  }
+}
+
+/* Laptop / short desktop (MacBook 13–16", 1080p height): denser hero, trending visible */
+@include respond(laptop) {
+  .hero__content::before {
+    width: 52%;
+    max-width: 560px;
+  }
+
+  .hero__info {
+    max-width: min(36rem, 52vw);
+    gap: 10px;
+    padding-left: clamp(20px, 4vw, 48px);
+  }
+
+  .hero__title-block {
+    max-width: min(100%, 28rem);
+  }
+
+  .hero__title-logo {
+    max-height: clamp(120px, 16vh, 168px);
+  }
+
+  .hero__description {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .hero__genres {
+    gap: 6px;
+  }
+
+  .hero__genre-pill {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  .hero__meta-badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+
+  .hero__footer {
+    margin-top: 10px;
+    gap: 8px;
+  }
+
+  .hero-zone {
+    width: 56px;
+    height: 56px;
+    top: 42%;
+
+    svg {
+      width: 38px;
+      height: 38px;
+    }
+  }
+}
+
+@include respond(laptop-compact) {
+  .hero__info {
+    max-width: min(32rem, 48vw);
+    gap: 8px;
+  }
+
+  .hero__title-logo {
+    max-height: clamp(96px, 14vh, 140px);
+  }
+
+  .hero__description {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .hero__genres {
+    display: none;
+  }
+}
+
+/* Tablet (768–1023px): centered stack, room for trending overlap */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero__content {
+    padding-bottom: clamp(260px, 31vh, 340px);
+  }
+
+  .hero__info {
+    max-width: min(100%, 40rem);
+    padding-left: clamp(24px, 5vw, 56px);
+    padding-right: clamp(24px, 5vw, 56px);
+  }
+
+  .hero__title {
+    font-size: clamp(2.1rem, 4.5vw, 2.85rem);
+  }
+
+  .hero__meta-badge,
+  .hero__description {
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .hero__description {
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+  }
+
+  .hero__footer {
+    margin-top: 12px;
+  }
+
+  .hero-zone {
+    width: 72px;
+    height: 72px;
+  }
+}

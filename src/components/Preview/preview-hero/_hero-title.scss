@@ -1,0 +1,120 @@
+.hero {
+  &__title-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+    max-width: min(100%, 600px);
+
+    @media (max-width: 1023px) {
+      align-items: center;
+      max-width: 100%;
+    }
+  }
+
+  &__season-label {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: clamp(0.875rem, 2.2vw, 1.0625rem);
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.88);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65);
+    text-align: inherit;
+  }
+
+  &__title-logo-wrap {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    line-height: 0;
+
+    @media (max-width: 1023px) {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      max-width: min(100%, calc(100vw - 32px));
+      margin-inline: auto;
+      overflow: visible;
+
+      /* Next/Image wrapper must not clip when max-height is applied to the img */
+      > span {
+        display: block !important;
+        width: auto !important;
+        max-width: min(92vw, 380px) !important;
+        height: auto !important;
+        max-height: clamp(58px, 15vw, 88px) !important;
+        overflow: visible !important;
+        margin-inline: auto !important;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+      > span {
+        max-width: min(92vw, 460px) !important;
+        max-height: clamp(80px, 12vh, 128px) !important;
+      }
+    }
+  }
+
+  &__title-logo {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: clamp(72px, 20vw, 112px);
+    object-fit: contain;
+    object-position: left center;
+    filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.8));
+
+    @media (max-width: 1023px) {
+      position: static !important;
+      width: auto !important;
+      height: auto !important;
+      max-width: min(92vw, 380px) !important;
+      max-height: clamp(58px, 15vw, 88px) !important;
+      margin-inline: auto;
+      object-fit: contain !important;
+      object-position: center center;
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+      max-width: min(92vw, 460px) !important;
+      max-height: clamp(80px, 12vh, 128px) !important;
+    }
+
+    @media (min-width: 1024px) {
+      width: auto;
+      max-width: 100%;
+      max-height: clamp(170px, 22vh, 220px);
+      object-position: left center;
+    }
+  }
+
+  &__title {
+    font-family: var(--font-hero-display), 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 6.5vw, 2rem);
+    line-height: 1.12;
+    text-align: inherit;
+
+    @media (min-width: 768px) {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      line-height: 1.15;
+    }
+    color: #fff;
+    text-shadow:
+      0 2px 12px rgba(0, 0, 0, 0.55),
+      0 4px 24px rgba(0, 0, 0, 0.8);
+    margin: 0;
+
+    @media (max-width: 1023px) {
+      width: 100%;
+      max-width: 100%;
+      margin-inline: auto;
+      overflow-wrap: anywhere;
+    }
+  }
+}

@@ -1,0 +1,27 @@
+@use '../../../style/mixins' as *;
+
+.swiper-button-prev,
+.swiper-button-next {
+  display: none;
+
+  @include respond(desktop) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 20px;
+    width: 24px;
+    height: 24px;
+    top: 45%;
+    transition: all 0.3s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  font-size: 24px;
+}

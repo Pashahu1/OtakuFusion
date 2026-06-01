@@ -1,0 +1,66 @@
+@use '../../../style/mixins' as *;
+
+.preview {
+  &__bg-image {
+    object-fit: cover;
+    object-position: top center;
+    filter: brightness(0.75) contrast(1.05);
+    z-index: 0;
+
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
+
+.preview__skeleton-overlay {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  top: 30%;
+  padding: 0 20px;
+  z-index: 2;
+  max-width: 800px;
+  width: 100%;
+
+  @include respond(tablet) {
+    align-items: start;
+    left: 5%;
+    padding: 0;
+    width: 400px;
+  }
+}
+
+/* Animate transform only (compositor), not left — otherwise per-frame reflow, CLS + non-composited animations in Lighthouse */
+.preview__shine {
+  display: none;
+
+  @include respond(desktop) {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    transform: skewX(-20deg) translateX(-150%);
+    animation: shine 5s infinite;
+    z-index: 3;
+    pointer-events: none;
+    will-change: transform;
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: skewX(-20deg) translateX(-150%);
+  }
+  100% {
+    transform: skewX(-20deg) translateX(250%);
+  }
+}

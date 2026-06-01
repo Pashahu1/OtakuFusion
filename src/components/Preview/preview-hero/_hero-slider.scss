@@ -1,0 +1,36 @@
+.hero__slider {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Before Swiper init fade is not applied — hide all slides except first to avoid ghosting */
+.hero__slider .swiper:not(.swiper-initialized) .swiper-slide:not(:first-of-type) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.hero-zone {
+  position: absolute;
+  top: 45%;
+  width: 64px;
+  height: 64px;
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+  border: none;
+  cursor: pointer;
+
+  background: transparent;
+}
+
+.hero--left {
+  left: 0;
+}
+
+.hero--right {
+  right: 0;
+}

@@ -1,0 +1,27 @@
+.hero {
+  &__description {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.9);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    overflow: hidden;
+
+    @media (max-width: 1023px) {
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      min-height: calc(0.9375rem * 1.55 * 3);
+      max-width: min(100%, 34rem);
+      margin-inline: auto;
+      text-align: center;
+    }
+  }
+
+  &__description--placeholder {
+    color: transparent;
+    user-select: none;
+  }
+}

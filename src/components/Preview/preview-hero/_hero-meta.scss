@@ -1,0 +1,68 @@
+.hero {
+  &__meta-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @media (max-width: 1023px) {
+      justify-content: center;
+    }
+  }
+
+  &__meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+  }
+
+  &__meta-badge--score {
+    background: rgba(234, 179, 8, 0.92);
+    color: #1a1a1a;
+  }
+
+  &__meta-badge-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &__genres {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @media (max-width: 1023px) {
+      justify-content: center;
+    }
+  }
+
+  &__genre-pill {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+}
