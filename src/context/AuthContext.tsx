@@ -1,6 +1,7 @@
 'use client';
 
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
+import { VerifyEmailModal } from '@/features/auth/ui/VerifyEmailModal';
 import { fetchWithRefresh } from '@/lib/fetchWithRefresh';
 import { createContext, useContext, useEffect, useState } from 'react';
 
@@ -39,6 +40,9 @@ interface AuthContextType {
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
   refreshUser: () => Promise<void>;
+  verifyEmailOpen: boolean;
+  openVerifyEmailModal: (email?: string) => void;
+  closeVerifyEmailModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -49,6 +53,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profileSavePending, setProfileSavePending] = useState(false);
   const [profileNavbarAvatarHold, setProfileNavbarAvatarHold] =
     useState(false);
+  const [verifyEmailOpen, setVerifyEmailOpen] = useState(false);
+  const [verifyEmailAddress, setVerifyEmailAddress] = useState('');
 
   useEffect(() => {
     if (!isLoading) return;
@@ -65,6 +71,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       .finally(() => setIsLoading(false));
   }, [isLoading]);
 
+  const openVerifyEmailModal = (email?: string) => {
+    const nextEmail = (email ?? user?.email ?? '').trim();
+    if (!nextEmail) return;
+    setVerifyEmailAddress(nextEmail);
+    setVerifyEmailOpen(true);
+  };
+
+  const closeVerifyEmailModal = () => {
+    setVerifyEmailOpen(false);
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const res = await fetch('/api/auth/login', {
@@ -79,6 +96,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
       if (data.user) {
         setUser(data.user);
+        if (!data.user.isVerified) {
+          setVerifyEmailAddress(data.user.email);
+          setVerifyEmailOpen(true);
+        }
         return { ok: true };
       }
       return { ok: false, message: 'User not found after login' };
@@ -125,6 +146,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         login,
         logout,
         refreshUser,
+        verifyEmailOpen,
+        openVerifyEmailModal,
+        closeVerifyEmailModal,
       }}
     >
       {isLoading ? (
@@ -136,6 +160,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             <div className="fixed inset-x-0 bottom-0 top-[60px] z-[50] flex bg-zinc-950">
               <InitialLoader variant="container" className="min-h-0 flex-1" />
             </div>
+          ) : null}
+          {verifyEmailOpen && verifyEmailAddress ? (
+            <VerifyEmailModal
+              email={verifyEmailAddress}
+              onClose={closeVerifyEmailModal}
+              onVerified={closeVerifyEmailModal}
+            />
           ) : null}
         </>
       )}

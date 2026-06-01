@@ -33,7 +33,7 @@ function errorsRecordToInvalidFlags(
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { setUser } = useAuth();
+  const { setUser, openVerifyEmailModal } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -137,7 +137,8 @@ export default function RegisterPage() {
         );
       }
 
-      toast.success('Welcome! Check your inbox for the verification code.');
+      toast.success('Welcome! Enter the verification code from your email.');
+      openVerifyEmailModal(parsed.data.email);
       router.push('/');
       router.refresh();
     } catch {

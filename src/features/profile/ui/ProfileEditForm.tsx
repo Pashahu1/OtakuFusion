@@ -48,6 +48,7 @@ export function ProfileEditForm() {
     refreshUser,
     setProfileSavePending,
     setProfileNavbarAvatarHold,
+    openVerifyEmailModal,
   } = useAuth();
   const fileInputId = useId();
 
@@ -154,8 +155,6 @@ export function ProfileEditForm() {
     }
   }
 
-  const verifyEmailHref = `/auth/verification/verify-email?email=${encodeURIComponent(profileUser.email)}`;
-
   return (
     <div className="profile-edit">
       <div className="profile-edit__intro">
@@ -171,9 +170,13 @@ export function ProfileEditForm() {
             Confirm your email to unlock the full profile experience and keep
             your account secure.
           </p>
-          <Link href={verifyEmailHref} className="profile-edit__verify-btn">
+          <button
+            type="button"
+            className="profile-edit__verify-btn"
+            onClick={() => openVerifyEmailModal(profileUser.email)}
+          >
             Verify email
-          </Link>
+          </button>
         </div>
       ) : null}
 

@@ -37,6 +37,7 @@
 .profile-edit__verify-btn {
   flex-shrink: 0;
   padding: 0.45rem 0.875rem;
+  border: 0;
   border-radius: 0.5rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -44,6 +45,7 @@
   letter-spacing: 0.04em;
   color: #0a0a0a;
   background: var(--color-brand-orange, #f97316);
+  cursor: pointer;
   transition: opacity 0.15s ease;
 }
 
