@@ -3,23 +3,11 @@
 import { useEffect, useRef, useMemo } from 'react';
 import Artplayer from 'artplayer';
 
-import { PLAYER_THEME_COLOR } from '../playerConstants';
-import { getStreamFullUrl, getStreamHeaders } from '../playerStream';
-import { urlLooksLikeHlsStream } from '@/lib/streamMediaType';
-import { getArtplayerOptions } from '../getArtplayerOptions';
-import { setupPlayerReady } from '../setupPlayerReady';
-import { attachStreamQualityMenu } from '../attachStreamQualityMenu';
 import { useArtplayerEpisodeLifecycle } from './useArtplayerEpisodeLifecycle';
 import { useArtplayerLanguageMenu } from './useArtplayerLanguageMenu';
-import {
-  buildArtplayerHlsRuntime,
-  createArtplayerVideoErrorReporter,
-  destroyArtplayerInstance,
-  inferArtplayerMediaType,
-  readPlayerDeferStrictInit,
-} from './useArtplayerHls';
-import { attachArtplayerSkipSegmentsOnReady } from './useArtplayerSkipSegments';
-import { attachArtplayerSubtitleResize } from './useArtplayerSubtitleResize';
+import { destroyArtplayerInstance, readPlayerDeferStrictInit } from './useArtplayerHls';
+import { buildArtplayerStreamBootKey } from './artplayer-instance/buildArtplayerStreamBootKey';
+import { mountArtplayerInstance } from './artplayer-instance/mountArtplayerInstance';
 import type { UseArtplayerInstanceParams } from './useArtplayerInstanceTypes';
 
 export type { UseArtplayerInstanceParams } from './useArtplayerInstanceTypes';
@@ -61,45 +49,34 @@ export function useArtplayerInstance({
     onPlaybackErrorRef.current = onPlaybackError;
   });
 
-  const streamBootKey = useMemo(() => {
-    const subKey = (subtitles ?? [])
-      .map(
-        (s) =>
-          `${String(s.file ?? '').trim()}\t${String(s.label ?? '').trim()}`
-      )
-      .join('\n');
-    const seg = streamInfo?.skipSegments;
-    const qv = streamInfo?.qualityVariants;
-    const qvKey = qv?.length
-      ? qv.map((q) => `${q.height}:${q.url}`).join('|')
-      : '';
-    const segKey = seg
-      ? [
-          seg.intro ? `${seg.intro.start}-${seg.intro.end}` : '',
-          seg.outro ? `${seg.outro.start}-${seg.outro.end}` : '',
-        ].join('|')
-      : '';
-    return [watchStreamProvider, streamUrl, thumbnail ?? '', subKey, segKey, qvKey].join('\f');
-  }, [
-    watchStreamProvider,
-    streamUrl,
-    thumbnail,
-    subtitles,
-    streamInfo?.skipSegments,
-    streamInfo?.qualityVariants,
-  ]);
-
-  const { anilibertyEligibleRef, hikkaEligibleRef, syncLanguageMenuIfReady } =
-    useArtplayerLanguageMenu({
-      artInstanceRef,
-      servers,
-      activeServerId,
-      setActiveServerId,
+  const streamBootKey = useMemo(
+    () =>
+      buildArtplayerStreamBootKey({
+        watchStreamProvider,
+        streamUrl,
+        thumbnail,
+        subtitles,
+        streamInfo,
+      }),
+    [
       watchStreamProvider,
-      setWatchStreamProvider,
-      anilibertyLanguageMenuEligible,
-      hikkaLanguageMenuEligible,
-    });
+      streamUrl,
+      thumbnail,
+      subtitles,
+      streamInfo,
+    ],
+  );
+
+  const { syncLanguageMenuIfReady } = useArtplayerLanguageMenu({
+    artInstanceRef,
+    servers,
+    activeServerId,
+    setActiveServerId,
+    watchStreamProvider,
+    setWatchStreamProvider,
+    anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible,
+  });
 
   const {
     userPausedRef,
@@ -121,7 +98,6 @@ export function useArtplayerInstance({
     let effectActive = true;
     let initTimer: number | null = null;
     let clearSurfaceReady: (() => void) | null = null;
-    let suppressPlaybackError = false;
     let createdPlayer: Artplayer | undefined;
 
     const deferStrictInit = readPlayerDeferStrictInit();
@@ -137,93 +113,24 @@ export function useArtplayerInstance({
     const runPlayerInit = (): void => {
       if (!effectActive || !artRef.current) return;
 
-      const headers = getStreamHeaders(streamInfo, streamUrl);
-      const fullURL = getStreamFullUrl(streamUrl, headers);
-      const looksHls =
-        urlLooksLikeHlsStream(streamUrl) || urlLooksLikeHlsStream(fullURL);
-      const playerMediaType = inferArtplayerMediaType(streamUrl, streamInfo, fullURL);
-      const useHlsPlayback = looksHls;
-      const useManualStreamQuality = Boolean(
-        streamInfo?.qualityVariants && streamInfo.qualityVariants.length > 1
-      );
-
-      suppressPlaybackError = false;
-
-      const hlsRuntime = buildArtplayerHlsRuntime({
-        effectActive: () => effectActive,
-        suppressPlaybackError: () => suppressPlaybackError,
-        onPlaybackError: () => onPlaybackErrorRef.current?.(),
-        useManualStreamQuality,
-      });
-
-      const art = new Artplayer({
+      const mounted = mountArtplayerInstance({
         container,
-        url: fullURL,
-        type: playerMediaType,
-        autoplay: false,
-        volume: 1,
-        setting: true,
-        playbackRate: true,
-        pip: true,
-        hotkey: false,
-        fullscreen: true,
-        mutex: true,
-        playsInline: true,
-        lock: false,
-        airplay: true,
-        autoOrientation: true,
-        fastForward: true,
-        aspectRatio: true,
-        subtitleOffset: true,
-        theme: PLAYER_THEME_COLOR,
-        ...getArtplayerOptions(
-          userPausedRef,
-          (hls, player) => hlsRuntime.onM3u8HlsInstance(hls, player),
-          hlsRuntime.onM3u8HlsBeforeLoad,
-          useManualStreamQuality
-        ),
+        streamUrl,
+        streamInfo,
+        subtitles,
+        thumbnail,
+        userPausedRef,
+        artRef,
+        onPlaybackErrorRef,
+        syncLanguageMenuIfReady,
+        attachEpisodeEndedHandler,
+        attachPlaybackSurfaceOnReady,
+        artInstanceRef,
+        isEffectActive: () => effectActive,
       });
 
-      if (useHlsPlayback) {
-        hlsRuntime.bootHlsPlayback(art, fullURL);
-      }
-
-      createArtplayerVideoErrorReporter(art, {
-        effectActive: () => effectActive,
-        suppressPlaybackError: () => suppressPlaybackError,
-        reportError: () => {
-          if (!effectActive || suppressPlaybackError) return;
-          hlsRuntime.reportFatalPlaybackError(art);
-        },
-      });
-
-      attachArtplayerSubtitleResize(art);
-      attachEpisodeEndedHandler(art);
-
-      art.on('ready', () => {
-        const rawLang = streamInfo?.streamingLink?.[0]?.type;
-        const streamLang =
-          rawLang === 'dub' || rawLang === 'sub' ? rawLang : null;
-        setupPlayerReady(
-          art,
-          thumbnail,
-          userPausedRef,
-          artRef,
-          subtitles,
-          streamLang,
-          streamInfo?.skipSegments,
-          streamInfo,
-          streamUrl
-        );
-        syncLanguageMenuIfReady();
-        attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);
-        attachArtplayerSkipSegmentsOnReady(art, streamInfo?.skipSegments);
-        hlsRuntime.attachQualityPersistenceOnReady(art);
-        clearSurfaceReady = attachPlaybackSurfaceOnReady(art).clear;
-      });
-
-      artInstanceRef.current = art;
-      createdPlayer = art;
+      createdPlayer = mounted.art;
+      clearSurfaceReady = mounted.clearSurfaceReady;
     };
 
     if (deferStrictInit) {
@@ -237,7 +144,6 @@ export function useArtplayerInstance({
 
     return () => {
       effectActive = false;
-      suppressPlaybackError = true;
       if (initTimer != null) {
         window.clearTimeout(initTimer);
         initTimer = null;
