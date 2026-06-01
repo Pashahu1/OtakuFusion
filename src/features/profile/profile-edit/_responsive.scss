@@ -1,0 +1,26 @@
+﻿@media (max-width: 900px) {
+  .profile-edit__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-edit__shortcut-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-edit__shortcut {
+    flex-direction: row;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-edit__actions {
+    flex-direction: column-reverse;
+  }
+
+  .profile-edit__btn {
+    width: 100%;
+  }
+}
