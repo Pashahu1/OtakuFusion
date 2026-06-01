@@ -1,0 +1,77 @@
+﻿@use '../../../../style/mixins' as *;
+@use './watch-series-tags';
+
+.watch-series-hero {
+  --watch-hero-header: 60px;
+  /* Banner + info (full red-outline area on CR) */
+  --watch-hero-height: clamp(680px, 88vh, 1040px);
+  --watch-hero-accent-border: rgb(255 255 255 / 0.14);
+  --watch-hero-accent-tint: rgb(0 0 0 / 0.35);
+  --watch-hero-accent: rgb(249 115 22);
+
+  position: relative;
+  width: 100%;
+  min-height: var(--watch-hero-height);
+  margin-top: calc(-1 * var(--watch-hero-header));
+  padding-top: var(--watch-hero-header);
+  overflow: hidden;
+  background: #000;
+  box-sizing: border-box;
+
+  @include respond(laptop) {
+    --watch-hero-height: clamp(620px, 84vh, 920px);
+  }
+
+  &__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  &__bg {
+    object-fit: cover;
+    object-position: center 28%;
+    filter: brightness(0.72) contrast(1.08) saturate(1.08);
+    transform: scale(1.04);
+  }
+
+  &__shade {
+    position: absolute;
+    pointer-events: none;
+
+    &--top {
+      inset: 0 0 auto;
+      height: 14%;
+      background: linear-gradient(to bottom, rgb(0 0 0 / 0.5), transparent);
+    }
+
+    /* Full-height fade: image stays visible upper/mid; black only at the very bottom (CR-style) */
+    &--bottom {
+      inset: 0;
+      height: 100%;
+      background: linear-gradient(
+        to top,
+        rgb(0 0 0) 0%,
+        rgb(0 0 0 / 0.94) 14%,
+        rgb(0 0 0 / 0.82) 26%,
+        rgb(0 0 0 / 0.62) 38%,
+        rgb(0 0 0 / 0.38) 50%,
+        rgb(0 0 0 / 0.18) 62%,
+        rgb(0 0 0 / 0.06) 72%,
+        transparent 88%
+      );
+    }
+
+    &--left {
+      inset: 0 auto 0 0;
+      width: min(62%, 780px);
+      background: linear-gradient(
+        to right,
+        rgb(0 0 0 / 0.82) 0%,
+        rgb(0 0 0 / 0.45) 42%,
+        rgb(0 0 0 / 0.12) 70%,
+        transparent 100%
+      );
+    }
+  }
+
