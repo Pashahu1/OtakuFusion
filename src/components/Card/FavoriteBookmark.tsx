@@ -13,9 +13,16 @@ import { cn } from '@/lib/utils';
 interface FavoriteBookmarkProps {
   anime: AnimeInfo;
   iconClassName?: string;
+  buttonClassName?: string;
+  variant?: 'default' | 'square';
 }
 
-export function FavoriteBookmark({ anime, iconClassName }: FavoriteBookmarkProps) {
+export function FavoriteBookmark({
+  anime,
+  iconClassName,
+  buttonClassName,
+  variant = 'default',
+}: FavoriteBookmarkProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -40,15 +47,22 @@ export function FavoriteBookmark({ anime, iconClassName }: FavoriteBookmarkProps
     },
   });
 
+  const isSquare = variant === 'square';
+
   return (
     <button
       type="button"
       className={cn(
-        'pointer-events-auto rounded-md p-0.5 focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)] focus-visible:outline-none disabled:opacity-50',
-        iconClassName,
+        'pointer-events-auto focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)] focus-visible:outline-none disabled:opacity-50',
+        isSquare
+          ? cn(buttonClassName, isFavorite && `${buttonClassName}--active`)
+          : cn(
+              'rounded-md p-0.5',
+              iconClassName,
+            ),
       )}
       aria-pressed={isFavorite}
-      aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      aria-label={isFavorite ? 'Remove from watchlist' : 'Save to watchlist'}
       disabled={mutation.isPending}
       onClick={(e) => {
         e.preventDefault();
@@ -62,10 +76,10 @@ export function FavoriteBookmark({ anime, iconClassName }: FavoriteBookmarkProps
     >
       <Bookmark
         className={cn(
-          iconClassName,
-          isFavorite && 'fill-[var(--color-brand-orange)]',
+          isSquare ? iconClassName : iconClassName,
+          !isSquare && isFavorite && 'fill-[var(--color-brand-orange)]',
         )}
-        strokeWidth={2}
+        strokeWidth={isSquare ? 1.75 : 2}
         fill={isFavorite ? 'currentColor' : 'none'}
         aria-hidden
       />

@@ -1,0 +1,111 @@
+.watch-series-details {
+  background: #000;
+  border-top: none;
+
+  &--embedded {
+    background: transparent;
+    border-top: none;
+
+    .watch-series-details__inner {
+      max-width: 1320px;
+      margin-inline: auto;
+      padding: 0;
+      gap: clamp(32px, 4vh, 48px);
+    }
+
+    .watch-series-details__extended {
+      border-top-color: var(--watch-hero-accent-border, rgb(255 255 255 / 0.12));
+    }
+  }
+
+  &__inner {
+    display: grid;
+    gap: 28px 56px;
+    width: 100%;
+    max-width: 1320px;
+    margin-inline: auto;
+    padding: clamp(28px, 4vw, 40px) clamp(20px, 5vw, 72px);
+
+    @media (min-width: 900px) {
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 1fr);
+      align-items: start;
+    }
+  }
+
+  &__text {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: rgb(255 255 255 / 0.9);
+    max-width: 52rem;
+  }
+
+  &__toggle {
+    margin-top: 16px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--color-brand-orange, #f97316);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--color-brand-orange-light, #fb923c);
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__meta-row {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: rgb(255 255 255 / 0.78);
+
+    &--genres {
+      line-height: 1.65;
+    }
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #fff;
+  }
+
+  &__genre-links a {
+    color: rgb(255 255 255 / 0.88);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover {
+      color: var(--color-brand-orange, #f97316);
+    }
+  }
+
+  &__extended {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid rgb(255 255 255 / 0.1);
+  }
+
+  &__skeleton {
+    height: 96px;
+    max-width: 52rem;
+    border-radius: 6px;
+    background: rgb(255 255 255 / 0.06);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+}

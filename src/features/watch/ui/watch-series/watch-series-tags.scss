@@ -1,0 +1,60 @@
+.watch-series-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.88);
+
+  &__segment {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  &__sep {
+    margin: 0 10px;
+    color: rgb(255 255 255 / 0.45);
+    font-weight: 400;
+  }
+
+  &__bullet {
+    margin: 0 10px;
+    color: rgb(255 255 255 / 0.45);
+  }
+
+  &__age {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgb(255 255 255 / 0.14);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  &__lang {
+    font-weight: 500;
+    color: rgb(255 255 255 / 0.9);
+  }
+
+  &__genres a {
+    color: rgb(255 255 255 / 0.9);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover {
+      color: var(--color-brand-orange, #f97316);
+    }
+  }
+
+  &__genre-comma {
+    color: rgb(255 255 255 / 0.9);
+    text-decoration: none;
+  }
+}

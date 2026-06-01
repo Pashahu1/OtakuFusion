@@ -39,8 +39,10 @@ export function getArtplayerOptions(
           control: !useManualStreamQuality,
           /** Indicator in panel left of gear only — no separate row in settings menu. */
           setting: false,
-          getName: (level: { height?: number }) =>
-            String(level?.height ?? '') + 'P',
+          getName: (level: { height?: number }) => {
+            const h = level?.height ?? 0;
+            return h > 0 ? `${h}p` : 'Auto';
+          },
           title: 'Quality',
           auto: 'Auto',
         },

@@ -7,6 +7,7 @@ export {
   type WatchStreamAnimeMeta,
 } from './hooks/useWatchStream';
 export { useWatchPageEffects } from './hooks/useWatchPageEffects';
+export { useWatchSeries } from './hooks/useWatchSeries';
 
 export type { WatchStreamProvider } from './lib/watch-provider';
 export {
@@ -16,6 +17,8 @@ export {
 } from './lib/watch-provider';
 
 export { Episodelist } from './ui/episode-list/Episodelist';
-export { WatchPlayerContent } from './ui/watch-player-content/WatchPlayerContent';
-export { WatchInfoPanel } from './ui/watch-info-panel/WatchInfoPanel';
+export { WatchPlayShell } from './ui/watch-play/WatchPlayShell';
+export { WatchSeriesHero } from './ui/watch-series/WatchSeriesHero';
+export { WatchSeriesDetails } from './ui/watch-series/WatchSeriesDetails';
+export { useWatchSpotlightArtwork } from './hooks/useWatchSpotlightArtwork';
 export { StreamOriginPreconnect } from './ui/StreamOriginPreconnect';

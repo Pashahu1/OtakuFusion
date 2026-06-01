@@ -7,6 +7,7 @@ import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
+import './WatchPlayerContent.scss';
 
 type WatchPlayerContentProps = {
   animeId: string;
@@ -29,11 +30,8 @@ type WatchPlayerContentProps = {
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (p: WatchStreamProvider) => void;
   showErrorBlock: boolean;
-
   playerShellPending: boolean;
-
   streamOverlayMessage: { title: string; subtitle: string } | null;
-
   anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
 };
@@ -84,7 +82,6 @@ export const WatchPlayerContent = ({
   }, []);
 
   const hasBuiltinError = builtinRuntimeError;
-
   const isStreamMissing = !playerShellPending && !buffering && !streamUrl;
   const allowFatalErrorUi =
     isStreamMissing &&
@@ -98,52 +95,47 @@ export const WatchPlayerContent = ({
     isStreamMissing && (showErrorBlock || hasBuiltinError || streamOverlayMessage != null);
 
   return (
-    <div
-      ref={playerColumnRef}
-      className="watch-player flex w-full min-w-0 flex-col gap-0 overflow-x-hidden max-[1199px]:order-1 min-[1200px]:h-[675px] md:max-[1199px]:col-span-2"
-    >
-      <div className="player relative h-full w-full shrink-0 overflow-hidden rounded-xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.45)] min-[1401px]:h-full min-[1200px]:max-[1400px]:h-[40vw] max-[1199px]:h-[48vw] md:max-[1199px]:max-h-[520px] max-md:h-[58vw] max-[600px]:h-[65vw]">
+    <div ref={playerColumnRef} className="watch-player-content">
+      <div className="watch-player-content__frame">
         {showLoader && (
-          <div className="pointer-events-none absolute inset-0 z-[1] flex flex-col items-center justify-center gap-3 bg-black/50 px-4 text-center">
+          <div className="watch-player-content__loader">
             <BouncingLoader />
             {streamLoadingMessage ? (
-              <p className="max-w-sm text-sm font-medium text-white/90">
-                {streamLoadingMessage}
-              </p>
+              <p className="watch-player-content__loader-msg">{streamLoadingMessage}</p>
             ) : null}
           </div>
         )}
 
         {showBuiltinPlayer && (
-          <div className="relative z-[2] h-full w-full min-h-0">
-          <Player
-            key={`${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl}`}
-            streamUrl={streamUrl as string}
-            subtitles={subtitles}
-            thumbnail={thumbnail}
-            episodeId={episodeId}
-            episodes={episodes}
-            playNext={(id) => setEpisodeId(id)}
-            onEpisodeWatched={onEpisodeWatched}
-            animeInfo={animeInfo}
-            episodeNum={episodeNum}
-            streamInfo={streamInfo}
-            servers={servers}
-            activeServerId={activeServerId}
-            setActiveServerId={setActiveServerId}
-            watchStreamProvider={watchStreamProvider}
-            setWatchStreamProvider={setWatchStreamProvider}
-            onPlaybackError={handleBuiltinError}
-            anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
-            hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
-          />
+          <div className="watch-player-content__player">
+            <Player
+              key={`${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl}`}
+              streamUrl={streamUrl as string}
+              subtitles={subtitles}
+              thumbnail={thumbnail}
+              episodeId={episodeId}
+              episodes={episodes}
+              playNext={(id) => setEpisodeId(id)}
+              onEpisodeWatched={onEpisodeWatched}
+              animeInfo={animeInfo}
+              episodeNum={episodeNum}
+              streamInfo={streamInfo}
+              servers={servers}
+              activeServerId={activeServerId}
+              setActiveServerId={setActiveServerId}
+              watchStreamProvider={watchStreamProvider}
+              setWatchStreamProvider={setWatchStreamProvider}
+              onPlaybackError={handleBuiltinError}
+              anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
+              hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
+            />
           </div>
         )}
 
         {showErrorOverlay && (
-          <div className="absolute inset-0 z-[15] flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center text-sm text-white/90">
-            <span className="text-base font-semibold text-white">{overlayCopy.title}</span>
-            <span className="max-w-md text-white/80">{overlayCopy.subtitle}</span>
+          <div className="watch-player-content__error">
+            <span className="watch-player-content__error-title">{overlayCopy.title}</span>
+            <span className="watch-player-content__error-sub">{overlayCopy.subtitle}</span>
           </div>
         )}
       </div>

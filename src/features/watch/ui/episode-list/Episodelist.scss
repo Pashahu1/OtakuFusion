@@ -63,3 +63,47 @@
   scrollbar-width: thin;
   scrollbar-color: #3a3a3a #1a1a1a;
 }
+
+.watch-episodes-section {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding: clamp(24px, 3vw, 36px) 1rem clamp(48px, 6vw, 72px);
+  border-top: none;
+  box-sizing: border-box;
+
+  @media (min-width: 1024px) {
+    padding-inline: 2.5rem;
+  }
+
+  &__header {
+    margin-bottom: 20px;
+  }
+
+  &__scroll {
+    height: auto;
+    overflow: visible;
+    background: transparent;
+  }
+}
+
+.watch-episodes-grid {
+  display: grid;
+  width: 100%;
+  gap: 20px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-content: start;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px 20px;
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  }
+
+  @media (min-width: 1536px) {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}

@@ -1,21 +1,47 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
-import { useSearchParams, useParams } from 'next/navigation';
-import {
-  Episodelist,
-  StreamOriginPreconnect,
-  useWatch,
-  useWatchPageEffects,
-  WatchInfoPanel,
-  WatchPlayerContent,
-} from '@/features/watch';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { Episodelist } from '@/features/watch';
+import { useWatchSeries } from '@/features/watch/hooks/useWatchSeries';
+import { useWatchSpotlightArtwork } from '@/features/watch/hooks/useWatchSpotlightArtwork';
+import { buildWatchHeroModel } from '@/features/watch/lib/buildWatchHeroModel';
+import { WatchSeriesHero } from '@/features/watch/ui/watch-series/WatchSeriesHero';
+import { WatchEpisodesSkeleton } from '@/features/watch/ui/watch-series/WatchEpisodesSkeleton';
+import { useWatchPageDocumentTitle } from '@/features/watch/hooks/useWatchPageDocumentTitle';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
-import { onEpisodeWatched as markWatchedInStorage } from '@/lib/watch/watched-episodes';
+import { formatEpisodeDuration } from '@/features/watch/lib/format-episode-duration';
+import { watchPlayPath } from '@/shared/utils/watch-routes';
+import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
+import './watch-page.scss';
 
-export default function Watch() {
+function pickContinueEpisode(
+  urlEp: string | undefined,
+  watched: Record<string, boolean>,
+  episodes: { id: string; episode_no: number }[] | null
+): string {
+  const fromUrl = urlEp?.trim();
+  if (fromUrl) return fromUrl;
+
+  if (episodes?.length) {
+    const firstUnwatched = episodes.find((ep) => {
+      const num = getEpisodeNumberFromId(ep.id) ?? String(ep.episode_no);
+      return !watched[num];
+    });
+    if (firstUnwatched) {
+      return getEpisodeNumberFromId(firstUnwatched.id) ?? String(firstUnwatched.episode_no);
+    }
+    const last = episodes[episodes.length - 1];
+    return getEpisodeNumberFromId(last.id) ?? String(last.episode_no);
+  }
+
+  return '1';
+}
+
+export default function WatchSeriesPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
   const animeIdRaw = params?.id;
@@ -26,133 +52,84 @@ export default function Watch() {
         ? (animeIdRaw[0] ?? '')
         : '';
   const urlEp = searchParams.get('ep') ?? undefined;
-  const [showErrorBlock, setShowErrorBlock] = useState(false);
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
-  const posterImgRef = useRef<HTMLImageElement | null>(null);
-  const playerColumnRef = useRef<HTMLDivElement>(null);
-  const [episodesColumnHeight, setEpisodesColumnHeight] = useState<
-    number | null
-  >(null);
-  const [watchedEpisodes, setWatchedEpisodes] = useLocalStorage<
-    Record<string, boolean>
-  >(`watched-${animeId}`, {});
+  useEffect(() => {
+    const ep = urlEp?.trim();
+    if (!animeId || !ep) return;
+    router.replace(watchPlayPath(animeId, ep));
+  }, [animeId, urlEp, router]);
+
+  const [watchedEpisodes] = useLocalStorage<Record<string, boolean>>(
+    `watched-${animeId}`,
+    {}
+  );
+
   const {
-    buffering,
-    streamLoadingMessage,
-    streamInfo,
     animeInfo,
     episodes,
-    nextEpisodeSchedule,
     totalEpisodes,
-    isFullOverview,
-    setIsFullOverview,
-    activeEpisodeNum,
-    streamUrl,
-    subtitles,
-    thumbnail,
     episodeId,
-    setEpisodeId,
-    activeServerId,
-    setActiveServerId,
-    servers,
-    playerShellPending,
-    watchStreamProvider,
-    setWatchStreamProvider,
-    streamOverlayMessage,
-    anilibertyLanguageMenuEligible,
-    hikkaLanguageMenuEligible,
-  } = useWatch(animeId || '', urlEp ?? undefined);
+  } = useWatchSeries(animeId || '', urlEp);
 
-  const hasAppliedSavedEpisodeRef = useRef(false);
-  const errorBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useWatchPageDocumentTitle(animeInfo, animeId);
 
-  useWatchPageEffects(
-    hasAppliedSavedEpisodeRef,
-    animeId,
-    setEpisodeId,
-    episodeId,
-    episodes,
-    urlEp,
-    buffering,
-    streamUrl,
-    playerShellPending,
-    animeInfo,
-    nextEpisodeSchedule,
-    errorBlockTimerRef,
-    setShowErrorBlock,
-    playerColumnRef,
-    setEpisodesColumnHeight
+  const { data: spotlightArtwork } = useWatchSpotlightArtwork(animeInfo);
+
+  const heroModel = useMemo(() => {
+    if (!animeInfo) return null;
+    return buildWatchHeroModel(animeInfo, spotlightArtwork);
+  }, [animeInfo, spotlightArtwork]);
+
+  const episodeDuration = formatEpisodeDuration(
+    animeInfo?.animeInfo?.tvInfo?.duration
   );
 
-  const onEpisodeWatched = useCallback(
-    (id: string) => markWatchedInStorage(id, setWatchedEpisodes),
-    [setWatchedEpisodes]
-  );
+  const continueEp = pickContinueEpisode(undefined, watchedEpisodes, episodes);
+  const playHref = watchPlayPath(animeId, continueEp);
+  const ctaLabel = watchedEpisodes[continueEp]
+    ? `Continue Watching E${continueEp}`
+    : 'Watch Now';
+
+  if (urlEp?.trim()) {
+    return <div className="watch-page__hero-skeleton" aria-busy aria-label="Loading player" />;
+  }
+
+  const handleEpisodeClick = (ep: string) => {
+    router.push(watchPlayPath(animeId, ep));
+  };
 
   return (
-    <div className="relative flex h-fit w-full flex-col items-center justify-center">
-      <StreamOriginPreconnect streamUrl={streamUrl} />
-      <div className="relative w-full px-4 sm:px-5 md:px-6 min-[1200px]:px-8 xl:px-10">
-        <div className="watch-layout relative z-10 mt-16 grid w-full gap-4 pb-[50px] max-md:mt-[50px] min-[1200px]:mt-32 min-[1200px]:grid-cols-[minmax(280px,28%)_1fr_minmax(240px,22%)] max-[1199px]:grid-cols-1 md:max-[1199px]:grid-cols-2">
-          <div
-            className="watch-episodes episodes flex min-h-[480px] min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#23252b]/85 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-md max-[1199px]:order-2 max-md:min-h-[280px] md:max-[1199px]:min-h-[320px]"
-            style={
-              episodesColumnHeight != null
-                ? { height: `${episodesColumnHeight}px` }
-                : undefined
-            }
-          >
-            {!episodes ? (
-              <div className="h-full min-h-[280px] w-full animate-pulse rounded-lg bg-white/5" />
-            ) : (
-              <Episodelist
-                episodes={episodes}
-                currentEpisode={episodeId}
-                onEpisodeClick={(id) => setEpisodeId(id)}
-                totalEpisodes={totalEpisodes ?? 0}
-                watchedEpisodes={watchedEpisodes}
-              />
-            )}
-          </div>
+    <div className="watch-page">
+      {heroModel && animeInfo ? (
+        <WatchSeriesHero
+          hero={heroModel}
+          animeInfo={animeInfo}
+          playHref={playHref}
+          ctaLabel={ctaLabel}
+          isDetailsExpanded={isDetailsExpanded}
+          onToggleDetails={() => setIsDetailsExpanded((v) => !v)}
+        />
+      ) : (
+        <div className="watch-page__hero-skeleton" aria-hidden />
+      )}
 
-          <WatchPlayerContent
-            animeId={animeId}
-            playerColumnRef={playerColumnRef}
-            buffering={buffering}
-            streamLoadingMessage={streamLoadingMessage}
-            streamUrl={streamUrl}
-            subtitles={subtitles}
-            thumbnail={thumbnail}
-            episodeId={episodeId}
-            episodes={episodes}
-            setEpisodeId={setEpisodeId}
-            onEpisodeWatched={onEpisodeWatched}
-            animeInfo={animeInfo}
-            episodeNum={activeEpisodeNum}
-            streamInfo={streamInfo}
-            servers={servers}
-            activeServerId={activeServerId}
-            setActiveServerId={setActiveServerId}
-            showErrorBlock={showErrorBlock}
-            playerShellPending={playerShellPending}
-            watchStreamProvider={watchStreamProvider}
-            setWatchStreamProvider={setWatchStreamProvider}
-            streamOverlayMessage={streamOverlayMessage}
-            anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
-            hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
-          />
+      {episodes ? (
+        <Episodelist
+          episodes={episodes}
+          currentEpisode={episodeId ?? urlEp ?? null}
+          onEpisodeClick={handleEpisodeClick}
+          totalEpisodes={totalEpisodes ?? 0}
+          watchedEpisodes={watchedEpisodes}
+          seriesTitle={animeInfo?.title ?? ''}
+          posterUrl={animeInfo?.poster ?? ''}
+          episodeDuration={episodeDuration}
+        />
+      ) : (
+        <WatchEpisodesSkeleton />
+      )}
 
-          <WatchInfoPanel
-            animeInfo={animeInfo}
-            nextEpisodeSchedule={nextEpisodeSchedule}
-            posterImgRef={posterImgRef}
-            isFullOverview={isFullOverview}
-            setIsFullOverview={setIsFullOverview}
-          />
-        </div>
-      </div>
-
-      <div className="mt-[15px] flex w-full min-w-0 flex-col gap-y-7">
+      <div className="watch-page__recommended">
         {(animeInfo?.recommended_data?.length ?? 0) > 0 ? (
           <AnimeSection
             title="Recommended for you"

@@ -163,7 +163,7 @@ export function ContinueWatchingSection() {
               className="!w-[130px] shrink-0 sm:!w-[150px] md:!w-[160px]"
             >
               <Link
-                href={`/watch/${item.id}?ep=${item.episodeId}`}
+                href={`/watch/${item.id}/play?ep=${item.episodeId}`}
                 className="group block"
               >
                 <article className="relative flex w-full flex-col gap-1.5 overflow-hidden rounded-md transition duration-300 hover:scale-[1.04] hover:shadow-lg">

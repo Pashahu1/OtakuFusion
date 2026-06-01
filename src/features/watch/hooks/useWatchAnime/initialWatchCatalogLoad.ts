@@ -1,5 +1,6 @@
 import { getAnimeInfo } from '@/lib/api/anime-info';
 import { getNextEpisodeSchedule } from '@/lib/api/schedule';
+import { readWatchCatalogSessionCache } from '@/features/watch/lib/watch-catalog-session-cache';
 import { getWatchAnimeErrorMessage } from './watchAnimeCatalogUtils';
 import type { WatchAnimeCatalogLoadParams } from './watchAnimeCatalogLoadTypes';
 import type { WatchCatalogLoadEffectDeps } from './watchCatalogLoadDeps';
@@ -50,6 +51,17 @@ export function runInitialWatchCatalogLoad(input: InitialWatchCatalogLoadInput):
     setAnilibertyLanguageMenuEligible: setAnilibertyEligible,
     setHikkaLanguageMenuEligible: setHikkaEligible,
   } = deps;
+
+  const sessionCached =
+    episodeRemapPass === 0
+      ? readWatchCatalogSessionCache(animeId, deps.watchStreamProvider)
+      : null;
+  if (sessionCached) {
+    return () => {
+      input.markCancelled();
+      input.abortSignal();
+    };
+  }
 
   setEpisodes(null);
   setAnimepaheCatalogProviderId(null);

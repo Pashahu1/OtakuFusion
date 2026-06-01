@@ -23,8 +23,6 @@ export interface UseWatchReturn {
   totalEpisodes: number | null;
   servers: ServerInfo[] | null;
   streamUrl: string | null;
-  isFullOverview: boolean;
-  setIsFullOverview: (isFullOverview: boolean) => void;
   subtitles: SubtitleItem[] | null;
   thumbnail: string | null;
   episodeId: string | null;

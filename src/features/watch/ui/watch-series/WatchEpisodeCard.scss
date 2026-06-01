@@ -1,0 +1,132 @@
+.watch-episode-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+
+  &--active .watch-episode-card__thumb {
+    outline: 2px solid var(--color-brand-orange, #f97316);
+    outline-offset: 2px;
+  }
+
+  &__thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 4px;
+    background: #1a1b1e;
+  }
+
+  &__img {
+    object-fit: cover;
+    transition: transform 0.25s ease;
+  }
+
+  &:hover &__img {
+    transform: scale(1.04);
+  }
+
+  &__play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(0 0 0 / 0.35);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover &__play,
+  &--active &__play {
+    opacity: 1;
+  }
+
+  &__duration {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 0.82);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  &__now-playing {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    z-index: 2;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--color-brand-orange, #f97316);
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  &__watched-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(0 0 0 / 0.55);
+  }
+
+  &__watched-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgb(255 255 255 / 0.92);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__series {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.45);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #fff;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  &__langs {
+    margin: 0;
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 0.5);
+  }
+}

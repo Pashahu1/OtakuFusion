@@ -24,7 +24,6 @@ export function useWatch(
   animeId: string,
   initialEpisodeId: string | undefined
 ): UseWatchReturn {
-  const [isFullOverview, setIsFullOverview] = useState(false);
   const [streamLangRevision, setStreamLangRevision] = useState(0);
   const [watchStreamProvider, setWatchStreamProviderState] =
     useState<WatchStreamProvider>('animepahe');
@@ -435,8 +434,6 @@ export function useWatch(
     totalEpisodes: totalEpisodesForUi,
     servers,
     streamUrl: stream.streamUrl,
-    isFullOverview,
-    setIsFullOverview,
     subtitles: stream.subtitles.length ? stream.subtitles : null,
     thumbnail: stream.thumbnail,
     episodeId: anime.episodeId,

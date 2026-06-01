@@ -1,13 +1,11 @@
 'use client';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { useContinueWatchingFlagReset } from './useContinueWatchingFlagReset';
 import { useWatchEpisodeSelection } from './useWatchEpisodeSelection';
 import { useApplyContinueWatchingEpisode } from './useApplyContinueWatchingEpisode';
 import { useWatchPageDocumentTitle } from './useWatchPageDocumentTitle';
 import { useStreamErrorBlockDelay } from './useStreamErrorBlockDelay';
-import { usePlayerColumnHeightSync } from './usePlayerColumnHeightSync';
 
 export const useWatchPageEffects = (
   hasAppliedSavedEpisodeRef: React.RefObject<boolean>,
@@ -20,11 +18,8 @@ export const useWatchPageEffects = (
   streamUrl: string | null,
   playerShellPending: boolean,
   animeInfo: AnimeData | null,
-  nextEpisodeSchedule: NextEpisodeScheduleResult | null,
   errorBlockTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>,
-  setShowErrorBlock: (item: boolean) => void,
-  playerColumnRef: React.RefObject<HTMLDivElement | null>,
-  setEpisodesColumnHeight: (height: number | null) => void
+  setShowErrorBlock: (item: boolean) => void
 ) => {
   useContinueWatchingFlagReset(hasAppliedSavedEpisodeRef, animeId);
   useApplyContinueWatchingEpisode(
@@ -48,12 +43,5 @@ export const useWatchPageEffects = (
     buffering,
     streamUrl,
     playerShellPending
-  );
-  usePlayerColumnHeightSync(
-    playerColumnRef,
-    setEpisodesColumnHeight,
-    streamUrl,
-    buffering,
-    nextEpisodeSchedule
   );
 };

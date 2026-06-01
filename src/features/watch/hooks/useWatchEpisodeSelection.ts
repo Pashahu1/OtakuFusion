@@ -45,7 +45,7 @@ export function useWatchEpisodeSelection(
     const urlEpTrim = urlEp?.trim();
     if (urlEpTrim === episodeId) return;
 
-    const newUrl = `/watch/${animeId}?ep=${episodeId}`;
+    const newUrl = `/watch/${animeId}/play?ep=${episodeId}`;
     router.replace(newUrl, { scroll: false });
   }, [episodeId, animeId, router, episodes, setEpisodeId, urlEp]);
 }

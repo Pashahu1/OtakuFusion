@@ -1,0 +1,47 @@
+.watch-episodes-skeleton {
+  &__title {
+    width: 120px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgb(255 255 255 / 0.08);
+    animation: watch-episodes-skeleton-pulse 1.4s ease-in-out infinite;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  &__thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 0.07);
+    animation: watch-episodes-skeleton-pulse 1.4s ease-in-out infinite;
+  }
+
+  &__line {
+    height: 12px;
+    width: 55%;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 0.06);
+    animation: watch-episodes-skeleton-pulse 1.4s ease-in-out infinite;
+
+    &--wide {
+      width: 88%;
+      height: 14px;
+    }
+  }
+}
+
+@keyframes watch-episodes-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}

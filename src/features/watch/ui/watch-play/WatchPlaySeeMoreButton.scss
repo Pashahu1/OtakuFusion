@@ -1,0 +1,47 @@
+.watch-play-see-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 4px;
+  padding: 12px 20px;
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 4px;
+  background: transparent;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.92);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+
+  @media (min-width: 900px) {
+    margin-left: auto;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: rgb(255 255 255 / 0.55);
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-orange, #f97316);
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &__icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+}

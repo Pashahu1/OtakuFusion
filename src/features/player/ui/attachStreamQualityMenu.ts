@@ -24,7 +24,8 @@ export function attachStreamQualityMenu(
     variants.find((v) => v.url.trim() === preferred.url) ??
     variants.find((v) => v.height === DEFAULT_PLAYBACK_QUALITY_HEIGHT) ??
     variants[0];
-  const initialTooltip = `${active.height}p`;
+  const initialTooltip =
+    Number.isFinite(active?.height) && active.height > 0 ? `${active.height}p` : '720p';
 
   const selector = variants.map((v) => ({
     html: `${v.height}p`,
@@ -43,14 +44,12 @@ export function attachStreamQualityMenu(
       const v = Number.isFinite(height)
         ? variants.find((x) => x.height === height)
         : undefined;
-      if (!v?.url?.trim()) return;
+      if (!v?.url?.trim()) return item.html ?? 'Quality';
       const t = art.currentTime;
       const wasPaused = art.playing === false;
       const headers = getStreamHeaders(streamInfo, v.url.trim());
       const nextFull = getStreamFullUrl(v.url.trim(), headers);
-      const label = String(item.html ?? '').trim();
-      const parent = (item as { $parent?: { tooltip?: string } }).$parent;
-      if (parent && label) parent.tooltip = label;
+      const label = String(item.html ?? '').trim() || `${height}p`;
       void art.switchUrl(nextFull).then(() => {
         if (Number.isFinite(t) && t > 0) {
           const dur = art.video?.duration ?? art.duration;
@@ -60,6 +59,7 @@ export function attachStreamQualityMenu(
         }
         if (!wasPaused) art.play().catch(() => {});
       });
+      return label;
     },
   });
 }

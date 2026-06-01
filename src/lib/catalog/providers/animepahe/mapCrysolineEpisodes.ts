@@ -6,7 +6,7 @@ function toEpisodeQueryId(episodeNumber: number): string {
 }
 
 /**
- * ╨Æ╤û╨┤╨┐╨╛╨▓╤û╨┤╤î GET /api/v1/anime/animepahe/episodes/{seriesId} ΓÇö ╨╝╨░╤ü╨╕╨▓ ╤ü╨╡╤Ç╤û╨╣.
+ * Відповідь GET /api/v1/anime/animepahe/episodes/{seriesId} — масив серій.
  */
 export function mapCrysolineAnimepaheEpisodes(
   rows: CrysolineAnimepaheEpisodeRow[]
