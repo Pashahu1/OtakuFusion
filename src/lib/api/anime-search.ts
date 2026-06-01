@@ -12,6 +12,7 @@ export const ANIME_SEARCH_MIN_QUERY_LENGTH = 2;
 export const ANIME_SEARCH_RESULT_LIMIT = 24;
 const SEARCH_FETCH_PER_PAGE = 50;
 const MAX_SEARCH_API_CALLS = 3;
+const SHORT_QUERY_MAX_LEN = 6;
 
 type SearchMedia = NonNullable<
   Awaited<ReturnType<typeof getAniListSearchPage>>['media']
@@ -49,14 +50,16 @@ function buildSearchTerms(query: string): string[] {
 
 async function collectSearchPool(query: string): Promise<SearchMedia[]> {
   const byId = new Map<number, SearchMedia>();
+  const isShortQuery = query.length <= SHORT_QUERY_MAX_LEN;
 
   for (const term of buildSearchTerms(query)) {
     const batch = await fetchSearchPool(term);
     for (const item of batch) byId.set(item.id, item);
     if (byId.size >= SEARCH_FETCH_PER_PAGE) break;
+    if (isShortQuery) break;
   }
 
-  if (byId.size < 8 && query.length <= 4) {
+  if (!isShortQuery && byId.size < 8 && query.length <= 4) {
     const page2 = await fetchSearchPool(query, 2);
     for (const item of page2) byId.set(item.id, item);
   }

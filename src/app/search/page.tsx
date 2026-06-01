@@ -1,5 +1,6 @@
-import { SearchInput } from './_components/SearchInput';
-import { SearchData } from './_components/SearchData';
+import { Suspense } from 'react';
+import { SearchView } from './_components/SearchView';
+import { SearchSkeleton } from '@/components/ui/Skeleton/SearchSkeleton';
 
 export default async function SearchPage({
   searchParams,
@@ -9,10 +10,8 @@ export default async function SearchPage({
   const { keyword = '' } = await searchParams;
 
   return (
-    <div className="flex flex-col">
-      <SearchInput initialValue={keyword} />
-
-      <SearchData keyword={keyword} />
-    </div>
+    <Suspense fallback={<SearchSkeleton />}>
+      <SearchView initialKeyword={keyword} />
+    </Suspense>
   );
 }

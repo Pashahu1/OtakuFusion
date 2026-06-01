@@ -14,6 +14,9 @@ export interface AnimeSearchRankMedia {
 
 const SHORT_LATIN_MAX_LEN = 6;
 const MIN_RELEVANCE_SCORE = 260;
+const MIN_RELEVANCE_SCORE_SHORT = 100;
+/** Very short prefix queries — trust AniList SEARCH_MATCH order. */
+const PREFIX_TRUST_MAX_LEN = 3;
 
 const FIELD_WEIGHT = {
   display: 1,
@@ -146,10 +149,15 @@ export function filterAnimeSearchResults<T extends AnimeSearchRankMedia>(
   if (!queryNorm) return ranked;
 
   const isCjk = isCjkSearchQuery(queryNorm);
-  const isShortLatin = !isCjk && queryNorm.length <= SHORT_LATIN_MAX_LEN;
-  if (!isShortLatin) return ranked;
+  if (isCjk) return ranked;
+  if (queryNorm.length <= PREFIX_TRUST_MAX_LEN) return ranked;
 
-  return ranked.filter((item) => scoreAnimeSearchMedia(item, query) >= MIN_RELEVANCE_SCORE);
+  const minScore =
+    queryNorm.length <= SHORT_LATIN_MAX_LEN
+      ? MIN_RELEVANCE_SCORE_SHORT
+      : MIN_RELEVANCE_SCORE;
+
+  return ranked.filter((item) => scoreAnimeSearchMedia(item, query) >= minScore);
 }
 
 export function rankAnimeSearchMedia<T extends AnimeSearchRankMedia>(
