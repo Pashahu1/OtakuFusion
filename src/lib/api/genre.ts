@@ -1,4 +1,5 @@
 import type { ApiResponse } from '@/lib/api';
+import { isBlockedGenreBrowseName } from '@/lib/anime-content-policy';
 import { getAniListMediaPage, mapAniListMediaToAnimeInfo } from '@/lib/anilist';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
@@ -13,6 +14,15 @@ export const getGenreAnime = async (
   page: number = 1
 ): Promise<ApiResponse<GenreResults>> => {
   const genre = decodeURIComponent(name).replace(/-/g, ' ');
+  if (isBlockedGenreBrowseName(genre)) {
+    return {
+      results: {
+        data: [],
+        totalPages: 1,
+      },
+    };
+  }
+
   const anilistPage = await getAniListMediaPage({
     page,
     perPage: 20,

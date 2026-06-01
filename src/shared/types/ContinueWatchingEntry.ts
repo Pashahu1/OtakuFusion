@@ -7,6 +7,7 @@ export interface ContinueWatchingEntry {
   title?: string;
   japanese_title?: string;
   adultContent?: boolean;
+  genres?: string[];
   /** For MRU sort (legacy entries without field → 0). */
   updatedAt?: number;
 }

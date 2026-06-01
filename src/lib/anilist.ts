@@ -1,3 +1,8 @@
+import {
+  assertAnimeMediaAllowed,
+  filterAniListMediaArray,
+  isBlockedAnimeMedia,
+} from '@/lib/anime-content-policy';
 import { ApiError } from '@/lib/errors/ApiError';
 import type {
   AnimeInfo,
@@ -200,6 +205,8 @@ function formatDate(startDate?: AniListDate | null): string {
 }
 
 export function mapAniListMediaToAnimeInfo(media: AniListMedia): AnimeInfo {
+  const genres =
+    media.genres?.filter((g): g is string => Boolean(g?.trim())) ?? [];
   return {
     id: String(media.id),
     data_id: media.id,
@@ -213,6 +220,7 @@ export function mapAniListMediaToAnimeInfo(media: AniListMedia): AnimeInfo {
     description: stripHtml(media.description),
     tvInfo: toTvInfo(media),
     adultContent: Boolean(media.isAdult),
+    genres,
   };
 }
 
@@ -224,15 +232,16 @@ export function mapAniListMediaToAnimeDetails(media: AniListMedia): AnimeResults
       .filter((name): name is string => Boolean(name)) ?? [];
 
   const recommendations =
-    media.recommendations?.nodes
-      ?.map((item) => item?.mediaRecommendation)
-      .filter((item): item is AniListMedia => Boolean(item))
-      .map(mapAniListMediaToAnimeInfo) ?? [];
+    filterAniListMediaArray(
+      media.recommendations?.nodes
+        ?.map((item) => item?.mediaRecommendation)
+        .filter((item): item is AniListMedia => Boolean(item)) ?? []
+    ).map(mapAniListMediaToAnimeInfo);
 
-  const related =
-    media.relations?.nodes
-      ?.filter((item): item is AniListMedia => Boolean(item))
-      .map(mapAniListMediaToAnimeInfo) ?? [];
+  const related = filterAniListMediaArray(
+    media.relations?.nodes?.filter((item): item is AniListMedia => Boolean(item)) ??
+      []
+  ).map(mapAniListMediaToAnimeInfo);
 
   const data: AnimeData = {
     id: String(media.id),
@@ -444,7 +453,11 @@ export async function getAniListMediaPage(
     search: params.search,
   });
 
-  return data.Page;
+  const page = data.Page;
+  return {
+    ...page,
+    media: filterAniListMediaArray(page.media),
+  };
 }
 
 /** Lightweight query for search page (no description/banner). */
@@ -501,7 +514,11 @@ export async function getAniListSearchPage(params: {
     search: params.search,
   });
 
-  return data.Page;
+  const page = data.Page;
+  return {
+    ...page,
+    media: filterAniListMediaArray(page.media),
+  };
 }
 
 export async function getAniListMediaById(id: string): Promise<AniListMedia> {
@@ -625,6 +642,7 @@ export async function getAniListMediaById(id: string): Promise<AniListMedia> {
     throw new ApiError('Anime not found in AniList', 404);
   }
 
+  assertAnimeMediaAllowed(data.Media);
   return data.Media;
 }
 
@@ -673,6 +691,8 @@ export async function getAniListScheduleByDate(
           media {
             id
             format
+            isAdult
+            genres
             coverImage {
               extraLarge
               large
@@ -699,7 +719,10 @@ export async function getAniListScheduleByDate(
   const schedules = data.Page.airingSchedules ?? [];
 
   return schedules
-    .filter((item): item is AniListAiringScheduleItem => Boolean(item.media?.id))
+    .filter(
+      (item): item is AniListAiringScheduleItem =>
+        Boolean(item.media?.id) && !isBlockedAnimeMedia(item.media ?? {})
+    )
     .map((item) => {
       const airing = new Date((item.airingAt ?? 0) * 1000);
       const pad = (value: number): string => String(value).padStart(2, '0');

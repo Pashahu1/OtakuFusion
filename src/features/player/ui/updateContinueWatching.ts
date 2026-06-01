@@ -1,3 +1,4 @@
+import { isBlockedAnimeInfo } from '@/lib/anime-content-policy';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 export const CONTINUE_WATCHING_STORAGE_KEY = 'continueWatching';
@@ -11,6 +12,7 @@ type StoredEntry = {
   episodeId: string;
   episodeNum?: number | null;
   adultContent?: boolean;
+  genres?: string[];
   poster?: string;
   title?: string;
   japanese_title?: string;
@@ -50,6 +52,7 @@ export function updateContinueWatching(
   if (typeof window === 'undefined') return;
   if (!animeInfo || !animeInfo.id || !animeInfo.data_id) return;
   if (!episodeId) return;
+  if (isBlockedAnimeInfo({ genres: animeInfo.genres })) return;
 
   try {
     const continueWatching = readRawList();
@@ -64,6 +67,7 @@ export function updateContinueWatching(
       episodeId,
       episodeNum,
       adultContent: animeInfo.adultContent,
+      genres: animeInfo.genres,
       poster: animeInfo.poster,
       title: animeInfo.title,
       japanese_title: animeInfo.japanese_title,

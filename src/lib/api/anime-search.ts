@@ -1,3 +1,4 @@
+import { filterAniListMediaArray } from '@/lib/anime-content-policy';
 import { getAniListSearchPage, mapAniListMediaToSearchItem } from '@/lib/anilist';
 import type { AnimeSearchItems } from '@/shared/types/AnimeSearchTypes';
 import {
@@ -22,7 +23,7 @@ async function fetchSearchPool(search: string, page = 1): Promise<SearchMedia[]>
     page,
     perPage: SEARCH_FETCH_PER_PAGE,
   });
-  return (result.media ?? []).filter(
+  return filterAniListMediaArray(result.media ?? []).filter(
     (m): m is SearchMedia => typeof m.id === 'number' && Number.isFinite(m.id)
   );
 }

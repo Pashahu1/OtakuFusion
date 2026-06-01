@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { mediaHasBlockedGenre } from '@/lib/anime-content-policy';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
 import { CONTINUE_WATCHING_STORAGE_KEY } from '@/features/player';
 
@@ -71,10 +72,15 @@ function parseContinueWatchingList(
             : undefined,
         adultContent:
           typeof item.adultContent === 'boolean' ? item.adultContent : undefined,
+        genres: Array.isArray(item.genres)
+          ? item.genres.filter((g): g is string => typeof g === 'string')
+          : undefined,
         updatedAt,
       });
     }
-    return valid.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+    return valid
+      .filter((entry) => !mediaHasBlockedGenre(entry.genres))
+      .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
   } catch {
     return [];
   }
@@ -119,13 +125,13 @@ export function ContinueWatchingSection() {
   if (list.length === 0) return null;
 
   return (
-    <section className="w-full py-8">
-      <div className="mb-4 flex items-center justify-between px-4 md:px-6 lg:px-10">
+    <section className="continue-watching-section w-full px-4 md:px-6 lg:px-10">
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="text-title text-brand-text-primary">
           Continue watching
         </h2>
       </div>
-      <div className="continue-watching-slider relative overflow-hidden pr-4 pl-4 md:pr-6 md:pl-6 lg:pr-10 lg:pl-10">
+      <div className="continue-watching-slider relative overflow-hidden">
         <button
           id={nextNavId}
           type="button"

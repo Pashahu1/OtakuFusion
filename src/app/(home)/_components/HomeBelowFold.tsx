@@ -27,10 +27,7 @@ const SwiperCard = dynamic(
 
 function HomeSectionPulse({ className }: { className?: string }) {
   return (
-    <div
-      className={`mx-4 md:mx-6 lg:mx-10 ${className ?? ''}`}
-      aria-hidden
-    >
+    <div className={`px-4 md:px-6 lg:px-10 ${className ?? ''}`} aria-hidden>
       <div className="h-8 w-48 animate-pulse rounded bg-white/10" />
       <div className="mt-4 h-40 animate-pulse rounded-lg bg-white/5" />
     </div>
@@ -44,6 +41,10 @@ interface HomeBelowFoldProps {
   latestCompleted: AnimeInfo[];
 }
 
+/** Vertical rhythm for home rows below hero Trending (Continue watching + catalog swipers). */
+const HOME_FEED_SECTION_CLASS =
+  'home-feed flex w-full flex-col gap-8 pt-8 md:gap-10 md:pt-10 lg:gap-10';
+
 export function HomeBelowFold({
   topAiring,
   mostFavorite,
@@ -51,26 +52,24 @@ export function HomeBelowFold({
   latestCompleted,
 }: HomeBelowFoldProps) {
   return (
-    <>
+    <div className={HOME_FEED_SECTION_CLASS}>
       <ContinueWatchingSection />
-      <div className="flex flex-col gap-8 md:gap-10 lg:gap-[40px]">
-        <SwiperCard title="Top Airing" catalog={topAiring} sectionId="top-airing" />
-        <SwiperCard
-          title="Most Favorite"
-          catalog={mostFavorite}
-          sectionId="most-favorite"
-        />
-        <SwiperCard
-          title="Latest Episode"
-          catalog={latestEpisode}
-          sectionId="latest-episode"
-        />
-        <SwiperCard
-          title="Latest Completed"
-          catalog={latestCompleted}
-          sectionId="latest-completed"
-        />
-      </div>
-    </>
+      <SwiperCard title="Top Airing" catalog={topAiring} sectionId="top-airing" />
+      <SwiperCard
+        title="Most Favorite"
+        catalog={mostFavorite}
+        sectionId="most-favorite"
+      />
+      <SwiperCard
+        title="Latest Episode"
+        catalog={latestEpisode}
+        sectionId="latest-episode"
+      />
+      <SwiperCard
+        title="Latest Completed"
+        catalog={latestCompleted}
+        sectionId="latest-completed"
+      />
+    </div>
   );
 }

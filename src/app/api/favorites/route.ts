@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isBlockedAnimeInfo } from '@/lib/anime-content-policy';
 import { getAniListMediaById, mapAniListMediaToAnimeInfo } from '@/lib/anilist';
 import {
   handleRouteError,
@@ -29,7 +30,9 @@ export async function GET() {
 
     const favorites: AnimeInfo[] = [];
     for (const item of settled) {
-      if (item.status === 'fulfilled') favorites.push(item.value);
+      if (item.status === 'fulfilled' && !isBlockedAnimeInfo(item.value)) {
+        favorites.push(item.value);
+      }
     }
 
     return NextResponse.json({ favorites });
@@ -53,6 +56,12 @@ export async function POST(req: Request) {
     const numericId = Number(animeId);
     if (!Number.isInteger(numericId) || numericId <= 0) {
       return NextResponse.json({ message: 'Invalid anime id.' }, { status: 400 });
+    }
+
+    try {
+      await getAniListMediaById(animeId);
+    } catch {
+      return NextResponse.json({ message: 'Anime not found.' }, { status: 404 });
     }
 
     const doc = await User.findById(sessionUser._id);

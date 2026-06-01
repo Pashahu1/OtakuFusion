@@ -92,6 +92,8 @@ export interface AnimeInfo {
   description?: string;
   tvInfo?: TvInfo;
   adultContent?: boolean;
+  /** AniList genres — used for content policy (e.g. hide Hentai). */
+  genres?: string[];
 }
 
 export type ServerInfo = {
