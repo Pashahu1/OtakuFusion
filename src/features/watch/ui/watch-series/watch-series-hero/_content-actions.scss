@@ -1,4 +1,7 @@
-﻿  &__content {
+﻿@use '../../../../../style/mixins' as *;
+
+.watch-series-hero {
+  &__content {
     position: relative;
     z-index: 2;
     display: flex;
@@ -38,7 +41,7 @@
     padding-bottom: clamp(12px, 2vh, 20px);
   }
 
-  /* Synopsis sits on hero gradient â€” no opaque box; border only at bottom */
+  /* Synopsis sits on hero gradient — no opaque box; border only at bottom */
   &__info-panel {
     position: relative;
     flex-shrink: 0;

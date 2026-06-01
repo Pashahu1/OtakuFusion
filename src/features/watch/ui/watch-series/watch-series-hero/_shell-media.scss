@@ -1,5 +1,4 @@
-﻿@use '../../../../style/mixins' as *;
-@use './watch-series-tags';
+﻿@use '../../../../../style/mixins' as *;
 
 .watch-series-hero {
   --watch-hero-header: 60px;
@@ -74,4 +73,4 @@
       );
     }
   }
-
+}
