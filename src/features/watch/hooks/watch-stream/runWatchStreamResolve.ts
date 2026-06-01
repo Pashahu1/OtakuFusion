@@ -8,6 +8,8 @@ import {
   runWatchResolveAutoRetry,
   shouldAutoRetryWatchResolve,
 } from '@/features/watch/hooks/watchResolveRetry';
+
+import { buildWatchResolveParams } from './buildWatchResolveParams';
 import type {
   WatchResolveOptions,
   WatchStreamAnimeMeta,
@@ -24,51 +26,6 @@ interface RunWatchStreamResolveParams {
   resolveLangRevision: number;
   refs: WatchStreamResolveRefs;
   setters: WatchStreamResolveSetters;
-}
-
-function buildResolveParams(
-  activeOpts: WatchResolveOptions,
-  streamAnime: WatchStreamAnimeMeta,
-  preferredLang: 'sub' | 'dub',
-  refs: WatchStreamResolveRefs,
-) {
-  const episodeNumber = Number(activeOpts.episodeId);
-  const opts = refs.resolveOptsRef.current;
-  const anilistFromMeta = (() => {
-    const raw = streamAnime.id?.trim();
-    if (!raw) return undefined;
-    const n = Number(raw);
-    return Number.isFinite(n) && n > 0 ? Math.floor(n) : undefined;
-  })();
-
-  return {
-    anilistId: anilistFromMeta,
-    malId:
-      typeof streamAnime.mal_id === 'number' && streamAnime.mal_id > 0
-        ? streamAnime.mal_id
-        : undefined,
-    keyword: streamAnime.title,
-    localAnimeId: activeOpts.animeId,
-    providerAniId: activeOpts.providerAnimeId ?? undefined,
-    episodeEpToken: refs.episodeEpTokenRef.current?.trim() || undefined,
-    episodeHasDub: refs.episodeHasDubRef.current,
-    episode: episodeNumber,
-    expectedEpisodes:
-      typeof opts?.expectedEpisodes === 'number' && opts.expectedEpisodes > 0
-        ? Math.floor(opts.expectedEpisodes)
-        : undefined,
-    anilistStillAiring: opts?.anilistStillAiring === true,
-    lang: preferredLang,
-    streamProvider:
-      activeOpts.watchStreamProvider === 'aniliberty'
-        ? ('aniliberty' as const)
-        : activeOpts.watchStreamProvider === 'hikka'
-          ? ('hikka' as const)
-          : ('animepahe' as const),
-    anilibertyCatalogVerified:
-      activeOpts.watchStreamProvider === 'aniliberty' &&
-      activeOpts.anilibertyCatalogVerified === true,
-  };
 }
 
 export async function runWatchStreamResolve({
@@ -100,7 +57,12 @@ export async function runWatchStreamResolve({
     }
 
     const preferredLang = resolvePreferredLang ?? opts?.preferredLang ?? 'sub';
-    const resolveParams = buildResolveParams(activeOpts, streamAnime, preferredLang, refs);
+    const resolveParams = buildWatchResolveParams(
+      activeOpts,
+      streamAnime,
+      preferredLang,
+      refs,
+    );
 
     const hadServerHint =
       typeof window !== 'undefined' &&
