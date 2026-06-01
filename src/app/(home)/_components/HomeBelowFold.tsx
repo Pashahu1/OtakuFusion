@@ -1,6 +1,8 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { ContinueWatchingSectionSkeleton } from '@/components/ui/Skeleton/ContinueWatchingSectionSkeleton';
+import { SwiperSectionSkeleton } from '@/components/ui/Skeleton/SwiperSectionSkeleton';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 /** Below fold: Swiper in separate chunks — less parse/eval on main thread at start (TBT). */
@@ -9,30 +11,19 @@ const ContinueWatchingSection = dynamic(
     import('@/components/ContinueWatchingSection/ContinueWatchingSection').then(
       (m) => m.ContinueWatchingSection
     ),
-  { ssr: false, loading: () => <HomeSectionPulse className="min-h-[120px]" /> }
+  {
+    ssr: false,
+    loading: () => <ContinueWatchingSectionSkeleton />,
+  }
 );
 
 const SwiperCard = dynamic(
   () => import('@/components/SwiperCard/SwiperCard').then((m) => m.SwiperCard),
   {
     ssr: false,
-    loading: () => (
-      <div
-        className="mx-4 min-h-[220px] animate-pulse rounded-xl bg-white/5 md:mx-6 lg:mx-10"
-        aria-hidden
-      />
-    ),
+    loading: () => <SwiperSectionSkeleton />,
   }
 );
-
-function HomeSectionPulse({ className }: { className?: string }) {
-  return (
-    <div className={`px-4 md:px-6 lg:px-10 ${className ?? ''}`} aria-hidden>
-      <div className="h-8 w-48 animate-pulse rounded bg-white/10" />
-      <div className="mt-4 h-40 animate-pulse rounded-lg bg-white/5" />
-    </div>
-  );
-}
 
 interface HomeBelowFoldProps {
   topAiring: AnimeInfo[];

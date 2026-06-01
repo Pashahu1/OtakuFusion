@@ -2,6 +2,8 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { useEffect } from 'react';
 import { CONTINUE_WATCHING_STORAGE_KEY } from '@/features/player';
+import { findContinueWatchingEntry } from '@/features/watch/lib/resolve-continue-watching-cta';
+import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
 
 export function useApplyContinueWatchingEpisode(
   urlEp: string | undefined,
@@ -15,10 +17,13 @@ export function useApplyContinueWatchingEpisode(
     if (typeof window === 'undefined') return;
     hasAppliedSavedEpisodeRef.current = true;
     try {
-      const cw = JSON.parse(
+      const cw: ContinueWatchingEntry[] = JSON.parse(
         localStorage.getItem(CONTINUE_WATCHING_STORAGE_KEY) || '[]'
       );
-      const found = cw.find((x: { id: string }) => x.id === animeId);
+      const found = findContinueWatchingEntry(
+        Array.isArray(cw) ? cw : [],
+        animeId
+      );
       const savedId = found?.episodeId;
       if (
         savedId &&

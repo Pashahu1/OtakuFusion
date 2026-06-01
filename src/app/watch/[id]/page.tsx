@@ -14,31 +14,8 @@ import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
 import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
 import { formatEpisodeDuration } from '@/features/watch/lib/format-episode-duration';
 import { watchPlayPath } from '@/shared/utils/watch-routes';
-import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
+import { useWatchCta } from '@/features/watch/hooks/useWatchCta';
 import './watch-page.scss';
-
-function pickContinueEpisode(
-  urlEp: string | undefined,
-  watched: Record<string, boolean>,
-  episodes: { id: string; episode_no: number }[] | null
-): string {
-  const fromUrl = urlEp?.trim();
-  if (fromUrl) return fromUrl;
-
-  if (episodes?.length) {
-    const firstUnwatched = episodes.find((ep) => {
-      const num = getEpisodeNumberFromId(ep.id) ?? String(ep.episode_no);
-      return !watched[num];
-    });
-    if (firstUnwatched) {
-      return getEpisodeNumberFromId(firstUnwatched.id) ?? String(firstUnwatched.episode_no);
-    }
-    const last = episodes[episodes.length - 1];
-    return getEpisodeNumberFromId(last.id) ?? String(last.episode_no);
-  }
-
-  return '1';
-}
 
 export default function WatchSeriesPage() {
   const router = useRouter();
@@ -60,11 +37,6 @@ export default function WatchSeriesPage() {
     router.replace(watchPlayPath(animeId, ep));
   }, [animeId, urlEp, router]);
 
-  const [watchedEpisodes] = useLocalStorage<Record<string, boolean>>(
-    `watched-${animeId}`,
-    {}
-  );
-
   const {
     animeInfo,
     episodes,
@@ -85,11 +57,16 @@ export default function WatchSeriesPage() {
     animeInfo?.animeInfo?.tvInfo?.duration
   );
 
-  const continueEp = pickContinueEpisode(undefined, watchedEpisodes, episodes);
-  const playHref = watchPlayPath(animeId, continueEp);
-  const ctaLabel = watchedEpisodes[continueEp]
-    ? `Continue Watching E${continueEp}`
-    : 'Watch Now';
+  const { playHref, ctaLabel, variant: ctaVariant } = useWatchCta({
+    animeId,
+    dataId: animeInfo?.data_id,
+    episodes,
+  });
+
+  const [watchedEpisodes] = useLocalStorage<Record<string, boolean>>(
+    `watched-${animeId}`,
+    {}
+  );
 
   if (urlEp?.trim()) {
     return <div className="watch-page__hero-skeleton" aria-busy aria-label="Loading player" />;
@@ -107,6 +84,7 @@ export default function WatchSeriesPage() {
           animeInfo={animeInfo}
           playHref={playHref}
           ctaLabel={ctaLabel}
+          ctaVariant={ctaVariant}
           isDetailsExpanded={isDetailsExpanded}
           onToggleDetails={() => setIsDetailsExpanded((v) => !v)}
         />

@@ -1,11 +1,15 @@
 'use client';
 
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
-import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
+import { ContinueWatchingSectionSkeleton } from '@/components/ui/Skeleton/ContinueWatchingSectionSkeleton';
 import { PreviewSkeleton } from '@/components/ui/Skeleton/PreviewSkeleton';
+import { SwiperSectionSkeleton } from '@/components/ui/Skeleton/SwiperSectionSkeleton';
 import { useEffect, useState } from 'react';
 
 const LOADER_OVERLAY_MS = 350;
+
+const HOME_FEED_CLASS =
+  'home-feed flex w-full flex-col gap-8 pt-8 md:gap-10 md:pt-10 lg:gap-10';
 
 export function HomeFallback() {
   const [hideLoaderOverlay, setHideLoaderOverlay] = useState(false);
@@ -17,12 +21,15 @@ export function HomeFallback() {
 
   return (
     <div className="relative min-h-[100vh]">
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col">
         <PreviewSkeleton />
-        <AnimeSectionSkeleton title="Top Airing" />
-        <AnimeSectionSkeleton title="Most Favorite" />
-        <AnimeSectionSkeleton title="Latest Episode" />
-        <AnimeSectionSkeleton title="Latest Completed" />
+        <div className={HOME_FEED_CLASS}>
+          <ContinueWatchingSectionSkeleton />
+          <SwiperSectionSkeleton title="Top Airing" />
+          <SwiperSectionSkeleton title="Most Favorite" />
+          <SwiperSectionSkeleton title="Latest Episode" />
+          <SwiperSectionSkeleton title="Latest Completed" />
+        </div>
       </div>
       {!hideLoaderOverlay && (
         <div
