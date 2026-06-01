@@ -1,5 +1,4 @@
-import { getAnimeInfo } from '@/lib/api/anime-info';
-import { getNextEpisodeSchedule } from '@/lib/api/schedule';
+import { getWatchAnimeCatalogMeta } from '@/lib/api/anime-info';
 import { readWatchCatalogSessionCache } from '@/features/watch/lib/watch-catalog-session-cache';
 import { getWatchAnimeErrorMessage } from './watchAnimeCatalogUtils';
 import type { WatchAnimeCatalogLoadParams } from './watchAnimeCatalogLoadTypes';
@@ -82,23 +81,12 @@ export function runInitialWatchCatalogLoad(input: InitialWatchCatalogLoadInput):
   const fetchInitial = async () => {
     const settleLoading = { current: true };
     try {
-      let animeData: Awaited<ReturnType<typeof getAnimeInfo>>;
-      if (episodeRemapPass === 0) {
-        const [info, schedule] = await Promise.all([
-          getAnimeInfo(animeId),
-          getNextEpisodeSchedule(animeId).catch((scheduleErr) => {
-            console.error('Error fetching next episode schedule:', scheduleErr);
-            return null;
-          }),
-        ]);
-        animeData = info;
-        if (!isCancelled()) {
-          setNextEpisodeSchedule(schedule);
-        }
-      } else {
-        animeData = await getAnimeInfo(animeId);
-      }
+      const catalogMeta = await getWatchAnimeCatalogMeta(animeId);
       if (isCancelled()) return;
+      if (episodeRemapPass === 0) {
+        setNextEpisodeSchedule(catalogMeta.nextEpisodeSchedule);
+      }
+      const animeData = catalogMeta.results;
       setAnimeInfo(animeData?.data ?? null);
       const dataForResolve = animeData?.data;
       if (!dataForResolve) {

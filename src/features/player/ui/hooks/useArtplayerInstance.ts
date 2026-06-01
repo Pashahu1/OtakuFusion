@@ -230,7 +230,9 @@ export function useArtplayerInstance({
           setWatchStreamProvider,
           anilibertyEligibleRef.current,
           hikkaEligibleRef.current,
-          streamInfo?.skipSegments
+          streamInfo?.skipSegments,
+          streamInfo,
+          streamUrl
         );
         syncLanguageMenuIfReady();
         queueMicrotask(syncLanguageMenuIfReady);

@@ -11,7 +11,6 @@ import './WatchPlayerContent.scss';
 
 type WatchPlayerContentProps = {
   animeId: string;
-  playerColumnRef: React.RefObject<HTMLDivElement | null>;
   buffering: boolean;
   streamLoadingMessage: string | null;
   streamUrl: string | null;
@@ -38,7 +37,6 @@ type WatchPlayerContentProps = {
 
 export const WatchPlayerContent = ({
   animeId,
-  playerColumnRef,
   buffering,
   streamLoadingMessage,
   streamUrl,
@@ -95,7 +93,7 @@ export const WatchPlayerContent = ({
     isStreamMissing && (showErrorBlock || hasBuiltinError || streamOverlayMessage != null);
 
   return (
-    <div ref={playerColumnRef} className="watch-player-content">
+    <div className="watch-player-content">
       <div className="watch-player-content__frame">
         {showLoader && (
           <div className="watch-player-content__loader">

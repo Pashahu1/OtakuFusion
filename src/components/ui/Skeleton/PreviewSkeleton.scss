@@ -100,7 +100,7 @@
     height: 3rem;
     width: min(100%, 18.75rem);
     border-radius: 0.375rem;
-    background: rgba(249, 115, 22, 0.35);
+    background: rgba(255, 255, 255, 0.08);
 
     @media (max-width: 1023px) {
       margin-inline: auto;
@@ -140,7 +140,7 @@
 
     &--active {
       width: 2.5rem;
-      background: rgba(249, 115, 22, 0.55);
+      background: rgba(255, 255, 255, 0.42);
     }
   }
 }

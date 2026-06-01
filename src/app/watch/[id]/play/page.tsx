@@ -25,7 +25,6 @@ export default function WatchPlayPage() {
   const urlEp = searchParams.get('ep') ?? undefined;
   const [showErrorBlock, setShowErrorBlock] = useState(false);
 
-  const playerColumnRef = useRef<HTMLDivElement>(null);
   const [watchedEpisodes, setWatchedEpisodes] = useLocalStorage<Record<string, boolean>>(
     `watched-${animeId}`,
     {}
@@ -61,7 +60,6 @@ export default function WatchPlayPage() {
       <StreamOriginPreconnect streamUrl={watch.streamUrl} />
       <WatchPlayShell
         animeId={animeId}
-        playerColumnRef={playerColumnRef}
         watchedEpisodes={watchedEpisodes}
         onEpisodeWatched={onEpisodeWatched}
         showErrorBlock={showErrorBlock}

@@ -2,7 +2,7 @@ import Artplayer from 'artplayer';
 import { captionIcon } from './PlayerIcons';
 import { syncPlayerLanguageMenu } from './syncPlayerLanguageMenu';
 import { ANIKAI_PAGE_REFERER, LOGO_HIDE_DELAY_MS, M3U8_PROXY_URL } from './playerConstants';
-import { isHlsDirectHostUrl } from './playerStream';
+import { getStreamHeaders, isHlsDirectHostUrl } from './playerStream';
 import { artplayerPluginVttThumbnail } from './artPlayerPluginVttThumbnail';
 import { handlePlayerKeydown } from './playerKeydown';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
@@ -14,7 +14,10 @@ import {
   writeSubtitlePreference,
 } from './playerPlaybackPreferences';
 
-function toPlayableAssetUrl(url: string): string {
+function toPlayableAssetUrl(
+  url: string,
+  requestHeaders?: Record<string, string>
+): string {
   const raw = url.trim();
   if (!raw) return raw;
   if (raw.startsWith('blob:') || raw.startsWith('data:')) return raw;
@@ -24,12 +27,14 @@ function toPlayableAssetUrl(url: string): string {
   const proxyBase = M3U8_PROXY_URL.trim();
   if (!proxyBase) return raw;
   const encoded = encodeURIComponent(raw);
-  const headers = encodeURIComponent(
-    JSON.stringify({
-      Referer: ANIKAI_PAGE_REFERER,
-      Origin: 'https://anikai.to',
-    })
-  );
+  const headerPayload =
+    requestHeaders && Object.keys(requestHeaders).length > 0
+      ? requestHeaders
+      : {
+          Referer: ANIKAI_PAGE_REFERER,
+          Origin: 'https://anikai.to',
+        };
+  const headers = encodeURIComponent(JSON.stringify(headerPayload));
   if (proxyBase.includes('{url}')) {
     const withUrl = proxyBase.replace('{url}', encoded);
     if (withUrl.includes('headers=')) return withUrl;
@@ -74,9 +79,12 @@ export function setupPlayerReady(
   /** Hikka Features catalog (Ukrainian dub). */
   hikkaLanguageMenuEligible: boolean,
   /** OP/ED markers (from Aniliberty or resolve mapping). */
-  skipSegments: StreamingData['skipSegments'] | null | undefined
+  skipSegments: StreamingData['skipSegments'] | null | undefined,
+  streamInfo: StreamingData | null | undefined,
+  streamUrl: string | null | undefined
 ) {
   let logoHideTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  const assetRequestHeaders = getStreamHeaders(streamInfo ?? null, streamUrl ?? null);
 
   const tryPlay = () => {
     if (userPausedRef.current) return;
@@ -254,7 +262,7 @@ export function setupPlayerReady(
     fontSize: (art.width > 500 ? art.width * 0.02 : art.width * 0.03) + 'px',
   });
   if (thumbnail) {
-    const thumbUrl = toPlayableAssetUrl(thumbnail);
+    const thumbUrl = toPlayableAssetUrl(thumbnail, assetRequestHeaders);
     scheduleIdle(() => {
       try {
         art.plugins.add(
@@ -270,7 +278,7 @@ export function setupPlayerReady(
   const playableSubtitles = (subtitles ?? [])
     .map((sub) => ({
       ...sub,
-      file: toPlayableAssetUrl(sub.file),
+      file: toPlayableAssetUrl(sub.file, assetRequestHeaders),
     }))
     .filter((sub) => sub.file.trim().length > 0);
   const defaultEnglishSub =

@@ -12,7 +12,7 @@ function buildAvailabilityLines(anime: AnimeData | null): {
   if (!anime?.animeInfo?.tvInfo) {
     return {
       audio: 'Japanese',
-      subtitles: 'English and more (player)',
+      subtitles: 'Embedded in stream (hardsub); use Sub / Dub in the player',
     };
   }
 
@@ -25,8 +25,8 @@ function buildAvailabilityLines(anime: AnimeData | null): {
       ? 'Japanese, English, Deutsch, Español (América Latina), Español (España), Français, Italiano, Português (Brasil), हिंदी, العربية (مصر), العربية, 中文 (简体), 中文 (繁體), 한국어, ภาษาไทย, Українська'
       : 'Japanese',
     subtitles: hasSub
-      ? 'English, Spanish, French, German, Portuguese (BR), Arabic, Italian, Ukrainian, and more'
-      : 'English and more (player)',
+      ? 'Embedded in stream (hardsub); use Sub / Dub in the player'
+      : 'Embedded in stream; use Sub / Dub in the player',
   };
 }
 

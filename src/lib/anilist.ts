@@ -348,7 +348,7 @@ export function mapAniListMediaToSpotlight(media: AniListMedia): SpotlightAnime 
   };
 }
 
-export async function anilistRequest<TData>(
+async function anilistRequestOnce<TData>(
   query: string,
   variables?: Record<string, unknown>
 ): Promise<TData> {
@@ -379,6 +379,35 @@ export async function anilistRequest<TData>(
   }
 
   return payload.data;
+}
+
+function anilistRetryDelayMs(status: number, attempt: number): number {
+  if (status === 429) return 1200 + attempt * 800;
+  return 0;
+}
+
+export async function anilistRequest<TData>(
+  query: string,
+  variables?: Record<string, unknown>
+): Promise<TData> {
+  const maxAttempts = 3;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    try {
+      return await anilistRequestOnce<TData>(query, variables);
+    } catch (err) {
+      lastError = err;
+      const status = err instanceof ApiError ? err.status : 0;
+      const delayMs = anilistRetryDelayMs(status, attempt);
+      if (delayMs <= 0 || attempt >= maxAttempts - 1) break;
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, delayMs);
+      });
+    }
+  }
+
+  throw lastError;
 }
 
 export async function getAniListMediaPage(
@@ -521,12 +550,45 @@ export async function getAniListSearchPage(params: {
   };
 }
 
+const ANILIST_MEDIA_BY_ID_TTL_MS = 12 * 60 * 1000;
+const anilistMediaByIdCache = new Map<
+  number,
+  { media: AniListMedia; cachedAt: number }
+>();
+const anilistMediaByIdInFlight = new Map<number, Promise<AniListMedia>>();
+
 export async function getAniListMediaById(id: string): Promise<AniListMedia> {
   const parsedId = Number(id);
   if (!Number.isInteger(parsedId) || parsedId <= 0) {
     throw new ApiError('Invalid AniList id', 400);
   }
 
+  const cached = anilistMediaByIdCache.get(parsedId);
+  if (cached && Date.now() - cached.cachedAt < ANILIST_MEDIA_BY_ID_TTL_MS) {
+    return cached.media;
+  }
+
+  const inflight = anilistMediaByIdInFlight.get(parsedId);
+  if (inflight) return inflight;
+
+  const promise = fetchAniListMediaByIdUncached(parsedId)
+    .then((media) => {
+      anilistMediaByIdCache.set(parsedId, { media, cachedAt: Date.now() });
+      return media;
+    })
+    .finally(() => {
+      if (anilistMediaByIdInFlight.get(parsedId) === promise) {
+        anilistMediaByIdInFlight.delete(parsedId);
+      }
+    });
+
+  anilistMediaByIdInFlight.set(parsedId, promise);
+  return promise;
+}
+
+async function fetchAniListMediaByIdUncached(
+  parsedId: number
+): Promise<AniListMedia> {
   const query = `
     query ($id: Int) {
       Media(id: $id, type: ANIME) {

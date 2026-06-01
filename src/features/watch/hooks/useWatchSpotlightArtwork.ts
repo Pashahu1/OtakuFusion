@@ -28,6 +28,7 @@ async function fetchWatchSpotlightArtwork(
   return (await res.json()) as WatchSpotlightArtwork;
 }
 
+/** TVDB hero/logo — fetch as soon as catalog metadata is available (no AniList duplicate). */
 export function useWatchSpotlightArtwork(animeInfo: AnimeData | null) {
   return useQuery({
     queryKey: [

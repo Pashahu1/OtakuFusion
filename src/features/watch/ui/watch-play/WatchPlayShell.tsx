@@ -22,7 +22,6 @@ import './WatchPlayShell.scss';
 
 export interface WatchPlayShellProps {
   animeId: string;
-  playerColumnRef: React.RefObject<HTMLDivElement | null>;
   buffering: boolean;
   streamLoadingMessage: string | null;
   streamUrl: string | null;
@@ -50,7 +49,6 @@ export interface WatchPlayShellProps {
 
 export function WatchPlayShell({
   animeId,
-  playerColumnRef,
   watchedEpisodes,
   setEpisodeId,
   ...playerProps
@@ -93,7 +91,6 @@ export function WatchPlayShell({
       <div className="watch-play-shell__player-bleed">
         <WatchPlayerContent
           animeId={animeId}
-          playerColumnRef={playerColumnRef}
           setEpisodeId={setEpisodeId}
           {...playerProps}
         />
