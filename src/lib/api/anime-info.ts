@@ -21,8 +21,3 @@ export async function getWatchAnimeCatalogMeta(
     nextEpisodeSchedule: mapAniListMediaToNextEpisodeSchedule(media),
   };
 }
-
-export async function getAnimeInfo(id: string): Promise<AnimeResults> {
-  const { results } = await getWatchAnimeCatalogMeta(id);
-  return results;
-}
