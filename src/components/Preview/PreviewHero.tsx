@@ -249,7 +249,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
           </div>
         </div>
       </div>
-      <div className="relative isolate z-10 mt-[40px] flex flex-col md:mt-[-80px] lg:mt-[-120px] xl:mt-[-200px] 2xl:mt-[-260px]">
+      <div className="hero-trending">
         {safeTrending.length === 0 ? (
           <EmptyState
             title="No trending anime"

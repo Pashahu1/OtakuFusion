@@ -1,6 +1,7 @@
 "use client";
 
 import { genres } from "@/shared/data/genres";
+import { DISCOVER_NAV_SECTIONS } from "@/shared/data/discover-nav";
 import { NavLink } from "@/components/NavLink/NavLink";
 import "./SidebarMenu.scss";
 import { useEffect, useState, type RefObject } from "react";
@@ -33,9 +34,16 @@ export function SidebarMenu({ menuRef, close }: Props) {
         Release Calendar
       </NavLink>
 
-      <NavLink className="aside-bar__link" href="/anime" onClick={close}>
-        Anime
-      </NavLink>
+      {DISCOVER_NAV_SECTIONS.map((item) => (
+        <NavLink
+          key={item.id}
+          className="aside-bar__link"
+          href={item.href}
+          onClick={close}
+        >
+          {item.label}
+        </NavLink>
+      ))}
 
       <div className="aside-bar__category">
         <div

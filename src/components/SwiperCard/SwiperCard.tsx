@@ -68,39 +68,49 @@ export function SwiperCard({
           </Link>
         ) : null}
       </div>
-      <button
-        type="button"
-        id={nextId}
-        className="nav-zone nav-zone--right"
-        aria-label="Next slide"
-      >
-        <ChevronRight />
-      </button>
-      <button
-        type="button"
-        id={prevId}
-        className="nav-zone nav-zone--left"
-        aria-label="Previous slide"
-      >
-        <ChevronLeft />
-      </button>
+      <div className="swiper-card__viewport">
+        <div
+          className="swiper-card__edge-fade swiper-card__edge-fade--left"
+          aria-hidden
+        />
+        <div
+          className="swiper-card__edge-fade swiper-card__edge-fade--right"
+          aria-hidden
+        />
+        <button
+          type="button"
+          id={nextId}
+          className="nav-zone nav-zone--right"
+          aria-label="Next slide"
+        >
+          <ChevronRight strokeWidth={2} aria-hidden />
+        </button>
+        <button
+          type="button"
+          id={prevId}
+          className="nav-zone nav-zone--left"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft strokeWidth={2} aria-hidden />
+        </button>
 
-      <Swiper
-        modules={[Navigation]}
-        slidesPerView="auto"
-        spaceBetween={SPACING_BETWEEN_SLIDES}
-        navigation={navigation}
-      >
-        {catalog.map((anime) => (
-          <SwiperSlide className="swiper-card__slide" key={anime.id}>
-            <Card
-              anime={anime}
-              posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
-              posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
-            />
-          </SwiperSlide>
-        ))}
-      </Swiper>
+        <Swiper
+          modules={[Navigation]}
+          slidesPerView="auto"
+          spaceBetween={SPACING_BETWEEN_SLIDES}
+          navigation={navigation}
+        >
+          {catalog.map((anime) => (
+            <SwiperSlide className="swiper-card__slide" key={anime.id}>
+              <Card
+                anime={anime}
+                posterSizes={ANIME_CAROUSEL_POSTER_SIZES}
+                posterQuality={ANIME_CAROUSEL_POSTER_QUALITY}
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
     </div>
   );
 }

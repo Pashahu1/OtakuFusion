@@ -11,5 +11,10 @@
     &-list {
       height: 100%;
     }
+
+    &-list--discover {
+      display: flex;
+      align-items: center;
+    }
   }
 }

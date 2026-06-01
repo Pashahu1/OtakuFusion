@@ -28,8 +28,11 @@ export const Footer = () => {
         <div className="footer__navigation">
           <h2>Navigation</h2>
           <div className="footer__information">
-            <Link className="footer__link" href="/anime">
-              Anime
+            <Link className="footer__link" href="/discover/popular">
+              Popular
+            </Link>
+            <Link className="footer__link" href="/discover/new">
+              New
             </Link>
             <Link className="footer__link" href="/schedule">
               Schedule

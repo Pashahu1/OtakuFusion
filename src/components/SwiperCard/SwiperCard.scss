@@ -10,6 +10,64 @@
   overflow: hidden;
 }
 
+.swiper-card__viewport {
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .swiper-card__edge-fade,
+  .swiper-card .nav-zone {
+    display: none;
+  }
+}
+
+/* Wide edge fade over peeking slides (Crunchyroll-style “side content” dimming) */
+.swiper-card__edge-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 8;
+  width: clamp(72px, 11vw, 140px);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+
+  &--left {
+    left: 0;
+    background: linear-gradient(
+      to right,
+      rgb(0 0 0) 0%,
+      rgb(0 0 0 / 0.92) 18%,
+      rgb(0 0 0 / 0.65) 42%,
+      rgb(0 0 0 / 0.2) 72%,
+      transparent 100%
+    );
+  }
+
+  &--right {
+    right: 0;
+    background: linear-gradient(
+      to left,
+      rgb(0 0 0) 0%,
+      rgb(0 0 0 / 0.92) 18%,
+      rgb(0 0 0 / 0.65) 42%,
+      rgb(0 0 0 / 0.2) 72%,
+      transparent 100%
+    );
+  }
+}
+
+.swiper-card__viewport:has(.nav-zone--left.swiper-button-disabled)
+  .swiper-card__edge-fade--left {
+  opacity: 0;
+}
+
+.swiper-card__viewport:has(.nav-zone--right.swiper-button-disabled)
+  .swiper-card__edge-fade--right {
+  opacity: 0;
+}
+
 .swiper-card__slide {
   width: clamp(140px, 22vw, 310px);
   min-width: 140px;
@@ -28,6 +86,11 @@
     width: clamp(152px, 26vw, 300px);
     min-width: 152px;
   }
+
+  @include respond(laptop) {
+    width: clamp(128px, 16vw, 240px);
+    min-width: 128px;
+  }
 }
 
 /* Before Swiper init no margin between slides (spaceBetween from JS only) — FOUC stacked cards. Value = SPACING_BETWEEN_SLIDES in SwiperCard.tsx */
@@ -38,51 +101,77 @@
 .nav-zone {
   position: absolute;
   top: 0;
-  width: 64px;
-  height: 100%;
-  z-index: 10;
+  bottom: 0;
+  z-index: 12;
+  width: clamp(52px, 7vw, 88px);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  color: white;
+  color: #fff;
   border: none;
   cursor: pointer;
-
-  background: transparent;
-  transition: background 0.2s ease;
-}
-
-.nav-zone svg {
-  width: 32px;
-  height: 100%;
-
+  opacity: 1;
   transition:
-    background-color 0.3s ease,
-    transform 0.2s ease;
-}
+    opacity 0.25s ease,
+    background 0.2s ease;
 
-.nav-zone--left {
-  left: 0;
-  background: transparent;
-}
+  /* Darker band under the arrow (Crunchyroll arrow zone) */
+  &--left {
+    left: 0;
+    background: linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.88) 0%,
+      rgb(0 0 0 / 0.55) 55%,
+      transparent 100%
+    );
+  }
 
-.nav-zone--right {
-  right: 0;
-  background: transparent;
-}
+  &--right {
+    right: 0;
+    background: linear-gradient(
+      to left,
+      rgb(0 0 0 / 0.88) 0%,
+      rgb(0 0 0 / 0.55) 55%,
+      transparent 100%
+    );
+  }
 
-.nav-zone:hover {
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.45), transparent);
-}
+  &:hover {
+    &--left {
+      background: linear-gradient(
+        to right,
+        rgb(0 0 0 / 0.96) 0%,
+        rgb(0 0 0 / 0.72) 55%,
+        transparent 100%
+      );
+    }
 
-.nav-zone--right:hover {
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.45), transparent);
-}
+    &--right {
+      background: linear-gradient(
+        to left,
+        rgb(0 0 0 / 0.96) 0%,
+        rgb(0 0 0 / 0.72) 55%,
+        transparent 100%
+      );
+    }
+  }
 
-.nav-zone.swiper-button-disabled {
-  opacity: 0;
-  pointer-events: none;
-}
+  svg {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 4px rgb(0 0 0 / 0.85));
+    transition: transform 0.2s ease;
+  }
 
+  &:hover svg {
+    transform: scale(1.06);
+  }
+
+  &.swiper-button-disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

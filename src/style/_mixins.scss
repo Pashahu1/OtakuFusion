@@ -13,6 +13,15 @@
     @media (min-width: 1280px) {
       @content;
     }
+  } @else if $breakpoint == laptop {
+    /* MacBook-class: desktop width, limited vertical space (incl. browser chrome) */
+    @media (min-width: 1024px) and (max-height: 1080px) {
+      @content;
+    }
+  } @else if $breakpoint == laptop-compact {
+    @media (min-width: 1024px) and (max-height: 880px) {
+      @content;
+    }
   }
 }
 
