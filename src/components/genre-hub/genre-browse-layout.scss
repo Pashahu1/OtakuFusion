@@ -1,0 +1,41 @@
+/* Centers the browse block (toolbar + grid) as one unit on wide screens. */
+.genre-browse-page {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.genre-browse-layout {
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+}
+
+@media (min-width: 1024px) {
+  .genre-browse-layout {
+    display: grid;
+    width: fit-content;
+    max-width: 100%;
+    grid-template-columns: repeat(auto-fill, 315px);
+    column-gap: 1rem;
+    row-gap: 0;
+    justify-content: center;
+  }
+
+  .genre-browse-layout__toolbar,
+  .genre-browse-layout__footer {
+    grid-column: 1 / -1;
+  }
+
+  .genre-browse-layout .anime-card-feed {
+    display: contents;
+  }
+
+  .genre-browse-layout .anime-card-feed > * {
+    min-width: 0;
+  }
+}
+
+.genre-browse-layout .anime-card-feed {
+  width: 100%;
+}

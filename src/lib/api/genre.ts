@@ -2,6 +2,7 @@ import type { ApiResponse } from '@/lib/api';
 import { isBlockedGenreBrowseName } from '@/lib/anime-content-policy';
 import { getAniListMediaPage, mapAniListMediaToAnimeInfo } from '@/lib/anilist';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
+import { genreFromSlug } from '@/shared/utils/genre-slug';
 
 export type GenreResults = {
   data?: AnimeInfo[];
@@ -13,7 +14,7 @@ export const getGenreAnime = async (
   name: string = 'most-popular',
   page: number = 1
 ): Promise<ApiResponse<GenreResults>> => {
-  const genre = decodeURIComponent(name).replace(/-/g, ' ');
+  const genre = genreFromSlug(name);
   if (isBlockedGenreBrowseName(genre)) {
     return {
       results: {

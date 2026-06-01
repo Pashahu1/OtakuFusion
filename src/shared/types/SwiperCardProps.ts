@@ -4,4 +4,5 @@ export interface SwiperCardProps {
   title?: string;
   catalog: AnimeInfo[];
   sectionId?: string;
+  viewAllHref?: string;
 }

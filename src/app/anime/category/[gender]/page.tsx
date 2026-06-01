@@ -1,27 +1,17 @@
 import { Suspense } from 'react';
-import { GenderSkeleton } from '@/components/ui/Skeleton/GenderSkeleton';
-import { GenderData } from './_components/GenderData';
+import { GenreHubContent } from './_components/GenreHubContent';
+import { GenreHubSkeleton } from './_components/GenreHubSkeleton';
 
-export default async function GenderPage({
+export default async function GenreHubPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ gender: string }>;
-  searchParams: Promise<{ page?: string }>;
 }) {
-  const [parsedParams, parsedSearchParams] = await Promise.all([
-    params,
-    searchParams,
-  ]);
-
-  const genderTitle = parsedParams.gender;
-  const currentPage = Number(parsedSearchParams.page || '1');
+  const { gender } = await params;
 
   return (
-    <div className="g-[20px] flex flex-col">
-      <Suspense key={genderTitle + currentPage} fallback={<GenderSkeleton />}>
-        <GenderData gender={genderTitle} page={currentPage} />
-      </Suspense>
-    </div>
+    <Suspense key={gender} fallback={<GenreHubSkeleton />}>
+      <GenreHubContent slug={gender} />
+    </Suspense>
   );
 }

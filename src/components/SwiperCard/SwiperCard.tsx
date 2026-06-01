@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useId, useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
@@ -26,7 +27,12 @@ function slugify(s: string): string {
     .replace(/[^a-z0-9-]/g, '');
 }
 
-export function SwiperCard({ title, catalog, sectionId }: SwiperCardProps) {
+export function SwiperCard({
+  title,
+  catalog,
+  sectionId,
+  viewAllHref,
+}: SwiperCardProps) {
   const reactId = useId().replace(/:/g, '');
   const slug = sectionId ? slugify(sectionId) : '';
   const id = sectionId && slug.length > 0 ? `${slug}-${reactId}` : reactId;
@@ -47,10 +53,20 @@ export function SwiperCard({ title, catalog, sectionId }: SwiperCardProps) {
 
   return (
     <div className="swiper-card relative overflow-hidden px-4 md:px-6 lg:px-10">
-      <div className="mb-4 flex items-center justify-between">
-        {title && (
+      <div className="mb-4 flex items-center justify-between gap-4">
+        {title ? (
           <h2 className="text-title text-brand-text-primary">{title}</h2>
+        ) : (
+          <span />
         )}
+        {viewAllHref ? (
+          <Link
+            href={viewAllHref}
+            className="shrink-0 text-xs font-semibold uppercase tracking-[0.14em] text-white/65 transition-colors hover:text-brand-orange"
+          >
+            View all
+          </Link>
+        ) : null}
       </div>
       <button
         type="button"
