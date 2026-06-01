@@ -32,13 +32,17 @@ export function SearchData({
 
   if (!trimmed) {
     return (
-      <EmptyState message="Start typing an anime title — suggestions appear as you type." />
+      <EmptyState
+        plain
+        message="Start typing an anime title — suggestions appear as you type."
+      />
     );
   }
 
   if (trimmed.length < ANIME_SEARCH_MIN_QUERY_LENGTH) {
     return (
       <EmptyState
+        plain
         message={`Enter at least ${ANIME_SEARCH_MIN_QUERY_LENGTH} characters to search.`}
       />
     );
@@ -51,7 +55,7 @@ export function SearchData({
   if (isError && !results) {
     return (
       <div className="px-4 py-8 sm:p-10">
-        <EmptyState message="Search service is temporarily unavailable." />
+        <EmptyState plain message="Search service is temporarily unavailable." />
       </div>
     );
   }
@@ -63,7 +67,7 @@ export function SearchData({
 
     return (
       <div className="col-span-full text-center">
-        <EmptyState message="No results found." />
+        <EmptyState plain message="No results found." />
       </div>
     );
   }

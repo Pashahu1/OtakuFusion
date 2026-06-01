@@ -1,19 +1,29 @@
 'use client';
 import { type ReactNode } from 'react';
+import { cn } from '@/lib/utils';
+
 type EmptyStateProps = {
   title?: string;
   message?: string;
   icon?: ReactNode;
   fullPage?: boolean;
+  plain?: boolean;
 };
+
 export function EmptyState({
   title = 'Empty',
   message = 'Here is no data to display.',
   icon,
   fullPage = false,
+  plain = false,
 }: EmptyStateProps) {
   return (
-    <section className="w-full space-y-6 bg-[#111] px-4 py-8 md:px-6 lg:px-10">
+    <section
+      className={cn(
+        'w-full space-y-6 px-4 py-8 md:px-6 lg:px-10',
+        !plain && 'bg-[#111]'
+      )}
+    >
       <div
         className={`flex flex-col items-center justify-center text-center ${fullPage ? 'h-screen' : 'py-10'}`}
       >

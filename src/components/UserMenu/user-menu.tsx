@@ -1,13 +1,15 @@
 'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { useDropdown } from '@/hooks/useDropdown';
-import Image from 'next/image';
+import { Bookmark, LogOut, Settings } from 'lucide-react';
 import { cloudinaryAvatarUrl } from '@/shared/utils/cloudinary-avatar-url';
 import { VerifiedSealIcon } from '@/components/icons/verified-seal-icon';
 import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
+import './user-menu.scss';
 
 export type User = {
   username: string;
@@ -70,9 +72,14 @@ export function UserMenu({ user }: UserMenuProps) {
     }
   };
 
+  function navigate(href: string) {
+    router.push(href);
+    close();
+  }
+
   return (
     <div
-      className="flex h-full cursor-pointer items-center px-5 transition-colors lg:hover:bg-[#141519]"
+      className="user-menu"
       onClick={toggle}
       ref={triggerRef}
       role="button"
@@ -87,13 +94,13 @@ export function UserMenu({ user }: UserMenuProps) {
         }
       }}
     >
-      <div className="relative h-9 w-9 shrink-0">
+      <div className="user-menu__avatar-wrap">
         {showNavAvatarSkeleton ? (
           <Skeleton className="h-9 w-9 min-h-0 shrink-0 rounded-full" />
         ) : (
           <Avatar className="h-9 w-9 items-center justify-center">
             <AvatarImage
-              className="h-9 w-9 object-cover rounded-full"
+              className="h-9 w-9 rounded-full object-cover"
               src={cloudinaryAvatarUrl(user?.avatar, 36)}
               alt=""
             />
@@ -102,37 +109,34 @@ export function UserMenu({ user }: UserMenuProps) {
         )}
       </div>
 
-      {isOpen && (
+      {isOpen ? (
         <div
           ref={menuRef}
           role="menu"
-          className="absolute top-0 right-0 translate-y-[60px] w-full bg-[#141519] md:max-w-[400px] bg-[#141519] border border-zinc-800"
+          className="user-menu__panel"
           onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className="
-              flex items-center gap-4 px-6 py-5
-              border-b border-zinc-800
-              hover:bg-zinc-800/30 transition-colors
-            "
-            onClick={() => {
-              router.push('/profile');
-              close();
-            }}
-          >
-            <Avatar className="h-10 w-10">
-              <AvatarImage
-                className="h-full w-full object-cover rounded-full"
-                src={cloudinaryAvatarUrl(user?.avatar, 40)}
-                alt=""
-              />
-              <AvatarFallback>
-                {user?.email?.[0]?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+          <div className="user-menu__accent" aria-hidden />
 
-            <div className="flex min-w-0 flex-col gap-1">
-              <span className="flex flex-wrap items-center gap-2 text-white font-medium">
+          <button
+            type="button"
+            role="menuitem"
+            className="user-menu__profile"
+            onClick={() => navigate('/profile')}
+          >
+            <div className="user-menu__profile-avatar">
+              <Avatar className="h-full w-full">
+                <AvatarImage
+                  className="h-full w-full rounded-full object-cover"
+                  src={cloudinaryAvatarUrl(user?.avatar, 40)}
+                  alt=""
+                />
+                <AvatarFallback>{user?.email?.[0]?.toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </div>
+
+            <div className="user-menu__profile-meta">
+              <span className="user-menu__profile-name">
                 {user.username}
                 {user.isVerified ? (
                   <VerifiedSealIcon
@@ -141,58 +145,52 @@ export function UserMenu({ user }: UserMenuProps) {
                   />
                 ) : null}
               </span>
-              <span className="text-zinc-400 text-sm">{user.email}</span>
+              <span className="user-menu__profile-email">{user.email}</span>
             </div>
-          </div>
+          </button>
 
-          <div
-            className="flex items-center gap-[10px]
-              px-5 py-3 cursor-pointer
-              border-b border-zinc-800
-              hover:bg-zinc-800/30 transition-colors
-            "
-            onClick={() => {
-              router.push('/profile/preferences');
-              close();
-            }}
-          >
-            <Image width={16} height={16} src="/settings.png" alt="settings" />
-            <span className="text-white">Settings</span>
-          </div>
-
-          <div
-            className="flex items-center gap-[10px]
-              px-5 py-3 cursor-pointer
-              border-b border-zinc-800
-              hover:bg-zinc-800/30 transition-colors
-            "
-            onClick={() => {
-              router.push('/profile/favorites');
-              close();
-            }}
-          >
-            <Image width={16} height={16} src="/wishlist.png" alt="wishlist" />
-            <span className="text-white">Wish List</span>
-          </div>
-
-          <div
-            className="flex items-center gap-[10px]
-              px-5 py-3 cursor-pointer
-              hover:bg-red-900/20 transition-colors
-            "
-            onClick={!loading ? handleLogout : undefined}
-          >
-            <Image width={16} height={16} src="/logout.png" alt="logout" />
-            <span
-              className={`text-red-500 font-medium ${
-                loading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+          <div className="user-menu__actions">
+            <button
+              type="button"
+              role="menuitem"
+              className="user-menu__item"
+              onClick={() => navigate('/profile/preferences')}
             >
-              Logout
-            </span>
+              <span className="user-menu__item-icon" aria-hidden>
+                <Settings size={15} strokeWidth={2.25} />
+              </span>
+              Settings
+            </button>
+
+            <button
+              type="button"
+              role="menuitem"
+              className="user-menu__item"
+              onClick={() => navigate('/profile/favorites')}
+            >
+              <span className="user-menu__item-icon" aria-hidden>
+                <Bookmark size={15} strokeWidth={2.25} />
+              </span>
+              Wish List
+            </button>
+          </div>
+
+          <div className="user-menu__footer">
+            <button
+              type="button"
+              role="menuitem"
+              className="user-menu__item user-menu__item--danger"
+              disabled={loading}
+              onClick={!loading ? handleLogout : undefined}
+            >
+              <span className="user-menu__item-icon" aria-hidden>
+                <LogOut size={15} strokeWidth={2.25} />
+              </span>
+              {loading ? 'Logging out…' : 'Logout'}
+            </button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
