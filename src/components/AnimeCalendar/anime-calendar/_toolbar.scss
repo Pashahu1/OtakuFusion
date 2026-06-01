@@ -1,0 +1,123 @@
+﻿// Release schedule â€” aligned with profile panel styling (#141519, orange accents)
+
+.anime-schedule {
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-sans);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #141519;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.28);
+}
+
+.schedule-toolbar {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.schedule-toolbar__spacer {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.schedule-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.schedule-days--compact {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(249, 115, 22, 0.5) rgba(255, 255, 255, 0.05);
+}
+
+.schedule-days--compact::-webkit-scrollbar {
+  height: 5px;
+}
+
+.schedule-days--compact::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.45);
+}
+
+.schedule-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 4rem;
+  padding: 0.55rem 0.35rem;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  background: transparent;
+  color: #a1a1aa;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.schedule-day:last-child {
+  border-right: none;
+}
+
+.schedule-day:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+}
+
+.schedule-day--active {
+  color: #fff;
+  background: rgba(249, 115, 22, 0.14);
+  box-shadow: inset 0 -2px 0 0 var(--color-brand-orange, #f97316);
+}
+
+.schedule-day--today:not(.schedule-day--active) .schedule-day__num {
+  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.45);
+}
+
+.schedule-day__name {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.schedule-day--active .schedule-day__name {
+  color: #fdba74;
+}
+
+.schedule-day__num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border-radius: 9999px;
+}
+
+.schedule-day__count {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+  color: #0a0a0a;
+  background: var(--color-brand-orange, #f97316);
+}
+

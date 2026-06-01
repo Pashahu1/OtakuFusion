@@ -1,0 +1,38 @@
+﻿.anime-schedule--compact {
+  border-radius: 0.875rem;
+}
+
+.schedule-toolbar--compact {
+  display: block;
+}
+
+.schedule-toolbar--compact .schedule-day {
+  flex: 1 1 0;
+  min-width: 3rem;
+  min-height: 3.25rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.schedule-row--compact {
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+}
+
+.schedule-row--compact .schedule-time {
+  font-size: 0.5625rem;
+  padding: 0.45rem 0.25rem;
+}
+
+.schedule-row--compact .schedule-cell {
+  min-height: 4rem;
+  padding: 0.5rem;
+}
+
+.schedule-row--compact .schedule-event__poster {
+  width: 2.5rem;
+  height: 3.65rem;
+}
+
+.schedule-row--compact .schedule-event__title {
+  -webkit-line-clamp: 3;
+}
+

@@ -1,0 +1,27 @@
+﻿@media (min-width: 1280px) {
+  .schedule-row {
+    grid-template-columns: 5.25rem repeat(7, minmax(0, 1fr));
+  }
+
+  .schedule-toolbar {
+    grid-template-columns: 5.25rem minmax(0, 1fr);
+  }
+
+  .schedule-time {
+    font-size: 0.6875rem;
+  }
+
+  .schedule-cell {
+    padding: 0.5rem 0.55rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .schedule-row {
+    grid-template-columns: 5.5rem repeat(7, minmax(0, 1fr));
+  }
+
+  .schedule-toolbar {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+  }
+}
