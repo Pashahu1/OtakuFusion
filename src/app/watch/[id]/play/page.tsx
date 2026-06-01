@@ -8,6 +8,7 @@ import {
   useWatchPageEffects,
   WatchPlayShell,
 } from '@/features/watch';
+import { appendWatchActivity } from '@/features/profile';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { onEpisodeWatched as markWatchedInStorage } from '@/lib/watch/watched-episodes';
 import './watch-play-page.scss';
@@ -51,8 +52,21 @@ export default function WatchPlayPage() {
   );
 
   const onEpisodeWatched = useCallback(
-    (id: string) => markWatchedInStorage(id, setWatchedEpisodes),
-    [setWatchedEpisodes]
+    (id: string) => {
+      markWatchedInStorage(id, setWatchedEpisodes);
+      const info = watch.animeInfo;
+      if (!info?.id) return;
+      appendWatchActivity({
+        animeId: info.id,
+        data_id: info.data_id,
+        title: info.title ?? info.japanese_title,
+        poster: info.poster,
+        episodeId: id,
+        episodeNum: watch.activeEpisodeNum,
+        genres: info.animeInfo?.Genres,
+      });
+    },
+    [setWatchedEpisodes, watch.animeInfo, watch.activeEpisodeNum],
   );
 
   return (

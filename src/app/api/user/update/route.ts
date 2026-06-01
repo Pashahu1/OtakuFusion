@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import User from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
+import {
+  type SessionUserDoc,
+  userToClientPayload,
+} from '@/lib/auth-session-response';
 import { UpdateUserBodySchema } from '@/shared/schemas/api';
 import {
   handleRouteError,
@@ -31,7 +35,10 @@ export async function PATCH(req: NextRequest) {
       { username },
       { new: true }
     ).lean();
-    return NextResponse.json({ user: updatedUser }, { status: 200 });
+    return NextResponse.json(
+      { user: userToClientPayload(updatedUser as unknown as SessionUserDoc) },
+      { status: 200 },
+    );
   } catch (error) {
     return handleRouteError(error, 'Update username error:');
   }

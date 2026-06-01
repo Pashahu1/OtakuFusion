@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { getUserFromRequest } from '@/lib/auth';
+import {
+  type SessionUserDoc,
+  userToClientPayload,
+} from '@/lib/auth-session-response';
 import { v2 as cloudinary } from 'cloudinary';
 import { env } from '@/lib/env';
 import { handleRouteError, jsonMessage, unauthorizedResponse } from '@/lib/http';
@@ -71,7 +75,10 @@ export async function POST(req: NextRequest) {
       { new: true }
     ).lean();
 
-    return NextResponse.json({ user: updateUser }, { status: 200 });
+    return NextResponse.json(
+      { user: userToClientPayload(updateUser as unknown as SessionUserDoc) },
+      { status: 200 },
+    );
   } catch (err) {
     return handleRouteError(err, 'Avatar upload error:');
   }

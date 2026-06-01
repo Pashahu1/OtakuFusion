@@ -116,7 +116,7 @@ export function UserMenu({ user }: UserMenuProps) {
               hover:bg-zinc-800/30 transition-colors
             "
             onClick={() => {
-              router.push('/profile/manage');
+              router.push('/profile');
               close();
             }}
           >

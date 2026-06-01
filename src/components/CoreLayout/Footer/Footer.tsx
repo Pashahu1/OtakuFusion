@@ -102,7 +102,7 @@ export const Footer = () => {
           <div className="footer__information">
             {user ? (
               <>
-                <Link className="footer__link" href="/profile/manage">
+                <Link className="footer__link" href="/profile">
                   Profile
                 </Link>
                 <Link className="footer__link" href="/profile/preferences">

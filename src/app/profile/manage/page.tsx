@@ -1,4 +1,5 @@
-import { ProfileHeader } from '@/components/Profile/ProfileHeader/ProfileHeader';
-export default function ProfilePage() {
-  return <ProfileHeader />;
+import { ProfileEditForm } from '@/features/profile';
+
+export default function ProfileManagePage() {
+  return <ProfileEditForm />;
 }
