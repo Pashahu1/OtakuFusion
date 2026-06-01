@@ -1,0 +1,130 @@
+.schedule-page {
+  min-height: 100vh;
+  width: 100%;
+  padding: 5.5rem 1rem 2.5rem;
+}
+
+.schedule-page__shell {
+  width: 100%;
+  max-width: 112rem;
+  margin-inline: auto;
+}
+
+.schedule-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.schedule-page__header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+  color: #fdba74;
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.28);
+}
+
+.schedule-page__title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.schedule-page__subtitle {
+  margin-top: 0.3rem;
+  font-size: 0.875rem;
+  color: #71717a;
+}
+
+.schedule-page__badge {
+  margin-left: auto;
+  align-self: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fdba74;
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.28);
+}
+
+.schedule-page__calendar-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.schedule-page__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border-radius: 1rem;
+  background: rgba(10, 10, 12, 0.55);
+  backdrop-filter: blur(2px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #a1a1aa;
+}
+
+.schedule-page__overlay-spinner {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-brand-orange, #f97316);
+  animation: spin 1s linear infinite;
+}
+
+.schedule-page__empty {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #71717a;
+}
+
+@media (min-width: 640px) {
+  .schedule-page {
+    padding-inline: 1.5rem;
+    padding-top: 6.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .schedule-page {
+    padding-inline: 1.25rem;
+    padding-top: 6.75rem;
+  }
+
+  .schedule-page__title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .schedule-page {
+    padding-inline: 1rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .schedule-page__shell {
+    max-width: min(120rem, calc(100vw - 2rem));
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

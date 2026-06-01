@@ -1,24 +1,25 @@
 'use client';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { Loader2 } from 'lucide-react';
-import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
-import type { ScheduleAnime } from '@/shared/types/GlobalAnimeTypes';
+import { CalendarDays, Loader2 } from 'lucide-react';
+
 import { AnimeCalendarComponent as AnimeCalendar } from '@/components/AnimeCalendar/AnimeCalendar';
+import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { ErrorState } from '@/components/ui/states/ErrorState';
+import { useScheduleQuery } from '@/hooks/queries';
 import { normalizeError } from '@/lib/errors/normalizeError';
 import { toast } from '@/lib/toast';
-import { useScheduleQuery } from '@/hooks/queries';
+import type { ScheduleAnime } from '@/shared/types/GlobalAnimeTypes';
 
-const timeZone = 'Europe/Kyiv';
-const now = new Date();
+import './schedule-page.scss';
 
-const kyivTime = toZonedTime(now, timeZone);
-const formattedKyivTime = format(kyivTime, 'yyyy-MM-dd');
+const TIME_ZONE = 'Europe/Kyiv';
+const kyivToday = format(toZonedTime(new Date(), TIME_ZONE), 'yyyy-MM-dd');
 
 export default function SchedulePage() {
-  const [selectedDate, setSelectedDate] = useState(formattedKyivTime);
+  const [selectedDate, setSelectedDate] = useState(kyivToday);
 
   const {
     data: events = [],
@@ -30,7 +31,7 @@ export default function SchedulePage() {
   } = useScheduleQuery(selectedDate);
 
   useEffect(() => {
-    if (!isError || !isFetched || events.length === 0) return;
+    if (!isError || !isFetched || events.length > 0) return;
     const normalizedError = normalizeError(error);
     toast.error(
       normalizedError.message ?? 'Could not load the schedule for this day.',
@@ -40,7 +41,7 @@ export default function SchedulePage() {
   const handleDateChange = useCallback(
     ({ year, month, day }: { year: number; month: number; day: number }) => {
       const date = new Date(year, month, day);
-      const formatted = format(toZonedTime(date, timeZone), 'yyyy-MM-dd');
+      const formatted = format(toZonedTime(date, TIME_ZONE), 'yyyy-MM-dd');
       setSelectedDate(formatted);
     },
     [],
@@ -49,7 +50,7 @@ export default function SchedulePage() {
   const calendarEvents = useMemo(
     () =>
       events.map((item: ScheduleAnime) => {
-        const start = toZonedTime(`${item.releaseDate}T${item.time}`, timeZone);
+        const start = toZonedTime(`${item.releaseDate}T${item.time}`, TIME_ZONE);
         const end = new Date(start.getTime() + 30 * 60 * 1000);
         return {
           id: item.id,
@@ -73,38 +74,54 @@ export default function SchedulePage() {
   }
 
   const showCalendarOverlay = isFetching && isFetched;
+  const selectedLabel = format(
+    toZonedTime(new Date(selectedDate), TIME_ZONE),
+    'EEEE, MMMM d',
+  );
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <div className="flex flex-1 flex-col items-center px-3 pb-10 pt-[76px] sm:px-5 sm:pt-[92px] lg:px-10 lg:pt-[108px]">
-        <div className="relative w-full min-w-0 overflow-x-auto">
+    <div className="schedule-page">
+      <div className="schedule-page__shell">
+        <header className="schedule-page__header">
+          <div className="schedule-page__header-icon" aria-hidden>
+            <CalendarDays size={22} />
+          </div>
+          <div>
+            <h1 className="schedule-page__title">Release schedule</h1>
+            <p className="schedule-page__subtitle">
+              {selectedLabel} · times in {TIME_ZONE.replace('_', ' ')}
+            </p>
+          </div>
+          {isFetched && events.length > 0 ? (
+            <span className="schedule-page__badge">
+              {events.length} {events.length === 1 ? 'release' : 'releases'}
+            </span>
+          ) : null}
+        </header>
+
+        <div className="schedule-page__calendar-wrap">
           <AnimeCalendar
             selectedDate={selectedDate}
             events={calendarEvents}
             onDateChange={handleDateChange}
           />
+
           {showCalendarOverlay ? (
             <div
-              className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--color-brand-gray)]/60 backdrop-blur-[2px] transition-opacity duration-200"
+              className="schedule-page__overlay"
               aria-busy="true"
               aria-live="polite"
               role="status"
             >
-              <div className="flex flex-col items-center gap-3 rounded-xl border border-zinc-600/80 bg-zinc-900/95 px-8 py-6 shadow-xl">
-                <Loader2
-                  className="h-9 w-9 shrink-0 animate-spin text-[var(--color-brand-orange)]"
-                  aria-hidden
-                />
-                <span className="text-xs font-medium tracking-wide text-zinc-400">
-                  Updating schedule…
-                </span>
-              </div>
+              <Loader2 className="schedule-page__overlay-spinner" aria-hidden />
+              <span>Updating schedule…</span>
             </div>
           ) : null}
         </div>
+
         {isFetched && !isFetching && events.length === 0 ? (
-          <p className="mt-6 max-w-md text-center text-sm text-zinc-400">
-            No releases on this day — pick another date in the calendar.
+          <p className="schedule-page__empty">
+            No releases on this day — pick another date in the week strip above.
           </p>
         ) : null}
       </div>

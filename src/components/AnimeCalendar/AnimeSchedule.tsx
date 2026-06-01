@@ -1,14 +1,17 @@
 'use client';
-import React, { useCallback } from 'react';
+import React from 'react';
+import { format, isToday as isDateToday } from 'date-fns';
 import Image from 'next/image';
-import { format, isSameDay } from 'date-fns';
-import './AnimeCalendar.scss';
 import { useRouter } from 'next/navigation';
-import { thumbnailUrl } from '@/shared/utils/thumbnail-url';
+
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
+import { thumbnailUrl } from '@/shared/utils/thumbnail-url';
+
+import './AnimeCalendar.scss';
 
 const TIME_SLOT_STARTS_HOUR = [0, 4, 8, 12, 16, 20] as const;
+const CALENDAR_POSTER_THUMB = '80x120';
 
 function slotStartForHour(hour: number): number {
   return Math.floor(hour / 4) * 4;
@@ -28,19 +31,6 @@ function startOfWeekMonday(date: Date): Date {
   return new Date(d.setDate(diff));
 }
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  episodeNumber: number;
-  posterUrl: string;
-  /** AniList format (TV, ONA, …) — short tag on the card. */
-  format?: string;
-}
-
-const CALENDAR_POSTER_THUMB = '80x120';
-
 function isAniListCdnHost(url: string): boolean {
   return url.includes('anilist.co');
 }
@@ -50,17 +40,23 @@ function formatScheduleTag(raw?: string): string | null {
   return raw.trim().replace(/_/g, ' ');
 }
 
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  episodeNumber: number;
+  posterUrl: string;
+  format?: string;
+}
+
 type Props = {
   events: CalendarEvent[];
   selectedDate: string;
   onDateChange: (data: { year: number; month: number; day: number }) => void;
 };
 
-export const AnimeSchedule: React.FC<Props> = ({
-  events,
-  selectedDate,
-  onDateChange,
-}) => {
+export function AnimeSchedule({ events, selectedDate, onDateChange }: Props) {
   const route = useRouter();
   const isWeekGrid = useMediaQuery('(min-width: 1024px)', false);
 
@@ -74,62 +70,76 @@ export const AnimeSchedule: React.FC<Props> = ({
   });
 
   const foundDayIndex = days.findIndex(
-    (d) => format(d, 'yyyy-MM-dd') === selectedDate
+    (d) => format(d, 'yyyy-MM-dd') === selectedDate,
   );
   const selectedDayIndex = foundDayIndex === -1 ? 0 : foundDayIndex;
 
-  const handleSelectEvent = (event: string) => {
-    route.push(`/watch/${event}`);
-  };
+  const releaseCount = events.length;
 
-  const selectDay = useCallback(
-    (day: Date) => {
-      onDateChange({
-        year: day.getFullYear(),
-        month: day.getMonth(),
-        day: day.getDate(),
-      });
-    },
-    [onDateChange]
-  );
+  function handleSelectEvent(animeId: string, episodeNumber: number) {
+    const href =
+      episodeNumber > 0
+        ? `/watch/${animeId}/play?ep=${episodeNumber}`
+        : `/watch/${animeId}`;
+    route.push(href);
+  }
 
-  const renderDayHeader = (day: Date) => {
-    const active = format(day, 'yyyy-MM-dd') === selectedDate;
+  function selectDay(day: Date) {
+    onDateChange({
+      year: day.getFullYear(),
+      month: day.getMonth(),
+      day: day.getDate(),
+    });
+  }
+
+  function renderDayHeader(day: Date) {
+    const dateKey = format(day, 'yyyy-MM-dd');
+    const active = dateKey === selectedDate;
+    const today = isDateToday(day);
+
     return (
-      <div
+      <button
         key={day.toString()}
-        role="button"
-        tabIndex={0}
-        className={cn('day-header', active && 'active')}
+        type="button"
+        className={cn(
+          'schedule-day',
+          active && 'schedule-day--active',
+          today && 'schedule-day--today',
+        )}
         onClick={() => selectDay(day)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            selectDay(day);
-          }
-        }}
+        aria-current={active ? 'date' : undefined}
+        aria-label={`${format(day, 'EEEE, MMMM d')}${today ? ', today' : ''}`}
       >
-        <div className="day-name">{format(day, 'EEE')}</div>
-        <div className="day-num">{format(day, 'dd')}</div>
-      </div>
+        <span className="schedule-day__name">{format(day, 'EEE')}</span>
+        <span className="schedule-day__num">{format(day, 'dd')}</span>
+        {active && releaseCount > 0 ? (
+          <span className="schedule-day__count">{releaseCount}</span>
+        ) : null}
+      </button>
     );
-  };
+  }
 
-  const renderCellForDay = (
+  function renderCellForDay(
     day: Date,
     slotStartHour: number,
-    cellKey: string
-  ) => {
+    cellKey: string,
+  ) {
     const dayEvents = events
       .filter(
         (e) =>
-          isSameDay(e.start, day) &&
-          slotStartForHour(e.start.getHours()) === slotStartHour
+          format(e.start, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd') &&
+          slotStartForHour(e.start.getHours()) === slotStartHour,
       )
       .sort((a, b) => a.start.getTime() - b.start.getTime());
 
     return (
-      <div key={cellKey} className="schedule-cell">
+      <div
+        key={cellKey}
+        className={cn(
+          'schedule-cell',
+          dayEvents.length === 0 && 'schedule-cell--empty',
+        )}
+      >
         {dayEvents.map((event, eventIndex) => {
           const resolvedPoster = event.posterUrl?.trim()
             ? thumbnailUrl(event.posterUrl.trim(), CALENDAR_POSTER_THUMB)
@@ -141,84 +151,86 @@ export const AnimeSchedule: React.FC<Props> = ({
               : 'Episode TBA';
           const formatTag = formatScheduleTag(event.format);
           const showPremiere = event.episodeNumber === 1;
-
           const timeRange = `${format(event.start, 'HH:mm')} – ${format(event.end, 'HH:mm')}`;
-          const ariaLabel = `${event.title}. ${episodeLabel}. ${timeRange}`;
 
           return (
-            <div
+            <button
               key={`${event.id}-${event.start.getTime()}-${eventIndex}`}
+              type="button"
               className={cn(
-                'event-block',
-                !showPosterColumn && 'event-block--no-poster'
+                'schedule-event',
+                !showPosterColumn && 'schedule-event--no-poster',
               )}
-              role="button"
-              tabIndex={0}
-              aria-label={ariaLabel}
-              onClick={() => handleSelectEvent(event.id)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleSelectEvent(event.id);
-                }
-              }}
+              aria-label={`${event.title}. ${episodeLabel}. ${timeRange}`}
+              onClick={() =>
+                handleSelectEvent(event.id, event.episodeNumber)
+              }
             >
               {showPosterColumn ? (
-                <div className="event-poster-wrap" aria-hidden>
+                <span className="schedule-event__poster" aria-hidden>
                   <Image
                     src={resolvedPoster}
                     alt=""
                     fill
-                    className="event-poster-img"
+                    className="schedule-event__poster-img"
                     sizes="(max-width: 1023px) 40px, 48px"
                     unoptimized={isAniListCdnHost(resolvedPoster)}
                   />
-                </div>
+                </span>
               ) : null}
-              <div className="event-body">
-                <div className="event-title" title={event.title}>
+              <span className="schedule-event__body">
+                <span className="schedule-event__title" title={event.title}>
                   {event.title}
-                </div>
-                <div className="event-meta">
+                </span>
+                <span className="schedule-event__meta">
                   {formatTag ? (
-                    <span className="event-format-tag">{formatTag}</span>
+                    <span className="schedule-event__tag">{formatTag}</span>
                   ) : null}
                   {showPremiere ? (
-                    <span className="event-premiere-tag">Premiere</span>
+                    <span className="schedule-event__tag schedule-event__tag--premiere">
+                      Premiere
+                    </span>
                   ) : null}
-                  <span className="event-episode">{episodeLabel}</span>
-                </div>
-                <div className="event-time">{timeRange}</div>
-              </div>
-            </div>
+                  <span className="schedule-event__episode">{episodeLabel}</span>
+                </span>
+                <span className="schedule-event__time">{timeRange}</span>
+              </span>
+            </button>
           );
         })}
       </div>
     );
-  };
+  }
 
   return (
     <div className={cn('anime-schedule', !isWeekGrid && 'anime-schedule--compact')}>
       <div
         className={cn(
-          'schedule-header',
-          !isWeekGrid && 'schedule-header--compact'
+          'schedule-toolbar',
+          !isWeekGrid && 'schedule-toolbar--compact',
         )}
       >
-        {isWeekGrid ? <div className="time-col-header" aria-hidden /> : null}
-        {days.map((day) => renderDayHeader(day))}
+        {isWeekGrid ? <div className="schedule-toolbar__spacer" aria-hidden /> : null}
+        <div
+          className={cn(
+            'schedule-days',
+            !isWeekGrid && 'schedule-days--compact',
+          )}
+        >
+          {days.map((day) => renderDayHeader(day))}
+        </div>
       </div>
 
-      <div className="schedule-body">
+      <div className="schedule-grid">
         {TIME_SLOT_STARTS_HOUR.map((slotStartHour) => (
           <div
             key={slotStartHour}
-            className={cn('schedule-row', !isWeekGrid && 'schedule-row--compact')}
+            className={cn(
+              'schedule-row',
+              !isWeekGrid && 'schedule-row--compact',
+            )}
           >
-            <div
-              className="time-col"
-              title={formatSlotRangeLabel(slotStartHour)}
-            >
+            <div className="schedule-time" title={formatSlotRangeLabel(slotStartHour)}>
               {formatSlotRangeLabel(slotStartHour)}
             </div>
 
@@ -227,17 +239,17 @@ export const AnimeSchedule: React.FC<Props> = ({
                   renderCellForDay(
                     day,
                     slotStartHour,
-                    `${format(day, 'yyyy-MM-dd')}-${slotStartHour}`
-                  )
+                    `${format(day, 'yyyy-MM-dd')}-${slotStartHour}`,
+                  ),
                 )
               : renderCellForDay(
                   days[selectedDayIndex],
                   slotStartHour,
-                  `slot-${slotStartHour}`
+                  `slot-${slotStartHour}`,
                 )}
           </div>
         ))}
       </div>
     </div>
   );
-};
+}
