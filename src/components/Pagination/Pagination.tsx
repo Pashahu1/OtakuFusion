@@ -5,70 +5,16 @@ import { useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import './Pagination.scss';
 
+import {
+  computeVisiblePageIndices,
+  PAGINATION_MARGIN_PAGES,
+  PAGINATION_PAGE_RANGE,
+} from './pagination/computeVisiblePageIndices';
+
 type PaginationProps = {
   pageCount: number;
   currentPage: number;
 };
-
-function computeVisiblePageIndices(
-  pageCount: number,
-  selectedZeroBased: number,
-  pageRangeDisplayed: number,
-  marginPagesDisplayed: number
-): Array<number | null> {
-  if (pageCount <= 0) return [];
-  if (pageCount <= pageRangeDisplayed) {
-    return Array.from({ length: pageCount }, (_, i) => i);
-  }
-
-  let leftSide = pageRangeDisplayed / 2;
-  let rightSide = pageRangeDisplayed - leftSide;
-
-  if (selectedZeroBased > pageCount - pageRangeDisplayed / 2) {
-    rightSide = pageCount - selectedZeroBased;
-    leftSide = pageRangeDisplayed - rightSide;
-  } else if (selectedZeroBased < pageRangeDisplayed / 2) {
-    leftSide = selectedZeroBased;
-    rightSide = pageRangeDisplayed - leftSide;
-  }
-
-  const adjustedRightSide =
-    selectedZeroBased === 0 && pageRangeDisplayed > 1
-      ? rightSide - 1
-      : rightSide;
-
-  const show = new Set<number>();
-  for (let index = 0; index < pageCount; index++) {
-    const page = index + 1;
-    if (page <= marginPagesDisplayed) {
-      show.add(index);
-      continue;
-    }
-    if (page > pageCount - marginPagesDisplayed) {
-      show.add(index);
-      continue;
-    }
-    if (
-      index >= selectedZeroBased - leftSide &&
-      index <= selectedZeroBased + adjustedRightSide
-    ) {
-      show.add(index);
-    }
-  }
-
-  const sorted = [...show].sort((a, b) => a - b);
-  const out: Array<number | null> = [];
-  for (let i = 0; i < sorted.length; i++) {
-    if (i > 0 && sorted[i] - sorted[i - 1] > 1) {
-      out.push(null);
-    }
-    out.push(sorted[i]);
-  }
-  return out;
-}
-
-const PAGE_RANGE = 3;
-const MARGIN_PAGES = 2;
 
 export function Pagination({ pageCount = 0, currentPage = 1 }: PaginationProps) {
   const router = useRouter();
@@ -84,14 +30,14 @@ export function Pagination({ pageCount = 0, currentPage = 1 }: PaginationProps) 
       const q = next.toString();
       return q ? `${pathname}?${q}` : pathname;
     },
-    [pathname, searchParams]
+    [pathname, searchParams],
   );
 
   const pushPage = useCallback(
     (page1Based: number) => {
       router.push(hrefForPage(page1Based));
     },
-    [hrefForPage, router]
+    [hrefForPage, router],
   );
 
   const slots = useMemo(
@@ -99,10 +45,10 @@ export function Pagination({ pageCount = 0, currentPage = 1 }: PaginationProps) 
       computeVisiblePageIndices(
         pageCount,
         selectedZeroBased,
-        PAGE_RANGE,
-        MARGIN_PAGES
+        PAGINATION_PAGE_RANGE,
+        PAGINATION_MARGIN_PAGES,
       ),
-    [pageCount, selectedZeroBased]
+    [pageCount, selectedZeroBased],
   );
 
   if (pageCount === 0) return null;
@@ -113,15 +59,11 @@ export function Pagination({ pageCount = 0, currentPage = 1 }: PaginationProps) 
   return (
     <nav aria-label="Pagination" className="pagination-nav">
       <ul className="pagination">
-        <li
-          className={cn('previous', isPreviousDisabled && 'disabled')}
-        >
+        <li className={cn('previous', isPreviousDisabled && 'disabled')}>
           <a
             className={cn(isPreviousDisabled && 'disabled')}
             role="button"
-            href={
-              isPreviousDisabled ? undefined : hrefForPage(selectedZeroBased)
-            }
+            href={isPreviousDisabled ? undefined : hrefForPage(selectedZeroBased)}
             tabIndex={isPreviousDisabled ? -1 : 0}
             aria-disabled={isPreviousDisabled ? 'true' : 'false'}
             aria-label="Previous page"
@@ -146,10 +88,7 @@ export function Pagination({ pageCount = 0, currentPage = 1 }: PaginationProps) 
               <span className="pagination__ellipsis">…</span>
             </li>
           ) : (
-            <li
-              key={slot}
-              className={cn(slot === selectedZeroBased && 'active')}
-            >
+            <li key={slot} className={cn(slot === selectedZeroBased && 'active')}>
               <a
                 role="button"
                 href={hrefForPage(slot + 1)}
@@ -174,16 +113,14 @@ export function Pagination({ pageCount = 0, currentPage = 1 }: PaginationProps) 
                 {slot + 1}
               </a>
             </li>
-          )
+          ),
         )}
 
         <li className={cn('next', isNextDisabled && 'disabled')}>
           <a
             className={cn(isNextDisabled && 'disabled')}
             role="button"
-            href={
-              isNextDisabled ? undefined : hrefForPage(selectedZeroBased + 2)
-            }
+            href={isNextDisabled ? undefined : hrefForPage(selectedZeroBased + 2)}
             tabIndex={isNextDisabled ? -1 : 0}
             aria-disabled={isNextDisabled ? 'true' : 'false'}
             aria-label="Next page"
