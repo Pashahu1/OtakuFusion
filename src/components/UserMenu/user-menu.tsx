@@ -79,7 +79,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
   return (
     <div
-      className="user-menu"
+      className={`user-menu${isOpen ? ' user-menu--open' : ''}`}
       onClick={toggle}
       ref={triggerRef}
       role="button"
@@ -116,8 +116,6 @@ export function UserMenu({ user }: UserMenuProps) {
           className="user-menu__panel"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="user-menu__accent" aria-hidden />
-
           <button
             type="button"
             role="menuitem"

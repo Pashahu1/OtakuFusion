@@ -13,9 +13,7 @@
 .profile-hero__banner {
   height: 7.5rem;
   border-radius: 1rem 1rem 0 0;
-  background:
-    linear-gradient(135deg, rgba(249, 115, 22, 0.35), rgba(168, 85, 247, 0.2)),
-    linear-gradient(180deg, #1c1d24 0%, #141519 100%);
+  background: #141519;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-bottom: none;
 }
@@ -328,7 +326,7 @@
   padding: 1rem;
   border-radius: 0.875rem;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background: linear-gradient(160deg, rgba(249, 115, 22, 0.08), transparent 55%), #141519;
+  background: #141519;
 }
 
 .profile-stats__value {

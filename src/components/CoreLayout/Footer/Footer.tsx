@@ -135,7 +135,7 @@ export const Footer = () => {
       </div>
 
       <p className="text-center">
-        &copy; 2025 {WEBSITE_NAME} All rights reserved.
+        &copy; 2026 {WEBSITE_NAME} All rights reserved.
       </p>
     </footer>
   );
