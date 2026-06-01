@@ -1,7 +1,6 @@
 import { episodeMatchesSelection } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import {
-  useEffect,
   useMemo,
   useState,
   type Dispatch,
@@ -18,15 +17,15 @@ export function useEpisodelistState(
   currentEpisode: string | null,
   episodes: EpisodesTypes[]
 ): UseEpisodelistStateResult {
-  const [activeEpisodeId, setActiveEpisodeId] = useState<string | null>(
-    currentEpisode
-  );
+  const [activeEpisodeId, setActiveEpisodeId] = useState<string | null>(currentEpisode);
+  const [trackedCurrentEpisode, setTrackedCurrentEpisode] = useState(currentEpisode);
 
-  useEffect(() => {
+  if (currentEpisode !== trackedCurrentEpisode) {
+    setTrackedCurrentEpisode(currentEpisode);
     if (currentEpisode != null) {
       setActiveEpisodeId(currentEpisode);
     }
-  }, [currentEpisode]);
+  }
 
   const episodeNum = useMemo(() => {
     if (!episodes.length || !activeEpisodeId) return activeEpisodeId;

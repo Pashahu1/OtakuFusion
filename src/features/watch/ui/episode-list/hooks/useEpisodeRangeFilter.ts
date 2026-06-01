@@ -1,6 +1,5 @@
 import { findRangeForEpisode } from '../utils/episodeRangeUtils';
 import {
-  useEffect,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -21,22 +20,22 @@ export function useEpisodeRangeFilter(
 ): UseEpisodeRangeFilterResult {
   const [selectedRange, setSelectedRange] = useState([1, 100]);
   const [activeRange, setActiveRange] = useState('1-100');
+  const [syncKey, setSyncKey] = useState('');
 
-  useEffect(() => {
-    if (currentEpisode && episodeNum) {
-      const episodeNumNumber =
-        typeof episodeNum === 'string' ? parseInt(episodeNum, 10) : episodeNum;
-      if (
-        episodeNumNumber < selectedRange[0] ||
-        episodeNumNumber > selectedRange[1]
-      ) {
-        const newRange = findRangeForEpisode(episodeNumNumber, totalEpisodes);
-        setSelectedRange(newRange);
-        setActiveRange(`${newRange[0]}-${newRange[1]}`);
-      }
+  if (currentEpisode && episodeNum) {
+    const episodeNumNumber =
+      typeof episodeNum === 'string' ? parseInt(episodeNum, 10) : episodeNum;
+    const key = `${currentEpisode}:${episodeNumNumber}:${totalEpisodes}`;
+    if (
+      key !== syncKey &&
+      (episodeNumNumber < selectedRange[0] || episodeNumNumber > selectedRange[1])
+    ) {
+      const newRange = findRangeForEpisode(episodeNumNumber, totalEpisodes);
+      setSyncKey(key);
+      setSelectedRange(newRange);
+      setActiveRange(`${newRange[0]}-${newRange[1]}`);
     }
-
-  }, [currentEpisode, totalEpisodes, episodeNum]);
+  }
 
   function handleRangeSelect(range: string) {
     const [start, end] = range.split('-').map(Number);

@@ -28,7 +28,7 @@ export function useWatchAnimeCacheHydration({
     oppositePrefetchAbortRef,
     alternateWarmupAbortRef,
     warmCatalogsRef,
-    stableWatchLoad,
+    stableWatchLoadRef,
     setEpisodeRemapPass,
     setAnimeInfo,
     setEpisodes,
@@ -60,7 +60,7 @@ export function useWatchAnimeCacheHydration({
     const cached = readWatchCatalogSessionCache(animeId, watchStreamProvider);
     if (cached) {
       warmCatalogsRef.current = cached.warmCatalogs;
-      stableWatchLoad.current = cached.stableWatchLoad;
+      stableWatchLoadRef.current = cached.stableWatchLoad;
       deferredOppositePrefetchRef.current = {
         animeId: cached.animeId,
         data: cached.animeInfo,
@@ -94,7 +94,7 @@ export function useWatchAnimeCacheHydration({
 
     deferredOppositePrefetchRef.current = null;
     warmCatalogsRef.current = null;
-    stableWatchLoad.current = null;
+    stableWatchLoadRef.current = null;
 
     resetWatchAnimeLoadState({
       setEpisodes,
@@ -134,13 +134,13 @@ export function useWatchAnimeCacheHydration({
     setNextEpisodeSchedule,
     setProviderCatalogPending,
     setTotalEpisodes,
-    stableWatchLoad,
+    stableWatchLoadRef,
     warmCatalogsRef,
   ]);
 
   useLayoutEffect(() => {
-    const s = stableWatchLoad.current;
+    const s = stableWatchLoadRef.current;
     if (!s || s.animeId !== animeId || s.provider === watchStreamProvider) return;
     setEpisodesSourceProvider(null);
-  }, [animeId, watchStreamProvider, setEpisodesSourceProvider, stableWatchLoad]);
+  }, [animeId, watchStreamProvider, setEpisodesSourceProvider, stableWatchLoadRef]);
 }

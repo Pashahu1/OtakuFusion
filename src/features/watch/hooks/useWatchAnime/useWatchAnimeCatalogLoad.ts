@@ -17,7 +17,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
     initialEpisodeRef,
     animeInfoRef,
     episodeIdRef,
-    stableWatchLoad,
+    stableWatchLoadRef,
     warmCatalogsRef,
     deferredOppositePrefetchRef,
     oppositePrefetchDoneRef,
@@ -53,7 +53,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
 
     if (
       isProviderOnlyCatalogLoad(
-        stableWatchLoad,
+        stableWatchLoadRef,
         animeId,
         episodeRemapPass,
         watchStreamProvider
@@ -63,7 +63,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
         deps,
         animeInfoRef,
         episodeIdRef,
-        stableWatchLoad,
+        stableWatchLoadRef,
         warmCatalogsRef,
         setProviderCatalogPending,
         markCancelled,
@@ -115,7 +115,7 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
     setProviderCatalogPending,
     setEpisodesSourceProvider,
     setTotalEpisodes,
-    stableWatchLoad,
+    stableWatchLoadRef,
     warmCatalogsRef,
   ]);
 }

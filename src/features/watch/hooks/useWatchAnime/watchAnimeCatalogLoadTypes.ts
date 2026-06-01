@@ -12,7 +12,7 @@ export interface WatchAnimeCatalogLoadParams {
   initialEpisodeRef: RefObject<string | undefined>;
   animeInfoRef: RefObject<AnimeData | null>;
   episodeIdRef: RefObject<string | null>;
-  stableWatchLoad: MutableRefObject<StableWatchLoadSnapshot | null>;
+  stableWatchLoadRef: MutableRefObject<StableWatchLoadSnapshot | null>;
   warmCatalogsRef: MutableRefObject<WarmAlternateCatalogEntry | null>;
   deferredOppositePrefetchRef: MutableRefObject<{
     animeId: string;

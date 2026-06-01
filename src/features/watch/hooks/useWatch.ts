@@ -35,7 +35,7 @@ export function useWatch(
     episodeDubStateKey,
     episodeHasDubForResolve,
     onPlaybackLangResolved,
-    userChoseDubRef,
+    userChoseDub,
   } = useWatchStreamLang({
     animeId,
     watchStreamProvider,
@@ -161,7 +161,7 @@ export function useWatch(
     watchStreamProvider,
     activeServerId,
     resolverLang,
-    userChoseDubRef,
+    userChoseDub,
     setActiveServerIdRaw,
     stream,
     resetKey: `${animeId}:${anime.episodeId ?? ''}:${watchStreamProvider}`,

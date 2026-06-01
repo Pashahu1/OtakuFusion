@@ -36,13 +36,23 @@ export function useArtplayerLanguageMenu({
   const anilibertyEligibleRef = useRef(anilibertyLanguageMenuEligible ?? false);
   const hikkaEligibleRef = useRef(hikkaLanguageMenuEligible ?? false);
 
-  serversRef.current = servers;
-  activeServerIdRef.current = activeServerId;
-  watchStreamProviderRef.current = watchStreamProvider;
-  setWatchStreamProviderRef.current = setWatchStreamProvider;
-  setActiveServerIdRef.current = setActiveServerId;
-  anilibertyEligibleRef.current = anilibertyLanguageMenuEligible ?? false;
-  hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
+  useEffect(() => {
+    serversRef.current = servers;
+    activeServerIdRef.current = activeServerId;
+    watchStreamProviderRef.current = watchStreamProvider;
+    setWatchStreamProviderRef.current = setWatchStreamProvider;
+    setActiveServerIdRef.current = setActiveServerId;
+    anilibertyEligibleRef.current = anilibertyLanguageMenuEligible ?? false;
+    hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
+  }, [
+    servers,
+    activeServerId,
+    watchStreamProvider,
+    setWatchStreamProvider,
+    setActiveServerId,
+    anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible,
+  ]);
 
   const syncLanguageMenuIfReady = useCallback(() => {
     const art = artInstanceRef.current;

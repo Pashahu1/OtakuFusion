@@ -17,7 +17,7 @@ export interface ProviderOnlyCatalogLoadInput {
   deps: WatchCatalogLoadEffectDeps;
   animeInfoRef: RefObject<AnimeData | null>;
   episodeIdRef: RefObject<string | null>;
-  stableWatchLoad: MutableRefObject<StableWatchLoadSnapshot | null>;
+  stableWatchLoadRef: MutableRefObject<StableWatchLoadSnapshot | null>;
   warmCatalogsRef: MutableRefObject<WarmAlternateCatalogEntry | null>;
   setProviderCatalogPending: WatchAnimeCatalogLoadParams['setProviderCatalogPending'];
   markCancelled: () => void;
@@ -90,7 +90,7 @@ export function runProviderOnlyCatalogLoad(
     deps,
     animeInfoRef,
     episodeIdRef,
-    stableWatchLoad,
+    stableWatchLoadRef,
     warmCatalogsRef,
     setProviderCatalogPending,
   } = input;
@@ -114,7 +114,7 @@ export function runProviderOnlyCatalogLoad(
 
   const dataForResolve = animeInfoRef.current;
   if (!dataForResolve) {
-    stableWatchLoad.current = null;
+    stableWatchLoadRef.current = null;
     return () => {
       input.markCancelled();
       input.abortSignal();

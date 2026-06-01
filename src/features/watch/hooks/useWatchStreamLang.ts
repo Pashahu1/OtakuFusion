@@ -32,7 +32,32 @@ export interface UseWatchStreamLangResult {
   episodeDubStateKey: string;
   episodeHasDubForResolve: boolean | undefined;
   onPlaybackLangResolved: (lang: 'sub' | 'dub') => void;
+  userChoseDub: boolean;
   userChoseDubRef: MutableRefObject<boolean>;
+}
+
+interface LangState {
+  animeId: string;
+  activeServerId: string | null;
+  userChoseDub: boolean;
+}
+
+function clampServerId(
+  id: string | null,
+  userChoseDub: boolean,
+  watchStreamProvider: WatchStreamProvider,
+  catalogHasDub: boolean,
+  episodeHasDubForResolve: boolean | undefined,
+): string | null {
+  if (userChoseDub) return id;
+  if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') {
+    return id === '2' ? '1' : id;
+  }
+  if (!catalogHasDub && id === '2') return '1';
+  if (watchStreamProvider === 'animepahe' && episodeHasDubForResolve === false && id === '2') {
+    return '1';
+  }
+  return id;
 }
 
 export function useWatchStreamLang({
@@ -43,33 +68,61 @@ export function useWatchStreamLang({
   dubFromTv,
   setStreamLangRevision,
 }: UseWatchStreamLangInput): UseWatchStreamLangResult {
-  const [activeServerId, setActiveServerIdRaw] = useState<string | null>('1');
+  const [langState, setLangState] = useState<LangState>({
+    animeId,
+    activeServerId: '1',
+    userChoseDub: false,
+  });
   const userChoseDubRef = useRef(false);
+  const [revisionBumpKey, setRevisionBumpKey] = useState('');
+
+  if (langState.animeId !== animeId) {
+    setLangState({ animeId, activeServerId: '1', userChoseDub: false });
+  }
 
   useEffect(() => {
-    setActiveServerIdRaw('1');
-    userChoseDubRef.current = false;
-  }, [animeId]);
-
-  const setActiveServerId = useCallback((value: SetStateAction<string | null>) => {
-    setActiveServerIdRaw((prev) => {
-      const next = typeof value === 'function' ? value(prev) : value;
-      if (next === '2') userChoseDubRef.current = true;
-      if (next === '1') userChoseDubRef.current = false;
-      return next;
-    });
-    setStreamLangRevision((n) => n + 1);
-  }, [setStreamLangRevision]);
+    userChoseDubRef.current = langState.userChoseDub;
+  }, [langState.userChoseDub]);
 
   const catalogHasDub = useMemo(
     () => computeHasAnyDub({ dubFromTv, episodes }),
-    [dubFromTv, episodes]
+    [dubFromTv, episodes],
   );
 
   const selectedEpisode = useMemo(() => {
     if (!episodeId || !episodes?.length) return undefined;
     return episodes.find((e) => episodeMatchesSelection(e, episodeId));
   }, [episodes, episodeId]);
+
+  const episodeHasDubForResolve = useMemo((): boolean | undefined => {
+    if (!selectedEpisode) return undefined;
+    if (selectedEpisode.hasDub === true) return true;
+    if (selectedEpisode.hasDub === false) return false;
+    return undefined;
+  }, [selectedEpisode]);
+
+  const clampKey = `${watchStreamProvider}:${catalogHasDub}:${episodeHasDubForResolve}:${episodeId}:${langState.activeServerId}:${langState.userChoseDub}`;
+  const clampedServerId = clampServerId(
+    langState.activeServerId,
+    langState.userChoseDub,
+    watchStreamProvider,
+    catalogHasDub,
+    episodeHasDubForResolve,
+  );
+
+  if (clampedServerId !== langState.activeServerId) {
+    setLangState((prev) => ({
+      ...prev,
+      activeServerId: clampedServerId,
+      userChoseDub: false,
+    }));
+    if (revisionBumpKey !== clampKey) {
+      setRevisionBumpKey(clampKey);
+      setStreamLangRevision((n) => n + 1);
+    }
+  }
+
+  const activeServerId = clampedServerId;
 
   const resolverLang = useMemo<'sub' | 'dub'>(() => {
     if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') return 'sub';
@@ -78,17 +131,6 @@ export function useWatchStreamLang({
   }, [watchStreamProvider, activeServerId]);
 
   const preferredLang = activeServerId === '2' ? 'dub' : 'sub';
-
-  useEffect(() => {
-    if (userChoseDubRef.current) return;
-    if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') {
-      if (activeServerId === '2') setActiveServerIdRaw('1');
-      return;
-    }
-    if (!catalogHasDub && activeServerId === '2') {
-      setActiveServerIdRaw('1');
-    }
-  }, [watchStreamProvider, activeServerId, catalogHasDub]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -100,34 +142,41 @@ export function useWatchStreamLang({
       { type: 'sub', data_id: 1, server_id: 1, serverName: 'Japanese' },
       { type: 'dub', data_id: 2, server_id: 2, serverName: 'English' },
     ],
-    []
+    [],
   );
 
-  const onPlaybackLangResolved = useCallback((lang: 'sub' | 'dub') => {
-    if (userChoseDubRef.current && lang === 'sub') return;
-    setActiveServerIdRaw(lang === 'dub' ? '2' : '1');
+  const setActiveServerIdRaw = useCallback((id: string | null) => {
+    setLangState((prev) => ({
+      ...prev,
+      activeServerId: id,
+      userChoseDub: id === '2',
+    }));
   }, []);
 
-  const episodeHasDubForResolve = useMemo((): boolean | undefined => {
-    if (!selectedEpisode) return undefined;
-    if (selectedEpisode.hasDub === true) return true;
-    if (selectedEpisode.hasDub === false) return false;
-    return undefined;
-  }, [selectedEpisode]);
+  const setActiveServerId = useCallback(
+    (value: SetStateAction<string | null>) => {
+      setLangState((prev) => {
+        const next = typeof value === 'function' ? value(prev.activeServerId) : value;
+        return { ...prev, activeServerId: next, userChoseDub: next === '2' };
+      });
+      setStreamLangRevision((n) => n + 1);
+    },
+    [setStreamLangRevision],
+  );
+
+  const onPlaybackLangResolved = useCallback(
+    (lang: 'sub' | 'dub') => {
+      if (langState.userChoseDub && lang === 'sub') return;
+      setActiveServerIdRaw(lang === 'dub' ? '2' : '1');
+    },
+    [langState.userChoseDub, setActiveServerIdRaw],
+  );
 
   const episodeDubStateKey = useMemo(
     () =>
       `${episodeId ?? ''}:${selectedEpisode?.hasDub === true ? '1' : '0'}:${catalogHasDub ? '1' : '0'}`,
-    [episodeId, selectedEpisode?.hasDub, catalogHasDub]
+    [episodeId, selectedEpisode?.hasDub, catalogHasDub],
   );
-
-  useEffect(() => {
-    if (watchStreamProvider !== 'animepahe') return;
-    if (episodeHasDubForResolve !== false) return;
-    userChoseDubRef.current = false;
-    setActiveServerIdRaw('1');
-    setStreamLangRevision((n) => n + 1);
-  }, [watchStreamProvider, episodeHasDubForResolve, episodeId, setStreamLangRevision]);
 
   return {
     activeServerId,
@@ -138,6 +187,7 @@ export function useWatchStreamLang({
     episodeDubStateKey,
     episodeHasDubForResolve,
     onPlaybackLangResolved,
+    userChoseDub: langState.userChoseDub,
     userChoseDubRef,
   };
 }

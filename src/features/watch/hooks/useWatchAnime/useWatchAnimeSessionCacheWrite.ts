@@ -30,13 +30,13 @@ export function useWatchAnimeSessionCacheWrite({
     animeInfoLoading,
     providerCatalogPending,
     warmCatalogsRef,
-    stableWatchLoad,
+    stableWatchLoadRef,
   } = state;
 
   useEffect(() => {
     if (animeInfoLoading || providerCatalogPending) return;
     if (!animeInfo || !episodes?.length) return;
-    const stable = stableWatchLoad.current;
+    const stable = stableWatchLoadRef.current;
     const id = animeId.trim();
     if (!stable || stable.animeId !== id || stable.provider !== watchStreamProvider) return;
 
@@ -72,7 +72,7 @@ export function useWatchAnimeSessionCacheWrite({
     episodesSourceProvider,
     animeInfoLoading,
     providerCatalogPending,
-    stableWatchLoad,
+    stableWatchLoadRef,
     warmCatalogsRef,
   ]);
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MutableRefObject } from 'react';
+import { useEffect, useState } from 'react';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { UseWatchStreamReturn } from './useWatchStream';
 
@@ -6,7 +6,7 @@ interface UseWatchDubFallbackInput {
   watchStreamProvider: WatchStreamProvider;
   activeServerId: string | null;
   resolverLang: 'sub' | 'dub';
-  userChoseDubRef: MutableRefObject<boolean>;
+  userChoseDub: boolean;
   setActiveServerIdRaw: (id: string | null) => void;
   stream: Pick<
     UseWatchStreamReturn,
@@ -29,70 +29,63 @@ function isAutoDubFallbackError(errorCode: string): boolean {
   return !NON_FALLBACK_ERROR_FRAGMENTS.some((fragment) => code.includes(fragment));
 }
 
+interface DubFallbackState {
+  resetKey: string;
+  issuedFallback: boolean;
+}
+
 export function useWatchDubFallback({
   watchStreamProvider,
   activeServerId,
   resolverLang,
-  userChoseDubRef,
+  userChoseDub,
   setActiveServerIdRaw,
   stream,
   resetKey,
 }: UseWatchDubFallbackInput): boolean {
-  const [streamHardExhausted, setStreamHardExhausted] = useState(false);
-  const issuedDubToSubFallbackRef = useRef(false);
+  const [fallbackState, setFallbackState] = useState<DubFallbackState>({
+    resetKey,
+    issuedFallback: false,
+  });
+
+  if (fallbackState.resetKey !== resetKey) {
+    setFallbackState({ resetKey, issuedFallback: false });
+  }
+
+  if (stream.streamUrl && fallbackState.issuedFallback) {
+    setFallbackState((prev) => ({ ...prev, issuedFallback: false }));
+  }
+
+  const canIssueFallback =
+    stream.resolveAttempted &&
+    !stream.buffering &&
+    !stream.streamUrl &&
+    Boolean(stream.errorCode) &&
+    watchStreamProvider === 'animepahe' &&
+    activeServerId === '2' &&
+    resolverLang === 'dub' &&
+    isAutoDubFallbackError(stream.errorCode ?? '') &&
+    !userChoseDub &&
+    !fallbackState.issuedFallback;
+
+  if (canIssueFallback) {
+    setFallbackState((prev) => ({ ...prev, issuedFallback: true }));
+  }
 
   useEffect(() => {
-    issuedDubToSubFallbackRef.current = false;
-    userChoseDubRef.current = false;
-    setStreamHardExhausted(false);
-  }, [resetKey, userChoseDubRef]);
-
-  useEffect(() => {
-    if (!stream.resolveAttempted || stream.buffering) return;
-    if (stream.streamUrl) return;
-    if (!stream.errorCode) return;
-    if (watchStreamProvider !== 'animepahe') return;
-    if (activeServerId !== '2' || resolverLang !== 'dub') return;
-    if (!isAutoDubFallbackError(stream.errorCode)) return;
-    if (userChoseDubRef.current) return;
-
-    issuedDubToSubFallbackRef.current = true;
+    if (!fallbackState.issuedFallback) return;
+    if (activeServerId !== '2') return;
     setActiveServerIdRaw('1');
-  }, [
-    stream.resolveAttempted,
-    stream.buffering,
-    stream.streamUrl,
-    stream.errorCode,
-    watchStreamProvider,
-    activeServerId,
-    resolverLang,
-    userChoseDubRef,
-    setActiveServerIdRaw,
-  ]);
+  }, [fallbackState.issuedFallback, activeServerId, setActiveServerIdRaw]);
 
-  useEffect(() => {
-    if (!stream.streamUrl) return;
-    issuedDubToSubFallbackRef.current = false;
-    setStreamHardExhausted(false);
-  }, [stream.streamUrl]);
-
-  useEffect(() => {
-    if (!issuedDubToSubFallbackRef.current) return;
-    if (!stream.resolveAttempted || stream.buffering || stream.streamUrl) return;
-    if (watchStreamProvider !== 'animepahe') return;
-    if (activeServerId !== '1' || resolverLang !== 'sub') return;
-    if (!stream.errorCode) return;
-
-    setStreamHardExhausted(true);
-  }, [
-    stream.resolveAttempted,
-    stream.buffering,
-    stream.streamUrl,
-    stream.errorCode,
-    watchStreamProvider,
-    activeServerId,
-    resolverLang,
-  ]);
-
-  return streamHardExhausted;
+  return (
+    fallbackState.issuedFallback &&
+    stream.resolveAttempted &&
+    !stream.buffering &&
+    !stream.streamUrl &&
+    watchStreamProvider === 'animepahe' &&
+    activeServerId === '1' &&
+    resolverLang === 'sub' &&
+    Boolean(stream.errorCode)
+  );
 }

@@ -27,7 +27,7 @@ export interface ApplyWatchCatalogSuccessContext {
   watchStreamProvider: WatchStreamProvider;
   getIsCancelled: () => boolean;
   initialEpisodeRef: React.RefObject<string | undefined>;
-  stableWatchLoad: React.MutableRefObject<StableWatchLoadSnapshot | null>;
+  stableWatchLoadRef: React.MutableRefObject<StableWatchLoadSnapshot | null>;
   warmCatalogsRef: React.MutableRefObject<WarmAlternateCatalogEntry | null>;
   deferredOppositePrefetchRef: React.MutableRefObject<{
     animeId: string;
@@ -73,7 +73,7 @@ export function applyWatchCatalogSuccess(
     watchStreamProvider,
     getIsCancelled,
     initialEpisodeRef,
-    stableWatchLoad,
+    stableWatchLoadRef,
     warmCatalogsRef,
     deferredOppositePrefetchRef,
     menuSetters,
@@ -204,7 +204,7 @@ export function applyWatchCatalogSuccess(
     }
   }
 
-  stableWatchLoad.current = {
+  stableWatchLoadRef.current = {
     animeId,
     remap: episodeRemapPass,
     provider: watchStreamProvider,

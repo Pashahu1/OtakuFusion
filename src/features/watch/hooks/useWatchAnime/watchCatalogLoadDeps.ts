@@ -35,12 +35,12 @@ export interface WatchCatalogLoadEffectDeps {
 }
 
 export function isProviderOnlyCatalogLoad(
-  stableWatchLoad: React.MutableRefObject<StableWatchLoadSnapshot | null>,
+  stableWatchLoadRef: React.MutableRefObject<StableWatchLoadSnapshot | null>,
   animeId: string,
   episodeRemapPass: number,
   watchStreamProvider: WatchStreamProvider
 ): boolean {
-  const snapshot = stableWatchLoad.current;
+  const snapshot = stableWatchLoadRef.current;
   return (
     snapshot !== null &&
     snapshot.animeId === animeId &&
@@ -59,7 +59,7 @@ export function buildWatchCatalogLoadEffectDeps(
     episodeRemapPass,
     watchStreamProvider,
     initialEpisodeRef,
-    stableWatchLoad,
+    stableWatchLoadRef,
     warmCatalogsRef,
     deferredOppositePrefetchRef,
     setAnimeInfo,
@@ -91,7 +91,7 @@ export function buildWatchCatalogLoadEffectDeps(
     watchStreamProvider,
     getIsCancelled: isAborted,
     initialEpisodeRef,
-    stableWatchLoad,
+    stableWatchLoadRef,
     warmCatalogsRef,
     deferredOppositePrefetchRef,
     menuSetters,

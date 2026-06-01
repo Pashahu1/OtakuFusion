@@ -40,7 +40,7 @@ export function useWatchAnime(
     initialEpisodeRef: state.initialEpisodeRef,
     animeInfoRef: state.animeInfoRef,
     episodeIdRef: state.episodeIdRef,
-    stableWatchLoad: state.stableWatchLoad,
+    stableWatchLoadRef: state.stableWatchLoadRef,
     warmCatalogsRef: state.warmCatalogsRef,
     deferredOppositePrefetchRef: state.deferredOppositePrefetchRef,
     oppositePrefetchDoneRef: state.oppositePrefetchDoneRef,

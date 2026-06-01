@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
@@ -13,10 +13,9 @@ export function useWatchAnimeState(
   initialEpisodeId: string | undefined,
   watchStreamProvider: WatchStreamProvider,
 ) {
-  const initialStateRef = useRef(
+  const [initial] = useState(() =>
     createInitialWatchAnimeState(animeId, watchStreamProvider, initialEpisodeId),
   );
-  const initial = initialStateRef.current;
 
   const [animeInfo, setAnimeInfo] = useState<AnimeData | null>(initial.animeInfo);
   const [episodes, setEpisodes] = useState<EpisodesTypes[] | null>(initial.episodes);
@@ -42,17 +41,13 @@ export function useWatchAnimeState(
   const [hikkaCatalogProviderId, setHikkaCatalogProviderId] = useState<string | null>(
     initial.hikkaCatalogProviderId,
   );
-  const [providerCatalogPending, setProviderCatalogPending] = useState(
-    initial.providerCatalogPending,
-  );
+  const [providerCatalogPending, setProviderCatalogPending] = useState(initial.providerCatalogPending);
   const [episodesSourceProvider, setEpisodesSourceProvider] = useState<WatchStreamProvider | null>(
     initial.episodesSourceProvider,
   );
   const [episodeRemapPass, setEpisodeRemapPass] = useState(0);
 
   const initialEpisodeRef = useRef(initialEpisodeId);
-  initialEpisodeRef.current = initialEpisodeId;
-
   const deferredOppositePrefetchRef = useRef<{
     animeId: string;
     data: AnimeData;
@@ -62,12 +57,21 @@ export function useWatchAnimeState(
   const oppositePrefetchAbortRef = useRef<AbortController | null>(null);
   const alternateWarmupAbortRef = useRef<AbortController | null>(null);
   const warmCatalogsRef = useRef<WarmAlternateCatalogEntry | null>(null);
-  const stableWatchLoad = useRef<StableWatchLoadSnapshot | null>(null);
-
+  const stableWatchLoadRef = useRef<StableWatchLoadSnapshot | null>(null);
   const animeInfoRef = useRef(animeInfo);
-  animeInfoRef.current = animeInfo;
   const episodeIdRef = useRef(episodeId);
-  episodeIdRef.current = episodeId;
+
+  useEffect(() => {
+    initialEpisodeRef.current = initialEpisodeId;
+  }, [initialEpisodeId]);
+
+  useEffect(() => {
+    animeInfoRef.current = animeInfo;
+  }, [animeInfo]);
+
+  useEffect(() => {
+    episodeIdRef.current = episodeId;
+  }, [episodeId]);
 
   return {
     animeInfo,
@@ -102,11 +106,11 @@ export function useWatchAnimeState(
     setEpisodeRemapPass,
     initialEpisodeRef,
     deferredOppositePrefetchRef,
-    oppositePrefetchDoneRef,
     oppositePrefetchAbortRef,
+    oppositePrefetchDoneRef,
     alternateWarmupAbortRef,
     warmCatalogsRef,
-    stableWatchLoad,
+    stableWatchLoadRef,
     animeInfoRef,
     episodeIdRef,
   };
