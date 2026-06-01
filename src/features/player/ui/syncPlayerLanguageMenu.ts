@@ -1,8 +1,13 @@
 import type Artplayer from 'artplayer';
-import { SERVER_PRIORITY_ORDER, mirrorServerLabel } from '@/shared/data/servers';
-import { serverIcon } from './PlayerIcons';
+
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+
+import {
+  buildFlatLanguageMenu,
+  languageMenuTooltip,
+} from './language-menu/buildFlatLanguageMenu';
+import { serverIcon } from './PlayerIcons';
 
 export interface SyncPlayerLanguageMenuParams {
   serversRef: React.RefObject<ServerInfo[] | null>;
@@ -16,7 +21,7 @@ export interface SyncPlayerLanguageMenuParams {
 
 export function syncPlayerLanguageMenu(
   art: Artplayer,
-  params: SyncPlayerLanguageMenuParams
+  params: SyncPlayerLanguageMenuParams,
 ): void {
   const {
     serversRef,
@@ -31,97 +36,29 @@ export function syncPlayerLanguageMenu(
   try {
     art.setting.remove('language');
   } catch {
-
+    /* setting may not exist yet */
   }
 
   const langServers = serversRef.current ?? null;
   const langActiveId = activeServerIdRef.current ?? null;
 
-  function pickPreferredInGroup(list: ServerInfo[]): ServerInfo | undefined {
-    if (!list.length) return undefined;
-    for (const pref of SERVER_PRIORITY_ORDER) {
-      const p = pref.toLowerCase();
-      const hit = list.find(
-        (s) => mirrorServerLabel(s.serverName).toLowerCase() === p
-      );
-      if (hit) return hit;
-    }
-    return list[0];
-  }
-
-  const subList = langServers?.filter((s) => s.type === 'sub') ?? [];
-  const dubList = langServers?.filter((s) => s.type === 'dub') ?? [];
-  const jp =
-    subList.find((s) => String(s.data_id) === String(langActiveId)) ??
-    pickPreferredInGroup(subList);
-  const en =
-    dubList.find((s) => String(s.data_id) === String(langActiveId)) ??
-    pickPreferredInGroup(dubList);
-
-  type LangMenuLeaf = {
-    html: string;
-    default?: boolean;
-    data_id?: number;
-    serverName?: string;
-    type?: string;
-    __mode?: 'animepahe-sub' | 'animepahe-dub' | 'aniliberty' | 'hikka';
-  };
-
-  const flatLanguage: LangMenuLeaf[] = [];
-
-  if (jp) {
-    flatLanguage.push({
-      html: jp.serverName?.trim() || 'Japanese',
-      default:
-        watchStreamProvider === 'animepahe' &&
-        String(jp.data_id) === String(langActiveId),
-      data_id: jp.data_id,
-      serverName: jp.serverName,
-      type: jp.type,
-      __mode: 'animepahe-sub',
-    });
-  }
-
-  if (en) {
-    flatLanguage.push({
-      html: en.serverName?.trim() || 'English',
-      default:
-        watchStreamProvider === 'animepahe' &&
-        String(en.data_id) === String(langActiveId),
-      data_id: en.data_id,
-      serverName: en.serverName,
-      type: en.type,
-      __mode: 'animepahe-dub',
-    });
-  }
-
-  if (anilibertyLanguageMenuEligible) {
-    flatLanguage.push({
-      html: 'Anilibria',
-      default: watchStreamProvider === 'aniliberty',
-      __mode: 'aniliberty',
-    });
-  }
-
-  if (hikkaLanguageMenuEligible) {
-    flatLanguage.push({
-      html: 'Ukrainian',
-      default: watchStreamProvider === 'hikka',
-      __mode: 'hikka',
-    });
-  }
+  const flatLanguage = buildFlatLanguageMenu({
+    langServers,
+    langActiveId,
+    watchStreamProvider,
+    anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible,
+  });
 
   if (flatLanguage.length === 0) return;
 
-  const langTooltip =
-    watchStreamProvider === 'hikka' && hikkaLanguageMenuEligible
-      ? 'Ukrainian'
-      : watchStreamProvider === 'aniliberty' && anilibertyLanguageMenuEligible
-        ? 'Anilibria'
-        : langServers?.find((s) => String(s.data_id) === String(langActiveId))?.type ===
-            'dub'
-          ? 'English'
-          : 'Japanese';
+  const langTooltip = languageMenuTooltip({
+    watchStreamProvider,
+    hikkaLanguageMenuEligible,
+    anilibertyLanguageMenuEligible,
+    langServers,
+    langActiveId,
+  });
 
   art.setting.add({
     name: 'language',
@@ -138,7 +75,7 @@ export function syncPlayerLanguageMenu(
           localStorage.setItem('server_type', 'sub');
           localStorage.removeItem('server_name');
         } catch {
-
+          /* ignore */
         }
         return typeof item.html === 'string' ? item.html : '';
       }
@@ -148,21 +85,11 @@ export function syncPlayerLanguageMenu(
           localStorage.setItem('server_type', 'sub');
           localStorage.removeItem('server_name');
         } catch {
-
+          /* ignore */
         }
         return typeof item.html === 'string' ? item.html : '';
       }
-      if (mode === 'animepahe-sub') {
-        setWatchStreamProvider('animepahe');
-        const dataId = item.data_id != null ? String(item.data_id) : null;
-        if (dataId) setActiveServerId(dataId);
-        if (typeof item.serverName === 'string')
-          localStorage.setItem('server_name', item.serverName);
-        if (typeof item.type === 'string')
-          localStorage.setItem('server_type', item.type);
-        return typeof item.html === 'string' ? item.html : '';
-      }
-      if (mode === 'animepahe-dub') {
+      if (mode === 'animepahe-sub' || mode === 'animepahe-dub') {
         setWatchStreamProvider('animepahe');
         const dataId = item.data_id != null ? String(item.data_id) : null;
         if (dataId) setActiveServerId(dataId);
