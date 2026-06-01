@@ -1,71 +1,31 @@
-import type { AnimepaheCatalogBffOk } from '@/lib/bff/watch/animepahe-catalog';
-import type { AnilibertyCatalogBffOk } from '@/lib/bff/watch/aniliberty-catalog';
-import type { HikkaCatalogBffOk } from '@/lib/bff/watch/hikka-catalog';
 import { alignEpisodesToAnilistSeasonStart } from '@/features/watch/lib/alignEpisodesToAnilistSeason';
 import { aggregateTvInfoStreamCounts } from '@/shared/utils/catalogStreamCounts';
-import { resolveEpisodeIdAfterCatalog } from './resolveEpisodeIdAfterCatalog';
 import { applyAnilistEpisodeDisplayTitles } from '@/features/watch/lib/anilistEpisodeDisplayTitles';
-import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type { AlternateLanguageMenuSetters, StableWatchLoadSnapshot, WarmAlternateCatalogEntry } from './types';
-import { restoreCachedAlternateLanguageMenu } from './watchAnimeCatalogUtils';
 import {
-  readVerifiedHikkaMapping,
-  readVerifiedLibertyMapping,
   readVerifiedPaheMapping,
   writeLibertyEpisodesCache,
-  writeVerifiedHikkaMapping,
-  writeVerifiedLibertyMapping,
-  writeVerifiedPaheMapping,
 } from '@/features/watch/lib/provider-mapping-cache';
 import { upsertWarmHikkaCatalog, upsertWarmLibertyCatalog } from './watchAnimeWarmCatalog';
+import { resolveEpisodeIdAfterCatalog } from './resolveEpisodeIdAfterCatalog';
+import { applyProviderCatalogState } from './apply-watch-catalog/applyProviderCatalogState';
+import type {
+  ApplyWatchCatalogSuccessContext,
+  ApplyWatchCatalogSuccessOpts,
+} from './apply-watch-catalog/applyWatchCatalogSuccessTypes';
 
-export interface ApplyWatchCatalogSuccessContext {
-  animeId: string;
-  episodeRemapPass: number;
-  watchStreamProvider: WatchStreamProvider;
-  getIsCancelled: () => boolean;
-  initialEpisodeRef: React.RefObject<string | undefined>;
-  stableWatchLoadRef: React.MutableRefObject<StableWatchLoadSnapshot | null>;
-  warmCatalogsRef: React.MutableRefObject<WarmAlternateCatalogEntry | null>;
-  deferredOppositePrefetchRef: React.MutableRefObject<{
-    animeId: string;
-    data: AnimeData;
-    provider: WatchStreamProvider;
-  } | null>;
-  menuSetters: AlternateLanguageMenuSetters;
-  setAnimeInfo: React.Dispatch<React.SetStateAction<AnimeData | null>>;
-  setEpisodes: React.Dispatch<React.SetStateAction<EpisodesTypes[] | null>>;
-  setAnimepaheCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
-  setAnilibertyCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
-  setHikkaCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
-  setTotalEpisodes: React.Dispatch<React.SetStateAction<number | null>>;
-  setEpisodeId: React.Dispatch<React.SetStateAction<string | null>>;
-  setAnimeInfoLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setAnilibertyLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
-  setHikkaLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
-  setProviderCatalogPending: React.Dispatch<React.SetStateAction<boolean>>;
-  setEpisodesSourceProvider: React.Dispatch<
-    React.SetStateAction<WatchStreamProvider | null>
-  >;
-}
-
-export interface ApplyWatchCatalogSuccessOpts {
-  forceFuzzy: boolean;
-  freshPaheCatalog: AnimepaheCatalogBffOk | null;
-  freshLibertyCatalog: AnilibertyCatalogBffOk | null;
-  freshHikkaCatalog: HikkaCatalogBffOk | null;
-  preserveEpisodeNum: string | null;
-  settleLoading: { current: boolean };
-}
+export type {
+  ApplyWatchCatalogSuccessContext,
+  ApplyWatchCatalogSuccessOpts,
+} from './apply-watch-catalog/applyWatchCatalogSuccessTypes';
 
 export function applyWatchCatalogSuccess(
   ctx: ApplyWatchCatalogSuccessContext,
   dataForResolve: AnimeData,
   list: EpisodesTypes[],
   providerId: string,
-  opts: ApplyWatchCatalogSuccessOpts
+  opts: ApplyWatchCatalogSuccessOpts,
 ): void {
   const {
     animeId,
@@ -76,67 +36,18 @@ export function applyWatchCatalogSuccess(
     stableWatchLoadRef,
     warmCatalogsRef,
     deferredOppositePrefetchRef,
-    menuSetters,
     setAnimeInfo,
     setEpisodes,
-    setAnimepaheCatalogProviderId,
-    setAnilibertyCatalogProviderId,
-    setHikkaCatalogProviderId,
     setTotalEpisodes,
     setEpisodeId,
     setAnimeInfoLoading,
-    setAnilibertyLanguageMenuEligible,
-    setHikkaLanguageMenuEligible,
     setProviderCatalogPending,
     setEpisodesSourceProvider,
   } = ctx;
 
-  const {
-    forceFuzzy,
-    freshPaheCatalog,
-    freshLibertyCatalog,
-    freshHikkaCatalog,
-    preserveEpisodeNum,
-    settleLoading,
-  } = opts;
+  const { forceFuzzy, freshPaheCatalog, preserveEpisodeNum, settleLoading } = opts;
 
-  if (watchStreamProvider === 'aniliberty') {
-    if (freshLibertyCatalog) {
-      writeVerifiedLibertyMapping(animeId, providerId);
-    }
-    setAnilibertyCatalogProviderId(providerId);
-    setAnilibertyLanguageMenuEligible(true);
-    if (!forceFuzzy) {
-      restoreCachedAlternateLanguageMenu(animeId, 'aniliberty', menuSetters);
-    }
-  } else if (watchStreamProvider === 'hikka') {
-    if (freshHikkaCatalog) {
-      writeVerifiedHikkaMapping(animeId, providerId);
-    }
-    setHikkaCatalogProviderId(providerId);
-    setHikkaLanguageMenuEligible(true);
-    if (!forceFuzzy) {
-      restoreCachedAlternateLanguageMenu(animeId, 'hikka', menuSetters);
-    }
-  } else {
-    if (freshPaheCatalog) {
-      writeVerifiedPaheMapping(animeId, providerId, freshPaheCatalog.hasSeriesDub === true);
-    }
-    setAnimepaheCatalogProviderId(providerId);
-    if (!forceFuzzy) {
-      const cachedHikka = readVerifiedHikkaMapping(animeId);
-      const cachedLiberty = readVerifiedLibertyMapping(animeId);
-      if (cachedHikka?.hikkaSlug) {
-        setHikkaCatalogProviderId(cachedHikka.hikkaSlug);
-        setHikkaLanguageMenuEligible(true);
-      }
-      if (cachedLiberty?.libertyId) {
-        setAnilibertyCatalogProviderId(cachedLiberty.libertyId);
-        setAnilibertyLanguageMenuEligible(true);
-      }
-
-    }
-  }
+  applyProviderCatalogState(ctx, providerId, opts);
 
   if (!forceFuzzy) {
     deferredOppositePrefetchRef.current = {
@@ -150,7 +61,7 @@ export function applyWatchCatalogSuccess(
     alignEpisodesToAnilistSeasonStart(list, dataForResolve.anilistEpisodeTitles),
     dataForResolve.anilistEpisodeTitles,
     dataForResolve.title,
-    dataForResolve.romaji_title
+    dataForResolve.romaji_title,
   );
 
   setEpisodes(mergedEpisodes);
@@ -186,8 +97,8 @@ export function applyWatchCatalogSuccess(
     resolveEpisodeIdAfterCatalog(
       mergedEpisodes,
       preserveEpisodeNum,
-      initialEpisodeRef.current
-    )
+      initialEpisodeRef.current,
+    ),
   );
 
   if (!getIsCancelled() && mergedEpisodes.length > 0) {
@@ -197,7 +108,7 @@ export function applyWatchCatalogSuccess(
         animeId,
         providerId,
         mergedEpisodes,
-        mergedEpisodes.length
+        mergedEpisodes.length,
       );
     } else if (watchStreamProvider === 'hikka') {
       upsertWarmHikkaCatalog(warmCatalogsRef, animeId, providerId, mergedEpisodes);
