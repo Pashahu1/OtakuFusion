@@ -1,13 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import {
-  episodeMatchesSelection,
-  getEpisodeNumberFromId,
-} from '@/shared/utils/episodeUtils';
-import { WatchEpisodeCard } from '@/features/watch/ui/watch-series/WatchEpisodeCard';
+import { WatchEpisodeGrid } from '@/features/watch/ui/shared/WatchEpisodeGrid';
 import './WatchPlayEpisodesPanel.scss';
 
 interface WatchPlayEpisodesPanelProps {
@@ -37,15 +33,6 @@ export function WatchPlayEpisodesPanel({
 }: WatchPlayEpisodesPanelProps) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
-
-  const handleSelect = useCallback(
-    (item: EpisodesTypes) => {
-      const id = getEpisodeNumberFromId(item.id) ?? String(item.episode_no);
-      onSelectEpisode(id);
-      onClose();
-    },
-    [onClose, onSelectEpisode]
-  );
 
   useEffect(() => {
     if (!open) return;
@@ -101,26 +88,20 @@ export function WatchPlayEpisodesPanel({
           </button>
         </header>
         <div className="watch-play-episodes-panel__scroll">
-          <div className="watch-play-episodes-panel__grid">
-            {episodes.map((item) => {
-              const epKey = getEpisodeNumberFromId(item.id) ?? String(item.episode_no);
-              const isActive = episodeMatchesSelection(item, currentEpisodeId);
-              const isWatched = Boolean(watchedEpisodes[epKey]);
-              return (
-                <WatchEpisodeCard
-                  key={`${item.id}-${item.episode_no}`}
-                  item={item}
-                  posterUrl={posterUrl}
-                  seriesTitle={seriesTitle}
-                  episodeDuration={episodeDuration}
-                  isActive={isActive}
-                  isWatched={isWatched}
-                  nowPlaying={isActive}
-                  onSelect={() => handleSelect(item)}
-                />
-              );
-            })}
-          </div>
+          <WatchEpisodeGrid
+            className="watch-play-episodes-panel__grid"
+            episodes={episodes}
+            currentEpisodeId={currentEpisodeId}
+            watchedEpisodes={watchedEpisodes}
+            posterUrl={posterUrl}
+            seriesTitle={seriesTitle}
+            episodeDuration={episodeDuration}
+            showNowPlayingBadge
+            onSelectEpisode={(episodeId) => {
+              onSelectEpisode(episodeId);
+              onClose();
+            }}
+          />
         </div>
       </div>
     </div>

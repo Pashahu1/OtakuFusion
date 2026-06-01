@@ -1,6 +1,8 @@
 
 
 import type { StreamingType } from '@/shared/types/StreamingTypes';
+import { buildM3u8ProxyRequestUrl } from '@/lib/m3u8ProxyPublicBase';
+import { urlIsCrysolineHostedStream } from '@/lib/streamMediaType';
 
 export type WatchProbeRequestLang = 'sub' | 'dub';
 
@@ -127,12 +129,14 @@ export async function probeHlsStreamViaProxy(
   const streamUrl = stream.link?.file?.trim();
   if (!streamUrl) return { ok: false, masterPlaylistText: null };
 
-  const probeUrl = new URL('/api/m3u8-proxy', origin);
-  probeUrl.searchParams.set('url', streamUrl);
-  probeUrl.searchParams.set('headers', JSON.stringify(buildProbeHeaders(stream)));
+  const headers = buildProbeHeaders(stream);
+  const directCrysoline = urlIsCrysolineHostedStream(streamUrl);
+  const probeUrl = directCrysoline
+    ? streamUrl
+    : buildM3u8ProxyRequestUrl(origin, streamUrl, headers);
 
   try {
-    const res = await fetch(probeUrl.toString(), {
+    const res = await fetch(probeUrl, {
       method: 'GET',
       cache: 'no-store',
       signal: AbortSignal.timeout(cfg.masterMs),
@@ -165,7 +169,7 @@ export async function probeHlsStreamViaProxy(
 
     const variantTasks = variantLines.map((line) =>
       (async () => {
-        const variantProbeUrl = new URL(line, probeUrl.toString());
+        const variantProbeUrl = new URL(line, probeUrl);
         const variantRes = await fetch(variantProbeUrl.toString(), {
           method: 'GET',
           cache: 'no-store',
@@ -187,20 +191,12 @@ export async function probeHlsStreamViaProxy(
   }
 }
 
-export async function isPlayableViaProxy(
-  origin: string,
-  stream: StreamingType,
-  cfg: WatchProbeConfig
-): Promise<boolean> {
-  return isPlayableStreamViaProxy(origin, stream, cfg);
-}
-
 function streamUrlLooksLikeHls(url: string): boolean {
   const u = url.toLowerCase();
   return u.includes('.m3u8') || u.includes('mpegurl');
 }
 
-export async function isPlayableStreamViaProxy(
+export async function isPlayableViaProxy(
   origin: string,
   stream: StreamingType,
   cfg: WatchProbeConfig
@@ -213,12 +209,13 @@ export async function isPlayableStreamViaProxy(
     return r.ok;
   }
 
-  const probeUrl = new URL('/api/m3u8-proxy', origin);
-  probeUrl.searchParams.set('url', streamUrl);
-  probeUrl.searchParams.set('headers', JSON.stringify(buildProbeHeaders(stream)));
+  const headers = buildProbeHeaders(stream);
+  const probeUrl = urlIsCrysolineHostedStream(streamUrl)
+    ? streamUrl
+    : buildM3u8ProxyRequestUrl(origin, streamUrl, headers);
 
   try {
-    const rangeRes = await fetch(probeUrl.toString(), {
+    const rangeRes = await fetch(probeUrl, {
       method: 'GET',
       cache: 'no-store',
       headers: { Range: 'bytes=0-1' },
@@ -227,7 +224,7 @@ export async function isPlayableStreamViaProxy(
     if (rangeRes.ok || rangeRes.status === 206) return true;
     if (rangeRes.status !== 404 && rangeRes.status !== 416) return false;
 
-    const fullRes = await fetch(probeUrl.toString(), {
+    const fullRes = await fetch(probeUrl, {
       method: 'GET',
       cache: 'no-store',
       signal: AbortSignal.timeout(cfg.masterMs),

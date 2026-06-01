@@ -1,29 +1,20 @@
 import { buildProbeHeaders } from '@/lib/watchResolveProbe';
+import { streamQualityRank } from '@/lib/streamQualityRank';
+import { urlIsCrysolineHostedStream } from '@/lib/streamMediaType';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
-
-export function resolutionRank(quality: string | undefined): number {
-  const q = (quality ?? '').toLowerCase();
-  const m = q.match(/(\d{3,4})p/);
-  return m ? parseInt(m[1], 10) : 0;
-}
-
-function urlLooksLikeCrysolineProxy(file: string): boolean {
-  const u = file.toLowerCase();
-  return u.includes('proxy.crysoline') || u.includes('crysoline.moe/proxy');
-}
 
 export function dedupeStreamingCandidatesByHeight(candidates: StreamingType[]): StreamingType[] {
   const map = new Map<number, StreamingType>();
   for (const c of candidates) {
-    const h = resolutionRank(c.server);
+    const h = streamQualityRank(c.server);
     if (!Number.isFinite(h) || h <= 0) continue;
     const prev = map.get(h);
     if (!prev) {
       map.set(h, c);
       continue;
     }
-    const prevProxy = urlLooksLikeCrysolineProxy(prev.link.file);
-    const curProxy = urlLooksLikeCrysolineProxy(c.link.file);
+    const prevProxy = urlIsCrysolineHostedStream(prev.link.file);
+    const curProxy = urlIsCrysolineHostedStream(c.link.file);
     if (curProxy && !prevProxy) map.set(h, c);
   }
   return [...map.entries()]
@@ -47,7 +38,7 @@ export function qualityVariantsFromCandidates(
     request_headers: Record<string, string>;
   }> = [];
   for (const c of rows) {
-    const h = resolutionRank(c.server);
+    const h = streamQualityRank(c.server);
     if (!Number.isFinite(h) || h <= 0) continue;
     out.push({
       height: h,

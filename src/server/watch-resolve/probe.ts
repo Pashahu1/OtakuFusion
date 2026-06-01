@@ -7,10 +7,8 @@ export {
 } from '@/lib/watchResolveProbe';
 
 import { isPlayableViaProxy, type WatchProbeConfig } from '@/lib/watchResolveProbe';
-import {
-  dedupeStreamingCandidatesByHeight,
-  resolutionRank,
-} from '@/server/watch-resolve/candidates';
+import { streamQualityRank } from '@/lib/streamQualityRank';
+import { dedupeStreamingCandidatesByHeight } from '@/server/watch-resolve/candidates';
 import type { WatchLang } from '@/server/watch-resolve/types';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
@@ -38,8 +36,8 @@ function orderCandidatesForProbe(
 ): StreamingType[] {
   const deduped = dedupeStreamingCandidatesByHeight(candidates);
   const ranked = [...deduped].sort((a, b) => {
-    const ha = resolutionRank(a.server);
-    const hb = resolutionRank(b.server);
+    const ha = streamQualityRank(a.server);
+    const hb = streamQualityRank(b.server);
     const da = Math.abs(ha - PREFERRED_PROBE_HEIGHT);
     const db = Math.abs(hb - PREFERRED_PROBE_HEIGHT);
     if (da !== db) return da - db;

@@ -13,9 +13,6 @@ export const KEY_CODES = {
 
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
 
-/** Same-origin HLS proxy (override via `NEXT_PUBLIC_M3U8_PROXY_URL` in `m3u8ProxyPublicBase`). */
-export const M3U8_PROXY_URL = '/api/m3u8-proxy?url=';
-
 /** Fallback when source response has no embed_url. */
 export const ANIKAI_PAGE_REFERER = 'https://anikai.to/';
 

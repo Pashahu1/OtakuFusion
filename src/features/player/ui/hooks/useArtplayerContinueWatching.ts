@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 
 import { updateContinueWatching } from '../updateContinueWatching';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
@@ -21,11 +21,9 @@ export function useArtplayerContinueWatching({
   const episodeIdRef = useRef(episodeId);
   const episodeNumRef = useRef(episodeNum);
 
-  useEffect(() => {
-    animeInfoRef.current = animeInfo;
-    episodeIdRef.current = episodeId;
-    episodeNumRef.current = episodeNum;
-  });
+  animeInfoRef.current = animeInfo;
+  episodeIdRef.current = episodeId;
+  episodeNumRef.current = episodeNum;
 
   const scheduleContinueWatchingUpdate = useCallback(() => {
     queueMicrotask(() => {

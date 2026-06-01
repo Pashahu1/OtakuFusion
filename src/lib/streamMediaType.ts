@@ -100,3 +100,20 @@ export function unwrapCrysolinePlaybackUrl(streamUrl: string): string {
   }
   return raw;
 }
+
+/** Crysoline-hosted playback URLs — browser can fetch directly; no same-origin m3u8-proxy wrap. */
+export function urlIsCrysolineHostedStream(streamUrl: string): boolean {
+  const raw = streamUrl.trim();
+  if (!raw) return false;
+  const lower = raw.toLowerCase();
+  if (lower.includes('proxy.crysoline') || lower.includes('crysoline.moe/proxy')) {
+    return true;
+  }
+  try {
+    const host = new URL(raw).hostname.toLowerCase();
+    if (host === 'crysoline.moe' || host.endsWith('.crysoline.moe')) return true;
+  } catch {
+    return false;
+  }
+  return false;
+}

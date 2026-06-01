@@ -1,7 +1,7 @@
 'use client';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
-import { useContinueWatchingFlagReset } from './useContinueWatchingFlagReset';
+import { useEffect } from 'react';
 import { useWatchEpisodeSelection } from './useWatchEpisodeSelection';
 import { useApplyContinueWatchingEpisode } from './useApplyContinueWatchingEpisode';
 import { useWatchPageDocumentTitle } from './useWatchPageDocumentTitle';
@@ -21,7 +21,10 @@ export const useWatchPageEffects = (
   errorBlockTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>,
   setShowErrorBlock: (item: boolean) => void
 ) => {
-  useContinueWatchingFlagReset(hasAppliedSavedEpisodeRef, animeId);
+  useEffect(() => {
+    hasAppliedSavedEpisodeRef.current = false;
+  }, [animeId, hasAppliedSavedEpisodeRef]);
+
   useApplyContinueWatchingEpisode(
     urlEp,
     episodes,

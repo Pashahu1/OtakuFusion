@@ -1,7 +1,6 @@
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { useCallback, useMemo } from 'react';
-import { WatchEpisodeCard } from '../watch-series/WatchEpisodeCard';
+import { WatchEpisodeGrid } from '../shared/WatchEpisodeGrid';
 import { EpisodeRangeControls } from './components/EpisodeRangeControls';
 import { EpisodelistHeader } from './components/EpisodelistHeader';
 import { EpisodelistScrollArea } from './components/EpisodelistScrollArea';
@@ -71,8 +70,8 @@ export function Episodelist({
     [onEpisodeClick, setActiveEpisodeId, setSearchedEpisode]
   );
 
-  const listEpisodes =
-    totalEpisodes > 30 ? visibleEpisodesInRange : episodes;
+  const listEpisodes = totalEpisodes > 30 ? visibleEpisodesInRange : episodes;
+  const selectedEpisodeId = activeEpisodeId ?? currentEpisode;
 
   return (
     <div className="watch-episodes-section relative flex w-full flex-col">
@@ -96,32 +95,16 @@ export function Episodelist({
         listContainerRef={listContainerRef}
         className="watch-episodes-section__scroll"
       >
-        <div className="watch-episodes-grid">
-          {listEpisodes.map((item) => {
-            const episodeNumber =
-              getEpisodeNumberFromId(item?.id) ?? String(item.episode_no ?? '');
-            const isActive =
-              activeEpisodeId === episodeNumber || currentEpisode === episodeNumber;
-            const isWatched = episodeNumber
-              ? watchedEpisodes[episodeNumber] === true
-              : false;
-
-            return (
-              <WatchEpisodeCard
-                key={item?.id}
-                item={item}
-                posterUrl={posterUrl}
-                seriesTitle={seriesTitle}
-                episodeDuration={episodeDuration}
-                isActive={isActive}
-                isWatched={isWatched}
-                onSelect={() => {
-                  if (episodeNumber) handleEpisodeSelect(episodeNumber);
-                }}
-              />
-            );
-          })}
-        </div>
+        <WatchEpisodeGrid
+          className="watch-episodes-grid"
+          episodes={listEpisodes}
+          currentEpisodeId={selectedEpisodeId}
+          watchedEpisodes={watchedEpisodes}
+          posterUrl={posterUrl}
+          seriesTitle={seriesTitle}
+          episodeDuration={episodeDuration}
+          onSelectEpisode={handleEpisodeSelect}
+        />
       </EpisodelistScrollArea>
     </div>
   );

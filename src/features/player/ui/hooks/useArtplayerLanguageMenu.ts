@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef, useCallback } from 'react';
 import type Artplayer from 'artplayer';
 
@@ -15,9 +17,7 @@ export interface UseArtplayerLanguageMenuParams {
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
 }
 
-/**
- * Sync language/provider menu in Artplayer (refs + react to eligibility/server changes).
- */
+/** Sync Artplayer Language menu when provider / server / eligibility changes. */
 export function useArtplayerLanguageMenu({
   artInstanceRef,
   servers,
@@ -39,14 +39,10 @@ export function useArtplayerLanguageMenu({
   serversRef.current = servers;
   activeServerIdRef.current = activeServerId;
   watchStreamProviderRef.current = watchStreamProvider;
-
-  useEffect(() => {
-    watchStreamProviderRef.current = watchStreamProvider;
-    setWatchStreamProviderRef.current = setWatchStreamProvider;
-    setActiveServerIdRef.current = setActiveServerId;
-    anilibertyEligibleRef.current = anilibertyLanguageMenuEligible ?? false;
-    hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
-  });
+  setWatchStreamProviderRef.current = setWatchStreamProvider;
+  setActiveServerIdRef.current = setActiveServerId;
+  anilibertyEligibleRef.current = anilibertyLanguageMenuEligible ?? false;
+  hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
 
   const syncLanguageMenuIfReady = useCallback(() => {
     const art = artInstanceRef.current;
@@ -73,12 +69,5 @@ export function useArtplayerLanguageMenu({
     syncLanguageMenuIfReady,
   ]);
 
-  return {
-    serversRef,
-    activeServerIdRef,
-    watchStreamProviderRef,
-    anilibertyEligibleRef,
-    hikkaEligibleRef,
-    syncLanguageMenuIfReady,
-  };
+  return { syncLanguageMenuIfReady, anilibertyEligibleRef, hikkaEligibleRef };
 }

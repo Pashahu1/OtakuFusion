@@ -3,15 +3,10 @@ import type {
   CrysolineAnimepaheSourcesPayload,
 } from '@/server/crysoline/animepaheClient';
 import { inferAnimepaheSourceIsDub } from '@/lib/catalog/providers/animepahe/inferAnimepaheSourceIsDub';
+import { streamQualityRank } from '@/lib/streamQualityRank';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 
 export type WatchLang = 'sub' | 'dub';
-
-function resolutionRank(quality: string | undefined): number {
-  const q = (quality ?? '').toLowerCase();
-  const m = q.match(/(\d{3,4})p/);
-  return m ? parseInt(m[1], 10) : 0;
-}
 
 function mergeRootHeaders(
   root: Record<string, string> | undefined
@@ -39,27 +34,23 @@ export function buildAnimepaheStreamCandidates(
   });
   const list = filtered.length ? filtered : sources;
   const sorted = [...list].sort(
-    (a, b) => resolutionRank(b.quality) - resolutionRank(a.quality)
+    (a, b) => streamQualityRank(b.quality) - streamQualityRank(a.quality)
   );
   const out: StreamingType[] = [];
   let nid = 0;
   for (const row of sorted) {
     const headers = { ...rootHeaders };
-    const fileUrls = [row.proxy, row.url].filter(
-      (u): u is string => typeof u === 'string' && u.trim().length > 0
-    );
-    const uniq = [...new Set(fileUrls.map((u) => u.trim()))];
-    for (const file of uniq) {
-      nid += 1;
-      out.push({
-        id: nid,
-        type: inferAnimepaheSourceIsDub(row) ? ('dub' as const) : ('sub' as const),
-        link: { file, type: 'hls' },
-        tracks: [],
-        server: row.quality?.trim() || 'Animepahe',
-        request_headers: Object.keys(headers).length ? headers : undefined,
-      });
-    }
+    const file = row.proxy?.trim() || row.url?.trim();
+    if (!file) continue;
+    nid += 1;
+    out.push({
+      id: nid,
+      type: inferAnimepaheSourceIsDub(row) ? ('dub' as const) : ('sub' as const),
+      link: { file, type: 'hls' },
+      tracks: [],
+      server: row.quality?.trim() || 'Animepahe',
+      request_headers: Object.keys(headers).length ? headers : undefined,
+    });
   }
   return out;
 }

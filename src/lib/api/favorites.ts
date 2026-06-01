@@ -1,9 +1,5 @@
 import { fetchWithRefresh } from '@/lib/fetchWithRefresh';
-import { queryKeys } from '@/lib/query/keys';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
-
-/** @deprecated import `queryKeys.favorites` instead */
-export const favoritesQueryKey = queryKeys.favorites;
 
 export async function fetchFavorites(): Promise<AnimeInfo[]> {
   const res = await fetchWithRefresh('/api/favorites', { credentials: 'include' });

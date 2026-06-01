@@ -90,13 +90,8 @@ export function useArtplayerInstance({
     streamInfo?.qualityVariants,
   ]);
 
-  const {
-    serversRef,
-    activeServerIdRef,
-    anilibertyEligibleRef,
-    hikkaEligibleRef,
-    syncLanguageMenuIfReady,
-  } = useArtplayerLanguageMenu({
+  const { anilibertyEligibleRef, hikkaEligibleRef, syncLanguageMenuIfReady } =
+    useArtplayerLanguageMenu({
     artInstanceRef,
     servers,
     activeServerId,
@@ -219,23 +214,15 @@ export function useArtplayerInstance({
         setupPlayerReady(
           art,
           thumbnail,
-          setActiveServerId,
           userPausedRef,
           artRef,
           subtitles,
           streamLang,
-          serversRef,
-          activeServerIdRef,
-          watchStreamProvider,
-          setWatchStreamProvider,
-          anilibertyEligibleRef.current,
-          hikkaEligibleRef.current,
           streamInfo?.skipSegments,
           streamInfo,
           streamUrl
         );
         syncLanguageMenuIfReady();
-        queueMicrotask(syncLanguageMenuIfReady);
         attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);
         scheduleContinueWatchingUpdate();
         attachArtplayerSkipSegmentsOnReady(art, streamInfo?.skipSegments);
@@ -245,7 +232,6 @@ export function useArtplayerInstance({
 
       artInstanceRef.current = art;
       createdPlayer = art;
-      queueMicrotask(syncLanguageMenuIfReady);
     };
 
     if (deferStrictInit) {

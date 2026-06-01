@@ -4,6 +4,7 @@ import type {
 } from '@/server/crysoline/anilibertyClient';
 import type { StreamingType } from '@/shared/types/StreamingTypes';
 import { urlLooksLikeHlsStream } from '@/lib/streamMediaType';
+import { streamQualityRank } from '@/lib/streamQualityRank';
 
 export const ANILIBRIA_STREAM_HEADERS: Record<string, string> = {
   Referer: 'https://www.anilibria.tv/',
@@ -14,11 +15,6 @@ function inferAnilibertyResolutionLabel(urlStr: string): string {
   const m = urlStr.match(/\/(480|720|1080)\//);
   if (m) return `${m[1]}p`;
   return 'Auto';
-}
-
-function resolutionRank(label: string): number {
-  const m = label.match(/(\d{3,4})p/i);
-  return m ? parseInt(m[1], 10) : 0;
 }
 
 function pushCandidate(
@@ -62,7 +58,7 @@ export function buildAnilibertyStreamCandidatesFromEpisodeRow(
   }
 
   return [...out].sort(
-    (a, b) => resolutionRank(b.server) - resolutionRank(a.server)
+    (a, b) => streamQualityRank(b.server) - streamQualityRank(a.server)
   );
 }
 
@@ -81,7 +77,7 @@ export function buildAnilibertyStreamCandidatesFromSources(
   const scored = rows.map((s) => {
     const file = s.url!.trim();
     const label = inferAnilibertyResolutionLabel(file);
-    return { file, label, rank: resolutionRank(label) };
+    return { file, label, rank: streamQualityRank(label) };
   });
   const sorted = [...scored].sort((a, b) => b.rank - a.rank);
   const out: StreamingType[] = [];

@@ -1,15 +1,13 @@
 /** Crysoline HLS: playlist compatibility often breaks on hls.js > 1.5.x — see pinned version in package.json. */
 import Hls from 'hls.js';
 import Artplayer from 'artplayer';
-import { buildM3u8ProxyPlaylistUrl } from '@/lib/m3u8ProxyPublicBase';
-import {
-  decodeStreamUrlForInspection,
-  inferStreamMediaKind,
-} from '@/lib/streamMediaType';
+import { resolveStreamPlaybackUrl } from '@/lib/m3u8ProxyPublicBase';
+import { decodeStreamUrlForInspection } from '@/lib/streamMediaType';
 import {
   DEFAULT_REFERER,
   HLS_CDN_FALLBACK_ORIGIN,
   HLS_CDN_FALLBACK_REFERER,
+  ANIKAI_PAGE_REFERER,
 } from './playerConstants';
 
 interface StreamInfoForHeaders {
@@ -178,13 +176,26 @@ export function getStreamFullUrl(
   streamUrl: string,
   headers: Record<string, string>
 ): string {
-  if (inferStreamMediaKind(streamUrl) === 'mp4') {
-    return buildM3u8ProxyPlaylistUrl(streamUrl, headers);
-  }
-  if (isHlsDirectHostUrl(streamUrl)) {
-    return streamUrl;
-  }
-  return buildM3u8ProxyPlaylistUrl(streamUrl, headers);
+  return resolveStreamPlaybackUrl(streamUrl, headers, isHlsDirectHostUrl);
+}
+
+/** Subtitles, VTT thumbnails — same proxy/direct rules as main stream. */
+export function resolveAssetPlaybackUrl(
+  url: string,
+  requestHeaders?: Record<string, string>
+): string {
+  const raw = url.trim();
+  if (!raw) return raw;
+  if (raw.startsWith('blob:') || raw.startsWith('data:')) return raw;
+  if (!/^https?:\/\//i.test(raw)) return raw;
+  const headerPayload =
+    requestHeaders && Object.keys(requestHeaders).length > 0
+      ? requestHeaders
+      : {
+          Referer: ANIKAI_PAGE_REFERER,
+          Origin: 'https://anikai.to',
+        };
+  return resolveStreamPlaybackUrl(raw, headerPayload, isHlsDirectHostUrl);
 }
 
 export interface PlayM3u8Hooks {
@@ -277,20 +288,7 @@ export function playM3u8(
              * with expired tokens causes fatal Hls errors after our ERROR subscription fix.
              */
             xhrSetup(xhr: XMLHttpRequest, url: string) {
-              const pub = process.env.NEXT_PUBLIC_M3U8_PROXY_URL?.trim() ?? '';
-              let externalHost: string | null = null;
-              if (/^https?:\/\//i.test(pub)) {
-                try {
-                  externalHost = new URL(pub).hostname;
-                } catch {
-                  externalHost = null;
-                }
-              }
-              const isLocalProxy = url.includes('/api/m3u8-proxy');
-              const isExternalProxy =
-                externalHost != null &&
-                (url.includes(externalHost) || url.includes('/fetch'));
-              if (isLocalProxy || isExternalProxy) {
+              if (url.includes('/api/m3u8-proxy')) {
                 try {
                   xhr.setRequestHeader('Cache-Control', 'no-cache');
                   xhr.setRequestHeader('Pragma', 'no-cache');

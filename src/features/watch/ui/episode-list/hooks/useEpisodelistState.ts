@@ -2,6 +2,7 @@ import { episodeMatchesSelection } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import {
   useEffect,
+  useMemo,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -11,7 +12,6 @@ interface UseEpisodelistStateResult {
   activeEpisodeId: string | null;
   setActiveEpisodeId: Dispatch<SetStateAction<string | null>>;
   episodeNum: string | null;
-  setEpisodeNum: Dispatch<SetStateAction<string | null>>;
 }
 
 export function useEpisodelistState(
@@ -21,33 +21,24 @@ export function useEpisodelistState(
   const [activeEpisodeId, setActiveEpisodeId] = useState<string | null>(
     currentEpisode
   );
-  const [episodeNum, setEpisodeNum] = useState<string | null>(currentEpisode);
 
   useEffect(() => {
     if (currentEpisode != null) {
       setActiveEpisodeId(currentEpisode);
-      setEpisodeNum(currentEpisode);
     }
   }, [currentEpisode]);
 
-  useEffect(() => {
-    setActiveEpisodeId(episodeNum);
-  }, [episodeNum]);
-
-  useEffect(() => {
-    if (!Array.isArray(episodes)) return;
+  const episodeNum = useMemo(() => {
+    if (!episodes.length || !activeEpisodeId) return activeEpisodeId;
     const activeEpisode = episodes.find((item) =>
       episodeMatchesSelection(item, activeEpisodeId)
     );
-    if (activeEpisode) {
-      setEpisodeNum(String(activeEpisode.episode_no));
-    }
+    return activeEpisode ? String(activeEpisode.episode_no) : activeEpisodeId;
   }, [activeEpisodeId, episodes]);
 
   return {
     activeEpisodeId,
     setActiveEpisodeId,
     episodeNum,
-    setEpisodeNum,
   };
 }

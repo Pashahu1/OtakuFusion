@@ -2,42 +2,16 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  Eye,
-  EyeOff,
-  KeyRound,
-  Lock,
-  Pencil,
-  Shield,
-} from 'lucide-react';
+import { KeyRound, Pencil, Shield } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 
+import { PasswordField } from './profile-settings/PasswordField';
+import { buildPasswordRules } from './profile-settings/profilePasswordRules';
+import { ProfileSettingsDangerZone } from './profile-settings/ProfileSettingsDangerZone';
 import '../profile-settings.scss';
-
-interface PasswordRule {
-  id: string;
-  label: string;
-  met: boolean;
-}
-
-function buildPasswordRules(password: string): PasswordRule[] {
-  return [
-    {
-      id: 'length',
-      label: 'At least 6 characters',
-      met: password.length >= 6,
-    },
-    {
-      id: 'mix',
-      label: 'Letters and numbers',
-      met: /[A-Za-z]/.test(password) && /[0-9]/.test(password),
-    },
-  ];
-}
 
 export function ProfileSettings() {
   const { user, logout } = useAuth();
@@ -50,22 +24,13 @@ export function ProfileSettings() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [deleteStep, setDeleteStep] = useState<'idle' | 'confirm'>('idle');
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const passwordRules = useMemo(
-    () => buildPasswordRules(newPassword),
-    [newPassword],
-  );
+  const passwordRules = useMemo(() => buildPasswordRules(newPassword), [newPassword]);
 
   const hasPasswordChanges =
-    oldPassword.length > 0 ||
-    newPassword.length > 0 ||
-    confirmPassword.length > 0;
+    oldPassword.length > 0 || newPassword.length > 0 || confirmPassword.length > 0;
 
   const allRulesMet = passwordRules.every((rule) => rule.met);
-  const passwordsMatch =
-    newPassword.length > 0 && newPassword === confirmPassword;
+  const passwordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
   const canSavePassword =
     hasPasswordChanges &&
     oldPassword.length > 0 &&
@@ -113,26 +78,19 @@ export function ProfileSettings() {
   }
 
   async function handleDeleteAccount() {
-    setIsDeleting(true);
-    try {
-      const res = await fetch('/api/user/delete-account', {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+    const res = await fetch('/api/user/delete-account', {
+      method: 'DELETE',
+      credentials: 'include',
+    });
 
-      if (!res.ok) {
-        toast.error('Could not delete account.');
-        return;
-      }
-
-      localStorage.clear();
-      await logout();
-      window.location.href = '/';
-    } catch {
-      toast.error('Something went wrong.');
-    } finally {
-      setIsDeleting(false);
+    if (!res.ok) {
+      toast.error('Could not delete account.');
+      throw new Error('delete_failed');
     }
+
+    localStorage.clear();
+    await logout();
+    window.location.href = '/';
   }
 
   if (!user) return null;
@@ -158,9 +116,7 @@ export function ProfileSettings() {
             </span>
             <div>
               <h3 className="profile-settings__card-title">Change password</h3>
-              <p className="profile-settings__card-desc">
-                Signed in as {user.email}
-              </p>
+              <p className="profile-settings__card-desc">Signed in as {user.email}</p>
             </div>
           </div>
 
@@ -195,9 +151,7 @@ export function ProfileSettings() {
             onChange={setConfirmPassword}
             autoComplete="new-password"
             disabled={isSaving}
-            mismatch={
-              confirmPassword.length > 0 && newPassword !== confirmPassword
-            }
+            mismatch={confirmPassword.length > 0 && newPassword !== confirmPassword}
           />
 
           <ul className="profile-settings__rules" aria-label="Password requirements">
@@ -272,114 +226,7 @@ export function ProfileSettings() {
         </aside>
       </div>
 
-      <section
-        className="profile-settings__danger profile-panel"
-        aria-labelledby="profile-danger-heading"
-      >
-        <div className="profile-settings__danger-head">
-          <AlertTriangle aria-hidden size={20} className="profile-settings__danger-icon" />
-          <div>
-            <h3 id="profile-danger-heading" className="profile-settings__danger-title">
-              Danger zone
-            </h3>
-            <p className="profile-settings__danger-desc">
-              Permanently delete your account, favorites, and local watch data
-              linked to this profile.
-            </p>
-          </div>
-        </div>
-
-        {deleteStep === 'idle' ? (
-          <button
-            type="button"
-            className="profile-settings__danger-trigger"
-            onClick={() => setDeleteStep('confirm')}
-          >
-            Delete my account
-          </button>
-        ) : (
-          <div className="profile-settings__danger-confirm" role="region" aria-live="polite">
-            <p className="profile-settings__danger-question">
-              This cannot be undone. Are you sure?
-            </p>
-            <div className="profile-settings__danger-actions">
-              <button
-                type="button"
-                className="profile-settings__btn profile-settings__btn--ghost"
-                onClick={() => setDeleteStep('idle')}
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="profile-settings__btn profile-settings__btn--danger"
-                onClick={handleDeleteAccount}
-                disabled={isDeleting}
-              >
-                {isDeleting ? 'Deleting…' : 'Yes, delete account'}
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
+      <ProfileSettingsDangerZone onDeleteAccount={handleDeleteAccount} />
     </div>
-  );
-}
-
-interface PasswordFieldProps {
-  id: string;
-  label: string;
-  value: string;
-  visible: boolean;
-  onToggle: () => void;
-  onChange: (value: string) => void;
-  autoComplete: string;
-  disabled?: boolean;
-  mismatch?: boolean;
-}
-
-function PasswordField({
-  id,
-  label,
-  value,
-  visible,
-  onToggle,
-  onChange,
-  autoComplete,
-  disabled,
-  mismatch,
-}: PasswordFieldProps) {
-  return (
-    <label className="profile-settings__field" htmlFor={id}>
-      <span className="profile-settings__label">{label}</span>
-      <div
-        className={cn(
-          'profile-settings__input-wrap',
-          mismatch && 'profile-settings__input-wrap--error',
-        )}
-      >
-        <Lock aria-hidden size={16} className="profile-settings__input-icon" />
-        <input
-          id={id}
-          type={visible ? 'text' : 'password'}
-          className="profile-settings__input"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          autoComplete={autoComplete}
-          disabled={disabled}
-          placeholder="••••••••"
-        />
-        <button
-          type="button"
-          className="profile-settings__toggle"
-          onClick={onToggle}
-          aria-label={visible ? 'Hide password' : 'Show password'}
-          tabIndex={-1}
-        >
-          {visible ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
-      </div>
-    </label>
   );
 }

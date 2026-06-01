@@ -6,7 +6,6 @@ import {
   Autoplay,
 } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import type { Swiper as SwiperType } from 'swiper';
 import {
   spotlightHeroBackgroundUrl,
 } from '@/shared/utils/thumbnail-url';
@@ -22,7 +21,7 @@ import type {
   SpotlightAnime,
   TrendingAnime,
 } from '@/shared/types/GlobalAnimeTypes';
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { EmptyState } from '../ui/states/EmptyState';
 import { SwiperCard } from '../SwiperCard/SwiperCard';
@@ -31,26 +30,8 @@ import { HeroSlideActions } from './HeroSlideActions';
 import { HeroSlideGenres } from './HeroSlideGenres';
 import { HeroSlideMeta } from './HeroSlideMeta';
 import { HeroSlideTitle } from './HeroSlideTitle';
-
-/** Custom pagination `el` mounts after Swiper — bind after init without remount (see Swiper + React: custom pagination). */
-function bindHeroPagination(swiper: SwiperType, el: HTMLDivElement | null) {
-  if (!el || swiper.destroyed) return;
-
-  swiper.params.pagination = {
-    ...(typeof swiper.params.pagination === 'object' &&
-    swiper.params.pagination !== null
-      ? swiper.params.pagination
-      : {}),
-    el,
-    clickable: true,
-    type: 'bullets',
-  };
-
-  swiper.pagination.destroy();
-  swiper.pagination.init();
-  swiper.pagination.render();
-  swiper.pagination.update();
-}
+import { heroSlideUsesAniListSource } from './heroSlideImage';
+import { useHeroPagination } from './useHeroPagination';
 
 type Props = {
   spotlights: SpotlightAnime[];
@@ -59,39 +40,7 @@ type Props = {
 
 export const Preview = ({ spotlights, trending }: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  /** Until Swiper binds pagination to ref, container is empty — show static bars without delay. */
-  const [paginationReady, setPaginationReady] = useState(false);
-  const swiperRef = useRef<SwiperType | null>(null);
-  const paginationRef = useRef<HTMLDivElement | null>(null);
-  /** Avoid double destroy/init on same instance; after remount (Strict Mode) instance is new — bind again. */
-  const paginationBoundSwiperRef = useRef<SwiperType | null>(null);
-
-  const attachPaginationOnce = useCallback((swiper: SwiperType, el: HTMLDivElement) => {
-    if (swiper.destroyed || paginationBoundSwiperRef.current === swiper) return;
-    bindHeroPagination(swiper, el);
-    paginationBoundSwiperRef.current = swiper;
-    setPaginationReady(true);
-  }, []);
-
-  const setPaginationNode = useCallback(
-    (node: HTMLDivElement | null) => {
-      paginationRef.current = node;
-      if (node && swiperRef.current) {
-        attachPaginationOnce(swiperRef.current, node);
-      }
-    },
-    [attachPaginationOnce]
-  );
-
-  const handleSwiper = useCallback(
-    (swiper: SwiperType) => {
-      swiperRef.current = swiper;
-      if (paginationRef.current) {
-        attachPaginationOnce(swiper, paginationRef.current);
-      }
-    },
-    [attachPaginationOnce]
-  );
+  const { paginationReady, setPaginationNode, handleSwiper } = useHeroPagination();
 
   if (!Array.isArray(spotlights)) {
     return (
@@ -118,14 +67,6 @@ export const Preview = ({ spotlights, trending }: Props) => {
   const heroGenres = currentAnime.genres ?? [];
   const slideCounter =
     spotlights.length > 1 ? `${currentIndex + 1} / ${spotlights.length}` : null;
-
-  function isAniListImage(url: string): boolean {
-    return url.includes('anilist.co') || url.includes('s4.anilist.co');
-  }
-
-  function heroSlideUsesAniListSource(anime: SpotlightAnime): boolean {
-    return !anime.heroImageUrl?.trim() && isAniListImage(anime.poster);
-  }
 
   return (
     <>

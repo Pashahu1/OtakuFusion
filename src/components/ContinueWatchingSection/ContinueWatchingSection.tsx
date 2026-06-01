@@ -6,9 +6,11 @@ import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { mediaHasBlockedGenre } from '@/lib/anime-content-policy';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
-import { CONTINUE_WATCHING_STORAGE_KEY } from '@/features/player';
+import {
+  CONTINUE_WATCHING_STORAGE_KEY,
+  parseContinueWatchingList,
+} from '@/features/watch/lib/continue-watching-list';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -18,73 +20,6 @@ import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry
 const STORAGE_KEY = CONTINUE_WATCHING_STORAGE_KEY;
 /** Must match gap in ContinueWatchingSection.scss until `swiper-initialized`. */
 const SPACE_BETWEEN_SLIDES = 12;
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v);
-}
-
-/** Light validation without Zod — otherwise ~90 KiB zod in home client chunk (TBT). */
-function parseContinueWatchingList(
-  raw: string | null
-): ContinueWatchingEntry[] {
-  try {
-    const parsed: unknown = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) return [];
-
-    const valid: ContinueWatchingEntry[] = [];
-    for (const item of parsed) {
-      if (!isRecord(item)) continue;
-
-      const id = item.id;
-      const episodeId = item.episodeId;
-      if (typeof id !== 'string' || id === '' || typeof episodeId !== 'string' || episodeId === '') {
-        continue;
-      }
-
-      const rawDataId = item.data_id;
-      const data_id =
-        typeof rawDataId === 'number'
-          ? rawDataId
-          : typeof rawDataId === 'string'
-            ? Number(rawDataId)
-            : NaN;
-      if (!Number.isFinite(data_id)) continue;
-
-      const episodeNum =
-        typeof item.episodeNum === 'number' ? item.episodeNum : undefined;
-
-      const rawUpdated = item.updatedAt;
-      const updatedAt =
-        typeof rawUpdated === 'number' && Number.isFinite(rawUpdated)
-          ? rawUpdated
-          : 0;
-
-      valid.push({
-        id,
-        data_id,
-        episodeId,
-        episodeNum,
-        poster: typeof item.poster === 'string' ? item.poster : undefined,
-        title: typeof item.title === 'string' ? item.title : undefined,
-        japanese_title:
-          typeof item.japanese_title === 'string'
-            ? item.japanese_title
-            : undefined,
-        adultContent:
-          typeof item.adultContent === 'boolean' ? item.adultContent : undefined,
-        genres: Array.isArray(item.genres)
-          ? item.genres.filter((g): g is string => typeof g === 'string')
-          : undefined,
-        updatedAt,
-      });
-    }
-    return valid
-      .filter((entry) => !mediaHasBlockedGenre(entry.genres))
-      .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
-  } catch {
-    return [];
-  }
-}
 
 export function ContinueWatchingSection() {
   const [list, setList] = useState<ContinueWatchingEntry[]>([]);

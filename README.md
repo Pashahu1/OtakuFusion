@@ -222,8 +222,7 @@ Runs `lint` → `tsc` → `test` → `build` in one go.
 | Variable | Purpose |
 |----------|---------|
 | `CRYSOLINE_API_BASE_URL` | Custom Crysoline host (default `https://api.crysoline.moe`) |
-| `NEXT_PUBLIC_M3U8_PROXY_URL` | External m3u8 proxy instead of `/api/m3u8-proxy` |
-| `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | Comma-separated CDN suffixes to skip proxy |
+| `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | Comma-separated CDN suffixes to skip same-origin `/api/m3u8-proxy` |
 | `WATCH_PROBE_SKIP_VARIANT` | Faster resolve (`1` = skip variant playlist probe) |
 | `MIRUNO_API_BASE_URL` | English dub gap-fill when Animepahe has no dub |
 | `HIKKA_FEATURES_RELAY_BASE` | Relay URL when Hikka blocks server IP (see `workers/`) |
