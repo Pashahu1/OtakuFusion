@@ -10,7 +10,7 @@ import { WatchSeriesDetails } from './WatchSeriesDetails';
 import { useHeroImageAccent } from '@/features/watch/hooks/useHeroImageAccent';
 import type { SpotlightAnime } from '@/shared/types/GlobalAnimeTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
-import type { WatchCtaVariant } from '@/features/watch/lib/resolve-continue-watching-cta';
+import type { WatchCtaVariant } from '@/features/watch/lib/resolve-watch-cta';
 import { spotlightHeroBackgroundUrl } from '@/shared/utils/thumbnail-url';
 import { WatchSeriesSaveButton } from './WatchSeriesSaveButton';
 import './WatchSeriesHero.scss';

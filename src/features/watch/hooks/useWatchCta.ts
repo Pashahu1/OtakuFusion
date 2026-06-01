@@ -1,55 +1,36 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';import {
+import { useMemo } from 'react';
+
+import {
   resolveWatchCtaModel,
   type EpisodeRef,
   type WatchCtaModel,
-} from '@/features/watch/lib/resolve-continue-watching-cta';
-import { readContinueWatchingList } from '@/features/watch/lib/continue-watching-list';
+} from '@/features/watch/lib/resolve-watch-cta';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+
 export interface UseWatchCtaParams {
   animeId: string;
-  dataId?: number;
   urlEp?: string;
   episodes: EpisodeRef[] | null;
 }
 
-/** Hero / series CTA: play href + label from continueWatching + watched state. */
+/** Hero / series CTA: play href + label from watched state and episode catalog. */
 export function useWatchCta({
   animeId,
-  dataId,
   urlEp,
   episodes,
 }: UseWatchCtaParams): WatchCtaModel {
-  const [continueList, setContinueList] = useState<ContinueWatchingEntry[]>([]);
-  const [watched] = useLocalStorage<Record<string, boolean>>(
-    `watched-${animeId}`,
-    {}
-  );
-
-  const refreshContinueList = useCallback(() => {
-    setContinueList(readContinueWatchingList());
-  }, []);
-
-  useEffect(() => {
-    refreshContinueList();
-    window.addEventListener('continueWatchingUpdated', refreshContinueList);
-    return () => {
-      window.removeEventListener('continueWatchingUpdated', refreshContinueList);
-    };
-  }, [refreshContinueList]);
+  const [watched] = useLocalStorage<Record<string, boolean>>(`watched-${animeId}`, {});
 
   return useMemo(
     () =>
       resolveWatchCtaModel({
         animeId,
-        dataId,
         urlEp,
-        continueList,
         watched,
         episodes,
       }),
-    [animeId, continueList, dataId, episodes, urlEp, watched]
+    [animeId, episodes, urlEp, watched],
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
-import { ContinueWatchingSectionSkeleton } from '@/components/ui/Skeleton/ContinueWatchingSectionSkeleton';
 import { PreviewSkeleton } from '@/components/ui/Skeleton/PreviewSkeleton';
 import { SwiperSectionSkeleton } from '@/components/ui/Skeleton/SwiperSectionSkeleton';
 import { useEffect, useState } from 'react';
@@ -24,7 +23,6 @@ export function HomeFallback() {
       <div className="flex flex-col">
         <PreviewSkeleton />
         <div className={HOME_FEED_CLASS}>
-          <ContinueWatchingSectionSkeleton />
           <SwiperSectionSkeleton title="Top Airing" />
           <SwiperSectionSkeleton title="Most Favorite" />
           <SwiperSectionSkeleton title="Latest Episode" />

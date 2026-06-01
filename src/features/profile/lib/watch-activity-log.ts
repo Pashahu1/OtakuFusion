@@ -1,7 +1,4 @@
-import { CONTINUE_WATCHING_STORAGE_KEY } from '@/features/player';
-
 export const WATCH_ACTIVITY_STORAGE_KEY = 'watchActivityLog';
-const LEGACY_MIGRATION_KEY = 'watchActivityLegacyMigrated_v1';
 const MAX_ENTRIES = 600;
 const DUPLICATE_WINDOW_MS = 60 * 60 * 1000;
 
@@ -90,60 +87,6 @@ function persistLog(entries: WatchActivityEntry[]): void {
   window.dispatchEvent(new Event('watchActivityUpdated'));
 }
 
-function migrateLegacyContinueWatching(): void {
-  if (typeof window === 'undefined') return;
-  if (localStorage.getItem(LEGACY_MIGRATION_KEY)) return;
-
-  try {
-    const raw = localStorage.getItem(CONTINUE_WATCHING_STORAGE_KEY) || '[]';
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      localStorage.setItem(LEGACY_MIGRATION_KEY, '1');
-      return;
-    }
-
-    const existing = readRawLog();
-    const seeded: WatchActivityEntry[] = [...existing];
-
-    for (const item of parsed) {
-      if (!isRecord(item)) continue;
-      const animeId = item.id;
-      const episodeId = item.episodeId;
-      const updatedAt = item.updatedAt;
-      if (typeof animeId !== 'string' || typeof episodeId !== 'string') continue;
-      if (typeof updatedAt !== 'number' || !Number.isFinite(updatedAt)) continue;
-
-      const data_idRaw = item.data_id;
-      const data_id =
-        typeof data_idRaw === 'number'
-          ? data_idRaw
-          : typeof data_idRaw === 'string'
-            ? Number(data_idRaw)
-            : undefined;
-
-      seeded.push({
-        animeId,
-        data_id: Number.isFinite(data_id) ? data_id : undefined,
-        title: typeof item.title === 'string' ? item.title : undefined,
-        poster: typeof item.poster === 'string' ? item.poster : undefined,
-        episodeId,
-        episodeNum:
-          typeof item.episodeNum === 'number' ? item.episodeNum : undefined,
-        genres: Array.isArray(item.genres)
-          ? item.genres.filter((g): g is string => typeof g === 'string')
-          : undefined,
-        watchedAt: updatedAt,
-      });
-    }
-
-    const deduped = dedupeEntries(seeded);
-    persistLog(deduped.slice(0, MAX_ENTRIES));
-    localStorage.setItem(LEGACY_MIGRATION_KEY, '1');
-  } catch {
-    localStorage.setItem(LEGACY_MIGRATION_KEY, '1');
-  }
-}
-
 function dedupeEntries(entries: WatchActivityEntry[]): WatchActivityEntry[] {
   const seen = new Set<string>();
   const result: WatchActivityEntry[] = [];
@@ -157,7 +100,6 @@ function dedupeEntries(entries: WatchActivityEntry[]): WatchActivityEntry[] {
 }
 
 export function readWatchActivityLog(): WatchActivityEntry[] {
-  migrateLegacyContinueWatching();
   return readRawLog();
 }
 

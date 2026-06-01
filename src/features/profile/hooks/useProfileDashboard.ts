@@ -27,11 +27,9 @@ export function useProfileDashboard(enabled: boolean) {
     setHydrated(true);
     const onUpdate = () => refresh();
     window.addEventListener('watchActivityUpdated', onUpdate);
-    window.addEventListener('continueWatchingUpdated', onUpdate);
     window.addEventListener('storage', onUpdate);
     return () => {
       window.removeEventListener('watchActivityUpdated', onUpdate);
-      window.removeEventListener('continueWatchingUpdated', onUpdate);
       window.removeEventListener('storage', onUpdate);
     };
   }, [enabled, refresh]);

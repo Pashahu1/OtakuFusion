@@ -151,10 +151,7 @@ export const Preview = ({ spotlights, trending }: Props) => {
                   {'\u00a0'}
                 </p>
               )}
-              <HeroSlideActions
-                animeId={currentAnime.id}
-                dataId={currentAnime.data_id}
-              />
+              <HeroSlideActions animeId={currentAnime.id} />
               {spotlights.length > 1 ? (
                 <div className="hero__footer">
                   {slideCounter ? (

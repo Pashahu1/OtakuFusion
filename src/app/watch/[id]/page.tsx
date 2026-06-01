@@ -59,7 +59,7 @@ export default function WatchSeriesPage() {
 
   const { playHref, ctaLabel, variant: ctaVariant } = useWatchCta({
     animeId,
-    dataId: animeInfo?.data_id,
+    urlEp,
     episodes,
   });
 

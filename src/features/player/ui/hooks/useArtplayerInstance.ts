@@ -9,7 +9,6 @@ import { urlLooksLikeHlsStream } from '@/lib/streamMediaType';
 import { getArtplayerOptions } from '../getArtplayerOptions';
 import { setupPlayerReady } from '../setupPlayerReady';
 import { attachStreamQualityMenu } from '../attachStreamQualityMenu';
-import { useArtplayerContinueWatching } from './useArtplayerContinueWatching';
 import { useArtplayerEpisodeLifecycle } from './useArtplayerEpisodeLifecycle';
 import { useArtplayerLanguageMenu } from './useArtplayerLanguageMenu';
 import {
@@ -92,21 +91,15 @@ export function useArtplayerInstance({
 
   const { anilibertyEligibleRef, hikkaEligibleRef, syncLanguageMenuIfReady } =
     useArtplayerLanguageMenu({
-    artInstanceRef,
-    servers,
-    activeServerId,
-    setActiveServerId,
-    watchStreamProvider,
-    setWatchStreamProvider,
-    anilibertyLanguageMenuEligible,
-    hikkaLanguageMenuEligible,
-  });
-
-  const { scheduleContinueWatchingUpdate } = useArtplayerContinueWatching({
-    animeInfo,
-    episodeId,
-    episodeNum,
-  });
+      artInstanceRef,
+      servers,
+      activeServerId,
+      setActiveServerId,
+      watchStreamProvider,
+      setWatchStreamProvider,
+      anilibertyLanguageMenuEligible,
+      hikkaLanguageMenuEligible,
+    });
 
   const {
     userPausedRef,
@@ -224,7 +217,6 @@ export function useArtplayerInstance({
         );
         syncLanguageMenuIfReady();
         attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);
-        scheduleContinueWatchingUpdate();
         attachArtplayerSkipSegmentsOnReady(art, streamInfo?.skipSegments);
         hlsRuntime.attachQualityPersistenceOnReady(art);
         clearSurfaceReady = attachPlaybackSurfaceOnReady(art).clear;
@@ -264,7 +256,6 @@ export function useArtplayerInstance({
   }, [
     streamBootKey,
     syncLanguageMenuIfReady,
-    scheduleContinueWatchingUpdate,
     attachEpisodeEndedHandler,
     attachPlaybackSurfaceOnReady,
   ]);

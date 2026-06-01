@@ -1,28 +1,15 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { ContinueWatchingSectionSkeleton } from '@/components/ui/Skeleton/ContinueWatchingSectionSkeleton';
 import { SwiperSectionSkeleton } from '@/components/ui/Skeleton/SwiperSectionSkeleton';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
-
-/** Below fold: Swiper in separate chunks — less parse/eval on main thread at start (TBT). */
-const ContinueWatchingSection = dynamic(
-  () =>
-    import('@/components/ContinueWatchingSection/ContinueWatchingSection').then(
-      (m) => m.ContinueWatchingSection
-    ),
-  {
-    ssr: false,
-    loading: () => <ContinueWatchingSectionSkeleton />,
-  }
-);
 
 const SwiperCard = dynamic(
   () => import('@/components/SwiperCard/SwiperCard').then((m) => m.SwiperCard),
   {
     ssr: false,
     loading: () => <SwiperSectionSkeleton />,
-  }
+  },
 );
 
 interface HomeBelowFoldProps {
@@ -32,7 +19,6 @@ interface HomeBelowFoldProps {
   latestCompleted: AnimeInfo[];
 }
 
-/** Vertical rhythm for home rows below hero Trending (Continue watching + catalog swipers). */
 const HOME_FEED_SECTION_CLASS =
   'home-feed flex w-full flex-col gap-8 pt-8 md:gap-10 md:pt-10 lg:gap-10';
 
@@ -44,7 +30,6 @@ export function HomeBelowFold({
 }: HomeBelowFoldProps) {
   return (
     <div className={HOME_FEED_SECTION_CLASS}>
-      <ContinueWatchingSection />
       <SwiperCard title="Top Airing" catalog={topAiring} sectionId="top-airing" />
       <SwiperCard
         title="Most Favorite"
