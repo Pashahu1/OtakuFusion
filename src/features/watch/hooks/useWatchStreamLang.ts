@@ -4,15 +4,20 @@ import {
   useMemo,
   useRef,
   useState,
-  type MutableRefObject,
   type SetStateAction,
 } from 'react';
-import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
+
 import { computeHasAnyDub } from '@/features/watch/lib/computeHasAnyDub';
-import { episodeMatchesSelection } from '@/shared/utils/episodeUtils';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
+import { episodeMatchesSelection } from '@/shared/utils/episodeUtils';
+
+import { clampActiveServerId } from './watch-stream-lang/clampActiveServerId';
+import type { LangState, UseWatchStreamLangResult } from './watch-stream-lang/watchStreamLangTypes';
+
+export type { UseWatchStreamLangResult } from './watch-stream-lang/watchStreamLangTypes';
 
 interface UseWatchStreamLangInput {
   animeId: string;
@@ -21,43 +26,6 @@ interface UseWatchStreamLangInput {
   episodes: EpisodesTypes[] | null;
   dubFromTv: number;
   setStreamLangRevision: React.Dispatch<React.SetStateAction<number>>;
-}
-
-export interface UseWatchStreamLangResult {
-  activeServerId: string | null;
-  setActiveServerId: (value: SetStateAction<string | null>) => void;
-  setActiveServerIdRaw: (id: string | null) => void;
-  servers: ServerInfo[];
-  resolverLang: 'sub' | 'dub';
-  episodeDubStateKey: string;
-  episodeHasDubForResolve: boolean | undefined;
-  onPlaybackLangResolved: (lang: 'sub' | 'dub') => void;
-  userChoseDub: boolean;
-  userChoseDubRef: MutableRefObject<boolean>;
-}
-
-interface LangState {
-  animeId: string;
-  activeServerId: string | null;
-  userChoseDub: boolean;
-}
-
-function clampServerId(
-  id: string | null,
-  userChoseDub: boolean,
-  watchStreamProvider: WatchStreamProvider,
-  catalogHasDub: boolean,
-  episodeHasDubForResolve: boolean | undefined,
-): string | null {
-  if (userChoseDub) return id;
-  if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') {
-    return id === '2' ? '1' : id;
-  }
-  if (!catalogHasDub && id === '2') return '1';
-  if (watchStreamProvider === 'animepahe' && episodeHasDubForResolve === false && id === '2') {
-    return '1';
-  }
-  return id;
 }
 
 export function useWatchStreamLang({
@@ -102,7 +70,7 @@ export function useWatchStreamLang({
   }, [selectedEpisode]);
 
   const clampKey = `${watchStreamProvider}:${catalogHasDub}:${episodeHasDubForResolve}:${episodeId}:${langState.activeServerId}:${langState.userChoseDub}`;
-  const clampedServerId = clampServerId(
+  const clampedServerId = clampActiveServerId(
     langState.activeServerId,
     langState.userChoseDub,
     watchStreamProvider,
