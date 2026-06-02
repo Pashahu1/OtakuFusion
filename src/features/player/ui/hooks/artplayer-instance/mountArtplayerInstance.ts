@@ -2,7 +2,6 @@ import Artplayer from 'artplayer';
 
 import { PLAYER_THEME_COLOR } from '../../playerConstants';
 import { getStreamFullUrl, getStreamHeaders } from '../../playerStream';
-import { urlLooksLikeHlsStream } from '@/lib/streamMediaType';
 import { getArtplayerOptions } from '../../getArtplayerOptions';
 import { setupPlayerReady } from '../../setupPlayerReady';
 import { attachStreamQualityMenu } from '../../attachStreamQualityMenu';
@@ -60,9 +59,7 @@ export function mountArtplayerInstance({
 
   const headers = getStreamHeaders(streamInfo, streamUrl);
   const fullURL = getStreamFullUrl(streamUrl, headers);
-  const looksHls = urlLooksLikeHlsStream(streamUrl) || urlLooksLikeHlsStream(fullURL);
   const playerMediaType = inferArtplayerMediaType(streamUrl, streamInfo, fullURL);
-  const useHlsPlayback = looksHls;
   const useManualStreamQuality = Boolean(
     streamInfo?.qualityVariants && streamInfo.qualityVariants.length > 1,
   );
@@ -76,7 +73,7 @@ export function mountArtplayerInstance({
 
   const art = new Artplayer({
     container,
-    url: useHlsPlayback ? '' : fullURL,
+    url: fullURL,
     type: playerMediaType,
     autoplay: true,
     volume: 1,
@@ -101,10 +98,6 @@ export function mountArtplayerInstance({
       useManualStreamQuality,
     ),
   });
-
-  if (useHlsPlayback) {
-    hlsRuntime.bootHlsPlayback(art, fullURL);
-  }
 
   createArtplayerVideoErrorReporter(art, {
     effectActive: isEffectActive,

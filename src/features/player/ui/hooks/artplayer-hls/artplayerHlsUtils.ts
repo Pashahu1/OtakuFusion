@@ -2,6 +2,7 @@ import type Artplayer from 'artplayer';
 
 import { clearArtplayerSubtitleResizeRaf } from '../useArtplayerSubtitleResize';
 import { hardStopArtplayerMedia } from './hardStopPlayerMedia';
+import { teardownActivePlayerHlsSession } from './playerHlsSession';
 
 /** In dev, defer Hls creation to next macrotask by default — workaround for Strict Mode double mount. */
 export function readPlayerDeferStrictInit(): boolean {
@@ -32,6 +33,7 @@ export function destroyArtplayerInstance(
   try {
     clearArtplayerSubtitleResizeRaf(instance);
     hardStopArtplayerMedia(instance, container);
+    teardownActivePlayerHlsSession();
     instance.pause();
     instance.destroy(false);
   } catch (e) {

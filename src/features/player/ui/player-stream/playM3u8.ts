@@ -2,6 +2,11 @@
 import Hls from 'hls.js';
 import Artplayer from 'artplayer';
 
+import {
+  clearPlayerHlsSession,
+  replacePlayerHlsSession,
+} from '../hooks/artplayer-hls/playerHlsSession';
+
 export interface PlayM3u8Hooks {
   /**
    * After `new Hls`, **before** `loadSource`: subscribe to `MANIFEST_PARSED`, lock level and call
@@ -20,10 +25,17 @@ export function playM3u8(
 ): void {
   if (Hls.isSupported()) {
     if (art.hls) {
+      clearPlayerHlsSession(art.hls);
       art.hls.stopLoad();
       art.hls.detachMedia();
       art.hls.destroy();
       art.hls = null;
+    }
+    try {
+      video.removeAttribute('src');
+      video.load();
+    } catch {
+      /* noop */
     }
     const hls = new Hls({
       enableWorker: false,
@@ -72,8 +84,12 @@ export function playM3u8(
     hls.loadSource(url);
     hls.attachMedia(video);
     art.hls = hls;
+    replacePlayerHlsSession(hls, video);
     hooks?.onHlsInstance?.(hls);
-    art.on('destroy', () => hls.destroy());
+    art.on('destroy', () => {
+      clearPlayerHlsSession(hls);
+      hls.destroy();
+    });
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = url;
   } else if (

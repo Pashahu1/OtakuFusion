@@ -1,5 +1,7 @@
 import type Artplayer from 'artplayer';
 
+import { pauseOrphanPlayerVideos } from '../hooks/artplayer-hls/hardStopPlayerMedia';
+
 const MIN_BUFFER_AHEAD_SEC = 0.7;
 const MAX_BUFFER_WAIT_MS = 2800;
 
@@ -71,10 +73,7 @@ export function attachPlaybackAutostart(
 
   art.on('pause', () => {
     userPausedRef.current = true;
-    art.video?.pause();
-    artRef.current?.querySelectorAll('video, audio').forEach((el) => {
-      (el as HTMLMediaElement).pause();
-    });
+    pauseOrphanPlayerVideos(art, [artRef.current]);
   });
 
   art.on('play', () => {
