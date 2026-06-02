@@ -17,8 +17,8 @@ function parseResolutionPixels(resolution: string): number {
 
 function pickAniListCoverSize(resolution: string): 'medium' | 'large' {
   const pixels = parseResolutionPixels(resolution);
-  const mediumBaseline = parseResolutionPixels('300x400');
-  return pixels > mediumBaseline ? 'large' : 'medium';
+  const largeBaseline = parseResolutionPixels('1000x1500');
+  return pixels >= largeBaseline ? 'large' : 'medium';
 }
 
 export function isAniListCdnHost(url: string): boolean {

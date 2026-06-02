@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
@@ -29,6 +30,19 @@ export function Card({
   priority = false,
   posterEager = false,
 }: CardProps) {
+  const fallbackPosterSrc =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='900' viewBox='0 0 600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23111827'/%3E%3Cstop offset='55%25' stop-color='%230b1220'/%3E%3Cstop offset='100%25' stop-color='%2303070d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='900' fill='url(%23g)'/%3E%3Ccircle cx='300' cy='410' r='118' fill='none' stroke='%23334155' stroke-width='20'/%3E%3Cpath d='M165 700c33-92 102-137 135-137s102 45 135 137' fill='none' stroke='%23334155' stroke-width='20' stroke-linecap='round'/%3E%3C/svg%3E";
+  const resolvedPosterSrc = useMemo(() => {
+    if (!anime.poster) return fallbackPosterSrc;
+    const src = thumbnailUrl(anime.poster, LIST_THUMBNAIL_RES).trim();
+    return src || fallbackPosterSrc;
+  }, [anime.poster]);
+  const [posterSrc, setPosterSrc] = useState(resolvedPosterSrc);
+
+  useEffect(() => {
+    setPosterSrc(resolvedPosterSrc);
+  }, [resolvedPosterSrc]);
+
   const tv = anime.tvInfo;
   const episodeCountRaw =
     typeof tv?.episodeTotal === 'string' ? tv.episodeTotal.trim() : '';
@@ -96,17 +110,14 @@ export function Card({
           )}
         >
           <Image
-            src={
-              anime.poster
-                ? thumbnailUrl(anime.poster, LIST_THUMBNAIL_RES)
-                : '/sukuna-error.jpg'
-            }
+            src={posterSrc}
             alt=""
             fill
             quality={posterQuality}
             priority={priority}
             fetchPriority={priority ? 'high' : undefined}
             loading={priority ? undefined : posterEager ? 'eager' : undefined}
+            onError={() => setPosterSrc(fallbackPosterSrc)}
             className="object-cover object-center transition-[filter] duration-300 ease-out group-hover/card:saturate-[0.78] group-focus-within/card:saturate-[0.78]"
             sizes={posterSizes}
             aria-hidden

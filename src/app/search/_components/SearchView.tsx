@@ -17,7 +17,6 @@ export function SearchView({ initialKeyword }: SearchViewProps) {
   const debouncedQuery = useDebounce(query, 250);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const searchParamsKey = searchParams.toString();
 
   const trimmed = query.trim();
   const debouncedTrimmed = debouncedQuery.trim();
@@ -29,11 +28,9 @@ export function SearchView({ initialKeyword }: SearchViewProps) {
   });
 
   useEffect(() => {
-    setQuery(initialKeyword);
-  }, [initialKeyword]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParamsKey);
+    const currentKeyword = searchParams.get('keyword')?.trim() ?? '';
+    if (currentKeyword === debouncedTrimmed) return;
+    const params = new URLSearchParams(searchParams.toString());
     if (debouncedTrimmed) {
       params.set('keyword', debouncedTrimmed);
     } else {
@@ -41,7 +38,7 @@ export function SearchView({ initialKeyword }: SearchViewProps) {
     }
 
     router.replace(`/search?${params.toString()}`, { scroll: false });
-  }, [debouncedTrimmed, router, searchParamsKey]);
+  }, [debouncedTrimmed, router, searchParams]);
 
   return (
     <div className="search-page">
