@@ -24,7 +24,9 @@ export function ProfileHeatmap({ cells }: ProfileHeatmapProps) {
     <section className="profile-heatmap" aria-label="Daily watch activity">
       <div className="profile-heatmap__header">
         <h2 className="profile-panel__title">Activity</h2>
-        <span className="profile-heatmap__hint">Episodes per day · last year</span>
+        <span className="profile-heatmap__hint">
+          Completed episodes per day · last year
+        </span>
       </div>
 
       <div className="profile-heatmap__body">

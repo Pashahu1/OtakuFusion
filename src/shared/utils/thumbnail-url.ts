@@ -2,9 +2,24 @@ const THUMBNAIL_SEGMENT = /\/thumbnail\/\d+x\d+/;
 const ANILIST_HOSTS = new Set(['s4.anilist.co', 'anilist.co']);
 const ANILIST_COVER_SEGMENT = /\/cover\/(?:extraLarge|large|medium|small)\//i;
 
-export const LIST_THUMBNAIL_RES = '300x400';
+export const LIST_THUMBNAIL_RES = '600x900';
 
 export const HERO_THUMBNAIL_RES = '1200x1800';
+
+function parseResolutionPixels(resolution: string): number {
+  const match = /^(\d+)x(\d+)$/i.exec(resolution.trim());
+  if (!match) return 0;
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return 0;
+  return width * height;
+}
+
+function pickAniListCoverSize(resolution: string): 'medium' | 'large' {
+  const pixels = parseResolutionPixels(resolution);
+  const mediumBaseline = parseResolutionPixels('300x400');
+  return pixels > mediumBaseline ? 'large' : 'medium';
+}
 
 export function isAniListCdnHost(url: string): boolean {
   if (!url?.trim()) return false;
@@ -57,9 +72,7 @@ export function thumbnailUrl(url: string, resolution = LIST_THUMBNAIL_RES): stri
   if (u.startsWith('//')) u = `https:${u}`;
 
   if (isAniListCdnHost(u)) {
-    return resolution === HERO_THUMBNAIL_RES
-      ? anilistCoverUrl(u, 'large')
-      : anilistCoverUrl(u, 'medium');
+    return anilistCoverUrl(u, pickAniListCoverSize(resolution));
   }
 
   if (THUMBNAIL_SEGMENT.test(u)) {

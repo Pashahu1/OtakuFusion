@@ -6,7 +6,7 @@ interface ProfileStatsCardsProps {
 
 const STAT_ITEMS = [
   { key: 'totalAnime', label: 'Anime watched' },
-  { key: 'daysWatched', label: 'Days active' },
+  { key: 'daysWatched', label: 'Days active (daily count)' },
   { key: 'episodesWatched', label: 'Episodes watched' },
   { key: 'currentStreak', label: 'Day streak' },
 ] as const;

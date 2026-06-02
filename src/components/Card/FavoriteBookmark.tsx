@@ -35,15 +35,30 @@ export function FavoriteBookmark({
       if (isFavorite) await removeFavoriteAnime(anime.id);
       else await addFavoriteAnime(anime.id);
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.favorites });
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.favorites });
+      const previousFavorites = queryClient.getQueryData<AnimeInfo[]>(queryKeys.favorites) ?? [];
+      const nextFavorites = isFavorite
+        ? previousFavorites.filter((item) => item.id !== anime.id)
+        : [anime, ...previousFavorites.filter((item) => item.id !== anime.id)];
+      queryClient.setQueryData<AnimeInfo[]>(queryKeys.favorites, nextFavorites);
+      return { previousFavorites };
     },
-    onError: (err: Error) => {
+    onError: (err: Error, _variables, context) => {
+      if (context) {
+        queryClient.setQueryData<AnimeInfo[]>(
+          queryKeys.favorites,
+          context.previousFavorites,
+        );
+      }
       const msg =
         err.message === 'Unauthorized'
           ? 'Sign in to save favorites.'
           : err.message || 'Could not update favorites.';
       toast.error(msg);
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.favorites });
     },
   });
 

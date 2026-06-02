@@ -125,7 +125,7 @@ export function ContinueWatchingSection() {
                         }
                         alt={item.title || item.japanese_title || 'Anime'}
                         fill
-                        quality={70}
+                        quality={92}
                         className="object-cover object-center transition duration-300 group-hover:brightness-110"
                         sizes="(max-width: 640px) 200px, (max-width: 768px) 220px, 240px"
                       />
