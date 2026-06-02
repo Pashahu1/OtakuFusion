@@ -66,6 +66,9 @@ export function WatchSeriesHero({
     '--watch-hero-accent-tint': accent.panelTint,
     '--watch-hero-accent': accent.accentColor,
   } as CSSProperties;
+  const mediaClassName = showBackgroundSkeleton
+    ? 'watch-series-hero__media watch-series-hero__media--loading'
+    : 'watch-series-hero__media';
 
   return (
     <section
@@ -73,7 +76,7 @@ export function WatchSeriesHero({
       aria-label="Series overview"
       style={heroStyle}
     >
-      <div className="watch-series-hero__media">
+      <div className={mediaClassName}>
         {showBackgroundSkeleton ? (
           <div className="watch-series-hero__media-skeleton" aria-hidden />
         ) : null}

@@ -52,6 +52,10 @@ export function shouldAutoRetryWatchResolve(err: unknown): boolean {
   if (key === 'invalid episode number.') return false;
   if (key.includes('lang must')) return false;
   if (key.includes('episode is required')) return false;
+  if (key.includes('no_working_source')) return false;
+  if (key.includes('sources_empty')) return false;
+  if (key.includes('episode_not_found')) return false;
+  if (key.includes('watch_resolve_failed_404')) return false;
   return true;
 }
 

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Player } from '@/features/player';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
@@ -60,7 +60,10 @@ export const WatchPlayerContent = ({
   anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
-  const streamKey = `${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
+  const streamKey = useMemo(
+    () => `${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl ?? ''}`,
+    [animeId, episodeId, watchStreamProvider, activeServerId, streamUrl]
+  );
 
   const overlayCopy =
     streamOverlayMessage ?? {
@@ -69,11 +72,13 @@ export const WatchPlayerContent = ({
     };
 
   const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
-  const [prevStreamKey, setPrevStreamKey] = useState(streamKey);
-  if (streamKey !== prevStreamKey) {
+  const [prevStreamKey, setPrevStreamKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (prevStreamKey === streamKey) return;
     setPrevStreamKey(streamKey);
     setBuiltinRuntimeError(false);
-  }
+  }, [prevStreamKey, streamKey]);
 
   const handleBuiltinError = useCallback(() => {
     setBuiltinRuntimeError(true);
@@ -107,7 +112,6 @@ export const WatchPlayerContent = ({
         {showBuiltinPlayer && (
           <div className="watch-player-content__player">
             <Player
-              key={`${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl}`}
               streamUrl={streamUrl as string}
               subtitles={subtitles}
               thumbnail={thumbnail}

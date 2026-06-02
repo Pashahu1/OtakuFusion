@@ -28,6 +28,17 @@ interface RunWatchStreamResolveParams {
   setters: WatchStreamResolveSetters;
 }
 
+function isExpectedNoSourceResolveError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const key = err.message.trim().toLowerCase();
+  return (
+    key.includes('no_working_source') ||
+    key.includes('sources_empty') ||
+    key.includes('episode_not_found') ||
+    key.includes('watch_resolve_failed_404')
+  );
+}
+
 export async function runWatchStreamResolve({
   activeOpts,
   streamAnime,
@@ -87,7 +98,11 @@ export async function runWatchStreamResolve({
   };
 
   const reportResolveError = (err: unknown) => {
-    console.error('Error resolving watch stream:', err);
+    if (isExpectedNoSourceResolveError(err)) {
+      console.info('Watch stream not available for selection:', err);
+    } else {
+      console.error('Error resolving watch stream:', err);
+    }
     const raw =
       err instanceof Error && typeof err.message === 'string'
         ? err.message.trim()

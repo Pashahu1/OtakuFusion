@@ -25,6 +25,20 @@
     position: absolute;
     inset: 0;
     z-index: 0;
+
+    &--loading {
+      background:
+        radial-gradient(110% 70% at 50% 8%, rgb(71 85 105 / 0.28) 0%, transparent 56%),
+        linear-gradient(180deg, rgb(30 41 59 / 0.58) 0%, rgb(15 23 42 / 0.65) 46%, #05070b 100%);
+
+      .watch-series-hero__shade--bottom {
+        opacity: 0.52;
+      }
+
+      .watch-series-hero__shade--left {
+        opacity: 0.75;
+      }
+    }
   }
 
   &__bg {
@@ -47,8 +61,25 @@
   &__media-skeleton {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, #1a1b1e 0%, #000 100%);
+    overflow: hidden;
+    background: linear-gradient(180deg, #1b2130 0%, #0c121e 52%, #05070b 100%);
     animation: watch-hero-media-skeleton-pulse 1.4s ease-in-out infinite;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(
+        110deg,
+        transparent 12%,
+        rgb(148 163 184 / 0.06) 40%,
+        rgb(148 163 184 / 0.18) 50%,
+        rgb(148 163 184 / 0.06) 60%,
+        transparent 88%
+      );
+      animation: watch-hero-media-skeleton-shimmer 1.8s ease-in-out infinite;
+    }
   }
 
   &__shade {
@@ -100,5 +131,11 @@
 
   50% {
     opacity: 0.45;
+  }
+}
+
+@keyframes watch-hero-media-skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
   }
 }
