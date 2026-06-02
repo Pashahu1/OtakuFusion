@@ -19,7 +19,12 @@ export function playM3u8(
   hooks?: PlayM3u8Hooks,
 ): void {
   if (Hls.isSupported()) {
-    if (art.hls) art.hls.destroy();
+    if (art.hls) {
+      art.hls.stopLoad();
+      art.hls.detachMedia();
+      art.hls.destroy();
+      art.hls = null;
+    }
     const hls = new Hls({
       enableWorker: false,
       preferManagedMediaSource: false,

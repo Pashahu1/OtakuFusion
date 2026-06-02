@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Play } from 'lucide-react';
@@ -9,20 +9,14 @@ import { WatchSeriesInlineTags } from './WatchSeriesInlineTags';
 import { WatchSeriesRatingRow } from './WatchSeriesRatingRow';
 import { WatchSeriesDetails } from './WatchSeriesDetails';
 import { useHeroImageAccent } from '@/features/watch/hooks/useHeroImageAccent';
+import { useWatchHeroBackgroundImage } from '@/features/watch/hooks/useWatchHeroBackgroundImage';
 import type { SpotlightAnime } from '@/shared/types/GlobalAnimeTypes';
 import type { WatchCtaVariant } from '@/features/watch/lib/resolve-continue-watching-cta';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { WATCH_HERO_BG_QUALITY } from '@/lib/anime-card-poster';
-import {
-  HERO_THUMBNAIL_RES,
-  spotlightHeroBackgroundUrl,
-  thumbnailUrl,
-} from '@/shared/utils/thumbnail-url';
 import { WatchSeriesSaveButton } from './WatchSeriesSaveButton';
 import './WatchSeriesHero.scss';
 import './WatchSeriesSaveButton.scss';
-
-const TVDB_HERO_UPGRADE_IDLE_MS = 2500;
 
 function animeDataToFavorite(anime: AnimeData) {
   return {
@@ -45,6 +39,7 @@ interface WatchSeriesHeroProps {
   ctaVariant?: WatchCtaVariant;
   isDetailsExpanded: boolean;
   onToggleDetails: () => void;
+  heroArtworkPending?: boolean;
 }
 
 export function WatchSeriesHero({
@@ -55,37 +50,16 @@ export function WatchSeriesHero({
   ctaVariant = 'watch',
   isDetailsExpanded,
   onToggleDetails,
+  heroArtworkPending = false,
 }: WatchSeriesHeroProps) {
-  const posterBgSrc = useMemo(
-    () => thumbnailUrl(hero.poster, HERO_THUMBNAIL_RES),
-    [hero.poster],
-  );
-  const tvdbBgSrc = hero.heroImageUrl?.trim() || null;
-  const preferredBgSrc = spotlightHeroBackgroundUrl(hero);
+  const {
+    backgroundSrc,
+    isBackgroundReady,
+    showBackgroundSkeleton,
+    onBackgroundLoad,
+  } = useWatchHeroBackgroundImage(hero, heroArtworkPending);
 
-  const [bgSrc, setBgSrc] = useState(() => posterBgSrc || preferredBgSrc);
-
-  useEffect(() => {
-    if (!tvdbBgSrc || tvdbBgSrc === posterBgSrc) {
-      setBgSrc(preferredBgSrc);
-      return;
-    }
-
-    setBgSrc(posterBgSrc);
-
-    const upgradeToTvdb = () => setBgSrc(tvdbBgSrc);
-    if (typeof requestIdleCallback !== 'undefined') {
-      const idleId = requestIdleCallback(upgradeToTvdb, {
-        timeout: TVDB_HERO_UPGRADE_IDLE_MS,
-      });
-      return () => cancelIdleCallback(idleId);
-    }
-
-    const timerId = window.setTimeout(upgradeToTvdb, TVDB_HERO_UPGRADE_IDLE_MS);
-    return () => window.clearTimeout(timerId);
-  }, [tvdbBgSrc, posterBgSrc, preferredBgSrc]);
-
-  const accent = useHeroImageAccent(bgSrc);
+  const accent = useHeroImageAccent(backgroundSrc ?? undefined);
 
   const heroStyle = {
     '--watch-hero-accent-border': accent.borderColor,
@@ -100,18 +74,28 @@ export function WatchSeriesHero({
       style={heroStyle}
     >
       <div className="watch-series-hero__media">
-        <Image
-          src={bgSrc}
-          alt=""
-          fill
-          priority
-          fetchPriority="high"
-          loading="eager"
-          decoding="async"
-          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
-          quality={WATCH_HERO_BG_QUALITY}
-          className="watch-series-hero__bg"
-        />
+        {showBackgroundSkeleton ? (
+          <div className="watch-series-hero__media-skeleton" aria-hidden />
+        ) : null}
+        {backgroundSrc ? (
+          <Image
+            src={backgroundSrc}
+            alt=""
+            fill
+            priority
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1280px"
+            quality={WATCH_HERO_BG_QUALITY}
+            onLoad={onBackgroundLoad}
+            className={
+              isBackgroundReady
+                ? 'watch-series-hero__bg watch-series-hero__bg--visible'
+                : 'watch-series-hero__bg watch-series-hero__bg--preloading'
+            }
+          />
+        ) : null}
         <div className="watch-series-hero__shade watch-series-hero__shade--top" />
         <div className="watch-series-hero__shade watch-series-hero__shade--bottom" />
         <div className="watch-series-hero__shade watch-series-hero__shade--left" />

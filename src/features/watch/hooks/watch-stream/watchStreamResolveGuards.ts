@@ -3,6 +3,22 @@ import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { WatchResolveOptions } from './useWatchStreamTypes';
 
+export function buildWatchStreamGenerationKey(
+  opts: WatchResolveOptions | undefined,
+): string {
+  if (!opts?.streamAnime || !opts.episodeId) return 'blocked';
+  return [
+    opts.animeId,
+    opts.episodeId,
+    opts.watchStreamProvider,
+    String(opts.streamLangRevision),
+    opts.preferredLang,
+    opts.episodeDubStateKey,
+    opts.providerAnimeId ?? '',
+    opts.episodeEpToken ?? '',
+  ].join('|');
+}
+
 export function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): boolean {
   if (!opts?.streamAnime || !opts.episodeId) return true;
   const sp = opts.watchStreamProvider;

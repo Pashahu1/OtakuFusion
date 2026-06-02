@@ -3,6 +3,7 @@ import type Artplayer from 'artplayer';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 
+import { hardStopArtplayerMedia } from './hooks/artplayer-hls/hardStopPlayerMedia';
 import {
   buildFlatLanguageMenu,
   languageMenuTooltip,
@@ -69,6 +70,12 @@ export function syncPlayerLanguageMenu(
     selector: flatLanguage,
     onSelect: function (item: Record<string, unknown>) {
       const mode = item.__mode;
+      const container = art.template?.$player ?? null;
+      hardStopArtplayerMedia(
+        art,
+        container instanceof HTMLDivElement ? container : null,
+      );
+
       if (mode === 'aniliberty') {
         setWatchStreamProvider('aniliberty');
         try {

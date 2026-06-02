@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { Player } from '@/features/player';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
+import { stopAllVideosInRoot } from '@/features/player/ui/hooks/artplayer-hls/hardStopPlayerMedia';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
@@ -60,7 +61,12 @@ export const WatchPlayerContent = ({
   anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
+  const frameRef = useRef<HTMLDivElement>(null);
   const streamKey = `${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl ?? ''}`;
+
+  useLayoutEffect(() => {
+    stopAllVideosInRoot(frameRef.current);
+  }, [streamKey]);
 
   const overlayCopy =
     streamOverlayMessage ?? {
@@ -94,7 +100,7 @@ export const WatchPlayerContent = ({
 
   return (
     <div className="watch-player-content">
-      <div className="watch-player-content__frame">
+      <div ref={frameRef} className="watch-player-content__frame">
         {showLoader && (
           <div className="watch-player-content__loader">
             <BouncingLoader />

@@ -76,7 +76,7 @@ export function mountArtplayerInstance({
 
   const art = new Artplayer({
     container,
-    url: fullURL,
+    url: useHlsPlayback ? '' : fullURL,
     type: playerMediaType,
     autoplay: true,
     volume: 1,

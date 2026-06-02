@@ -7,11 +7,10 @@ import { useWatchSeries } from '@/features/watch/hooks/useWatchSeries';
 import { useWatchSpotlightArtwork } from '@/features/watch/hooks/useWatchSpotlightArtwork';
 import { buildWatchHeroModel } from '@/features/watch/lib/buildWatchHeroModel';
 import { WatchSeriesHero } from '@/features/watch/ui/watch-series/WatchSeriesHero';
-import { WatchEpisodesSkeleton } from '@/features/watch/ui/watch-series/WatchEpisodesSkeleton';
+import { WatchPageSkeleton } from '@/features/watch/ui/watch-series/WatchPageSkeleton';
 import { useWatchPageDocumentTitle } from '@/features/watch/hooks/useWatchPageDocumentTitle';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { AnimeSection } from '@/components/AnimeSection/AnimeSection';
-import { AnimeSectionSkeleton } from '@/components/ui/Skeleton/AnimeSectionSkeleton';
 import { formatEpisodeDuration } from '@/features/watch/lib/format-episode-duration';
 import { watchPlayPath } from '@/shared/utils/watch-routes';
 import { useWatchCta } from '@/features/watch/hooks/useWatchCta';
@@ -46,7 +45,8 @@ export default function WatchSeriesPage() {
 
   useWatchPageDocumentTitle(animeInfo, animeId);
 
-  const { data: spotlightArtwork } = useWatchSpotlightArtwork(animeInfo);
+  const { data: spotlightArtwork, isPending: heroArtworkPending } =
+    useWatchSpotlightArtwork(animeInfo);
 
   const heroModel = useMemo(() => {
     if (!animeInfo) return null;
@@ -69,8 +69,18 @@ export default function WatchSeriesPage() {
     {}
   );
 
+  const isPageReady = Boolean(animeInfo && episodes);
+
   if (urlEp?.trim()) {
     return <div className="watch-page__hero-skeleton" aria-busy aria-label="Loading player" />;
+  }
+
+  if (!isPageReady) {
+    return (
+      <div className="watch-page">
+        <WatchPageSkeleton />
+      </div>
+    );
   }
 
   const handleEpisodeClick = (ep: string) => {
@@ -79,45 +89,36 @@ export default function WatchSeriesPage() {
 
   return (
     <div className="watch-page">
-      {heroModel && animeInfo ? (
-        <WatchSeriesHero
-          hero={heroModel}
-          animeInfo={animeInfo}
-          playHref={playHref}
-          ctaLabel={ctaLabel}
-          ctaVariant={ctaVariant}
-          isDetailsExpanded={isDetailsExpanded}
-          onToggleDetails={() => setIsDetailsExpanded((v) => !v)}
-        />
-      ) : (
-        <div className="watch-page__hero-skeleton" aria-hidden />
-      )}
+      <WatchSeriesHero
+        hero={heroModel!}
+        animeInfo={animeInfo!}
+        playHref={playHref}
+        ctaLabel={ctaLabel}
+        ctaVariant={ctaVariant}
+        isDetailsExpanded={isDetailsExpanded}
+        onToggleDetails={() => setIsDetailsExpanded((v) => !v)}
+        heroArtworkPending={heroArtworkPending}
+      />
 
-      {episodes ? (
-        <Episodelist
-          episodes={episodes}
-          currentEpisode={episodeId ?? urlEp ?? null}
-          onEpisodeClick={handleEpisodeClick}
-          totalEpisodes={totalEpisodes ?? 0}
-          watchedEpisodes={watchedEpisodes}
-          seriesTitle={animeInfo?.title ?? ''}
-          posterUrl={animeInfo?.poster ?? ''}
-          episodeDuration={episodeDuration}
-        />
-      ) : (
-        <WatchEpisodesSkeleton />
-      )}
+      <Episodelist
+        episodes={episodes!}
+        currentEpisode={episodeId ?? urlEp ?? null}
+        onEpisodeClick={handleEpisodeClick}
+        totalEpisodes={totalEpisodes ?? 0}
+        watchedEpisodes={watchedEpisodes}
+        seriesTitle={animeInfo!.title ?? ''}
+        posterUrl={animeInfo!.poster ?? ''}
+        episodeDuration={episodeDuration}
+      />
 
-      <div className="watch-page__recommended">
-        {(animeInfo?.recommended_data?.length ?? 0) > 0 ? (
+      {(animeInfo!.recommended_data?.length ?? 0) > 0 ? (
+        <div className="watch-page__recommended">
           <AnimeSection
             title="Recommended for you"
-            catalog={animeInfo?.recommended_data ?? []}
+            catalog={animeInfo!.recommended_data ?? []}
           />
-        ) : (
-          <AnimeSectionSkeleton title="Recommended for you" />
-        )}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

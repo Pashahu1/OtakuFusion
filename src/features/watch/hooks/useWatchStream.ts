@@ -4,6 +4,7 @@ import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 
 import {
+  buildWatchStreamGenerationKey,
   isWatchResolveBlocked,
   primeWatchStreamResolve,
   resetWatchStreamState,
@@ -38,6 +39,17 @@ export function useWatchStream(
   const episodeEpTokenRef = useRef(watchResolveOptions?.episodeEpToken);
   const episodeHasDubRef = useRef(watchResolveOptions?.episodeHasDub);
   const lastResolveProviderRef = useRef<WatchStreamProvider | null>(null);
+  const generationKey = buildWatchStreamGenerationKey(watchResolveOptions);
+  const [boundGenerationKey, setBoundGenerationKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!streamUrl || buffering) return;
+    setBoundGenerationKey(generationKey);
+  }, [streamUrl, buffering, generationKey]);
+
+  const streamGenerationStale = boundGenerationKey !== generationKey;
+  const publicStreamUrl = streamGenerationStale ? null : streamUrl;
+  const publicBuffering = streamGenerationStale || buffering;
 
   useEffect(() => {
     resolveOptsRef.current = watchResolveOptions;
@@ -134,9 +146,9 @@ export function useWatchStream(
   ]);
 
   return {
-    streamInfo,
-    streamUrl,
-    buffering,
+    streamInfo: streamGenerationStale ? null : streamInfo,
+    streamUrl: publicStreamUrl,
+    buffering: publicBuffering,
     streamLoadingMessage,
     subtitles,
     thumbnail,

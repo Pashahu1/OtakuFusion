@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import Artplayer from 'artplayer';
 
 import { useArtplayerContinueWatching } from './useArtplayerContinueWatching';
@@ -118,7 +118,7 @@ export function useArtplayerInstance({
     animeInfo,
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!streamUrl || !artRef.current) return;
 
     let effectActive = true;

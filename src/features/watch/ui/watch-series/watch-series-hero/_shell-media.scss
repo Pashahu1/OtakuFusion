@@ -32,6 +32,23 @@
     object-position: center 28%;
     filter: brightness(0.72) contrast(1.08) saturate(1.08);
     transform: scale(1.04);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+
+    &--visible {
+      opacity: 1;
+    }
+
+    &--preloading {
+      opacity: 0;
+    }
+  }
+
+  &__media-skeleton {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #1a1b1e 0%, #000 100%);
+    animation: watch-hero-media-skeleton-pulse 1.4s ease-in-out infinite;
   }
 
   &__shade {
@@ -72,5 +89,16 @@
         transparent 100%
       );
     }
+  }
+}
+
+@keyframes watch-hero-media-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
   }
 }
