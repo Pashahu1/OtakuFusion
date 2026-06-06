@@ -1,6 +1,6 @@
 import { decodeStreamUrlForInspection } from '@/lib/streamMediaType';
 import { stripOriginFromHeaders } from '@/lib/streamProxyHeaders';
-import { DEFAULT_REFERER, HLS_CDN_FALLBACK_REFERER } from '../playerConstants';
+import { DEFAULT_REFERER, HLS_CDN_FALLBACK_REFERER, ANIKOTO_EMBED_REFERER } from '../playerConstants';
 
 export interface StreamInfoForHeaders {
   streamingLink?: Array<{ iframe?: string; request_headers?: Record<string, string> }> | unknown;
@@ -22,7 +22,10 @@ function playlistSuggestsThirdPartyCdn(playlistUrl: string): boolean {
       u.includes('code29wave') ||
       u.includes('megaup') ||
       u.includes('owocdn') ||
-      u.includes('libria.fun'))
+      u.includes('libria.fun') ||
+      u.includes('watching.onl') ||
+      u.includes('sugevideo.xyz') ||
+      u.includes('vidwish.live'))
   );
 }
 
@@ -103,7 +106,12 @@ export function getStreamHeaders(
     (playlistSuggestsThirdPartyCdn(playlistUrl) ||
       decodeStreamUrlForInspection(playlistUrl).includes('24stream'))
   ) {
-    headers.Referer = HLS_CDN_FALLBACK_REFERER;
+    const lower = playlistUrl.toLowerCase();
+    if (lower.includes('watching.onl') || lower.includes('sugevideo.xyz')) {
+      headers.Referer = ANIKOTO_EMBED_REFERER;
+    } else {
+      headers.Referer = HLS_CDN_FALLBACK_REFERER;
+    }
   } else {
     headers.Referer = DEFAULT_REFERER;
   }

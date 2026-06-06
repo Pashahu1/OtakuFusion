@@ -11,6 +11,10 @@ export const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
     'Could not extract a playable stream from the Ukrainian source page. Try another episode or provider.',
   'no_working_source|hikka_stream_probe_failed':
     'Ukrainian stream is blocked or unavailable. Try Japanese or refresh later.',
+  'no_working_source|anikoto_stream_empty|sub_not_available':
+    'Anikoto has no Japanese stream for this episode yet. Try another episode or Ukrainian.',
+  'no_working_source|anikoto_stream_empty|dub_not_available':
+    'Anikoto has no English dub for this episode yet. Try Japanese or Ukrainian.',
   hikka_catalog_not_found:
     'No Ukrainian dub catalog was found for this title on Hikka Features.',
   hikka_features_forbidden:

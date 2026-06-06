@@ -7,6 +7,8 @@ import {
   withRangeHeader,
 } from './upstreamHeaders';
 
+const UPSTREAM_FETCH_TIMEOUT_MS = 28_000;
+
 export function buildForwardHeaders(
   req: NextRequest,
   fetchUrl: string,
@@ -26,5 +28,6 @@ export async function fetchUpstream(
   return fetch(fetchUrl, {
     redirect: 'follow',
     headers: dropOriginHeader(forwardHeaders),
+    signal: AbortSignal.timeout(UPSTREAM_FETCH_TIMEOUT_MS),
   });
 }

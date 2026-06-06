@@ -85,16 +85,19 @@
   position: absolute;
   left: 0;
   bottom: 0;
+  z-index: 4;
   height: 3px;
   background: var(--brand-accent, #f47521);
   border-radius: 0 2px 0 0;
   max-width: 100%;
+  pointer-events: none;
 }
 
 .continue-watching-card__time-left {
   position: absolute;
   right: 0.35rem;
   bottom: 0.35rem;
+  z-index: 3;
   padding: 0.1rem 0.35rem;
   border-radius: 0.2rem;
   font-size: 10px;

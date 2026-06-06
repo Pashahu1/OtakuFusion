@@ -7,6 +7,7 @@ import './Player.scss';
 import { useArtplayerInstance } from './hooks/useArtplayerInstance';
 
 export function Player({
+  localAnimeId,
   streamUrl,
   subtitles,
   thumbnail,
@@ -26,6 +27,7 @@ export function Player({
   onPlaybackSurfaceReady,
   anilibertyLanguageMenuEligible = false,
   hikkaLanguageMenuEligible = false,
+  anikotoLanguageMenuEligible = false,
 }: PlayerProps) {
   const currentEpisodeIndex =
     episodes?.findIndex(
@@ -33,6 +35,7 @@ export function Player({
     ) ?? -1;
 
   const { artRef } = useArtplayerInstance({
+    localAnimeId,
     streamUrl,
     subtitles,
     thumbnail,
@@ -53,6 +56,7 @@ export function Player({
     onPlaybackSurfaceReady,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible,
   });
 
   return <div ref={artRef} className="relative h-full w-full"></div>;

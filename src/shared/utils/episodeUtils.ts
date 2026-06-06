@@ -7,6 +7,17 @@ export function getEpisodeNumberFromId(id: string | undefined): string | undefin
   return undefined;
 }
 
+/** Stable key for CW, resume, and IndexedDB previews (`1`, not `?ep=1`). */
+export function normalizeEpisodeStorageKey(
+  episodeId: string | null | undefined,
+  episodeNum?: number | null,
+): string {
+  if (episodeNum != null && Number.isFinite(episodeNum)) {
+    return String(episodeNum);
+  }
+  return getEpisodeNumberFromId(episodeId ?? undefined) ?? episodeId?.trim() ?? '';
+}
+
 /** Compare active episode to catalog id (Anicore `?ep=N` or Hikka `"N"`). */
 export function episodeMatchesSelection(
   ep: { id: string; episode_no: number },

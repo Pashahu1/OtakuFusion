@@ -1,15 +1,12 @@
-import { readWatchProbeConfig } from '@/server/watch-resolve/probe';
 import {
   getNormalizedLang,
   getStreamProvider,
   missingSeriesIdError,
-  parseAnilistId,
-  parseEpisodeHasDub,
   parseEpisodeNumber,
   parseExpectedEpisodesParam,
 } from '@/server/watch-resolve/params';
-import { computeAnimepaheWatchResolveOutcome } from '@/server/watch-resolve/providers/animepaheResolver';
 import { computeAnilibertyWatchResolveOutcome } from '@/server/watch-resolve/providers/anilibertyResolver';
+import { computeAnikotoWatchResolveOutcome } from '@/server/watch-resolve/providers/anikotoResolver';
 import { computeHikkaWatchResolveOutcome } from '@/server/watch-resolve/providers/hikkaResolver';
 import type { WatchResolveOutcome } from '@/server/watch-resolve/types';
 
@@ -33,13 +30,11 @@ export async function computeWatchResolveOutcome(
     };
   }
 
-  const probeCfg = readWatchProbeConfig(lang);
   const origin = options?.publicOrigin ?? url.origin;
 
   const seriesId = url.searchParams.get('ani_id')?.trim();
   const provider = getStreamProvider(url.searchParams);
   const preferredHint = url.searchParams.get('preferred_server_hint')?.trim() ?? null;
-  const anilistId = parseAnilistId(url.searchParams);
 
   if (!seriesId) {
     return {
@@ -52,7 +47,6 @@ export async function computeWatchResolveOutcome(
   }
 
   const epTokenOverride = url.searchParams.get('ep_token')?.trim() || null;
-  const episodeHasDub = parseEpisodeHasDub(url.searchParams);
 
   if (provider === 'aniliberty') {
     return computeAnilibertyWatchResolveOutcome({
@@ -77,16 +71,20 @@ export async function computeWatchResolveOutcome(
     });
   }
 
-  return computeAnimepaheWatchResolveOutcome({
-    startedAt,
-    episode,
-    lang,
-    probeCfg,
-    origin,
-    seriesId,
-    preferredHint,
-    anilistId,
-    epTokenOverride,
-    episodeHasDub,
-  });
+  if (provider === 'anikoto') {
+    return computeAnikotoWatchResolveOutcome({
+      startedAt,
+      episode,
+      anikotoSlug: seriesId,
+      lang,
+    });
+  }
+
+  return {
+    status: 400,
+    body: {
+      success: false,
+      error: 'unsupported stream_provider',
+    },
+  };
 }

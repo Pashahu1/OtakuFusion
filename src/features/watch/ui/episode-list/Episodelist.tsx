@@ -12,6 +12,7 @@ import { useRangeDropdown } from './hooks/useRangeDropdown';
 import './Episodelist.scss';
 
 interface EpisodelistProps {
+  animeId: string;
   episodes: EpisodesTypes[];
   onEpisodeClick: (episodeId: string) => void;
   currentEpisode: string | null;
@@ -24,6 +25,7 @@ interface EpisodelistProps {
 
 /** Series page episode grid (thumbnail cards). */
 export function Episodelist({
+  animeId,
   episodes,
   onEpisodeClick,
   currentEpisode,
@@ -97,6 +99,7 @@ export function Episodelist({
       >
         <WatchEpisodeGrid
           className="watch-episodes-grid"
+          animeId={animeId}
           episodes={listEpisodes}
           currentEpisodeId={selectedEpisodeId}
           watchedEpisodes={watchedEpisodes}

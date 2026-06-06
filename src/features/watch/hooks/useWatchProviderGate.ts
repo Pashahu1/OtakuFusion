@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import {
-  DEFAULT_WATCH_STREAM_PROVIDER,
   type WatchStreamProvider,
 } from '@/features/watch/lib/watch-provider';
 import {
@@ -17,9 +16,10 @@ interface UseWatchProviderGateInput {
   error: string | null;
   anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
+  anikotoLanguageMenuEligible: boolean;
 }
 
-/** Cascade: Hikka ↔ Aniliberty when the active provider has no catalog. */
+/** Cascade when the active provider has no catalog (Anikoto → Hikka → Anilibria). */
 export function useWatchProviderGate({
   watchStreamProvider,
   setWatchStreamProvider,
@@ -28,12 +28,24 @@ export function useWatchProviderGate({
   error,
   anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
+  anikotoLanguageMenuEligible,
 }: UseWatchProviderGateInput): void {
   useEffect(() => {
     if (animeInfoLoading || providerCatalogPending) return;
 
-    if (watchStreamProvider === 'animepahe') {
-      setWatchStreamProvider(DEFAULT_WATCH_STREAM_PROVIDER);
+    if (watchStreamProvider === 'anikoto' && !anikotoLanguageMenuEligible) {
+      let fallback: WatchStreamProvider | null = nextWatchStreamProvider('anikoto');
+      while (fallback) {
+        if (fallback === 'hikka' && hikkaLanguageMenuEligible) {
+          setWatchStreamProvider('hikka');
+          break;
+        }
+        if (fallback === 'aniliberty' && anilibertyLanguageMenuEligible) {
+          setWatchStreamProvider('aniliberty');
+          break;
+        }
+        fallback = nextWatchStreamProvider(fallback);
+      }
       return;
     }
 
@@ -66,6 +78,7 @@ export function useWatchProviderGate({
     error,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible,
     setWatchStreamProvider,
   ]);
 }

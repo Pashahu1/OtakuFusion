@@ -23,6 +23,8 @@ export function playM3u8(
   art: Artplayer,
   hooks?: PlayM3u8Hooks,
 ): void {
+  video.crossOrigin = 'anonymous';
+
   if (Hls.isSupported()) {
     if (art.hls) {
       clearPlayerHlsSession(art.hls);

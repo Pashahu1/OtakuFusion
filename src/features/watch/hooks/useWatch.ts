@@ -15,6 +15,7 @@ import {
 import { useWatchResolveOptions } from './use-watch/useWatchResolveOptions';
 import { useWatchOppositePrefetch } from './use-watch/useWatchOppositePrefetch';
 import { useWatchCatalogProviderFallback } from './useWatchCatalogProviderFallback';
+import { useRestoreContinueWatchingPlayback } from './useRestoreContinueWatchingPlayback';
 
 export function useWatch(
   animeId: string,
@@ -50,6 +51,13 @@ export function useWatch(
     setStreamLangRevision,
   });
 
+  useRestoreContinueWatchingPlayback({
+    animeId,
+    episodeId: anime.episodeId,
+    setWatchStreamProvider,
+    setActiveServerId,
+  });
+
   const playerShellPending = computePlayerShellPending({
     animeInfoLoading: anime.animeInfoLoading,
     episodes: anime.episodes,
@@ -71,15 +79,7 @@ export function useWatch(
 
   const stream = useWatchStream(watchResolveOptions);
 
-  const streamHardExhausted = useWatchDubFallback({
-    watchStreamProvider,
-    activeServerId,
-    resolverLang,
-    userChoseDub,
-    setActiveServerIdRaw,
-    stream,
-    resetKey: `${animeId}:${anime.episodeId ?? ''}:${watchStreamProvider}`,
-  });
+  const streamHardExhausted = useWatchDubFallback();
 
   useWatchCatalogProviderFallback({
     animeId,
@@ -97,6 +97,7 @@ export function useWatch(
     error: anime.error,
     anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
   });
 
   useWatchOppositePrefetch({
@@ -152,5 +153,6 @@ export function useWatch(
     streamOverlayMessage,
     anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
   };
 }

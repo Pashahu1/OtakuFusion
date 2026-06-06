@@ -54,6 +54,18 @@ export function parseContinueWatchingList(raw: string | null): ContinueWatchingE
           ? item.durationSeconds
           : undefined;
 
+      const watchStreamProviderRaw = item.watchStreamProvider;
+      const watchStreamProvider =
+        watchStreamProviderRaw === 'aniliberty' ||
+        watchStreamProviderRaw === 'hikka' ||
+        watchStreamProviderRaw === 'anikoto'
+          ? watchStreamProviderRaw
+          : undefined;
+
+      const streamLangRaw = item.streamLang;
+      const streamLang =
+        streamLangRaw === 'sub' || streamLangRaw === 'dub' ? streamLangRaw : undefined;
+
       valid.push({
         id,
         data_id,
@@ -71,6 +83,8 @@ export function parseContinueWatchingList(raw: string | null): ContinueWatchingE
         positionSeconds,
         durationSeconds,
         updatedAt,
+        watchStreamProvider,
+        streamLang,
       });
     }
 

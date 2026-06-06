@@ -59,7 +59,7 @@ function shouldForwardClientRange(targetUrl: string, rangeHeader: string | null)
   const normalized = range.toLowerCase();
   if (normalized === 'bytes=0-' || normalized === 'bytes=0') return false;
   if (targetUrlLooksLikePlaylistOrProxy(targetUrl)) return false;
-  if (/\.(ts|m4s|aac|mp4|webm|mkv|vtt)(\?|$)/i.test(targetUrl)) return true;
+  if (/\.(ts|m4s|aac|mp4|webm|mkv|vtt|srt)(\?|$)/i.test(targetUrl)) return true;
   return /bytes=\d+-\d+/.test(normalized);
 }
 

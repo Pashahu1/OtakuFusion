@@ -48,7 +48,7 @@ export async function handleWatchResolveWithCache(
         if (o.status !== 200) throw new WatchResolveNonOkError(o);
         return o.body;
       },
-      ['watch-resolve-data-v9-animepahe', cacheKey, publicOrigin],
+      ['watch-resolve-data-v10', cacheKey, publicOrigin],
       { revalidate: watchResolveCacheRevalidateSec() }
     );
 

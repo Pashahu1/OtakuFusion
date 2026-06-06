@@ -37,6 +37,7 @@ export interface UseWatchReturn {
   anilibertyLanguageMenuEligible: boolean;
   /** Ukrainian (Hikka Features) item in Language menu. */
   hikkaLanguageMenuEligible: boolean;
+  anikotoLanguageMenuEligible: boolean;
   /**
    * Player overlay text on fatal stream error (English).
    * `null` — player not in fatal error state (still loading or URL present).

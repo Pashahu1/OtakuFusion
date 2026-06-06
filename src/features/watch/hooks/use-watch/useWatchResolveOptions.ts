@@ -68,6 +68,9 @@ export function useWatchResolveOptions({
   }, [anilistStillAiring, anime.animeInfo?.animeInfo?.tvInfo?.episodeTotal]);
 
   const onAutoRetryExhausted = useCallback(() => {
+    // Anikoto is menu-only — stay on user choice instead of falling back to Hikka.
+    if (watchStreamProvider === 'anikoto') return;
+
     const next = nextWatchStreamProvider(watchStreamProvider);
     if (next) {
       setWatchStreamProvider(next);

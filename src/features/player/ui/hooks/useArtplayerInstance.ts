@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useMemo, useLayoutEffect } from 'react';
+import { useCallback, useEffect, useMemo, useLayoutEffect, useRef } from 'react';
 import Artplayer from 'artplayer';
 
 import { useArtplayerContinueWatching } from './useArtplayerContinueWatching';
@@ -10,10 +10,13 @@ import { useArtplayerLanguageMenu } from './useArtplayerLanguageMenu';
 import { findContinueWatchingEntry } from '@/features/watch/lib/resolve-continue-watching-cta';
 import { readContinueWatchingList } from '@/features/watch/lib/continue-watching-list';
 import { continueWatchingEpisodeParam } from '@/features/watch/lib/continue-watching-display';
+import { peekPendingPlaybackResume } from '@/features/watch/lib/playback-resume-pending';
+import { normalizeEpisodeStorageKey } from '@/shared/utils/episodeUtils';
 import { destroyArtplayerInstance, readPlayerDeferStrictInit } from './useArtplayerHls';
 import { buildArtplayerStreamBootKey } from './artplayer-instance/buildArtplayerStreamBootKey';
 import { mountArtplayerInstance } from './artplayer-instance/mountArtplayerInstance';
 import type { UseArtplayerInstanceParams } from './useArtplayerInstanceTypes';
+import type { ContinueWatchingProgress } from '../updateContinueWatching';
 
 export type { UseArtplayerInstanceParams } from './useArtplayerInstanceTypes';
 
@@ -25,6 +28,7 @@ Artplayer.CONTEXTMENU = false;
  * Remount only on `streamBootKey`; episode/callbacks via refs in sub-hooks.
  */
 export function useArtplayerInstance({
+  localAnimeId,
   streamUrl,
   subtitles,
   thumbnail,
@@ -45,6 +49,7 @@ export function useArtplayerInstance({
   onPlaybackSurfaceReady,
   anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
+  anikotoLanguageMenuEligible,
 }: UseArtplayerInstanceParams) {
   const artRef = useRef<HTMLDivElement>(null);
   const artInstanceRef = useRef<Artplayer | null>(null);
@@ -54,30 +59,49 @@ export function useArtplayerInstance({
     onPlaybackErrorRef.current = onPlaybackError;
   });
 
+  const streamLang: 'sub' | 'dub' = activeServerId === '2' ? 'dub' : 'sub';
+
   const { scheduleContinueWatchingUpdate } = useArtplayerContinueWatching({
     animeInfo,
     episodeId,
     episodeNum,
+    watchStreamProvider,
+    streamLang,
   });
 
-  let savedPositionSeconds: number | undefined;
-  if (animeInfo?.id && episodeId != null && episodeId !== '') {
+  const resumePositionSeconds = useMemo((): number | undefined => {
+    const catalogId = localAnimeId.trim();
+    const epKey = normalizeEpisodeStorageKey(episodeId, episodeNum);
+    if (!catalogId || !epKey) return undefined;
+
+    const pending = peekPendingPlaybackResume(catalogId, epKey);
+    if (pending != null) return pending;
+
     const entry = findContinueWatchingEntry(
       readContinueWatchingList(),
-      animeInfo.id,
-      animeInfo.data_id,
+      catalogId,
+      animeInfo?.data_id,
     );
-    if (entry?.positionSeconds != null) {
-      const savedEp = continueWatchingEpisodeParam(entry);
-      if (savedEp === String(episodeId)) {
-        savedPositionSeconds = entry.positionSeconds;
-      }
-    }
-  }
+    if (entry?.positionSeconds == null) return undefined;
+    const savedEp = continueWatchingEpisodeParam(entry);
+    if (savedEp !== epKey) return undefined;
+    return entry.positionSeconds;
+  }, [localAnimeId, animeInfo?.data_id, episodeId, episodeNum, watchStreamProvider, streamLang, streamUrl]);
+
+  const onLanguageSwitchResume = useCallback(
+    (progress: ContinueWatchingProgress) => {
+      scheduleContinueWatchingUpdate(progress);
+    },
+    [scheduleContinueWatchingUpdate],
+  );
 
   const { attachPlaybackProgressHandlers } = useArtplayerPlaybackProgress({
+    localAnimeId,
+    episodeId,
+    episodeNum,
     scheduleContinueWatchingUpdate,
-    savedPositionSeconds,
+    savedPositionSeconds: resumePositionSeconds,
+    consumePendingOnResume: true,
   });
 
   const streamBootKey = useMemo(
@@ -102,6 +126,11 @@ export function useArtplayerInstance({
     setWatchStreamProvider,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible,
+    animeId: localAnimeId,
+    episodeId,
+    episodeNum,
+    onLanguageSwitchResume,
   });
 
   const {

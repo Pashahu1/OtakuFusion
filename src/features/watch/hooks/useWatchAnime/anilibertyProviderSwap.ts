@@ -54,7 +54,6 @@ export function trySyncAnilibertyProviderSwap(params: {
     writeLibertyEpisodesCache(animeId, libertyId, merged, merged.length);
     applyWatchCatalogSuccess(applyCtx, dataForResolve, merged, libertyId, {
       forceFuzzy: false,
-      freshPaheCatalog: null,
       freshLibertyCatalog: null,
       freshHikkaCatalog: null,
       preserveEpisodeNum,

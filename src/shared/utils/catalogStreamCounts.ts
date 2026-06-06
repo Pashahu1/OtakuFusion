@@ -16,19 +16,12 @@ export function aggregateCatalogStreamCounts(episodes: EpisodesTypes[]): {
 export function aggregateTvInfoStreamCounts(
   episodes: EpisodesTypes[],
   opts: {
-    provider: 'animepahe' | 'aniliberty' | 'hikka';
-    seriesDubHint?: boolean;
+    provider: 'aniliberty' | 'hikka';
   }
 ): { has_sub: number; has_dub: number } {
   const counts = aggregateCatalogStreamCounts(episodes);
-  if (opts.provider === 'hikka') {
+  if (opts.provider === 'hikka' || opts.provider === 'aniliberty') {
     return { has_sub: counts.has_sub, has_dub: 0 };
-  }
-  if (opts.provider === 'aniliberty') {
-    return { has_sub: counts.has_sub, has_dub: 0 };
-  }
-  if (opts.seriesDubHint && counts.has_dub === 0) {
-    return { has_sub: counts.has_sub, has_dub: 1 };
   }
   return counts;
 }

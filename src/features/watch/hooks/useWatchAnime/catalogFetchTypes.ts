@@ -1,4 +1,3 @@
-import type { AnimepaheCatalogBffOk } from '@/lib/bff/watch/animepahe-catalog';
 import type { AnilibertyCatalogBffOk } from '@/lib/bff/watch/aniliberty-catalog';
 import type { HikkaCatalogBffOk } from '@/lib/bff/watch/hikka-catalog';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
@@ -10,7 +9,6 @@ export type CatalogPayload = ReturnType<typeof catalogBodyFromAnimeData>;
 export interface ProviderCatalogFetchResult {
   providerId: string;
   episodes: EpisodesTypes[];
-  freshPaheCatalog: AnimepaheCatalogBffOk | null;
   freshLibertyCatalog: AnilibertyCatalogBffOk | null;
   freshHikkaCatalog: HikkaCatalogBffOk | null;
 }

@@ -40,9 +40,9 @@ export function buildWatchResolveParams(
     streamProvider:
       activeOpts.watchStreamProvider === 'aniliberty'
         ? ('aniliberty' as const)
-        : activeOpts.watchStreamProvider === 'hikka'
-          ? ('hikka' as const)
-          : ('animepahe' as const),
+        : activeOpts.watchStreamProvider === 'anikoto'
+          ? ('anikoto' as const)
+          : ('hikka' as const),
     anilibertyCatalogVerified:
       activeOpts.watchStreamProvider === 'aniliberty' &&
       activeOpts.anilibertyCatalogVerified === true,

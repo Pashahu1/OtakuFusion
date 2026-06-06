@@ -32,5 +32,7 @@ export interface PlayerProps {
   /** If false — Anilibria item is not added to Language menu. */
   anilibertyLanguageMenuEligible?: boolean;
   hikkaLanguageMenuEligible?: boolean;
+  anikotoLanguageMenuEligible?: boolean;
+  localAnimeId: string;
 }
 

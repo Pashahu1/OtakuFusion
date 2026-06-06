@@ -3,31 +3,32 @@ import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { catalogBodyFromAnimeData } from './watchAnimeCatalogUtils';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
 import { fetchAnilibertyCatalogEpisodes } from './fetchAnilibertyCatalogEpisodes';
+import { fetchAnikotoCatalogEpisodes } from './fetchAnikotoCatalogEpisodes';
 import { fetchHikkaCatalogEpisodes } from './fetchHikkaCatalogEpisodes';
 import {
+  readVerifiedAnikotoMapping,
   readVerifiedLibertyMapping,
-  readVerifiedPaheMapping,
 } from '@/features/watch/lib/provider-mapping-cache';
 
 export function hydrateCachedProviderIds(params: {
   animeId: string;
   forceFuzzy: boolean;
   isAborted: () => boolean;
-  setAnimepaheCatalogProviderId: (id: string) => void;
   setAnilibertyCatalogProviderId: (id: string) => void;
+  setAnikotoCatalogProviderId: (id: string) => void;
 }): void {
   const {
     animeId,
     forceFuzzy,
     isAborted,
-    setAnimepaheCatalogProviderId,
     setAnilibertyCatalogProviderId,
+    setAnikotoCatalogProviderId,
   } = params;
   if (forceFuzzy || isAborted()) return;
-  const hidP = readVerifiedPaheMapping(animeId);
   const hidL = readVerifiedLibertyMapping(animeId);
-  if (hidP?.paheId) setAnimepaheCatalogProviderId(hidP.paheId.trim());
+  const hidA = readVerifiedAnikotoMapping(animeId);
   if (hidL?.libertyId) setAnilibertyCatalogProviderId(hidL.libertyId.trim());
+  if (hidA?.anikotoSlug) setAnikotoCatalogProviderId(hidA.anikotoSlug.trim());
 }
 
 export async function fetchProviderCatalogEpisodes(params: {
@@ -47,7 +48,10 @@ export async function fetchProviderCatalogEpisodes(params: {
     isAborted: params.isAborted,
   };
 
-  if (params.watchStreamProvider === 'hikka' || params.watchStreamProvider === 'animepahe') {
+  if (params.watchStreamProvider === 'anikoto') {
+    return fetchAnikotoCatalogEpisodes(base);
+  }
+  if (params.watchStreamProvider === 'hikka') {
     return fetchHikkaCatalogEpisodes(base);
   }
   return fetchAnilibertyCatalogEpisodes(base);

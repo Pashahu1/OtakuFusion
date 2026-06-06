@@ -17,7 +17,6 @@ export interface WatchCatalogSessionSnapshot {
   animeInfo: AnimeData;
   episodes: EpisodesTypes[];
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
-  animepaheCatalogProviderId: string | null;
   anilibertyCatalogProviderId: string | null;
   hikkaCatalogProviderId: string | null;
   totalEpisodes: number | null;

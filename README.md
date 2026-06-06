@@ -19,13 +19,12 @@
 
 ## Overview
 
-OtakuFusion is a full-stack **Next.js** application for browsing and watching anime. Metadata comes from **AniList**; playable streams are resolved server-side through the **[Crysoline API](https://docs.crysoline.moe/)** (Animepahe, Anilibria) with optional extra providers. Playback runs in the browser via **Artplayer** and **HLS.js**, with a same-origin **`/api/m3u8-proxy`** when streams require Referer or CORS handling.
+OtakuFusion is a full-stack **Next.js** application for browsing and watching anime. Metadata comes from **AniList**; playable streams are resolved server-side through the **[Crysoline API](https://docs.crysoline.moe/)** (Anilibria) with optional extra providers (Hikka, Anikoto). Playback runs in the browser via **Artplayer** and **HLS.js**, with a same-origin **`/api/m3u8-proxy`** when streams require Referer or CORS handling.
 
 | You get | How |
 |--------|-----|
-| Japanese + English (sub/dub) | Animepahe via Crysoline |
 | Ukrainian dub | Anilibria via Crysoline |
-| Optional third source | Hikka (may need a Cloudflare relay on Vercel) |
+| Optional sources | Hikka (may need a Cloudflare relay on Vercel), Anikoto |
 | Accounts & favorites | MongoDB + JWT (HTTP-only cookies) |
 | Hero clear logos (optional) | TheTVDB API |
 
@@ -54,7 +53,7 @@ OtakuFusion is a full-stack **Next.js** application for browsing and watching an
 - Custom **Artplayer** UI with HLS quality switching, subtitles, thumbnails
 - **Skip intro / outro** when segment hints are available
 - **Continue watching** and per-episode progress
-- **Provider switch** (Animepahe ↔ Anilibria ↔ Hikka) with warm catalog cache for faster swaps
+- **Provider switch** (Anilibria ↔ Hikka ↔ Anikoto) with warm catalog cache for faster swaps
 - Server-side **stream resolve** with probing, retries, and quality variants
 
 ### Discover
@@ -264,7 +263,6 @@ src/
 │   └── api/
 │       ├── watch/resolve/    # Thin export → server/watch-resolve
 │       ├── m3u8-proxy/
-│       ├── animepahe/        # Catalog BFF
 │       ├── aniliberty/
 │       └── hikka/
 ├── features/

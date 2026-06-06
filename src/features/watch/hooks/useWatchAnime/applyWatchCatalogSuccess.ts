@@ -1,12 +1,8 @@
 import { alignEpisodesToAnilistSeasonStart } from '@/features/watch/lib/alignEpisodesToAnilistSeason';
-import { aggregateTvInfoStreamCounts } from '@/shared/utils/catalogStreamCounts';
 import { applyAnilistEpisodeDisplayTitles } from '@/features/watch/lib/anilistEpisodeDisplayTitles';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import {
-  readVerifiedPaheMapping,
-  writeLibertyEpisodesCache,
-} from '@/features/watch/lib/provider-mapping-cache';
+import { writeLibertyEpisodesCache } from '@/features/watch/lib/provider-mapping-cache';
 import { upsertWarmHikkaCatalog, upsertWarmLibertyCatalog } from './watchAnimeWarmCatalog';
 import { resolveEpisodeIdAfterCatalog } from './resolveEpisodeIdAfterCatalog';
 import { applyProviderCatalogState } from './apply-watch-catalog/applyProviderCatalogState';
@@ -36,7 +32,6 @@ export function applyWatchCatalogSuccess(
     stableWatchLoadRef,
     warmCatalogsRef,
     deferredOppositePrefetchRef,
-    setAnimeInfo,
     setEpisodes,
     setTotalEpisodes,
     setEpisodeId,
@@ -45,7 +40,7 @@ export function applyWatchCatalogSuccess(
     setEpisodesSourceProvider,
   } = ctx;
 
-  const { forceFuzzy, freshPaheCatalog, preserveEpisodeNum, settleLoading } = opts;
+  const { forceFuzzy, preserveEpisodeNum, settleLoading } = opts;
 
   applyProviderCatalogState(ctx, providerId, opts);
 
@@ -67,31 +62,6 @@ export function applyWatchCatalogSuccess(
   setEpisodes(mergedEpisodes);
   setEpisodesSourceProvider(watchStreamProvider);
   setTotalEpisodes(mergedEpisodes.length > 0 ? mergedEpisodes.length : null);
-
-  const seriesDubHint =
-    watchStreamProvider === 'animepahe' &&
-    (freshPaheCatalog?.hasSeriesDub === true ||
-      readVerifiedPaheMapping(animeId)?.hasSeriesDub === true);
-  if (watchStreamProvider === 'animepahe') {
-    const counts = aggregateTvInfoStreamCounts(mergedEpisodes, {
-      provider: 'animepahe',
-      seriesDubHint,
-    });
-    setAnimeInfo((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        animeInfo: {
-          ...prev.animeInfo,
-          tvInfo: {
-            ...prev.animeInfo.tvInfo,
-            has_sub: counts.has_sub,
-            has_dub: counts.has_dub,
-          },
-        },
-      };
-    });
-  }
 
   setEpisodeId(
     resolveEpisodeIdAfterCatalog(

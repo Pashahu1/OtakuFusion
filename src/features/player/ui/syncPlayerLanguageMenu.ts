@@ -10,6 +10,11 @@ import {
 } from './language-menu/buildFlatLanguageMenu';
 import { serverIcon } from './PlayerIcons';
 
+export interface LanguageSwitchResumeContext {
+  positionSeconds: number;
+  durationSeconds?: number;
+}
+
 export interface SyncPlayerLanguageMenuParams {
   serversRef: React.RefObject<ServerInfo[] | null>;
   activeServerIdRef: React.RefObject<string | null>;
@@ -18,6 +23,8 @@ export interface SyncPlayerLanguageMenuParams {
   setActiveServerId: (id: string | null) => void;
   anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
+  anikotoLanguageMenuEligible: boolean;
+  onBeforeLanguageSwitch?: (art: Artplayer) => LanguageSwitchResumeContext | null;
 }
 
 export function syncPlayerLanguageMenu(
@@ -25,13 +32,14 @@ export function syncPlayerLanguageMenu(
   params: SyncPlayerLanguageMenuParams,
 ): void {
   const {
-    serversRef,
     activeServerIdRef,
     watchStreamProvider,
     setWatchStreamProvider,
     setActiveServerId,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible,
+    onBeforeLanguageSwitch,
   } = params;
 
   try {
@@ -40,10 +48,19 @@ export function syncPlayerLanguageMenu(
     /* setting may not exist yet */
   }
 
+  const anikotoActiveLang =
+    watchStreamProvider === 'anikoto'
+      ? activeServerIdRef.current === '2'
+        ? 'dub'
+        : 'sub'
+      : null;
+
   const flatLanguage = buildFlatLanguageMenu({
     watchStreamProvider,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible,
+    anikotoActiveLang,
   });
 
   if (flatLanguage.length === 0) return;
@@ -52,6 +69,8 @@ export function syncPlayerLanguageMenu(
     watchStreamProvider,
     hikkaLanguageMenuEligible,
     anilibertyLanguageMenuEligible,
+    anikotoLanguageMenuEligible,
+    anikotoActiveLang,
   });
 
   art.setting.add({
@@ -63,6 +82,7 @@ export function syncPlayerLanguageMenu(
     selector: flatLanguage,
     onSelect: function (item: Record<string, unknown>) {
       const mode = item.__mode;
+      onBeforeLanguageSwitch?.(art);
       const container = art.template?.$player ?? null;
       hardStopWatchPlayerSurface(
         art,
@@ -83,6 +103,28 @@ export function syncPlayerLanguageMenu(
         setWatchStreamProvider('hikka');
         try {
           localStorage.setItem('server_type', 'sub');
+          localStorage.removeItem('server_name');
+        } catch {
+          /* ignore */
+        }
+        return typeof item.html === 'string' ? item.html : '';
+      }
+      if (mode === 'anikoto-sub') {
+        setWatchStreamProvider('anikoto');
+        setActiveServerId('1');
+        try {
+          localStorage.setItem('server_type', 'sub');
+          localStorage.removeItem('server_name');
+        } catch {
+          /* ignore */
+        }
+        return typeof item.html === 'string' ? item.html : '';
+      }
+      if (mode === 'anikoto-dub') {
+        setWatchStreamProvider('anikoto');
+        setActiveServerId('2');
+        try {
+          localStorage.setItem('server_type', 'dub');
           localStorage.removeItem('server_name');
         } catch {
           /* ignore */

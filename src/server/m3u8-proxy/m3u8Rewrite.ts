@@ -1,7 +1,24 @@
 import type { NextRequest } from 'next/server';
 import { decodeStreamUrlForInspection, unwrapCrysolinePlaybackUrl } from '@/lib/streamMediaType';
 
+import { looksLikePassthroughMediaUrl } from './segmentDetect';
+
 export const MAX_PLAYLIST_BYTES = 4 * 1024 * 1024;
+
+const PROXY_CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+  'Access-Control-Expose-Headers':
+    'Content-Range, Accept-Ranges, Content-Length, Content-Type',
+};
+
+function withProxyCors(headers: Headers): Headers {
+  const next = new Headers(headers);
+  for (const [key, value] of Object.entries(PROXY_CORS_HEADERS)) {
+    next.set(key, value);
+  }
+  return next;
+}
 
 function manifestBaseHref(targetUrl: string, finalUrl: string): string {
   const fromTarget = decodeStreamUrlForInspection(targetUrl);
@@ -103,10 +120,12 @@ export function tryRewritePlaylistResponse(
     const rewritten = rewriteM3u8Body(text, manifestBaseHref(fetchUrl, finalUrl), toProxyAbsolute);
     return new Response(rewritten, {
       status: 200,
-      headers: {
-        'Content-Type': 'audio/mpegurl; charset=utf-8',
-        'Cache-Control': 'private, max-age=30',
-      },
+      headers: withProxyCors(
+        new Headers({
+          'Content-Type': 'audio/mpegurl; charset=utf-8',
+          'Cache-Control': 'private, max-age=30',
+        }),
+      ),
     });
   } catch {
     return null;
@@ -129,10 +148,13 @@ export function shouldStreamPassthrough(
   return (
     ok &&
     hasBody &&
-    (/\.(ts|m4s|aac|mp4|webm|mkv)(\?|$)/i.test(fetchUrl) ||
+    (looksLikePassthroughMediaUrl(fetchUrl) ||
+      /\.(ts|m4s|aac|mp4|webm|mkv)(\?|$)/i.test(fetchUrl) ||
       contentTypeLower.includes('video/mp4') ||
       contentTypeLower.includes('video/iso') ||
       contentTypeLower.includes('video/webm') ||
+      contentTypeLower.includes('text/vtt') ||
+      contentTypeLower.includes('application/x-subrip') ||
       (Number.isFinite(parsedLen) && parsedLen > MAX_PLAYLIST_BYTES))
   );
 }
@@ -149,7 +171,7 @@ export function passthroughResponse(upstreamResponse: Response, contentTypeRaw: 
   if (contentLen) passthroughHeaders.set('Content-Length', contentLen);
   return new Response(upstreamResponse.body, {
     status: upstreamResponse.status,
-    headers: passthroughHeaders,
+    headers: withProxyCors(passthroughHeaders),
   });
 }
 
@@ -170,6 +192,6 @@ export function bufferedResponse(
 
   return new Response(buf, {
     status: upstreamResponse.status,
-    headers: fallbackHeaders,
+    headers: withProxyCors(fallbackHeaders),
   });
 }

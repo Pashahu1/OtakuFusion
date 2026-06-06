@@ -28,13 +28,7 @@ export function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): bo
   if (opts.providerCatalogPending === true) return true;
 
   const providerId = opts.providerAnimeId?.trim() ?? '';
-  if (sp === 'animepahe') {
-    if (!providerId) return true;
-    if (!opts.episodeEpToken?.trim()) return true;
-    return false;
-  }
-
-  const needsProviderCatalog = sp === 'hikka' || sp === 'aniliberty';
+  const needsProviderCatalog = sp === 'hikka' || sp === 'aniliberty' || sp === 'anikoto';
   if (needsProviderCatalog && !providerId) return true;
   return false;
 }

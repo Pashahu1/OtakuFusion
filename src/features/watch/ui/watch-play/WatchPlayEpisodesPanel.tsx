@@ -9,6 +9,7 @@ import './WatchPlayEpisodesPanel.scss';
 interface WatchPlayEpisodesPanelProps {
   open: boolean;
   onClose: () => void;
+  animeId: string;
   episodes: EpisodesTypes[];
   currentEpisodeId: string | null;
   seriesTitle: string;
@@ -22,6 +23,7 @@ interface WatchPlayEpisodesPanelProps {
 export function WatchPlayEpisodesPanel({
   open,
   onClose,
+  animeId,
   episodes,
   currentEpisodeId,
   seriesTitle,
@@ -90,6 +92,7 @@ export function WatchPlayEpisodesPanel({
         <div className="watch-play-episodes-panel__scroll">
           <WatchEpisodeGrid
             className="watch-play-episodes-panel__grid"
+            animeId={animeId}
             episodes={episodes}
             currentEpisodeId={currentEpisodeId}
             watchedEpisodes={watchedEpisodes}

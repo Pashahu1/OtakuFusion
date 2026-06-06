@@ -28,6 +28,7 @@ export function useWatchSeries(animeId: string, highlightEpisode?: string) {
     error: anime.error,
     anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
   });
 
   return anime;

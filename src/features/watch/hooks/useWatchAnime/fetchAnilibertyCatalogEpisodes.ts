@@ -73,7 +73,6 @@ export async function fetchAnilibertyCatalogEpisodes(
   return {
     providerId,
     episodes: list,
-    freshPaheCatalog: null,
     freshLibertyCatalog,
     freshHikkaCatalog: null,
   };

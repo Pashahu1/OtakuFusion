@@ -5,7 +5,7 @@ import {
 } from './providerSwapHelpers';
 import type { ProviderOnlyCatalogLoadInput } from '../providerOnlyCatalogLoadTypes';
 
-/** Pipeline fallback when warm swap cache is unavailable (hikka / animepahe). */
+/** Pipeline fallback when warm swap cache is unavailable (hikka). */
 export function runHikkaProviderOnlyLoad(input: ProviderOnlyCatalogLoadInput): () => void {
   const {
     deps,

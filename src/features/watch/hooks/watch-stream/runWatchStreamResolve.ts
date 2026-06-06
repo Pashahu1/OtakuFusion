@@ -118,7 +118,10 @@ export async function runWatchStreamResolve({
     if (firstErr instanceof Error && firstErr.name === 'AbortError') return;
 
     if (!shouldAutoRetryWatchResolve(firstErr)) {
-      if (isExpectedNoSourceResolveError(firstErr)) {
+      if (
+        isExpectedNoSourceResolveError(firstErr) &&
+        activeOpts.watchStreamProvider !== 'anikoto'
+      ) {
         activeOpts.onAutoRetryExhausted?.();
         return;
       }

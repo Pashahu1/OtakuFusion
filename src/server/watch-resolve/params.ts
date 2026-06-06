@@ -45,5 +45,8 @@ export function missingSeriesIdError(provider: WatchResolveStreamProvider): stri
   if (provider === 'hikka') {
     return 'ani_id is required (Hikka slug from catalog)';
   }
-  return 'ani_id is required (Animepahe series id from catalog)';
+  if (provider === 'anikoto') {
+    return 'ani_id is required (Anikoto slug from catalog)';
+  }
+  return 'ani_id is required (provider series id from catalog)';
 }

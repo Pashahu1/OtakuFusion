@@ -1,6 +1,7 @@
 import { restoreCachedAlternateLanguageMenu } from './watchAnimeCatalogUtils';
 import type { ProviderOnlyCatalogLoadInput } from './providerOnlyCatalogLoadTypes';
 import { applyWarmProviderSwap } from './provider-only-load/providerSwapHelpers';
+import { runAnikotoProviderOnlyLoad } from './provider-only-load/runAnikotoProviderOnlyLoad';
 import { runAnilibertyProviderOnlyLoad } from './provider-only-load/runAnilibertyProviderOnlyLoad';
 import { runHikkaProviderOnlyLoad } from './provider-only-load/runHikkaProviderOnlyLoad';
 
@@ -71,6 +72,10 @@ export function runProviderOnlyCatalogLoad(
 
   if (watchStreamProvider === 'aniliberty') {
     return runAnilibertyProviderOnlyLoad(input);
+  }
+
+  if (watchStreamProvider === 'anikoto') {
+    return runAnikotoProviderOnlyLoad(input);
   }
 
   return runHikkaProviderOnlyLoad(input);

@@ -45,7 +45,6 @@ export function applyWarmProviderSwap(
   }
   applyWatchCatalogSuccess(applyCtx, dataForResolve, list, providerId, {
     forceFuzzy: false,
-    freshPaheCatalog: null,
     freshLibertyCatalog: null,
     freshHikkaCatalog: null,
     preserveEpisodeNum,

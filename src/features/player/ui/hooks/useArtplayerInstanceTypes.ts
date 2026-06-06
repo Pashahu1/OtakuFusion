@@ -1,6 +1,7 @@
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
 
 export interface UseArtplayerInstanceParams {
+  localAnimeId: string;
   streamUrl: string;
   subtitles: PlayerProps['subtitles'];
   thumbnail: PlayerProps['thumbnail'];
@@ -21,4 +22,5 @@ export interface UseArtplayerInstanceParams {
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
   anilibertyLanguageMenuEligible: PlayerProps['anilibertyLanguageMenuEligible'];
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
+  anikotoLanguageMenuEligible: PlayerProps['anikotoLanguageMenuEligible'];
 }

@@ -15,6 +15,23 @@
     outline-offset: 2px;
   }
 
+  &--filler .watch-episode-card__thumb {
+    box-shadow: inset 0 0 0 1px rgb(234 179 8 / 0.28);
+  }
+
+  &--filler:not(.watch-episode-card--active) .watch-episode-card__thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      145deg,
+      rgb(234 179 8 / 0.12) 0%,
+      transparent 42%,
+      transparent 100%
+    );
+  }
+
   &__thumb {
     position: relative;
     aspect-ratio: 16 / 9;
@@ -27,6 +44,13 @@
   &__img {
     object-fit: cover;
     transition: transform 0.25s ease;
+
+    &--cover {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
   }
 
   &:hover &__img {
@@ -53,12 +77,25 @@
     position: absolute;
     right: 8px;
     bottom: 8px;
+    z-index: 3;
     padding: 2px 6px;
     border-radius: 4px;
     background: rgb(0 0 0 / 0.82);
     font-size: 0.75rem;
     font-weight: 600;
     color: #fff;
+  }
+
+  &__progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 4;
+    height: 3px;
+    background: var(--color-brand-orange, #f97316);
+    border-radius: 0 2px 0 0;
+    max-width: 100%;
+    pointer-events: none;
   }
 
   &__now-playing {
@@ -74,6 +111,24 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #fff;
+  }
+
+  &__filler-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fde68a;
+    background: rgb(15 15 18 / 0.82);
+    border: 1px solid rgb(234 179 8 / 0.5);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(6px);
   }
 
   &__watched-overlay {

@@ -1,4 +1,5 @@
 import { isBlockedAnimeInfo } from '@/lib/anime-content-policy';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
 export const CONTINUE_WATCHING_STORAGE_KEY = 'continueWatching';
@@ -19,6 +20,8 @@ type StoredEntry = {
   title?: string;
   japanese_title?: string;
   updatedAt?: number;
+  watchStreamProvider?: WatchStreamProvider;
+  streamLang?: 'sub' | 'dub';
 };
 
 function emitContinueWatchingUpdated(): void {
@@ -46,6 +49,11 @@ export interface ContinueWatchingProgress {
   durationSeconds: number;
 }
 
+export interface ContinueWatchingPlaybackContext {
+  watchStreamProvider?: WatchStreamProvider;
+  streamLang?: 'sub' | 'dub';
+}
+
 /**
  * Updates continue watching: on rewatch title moves to end of list (MRU),
  * so tail slice does not drop the title just watched.
@@ -55,6 +63,7 @@ export function updateContinueWatching(
   episodeId: string | null,
   episodeNum: number | null,
   progress?: ContinueWatchingProgress,
+  playback?: ContinueWatchingPlaybackContext,
 ): void {
   if (typeof window === 'undefined') return;
   if (!animeInfo || !animeInfo.id || !animeInfo.data_id) return;
@@ -84,11 +93,21 @@ export function updateContinueWatching(
       updatedAt: Date.now(),
       positionSeconds: progress?.positionSeconds ?? existing?.positionSeconds,
       durationSeconds: progress?.durationSeconds ?? existing?.durationSeconds,
+      watchStreamProvider:
+        playback?.watchStreamProvider ?? existing?.watchStreamProvider,
+      streamLang: playback?.streamLang ?? existing?.streamLang,
     };
 
     if (progress) {
       newEntry.positionSeconds = progress.positionSeconds;
       newEntry.durationSeconds = progress.durationSeconds;
+    }
+
+    if (playback?.watchStreamProvider) {
+      newEntry.watchStreamProvider = playback.watchStreamProvider;
+    }
+    if (playback?.streamLang) {
+      newEntry.streamLang = playback.streamLang;
     }
 
     filtered.push(newEntry);

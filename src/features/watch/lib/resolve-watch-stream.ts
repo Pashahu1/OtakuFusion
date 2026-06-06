@@ -1,7 +1,7 @@
 import { readAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
 import { DEFAULT_WATCH_STREAM_PROVIDER } from '@/features/watch/lib/watch-provider';
 
-export type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
+export type WatchResolveStreamProvider = 'aniliberty' | 'hikka' | 'anikoto';
 
 export interface WatchResolveParams {
   anilistId?: number;
@@ -98,7 +98,11 @@ export async function resolveWatchStream(
   const sp = params.streamProvider ?? DEFAULT_WATCH_STREAM_PROVIDER;
   query.set(
     'stream_provider',
-    sp === 'aniliberty' ? 'aniliberty' : sp === 'hikka' ? 'hikka' : 'animepahe'
+    sp === 'aniliberty'
+      ? 'aniliberty'
+      : sp === 'anikoto'
+        ? 'anikoto'
+        : 'hikka',
   );
 
   if (sp === 'aniliberty') {

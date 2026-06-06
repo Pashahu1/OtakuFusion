@@ -12,7 +12,6 @@ export interface WatchAnimeHydratedState {
   animeInfo: AnimeData;
   episodes: EpisodesTypes[];
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
-  animepaheCatalogProviderId: string | null;
   anilibertyCatalogProviderId: string | null;
   hikkaCatalogProviderId: string | null;
   totalEpisodes: number | null;
@@ -40,7 +39,6 @@ function mapSnapshotToHydratedState(
     animeInfo: cached.animeInfo,
     episodes: cached.episodes,
     nextEpisodeSchedule: cached.nextEpisodeSchedule,
-    animepaheCatalogProviderId: cached.animepaheCatalogProviderId,
     anilibertyCatalogProviderId: cached.anilibertyCatalogProviderId,
     hikkaCatalogProviderId: cached.hikkaCatalogProviderId,
     totalEpisodes: cached.totalEpisodes,
@@ -57,7 +55,6 @@ export function applyWatchAnimeHydratedState(
     setAnimeInfo: (v: AnimeData) => void;
     setEpisodes: (v: EpisodesTypes[]) => void;
     setNextEpisodeSchedule: (v: NextEpisodeScheduleResult | null) => void;
-    setAnimepaheCatalogProviderId: (v: string | null) => void;
     setAnilibertyCatalogProviderId: (v: string | null) => void;
     setHikkaCatalogProviderId: (v: string | null) => void;
     setTotalEpisodes: (v: number | null) => void;
@@ -73,7 +70,6 @@ export function applyWatchAnimeHydratedState(
   setters.setAnimeInfo(hydrated.animeInfo);
   setters.setEpisodes(hydrated.episodes);
   setters.setNextEpisodeSchedule(hydrated.nextEpisodeSchedule);
-  setters.setAnimepaheCatalogProviderId(hydrated.animepaheCatalogProviderId);
   setters.setAnilibertyCatalogProviderId(hydrated.anilibertyCatalogProviderId);
   setters.setHikkaCatalogProviderId(hydrated.hikkaCatalogProviderId);
   setters.setTotalEpisodes(hydrated.totalEpisodes);

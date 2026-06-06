@@ -94,6 +94,9 @@ export function useWatchStreamLang({
 
   const resolverLang = useMemo<'sub' | 'dub'>(() => {
     if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') return 'sub';
+    if (watchStreamProvider === 'anikoto') {
+      return activeServerId === '2' ? 'dub' : 'sub';
+    }
     if (activeServerId !== '2') return 'sub';
     return 'dub';
   }, [watchStreamProvider, activeServerId]);

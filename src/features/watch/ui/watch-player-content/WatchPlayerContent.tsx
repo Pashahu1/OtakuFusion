@@ -33,6 +33,7 @@ type WatchPlayerContentProps = {
   streamOverlayMessage: { title: string; subtitle: string } | null;
   anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
+  anikotoLanguageMenuEligible: boolean;
 };
 
 export const WatchPlayerContent = ({
@@ -59,6 +60,7 @@ export const WatchPlayerContent = ({
   streamOverlayMessage,
   anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
+  anikotoLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
   const streamKey = useMemo(
     () => `${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl ?? ''}`,
@@ -112,6 +114,7 @@ export const WatchPlayerContent = ({
         {showBuiltinPlayer && (
           <div className="watch-player-content__player">
             <Player
+              localAnimeId={animeId}
               streamUrl={streamUrl as string}
               subtitles={subtitles}
               thumbnail={thumbnail}
@@ -130,6 +133,7 @@ export const WatchPlayerContent = ({
               onPlaybackError={handleBuiltinError}
               anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
               hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
+              anikotoLanguageMenuEligible={anikotoLanguageMenuEligible}
             />
           </div>
         )}

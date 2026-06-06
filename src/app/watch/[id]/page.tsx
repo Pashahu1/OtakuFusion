@@ -101,6 +101,7 @@ export default function WatchSeriesPage() {
       />
 
       <Episodelist
+        animeId={animeId}
         episodes={episodes!}
         currentEpisode={episodeId ?? urlEp ?? null}
         onEpisodeClick={handleEpisodeClick}

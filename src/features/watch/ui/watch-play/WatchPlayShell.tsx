@@ -44,6 +44,7 @@ export interface WatchPlayShellProps {
   streamOverlayMessage: { title: string; subtitle: string } | null;
   anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
+  anikotoLanguageMenuEligible: boolean;
   watchedEpisodes: Record<string, boolean>;
 }
 
@@ -122,6 +123,7 @@ export function WatchPlayShell({
       <WatchPlayEpisodesPanel
         open={episodesPanelOpen}
         onClose={() => setEpisodesPanelOpen(false)}
+        animeId={animeId}
         episodes={episodes ?? []}
         currentEpisodeId={episodeId}
         seriesTitle={seriesTitle}

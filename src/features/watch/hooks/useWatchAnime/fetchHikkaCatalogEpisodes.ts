@@ -51,7 +51,6 @@ export async function fetchHikkaCatalogEpisodes(
   return {
     providerId,
     episodes: list,
-    freshPaheCatalog: null,
     freshLibertyCatalog: null,
     freshHikkaCatalog,
   };

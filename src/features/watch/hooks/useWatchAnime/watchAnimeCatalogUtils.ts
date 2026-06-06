@@ -6,6 +6,7 @@ import {
 } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 import type { AlternateLanguageMenuSetters } from './types';
 import {
+  readVerifiedAnikotoMapping,
   readVerifiedHikkaMapping,
   readVerifiedLibertyMapping,
 } from '@/features/watch/lib/provider-mapping-cache';
@@ -48,6 +49,20 @@ export function catalogBodyFromAnimeData(data: AnimeData, anilistKey: string) {
   };
 }
 
+export function applyCachedAnikotoLanguageMenu(
+  localAnimeId: string,
+  apply: Pick<
+    AlternateLanguageMenuSetters,
+    'setAnikotoCatalogProviderId' | 'setAnikotoLanguageMenuEligible'
+  >,
+): boolean {
+  const cached = readVerifiedAnikotoMapping(localAnimeId);
+  if (!cached?.anikotoSlug) return false;
+  apply.setAnikotoCatalogProviderId(cached.anikotoSlug);
+  apply.setAnikotoLanguageMenuEligible(true);
+  return true;
+}
+
 export function restoreCachedAlternateLanguageMenu(
   localAnimeId: string,
   activeProvider: WatchStreamProvider,
@@ -65,6 +80,13 @@ export function restoreCachedAlternateLanguageMenu(
     if (cachedLiberty?.libertyId) {
       apply.setAnilibertyCatalogProviderId(cachedLiberty.libertyId);
       apply.setAnilibertyLanguageMenuEligible(true);
+    }
+  }
+  if (activeProvider !== 'anikoto') {
+    const cachedAnikoto = readVerifiedAnikotoMapping(localAnimeId);
+    if (cachedAnikoto?.anikotoSlug) {
+      apply.setAnikotoCatalogProviderId(cachedAnikoto.anikotoSlug);
+      apply.setAnikotoLanguageMenuEligible(true);
     }
   }
 }

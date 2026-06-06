@@ -97,6 +97,7 @@ export default function WatchPlayPage() {
         streamOverlayMessage={watch.streamOverlayMessage}
         anilibertyLanguageMenuEligible={watch.anilibertyLanguageMenuEligible}
         hikkaLanguageMenuEligible={watch.hikkaLanguageMenuEligible}
+        anikotoLanguageMenuEligible={watch.anikotoLanguageMenuEligible}
       />
     </div>
   );
