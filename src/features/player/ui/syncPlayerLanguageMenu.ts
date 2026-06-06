@@ -40,12 +40,7 @@ export function syncPlayerLanguageMenu(
     /* setting may not exist yet */
   }
 
-  const langServers = serversRef.current ?? null;
-  const langActiveId = activeServerIdRef.current ?? null;
-
   const flatLanguage = buildFlatLanguageMenu({
-    langServers,
-    langActiveId,
     watchStreamProvider,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
@@ -57,8 +52,6 @@ export function syncPlayerLanguageMenu(
     watchStreamProvider,
     hikkaLanguageMenuEligible,
     anilibertyLanguageMenuEligible,
-    langServers,
-    langActiveId,
   });
 
   art.setting.add({
@@ -94,16 +87,6 @@ export function syncPlayerLanguageMenu(
         } catch {
           /* ignore */
         }
-        return typeof item.html === 'string' ? item.html : '';
-      }
-      if (mode === 'animepahe-sub' || mode === 'animepahe-dub') {
-        setWatchStreamProvider('animepahe');
-        const dataId = item.data_id != null ? String(item.data_id) : null;
-        if (dataId) setActiveServerId(dataId);
-        if (typeof item.serverName === 'string')
-          localStorage.setItem('server_name', item.serverName);
-        if (typeof item.type === 'string')
-          localStorage.setItem('server_type', item.type);
         return typeof item.html === 'string' ? item.html : '';
       }
       const dataId = item.data_id != null ? String(item.data_id) : null;

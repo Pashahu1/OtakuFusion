@@ -72,15 +72,8 @@ export async function computeHikkaWatchResolveOutcome(
     }
 
     const referer = refererForHikkaPageUrl(pageUrl);
-    let originHeader = 'https://ashdi.vip';
-    try {
-      originHeader = new URL(referer).origin;
-    } catch {
-      // keep default
-    }
     const requestHeaders: Record<string, string> = {
       Referer: referer,
-      Origin: originHeader,
     };
 
     const candidate: StreamingType = {

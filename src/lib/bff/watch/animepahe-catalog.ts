@@ -77,7 +77,7 @@ export async function postAnimepaheCatalog(
     return existing;
   }
 
-  const promise = fetchAnimepaheCatalog(body).finally(() => {
+  const promise = fetchAnimepaheCatalog(body, signal).finally(() => {
     if (inFlightCatalogByAnilistId.get(key) === promise) {
       inFlightCatalogByAnilistId.delete(key);
     }

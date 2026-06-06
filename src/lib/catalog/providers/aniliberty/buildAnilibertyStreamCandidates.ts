@@ -8,7 +8,6 @@ import { streamQualityRank } from '@/lib/streamQualityRank';
 
 export const ANILIBRIA_STREAM_HEADERS: Record<string, string> = {
   Referer: 'https://www.anilibria.tv/',
-  Origin: 'https://www.anilibria.tv',
 };
 
 function inferAnilibertyResolutionLabel(urlStr: string): string {

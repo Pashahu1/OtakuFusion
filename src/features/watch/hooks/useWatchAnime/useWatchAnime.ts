@@ -28,7 +28,6 @@ export function useWatchAnime(
     deferredOppositePrefetchRef: state.deferredOppositePrefetchRef,
     oppositePrefetchDoneRef: state.oppositePrefetchDoneRef,
     oppositePrefetchAbortRef: state.oppositePrefetchAbortRef,
-    setAnimepaheCatalogProviderId: state.setAnimepaheCatalogProviderId,
     setAnilibertyLanguageMenuEligible: state.setAnilibertyLanguageMenuEligible,
     setHikkaLanguageMenuEligible: state.setHikkaLanguageMenuEligible,
   });

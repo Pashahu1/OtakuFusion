@@ -23,19 +23,8 @@ export async function fetchUpstream(
   fetchUrl: string,
   forwardHeaders: Record<string, string>,
 ): Promise<Response> {
-  let upstreamResponse = await fetch(fetchUrl, {
+  return fetch(fetchUrl, {
     redirect: 'follow',
-    headers: forwardHeaders,
+    headers: dropOriginHeader(forwardHeaders),
   });
-
-  if (!upstreamResponse.ok && forwardHeaders.Origin) {
-    const retryHeaders = dropOriginHeader(forwardHeaders);
-    const retryRes = await fetch(fetchUrl, {
-      redirect: 'follow',
-      headers: retryHeaders,
-    });
-    if (retryRes.ok) upstreamResponse = retryRes;
-  }
-
-  return upstreamResponse;
 }

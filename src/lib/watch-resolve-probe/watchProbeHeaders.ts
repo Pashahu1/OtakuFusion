@@ -1,4 +1,5 @@
 import type { StreamingType } from '@/shared/types/StreamingTypes';
+import { stripOriginFromHeaders } from '@/lib/streamProxyHeaders';
 
 export function buildProbeHeaders(stream: StreamingType): Record<string, string> {
   const direct = stream.request_headers;
@@ -10,14 +11,7 @@ export function buildProbeHeaders(stream: StreamingType): Record<string, string>
       out[k.trim()] = v.trim();
     }
     if (Object.keys(out).length > 0) {
-      if (out.Referer && !out.Origin) {
-        try {
-          out.Origin = new URL(out.Referer).origin;
-        } catch {
-          /* ignore invalid Referer */
-        }
-      }
-      return out;
+      return stripOriginFromHeaders(out);
     }
   }
 
@@ -25,16 +19,10 @@ export function buildProbeHeaders(stream: StreamingType): Record<string, string>
   if (iframe) {
     try {
       const url = new URL(iframe);
-      return {
-        Referer: `${url.origin}/`,
-        Origin: url.origin,
-      };
+      return { Referer: `${url.origin}/` };
     } catch {
       /* ignore invalid iframe URL */
     }
   }
-  return {
-    Referer: 'https://anikai.to/',
-    Origin: 'https://anikai.to',
-  };
+  return { Referer: 'https://anikai.to/' };
 }

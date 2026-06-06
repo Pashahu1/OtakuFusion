@@ -14,6 +14,7 @@ import {
 } from './use-watch/watchCatalogSelectors';
 import { useWatchResolveOptions } from './use-watch/useWatchResolveOptions';
 import { useWatchOppositePrefetch } from './use-watch/useWatchOppositePrefetch';
+import { useWatchCatalogProviderFallback } from './useWatchCatalogProviderFallback';
 
 export function useWatch(
   animeId: string,
@@ -80,11 +81,20 @@ export function useWatch(
     resetKey: `${animeId}:${anime.episodeId ?? ''}:${watchStreamProvider}`,
   });
 
+  useWatchCatalogProviderFallback({
+    animeId,
+    watchStreamProvider,
+    error: anime.error,
+    providerCatalogPending: anime.providerCatalogPending,
+    setWatchStreamProvider,
+  });
+
   useWatchProviderGate({
     watchStreamProvider,
     setWatchStreamProvider,
     animeInfoLoading: anime.animeInfoLoading,
     providerCatalogPending: anime.providerCatalogPending,
+    error: anime.error,
     anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
   });

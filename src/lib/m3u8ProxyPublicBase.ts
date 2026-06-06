@@ -1,4 +1,5 @@
 import { urlIsCrysolineHostedStream } from '@/lib/streamMediaType';
+import { stripOriginFromHeaders } from '@/lib/streamProxyHeaders';
 
 const M3U8_PROXY_PATH = '/api/m3u8-proxy';
 
@@ -12,7 +13,7 @@ export function buildM3u8ProxyPlaylistUrl(
     (typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
   const u = new URL(M3U8_PROXY_PATH, origin);
   u.searchParams.set('url', streamUrl.trim());
-  u.searchParams.set('headers', JSON.stringify(headers));
+  u.searchParams.set('headers', JSON.stringify(stripOriginFromHeaders(headers)));
   return u.toString();
 }
 

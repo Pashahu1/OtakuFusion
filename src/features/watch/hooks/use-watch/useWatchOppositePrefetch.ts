@@ -21,12 +21,10 @@ export function useWatchOppositePrefetch({
 }: UseWatchOppositePrefetchInput): void {
   useEffect(() => {
     if (!animeInfo || animeInfoLoading) return;
-    if (watchStreamProvider !== 'animepahe') return;
     runDeferredOppositeProviderPrefetch();
   }, [
     animeInfo,
     animeInfoLoading,
-    watchStreamProvider,
     animeId,
     runDeferredOppositeProviderPrefetch,
   ]);

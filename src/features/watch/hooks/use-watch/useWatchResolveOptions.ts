@@ -1,7 +1,11 @@
 import { useCallback, useMemo } from 'react';
 
 import { isAnilistStillAiringFromStatus } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
-import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
+import {
+  DEFAULT_WATCH_STREAM_PROVIDER,
+  type WatchStreamProvider,
+} from '@/features/watch/lib/watch-provider';
+import { nextWatchStreamProvider } from '@/features/watch/lib/watch-provider-fallback';
 import type { WatchResolveOptions } from '../useWatchStream';
 
 import {
@@ -64,9 +68,13 @@ export function useWatchResolveOptions({
   }, [anilistStillAiring, anime.animeInfo?.animeInfo?.tvInfo?.episodeTotal]);
 
   const onAutoRetryExhausted = useCallback(() => {
-    setWatchStreamProvider('animepahe');
-    setActiveServerIdRaw('1');
-  }, [setWatchStreamProvider, setActiveServerIdRaw]);
+    const next = nextWatchStreamProvider(watchStreamProvider);
+    if (next) {
+      setWatchStreamProvider(next);
+      return;
+    }
+    setWatchStreamProvider(DEFAULT_WATCH_STREAM_PROVIDER);
+  }, [watchStreamProvider, setWatchStreamProvider]);
 
   return useMemo(
     () => ({

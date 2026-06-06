@@ -1,4 +1,5 @@
 import { readAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
+import { DEFAULT_WATCH_STREAM_PROVIDER } from '@/features/watch/lib/watch-provider';
 
 export type WatchResolveStreamProvider = 'animepahe' | 'aniliberty' | 'hikka';
 
@@ -94,7 +95,7 @@ export async function resolveWatchStream(
     query.set('anilist_still_airing', '1');
   }
   query.set('lang', params.lang === 'dub' ? 'dub' : 'sub');
-  const sp = params.streamProvider ?? 'animepahe';
+  const sp = params.streamProvider ?? DEFAULT_WATCH_STREAM_PROVIDER;
   query.set(
     'stream_provider',
     sp === 'aniliberty' ? 'aniliberty' : sp === 'hikka' ? 'hikka' : 'animepahe'

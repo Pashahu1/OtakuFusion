@@ -2,7 +2,6 @@ import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { catalogBodyFromAnimeData } from './watchAnimeCatalogUtils';
 import type { CatalogFetchBaseParams, ProviderCatalogFetchResult } from './catalogFetchTypes';
-import { fetchAnimepaheCatalogEpisodes } from './fetchAnimepaheCatalogEpisodes';
 import { fetchAnilibertyCatalogEpisodes } from './fetchAnilibertyCatalogEpisodes';
 import { fetchHikkaCatalogEpisodes } from './fetchHikkaCatalogEpisodes';
 import {
@@ -48,11 +47,8 @@ export async function fetchProviderCatalogEpisodes(params: {
     isAborted: params.isAborted,
   };
 
-  if (params.watchStreamProvider === 'hikka') {
+  if (params.watchStreamProvider === 'hikka' || params.watchStreamProvider === 'animepahe') {
     return fetchHikkaCatalogEpisodes(base);
   }
-  if (params.watchStreamProvider === 'aniliberty') {
-    return fetchAnilibertyCatalogEpisodes(base);
-  }
-  return fetchAnimepaheCatalogEpisodes(base);
+  return fetchAnilibertyCatalogEpisodes(base);
 }

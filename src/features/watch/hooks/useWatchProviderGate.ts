@@ -1,40 +1,69 @@
 import { useEffect } from 'react';
-import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
+import {
+  DEFAULT_WATCH_STREAM_PROVIDER,
+  type WatchStreamProvider,
+} from '@/features/watch/lib/watch-provider';
+import {
+  catalogErrorBelongsToProvider,
+  nextWatchStreamProvider,
+  priorWatchStreamProvider,
+} from '@/features/watch/lib/watch-provider-fallback';
 
 interface UseWatchProviderGateInput {
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   animeInfoLoading: boolean;
   providerCatalogPending: boolean;
+  error: string | null;
   anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
 }
 
-/** Fall back to animepahe when alternate catalog providers are not eligible. */
+/** Cascade: Hikka ↔ Aniliberty when the active provider has no catalog. */
 export function useWatchProviderGate({
   watchStreamProvider,
   setWatchStreamProvider,
   animeInfoLoading,
   providerCatalogPending,
+  error,
   anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
 }: UseWatchProviderGateInput): void {
   useEffect(() => {
-    if (watchStreamProvider === 'aniliberty') {
-      if (animeInfoLoading || providerCatalogPending) return;
-      if (anilibertyLanguageMenuEligible) return;
-      setWatchStreamProvider('animepahe');
+    if (animeInfoLoading || providerCatalogPending) return;
+
+    if (watchStreamProvider === 'animepahe') {
+      setWatchStreamProvider(DEFAULT_WATCH_STREAM_PROVIDER);
       return;
     }
-    if (watchStreamProvider === 'hikka') {
-      if (animeInfoLoading || providerCatalogPending) return;
-      if (hikkaLanguageMenuEligible) return;
-      setWatchStreamProvider('animepahe');
+
+    const staleErr = error?.trim() ?? '';
+
+    if (watchStreamProvider === 'aniliberty' && !anilibertyLanguageMenuEligible) {
+      if (staleErr && catalogErrorBelongsToProvider(staleErr, 'hikka')) {
+        return;
+      }
+      const stepBack = priorWatchStreamProvider('aniliberty');
+      if (stepBack === 'hikka' && hikkaLanguageMenuEligible) {
+        setWatchStreamProvider('hikka');
+      }
+      return;
+    }
+
+    if (watchStreamProvider === 'hikka' && !hikkaLanguageMenuEligible) {
+      if (staleErr && !catalogErrorBelongsToProvider(staleErr, 'hikka')) {
+        return;
+      }
+      const stepForward = nextWatchStreamProvider('hikka');
+      if (stepForward === 'aniliberty' && anilibertyLanguageMenuEligible) {
+        setWatchStreamProvider('aniliberty');
+      }
     }
   }, [
     watchStreamProvider,
     animeInfoLoading,
     providerCatalogPending,
+    error,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     setWatchStreamProvider,

@@ -21,9 +21,6 @@ export function resolveAssetPlaybackUrl(
   const headerPayload =
     requestHeaders && Object.keys(requestHeaders).length > 0
       ? requestHeaders
-      : {
-          Referer: ANIKAI_PAGE_REFERER,
-          Origin: 'https://anikai.to',
-        };
+      : { Referer: ANIKAI_PAGE_REFERER };
   return resolveStreamPlaybackUrl(raw, headerPayload, isHlsDirectHostUrl);
 }

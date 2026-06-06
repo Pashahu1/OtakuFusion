@@ -1,9 +1,6 @@
 import { decodeStreamUrlForInspection } from '@/lib/streamMediaType';
-import {
-  DEFAULT_REFERER,
-  HLS_CDN_FALLBACK_ORIGIN,
-  HLS_CDN_FALLBACK_REFERER,
-} from '../playerConstants';
+import { stripOriginFromHeaders } from '@/lib/streamProxyHeaders';
+import { DEFAULT_REFERER, HLS_CDN_FALLBACK_REFERER } from '../playerConstants';
 
 export interface StreamInfoForHeaders {
   streamingLink?: Array<{ iframe?: string; request_headers?: Record<string, string> }> | unknown;
@@ -78,7 +75,7 @@ export function getStreamHeaders(
         if (typeof value !== 'string' || !value.trim()) continue;
         headers[key] = value;
       }
-      if (Object.keys(headers).length > 0) return headers;
+      if (Object.keys(headers).length > 0) return stripOriginFromHeaders(headers);
     }
   }
   const firstLink = pickStreamingLinkForPlaylist(streamInfo, playlistUrl);
@@ -89,16 +86,14 @@ export function getStreamHeaders(
       if (typeof value !== 'string' || !value.trim()) continue;
       headers[key] = value;
     }
-    if (Object.keys(headers).length > 0) return headers;
+    if (Object.keys(headers).length > 0) return stripOriginFromHeaders(headers);
   }
   const iframeUrl = firstLink?.iframe;
 
   if (iframeUrl) {
     try {
       const url = new URL(iframeUrl);
-      const origin = url.origin;
-      headers.Referer = `${origin}/`;
-      headers.Origin = origin;
+      headers.Referer = `${url.origin}/`;
     } catch {
       headers.Referer = DEFAULT_REFERER;
     }
@@ -109,10 +104,9 @@ export function getStreamHeaders(
       decodeStreamUrlForInspection(playlistUrl).includes('24stream'))
   ) {
     headers.Referer = HLS_CDN_FALLBACK_REFERER;
-    headers.Origin = HLS_CDN_FALLBACK_ORIGIN;
   } else {
     headers.Referer = DEFAULT_REFERER;
   }
 
-  return headers;
+  return stripOriginFromHeaders(headers);
 }
