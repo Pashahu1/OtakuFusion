@@ -10,6 +10,7 @@ import {
   continueWatchingTimeLeftLabel,
 } from '@/features/watch/lib/continue-watching-display';
 import { useEpisodePreviewObjectUrl } from '@/features/watch/hooks/useEpisodePreviewObjectUrl';
+import { setPendingPlaybackResume } from '@/features/watch/lib/playback-resume-pending';
 import { watchPlayPath } from '@/shared/utils/watch-routes';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
 import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
@@ -31,7 +32,19 @@ export function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
   const isBlobPreview = Boolean(previewUrl);
 
   return (
-    <Link href={watchPlayPath(item.id, epParam)} className="continue-watching-card group block">
+    <Link
+      href={watchPlayPath(item.id, epParam)}
+      className="continue-watching-card group block"
+      onClick={() => {
+        if (item.positionSeconds == null || !Number.isFinite(item.positionSeconds)) return;
+        setPendingPlaybackResume(
+          item.id,
+          epParam,
+          item.positionSeconds,
+          item.episodeNum,
+        );
+      }}
+    >
       <article className="continue-watching-card__inner">
         <div className="continue-watching-card__thumb">
           {isBlobPreview ? (

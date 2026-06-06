@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server';
+import { readM3u8ProxyRelayBase } from '@/lib/m3u8ProxyPublicBase';
 import { decodeStreamUrlForInspection, unwrapCrysolinePlaybackUrl } from '@/lib/streamMediaType';
 
 import { looksLikePassthroughMediaUrl } from './segmentDetect';
@@ -41,7 +42,8 @@ function buildProxyTargetUrl(
   headersJson: string,
 ): string {
   const selfPath = req.nextUrl.pathname;
-  const u = new URL(selfPath, req.nextUrl.origin);
+  const relayBase = readM3u8ProxyRelayBase();
+  const u = new URL(selfPath, `${relayBase ?? req.nextUrl.origin}/`);
   u.search = '';
   u.searchParams.set('url', unwrapCrysolinePlaybackUrl(upstreamHref) || upstreamHref);
   if (headersJson.trim()) {

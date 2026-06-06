@@ -8,20 +8,28 @@ import { continueWatchingEpisodeParam } from '@/features/watch/lib/continue-watc
 interface UseRestoreContinueWatchingPlaybackInput {
   animeId: string;
   episodeId: string | null;
+  urlEpisodeId?: string;
+  skipRestore?: boolean;
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   setActiveServerId: (id: string | null) => void;
 }
 
-/** Restore saved language/provider when resuming from Continue watching. */
+/**
+ * Restore saved language/provider when episode is picked from Continue watching
+ * without `?ep=` in the URL (hero CTA path). URL `?ep=` prefs are applied synchronously in useWatch.
+ */
 export function useRestoreContinueWatchingPlayback({
   animeId,
   episodeId,
+  urlEpisodeId,
+  skipRestore = false,
   setWatchStreamProvider,
   setActiveServerId,
 }: UseRestoreContinueWatchingPlaybackInput): void {
   const appliedRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (skipRestore || urlEpisodeId?.trim()) return;
     if (!animeId.trim() || !episodeId?.trim()) return;
 
     const token = `${animeId}:${episodeId}`;
@@ -43,5 +51,12 @@ export function useRestoreContinueWatchingPlayback({
     } else if (entry.streamLang === 'sub') {
       setActiveServerId('1');
     }
-  }, [animeId, episodeId, setWatchStreamProvider, setActiveServerId]);
+  }, [
+    animeId,
+    episodeId,
+    urlEpisodeId,
+    skipRestore,
+    setWatchStreamProvider,
+    setActiveServerId,
+  ]);
 }

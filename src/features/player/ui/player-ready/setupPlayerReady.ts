@@ -21,10 +21,11 @@ export function setupPlayerReady(
   skipSegments: StreamingData['skipSegments'] | null | undefined,
   streamInfo: StreamingData | null | undefined,
   streamUrl: string | null | undefined,
+  resumeTargetSeconds?: number,
 ): void {
   const assetRequestHeaders = getStreamHeaders(streamInfo ?? null, streamUrl ?? null);
 
-  attachPlaybackAutostart(art, userPausedRef, artRef);
+  attachPlaybackAutostart(art, userPausedRef, artRef, { resumeTargetSeconds });
   const clearLogoReveal = attachLogoReveal(art);
   const clearPlayerA11y = attachPlayerA11y(art);
   const clearSkipOverlay = attachSkipIntroOutroOverlay(art, skipSegments);

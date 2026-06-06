@@ -1,10 +1,13 @@
-import { getBestLevelIndexForDisplay, getPreferred1080LevelIndex } from './hlsQualityLevels';
+import {
+  getBestLevelIndexForDisplay,
+  getPreferred720LevelIndex,
+} from './hlsQualityLevels';
 
 const HLS_QUALITY_KEY = 'otakufusion:player:hls-quality';
 
-export const DEFAULT_HLS_QUALITY_HEIGHT = 1080;
+export const DEFAULT_HLS_QUALITY_HEIGHT = 720;
 
-/** Stored HLS quality: `auto`, `best-display`, explicit height, or empty → start at 1080p. */
+/** Stored HLS quality: `auto`, `best-display`, explicit height, or empty → start at 720p. */
 export type HlsQualityPreference = 'auto' | 'best-display' | { height: number };
 
 export function readHlsQualityPreference(): HlsQualityPreference | null {
@@ -36,14 +39,14 @@ export function writeHlsQualityPreference(pref: HlsQualityPreference): void {
   }
 }
 
-/** Level index; `null` → prefer 1080p, then next available. */
+/** Level index; `null` → prefer 720p, then next available. */
 export function resolveLevelIndexForStoredQuality(
   levels: Array<{ height?: number; bitrate?: number }>,
   pref: HlsQualityPreference | null,
 ): number {
   if (!levels.length) return -1;
-  if (pref === null) return getPreferred1080LevelIndex(levels);
-  if (pref === 'auto') return getPreferred1080LevelIndex(levels);
+  if (pref === null) return getPreferred720LevelIndex(levels);
+  if (pref === 'auto') return getPreferred720LevelIndex(levels);
   if (pref === 'best-display') return getBestLevelIndexForDisplay(levels);
 
   const target = pref.height;

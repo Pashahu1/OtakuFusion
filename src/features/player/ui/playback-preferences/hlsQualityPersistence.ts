@@ -1,6 +1,6 @@
 import Hls from 'hls.js';
 
-import { getPreferred1080LevelIndex } from './hlsQualityLevels';
+import { getPreferred720LevelIndex } from './hlsQualityLevels';
 import {
   readHlsQualityPreference,
   writeHlsQualityPreference,
@@ -48,7 +48,7 @@ export function attachHlsQualityPreferencePersistence(
 
     if (stored === 'best-display' || stored === null || stored === 'auto') {
       const levelsArr = hls.levels as Array<{ height?: number; bitrate?: number }>;
-      const expected = getPreferred1080LevelIndex(levelsArr);
+      const expected = getPreferred720LevelIndex(levelsArr);
       if (idx === expected && Number.isFinite(h) && h > 0 && idx >= 0) {
         onAfterPersist?.();
         return;

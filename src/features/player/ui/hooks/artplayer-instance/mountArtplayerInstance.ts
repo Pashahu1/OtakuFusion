@@ -30,6 +30,7 @@ export interface MountArtplayerInstanceParams {
   isEffectActive: () => boolean;
   scheduleContinueWatchingUpdate?: () => void;
   attachPlaybackProgressHandlers?: (art: Artplayer) => void;
+  resumeTargetSeconds?: number;
 }
 
 export interface MountArtplayerInstanceResult {
@@ -53,6 +54,7 @@ export function mountArtplayerInstance({
   isEffectActive,
   scheduleContinueWatchingUpdate,
   attachPlaybackProgressHandlers,
+  resumeTargetSeconds,
 }: MountArtplayerInstanceParams): MountArtplayerInstanceResult {
   let suppressPlaybackError = false;
   let clearSurfaceReady: (() => void) | null = null;
@@ -124,6 +126,7 @@ export function mountArtplayerInstance({
       streamInfo?.skipSegments,
       streamInfo,
       streamUrl,
+      resumeTargetSeconds,
     );
     syncLanguageMenuIfReady();
     attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);

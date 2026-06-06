@@ -3,13 +3,17 @@ import { stripOriginFromHeaders } from '@/lib/streamProxyHeaders';
 
 const M3U8_PROXY_PATH = '/api/m3u8-proxy';
 
-function readM3u8ProxyPublicBase(): string | null {
+export function readM3u8ProxyRelayBase(): string | null {
   const raw =
     typeof process !== 'undefined'
       ? process.env.NEXT_PUBLIC_M3U8_PROXY_BASE?.trim()
       : '';
   if (!raw) return null;
   return raw.replace(/\/$/, '');
+}
+
+function readM3u8ProxyPublicBase(): string | null {
+  return readM3u8ProxyRelayBase();
 }
 
 function resolveM3u8ProxyOrigin(siteOrigin?: string): string {

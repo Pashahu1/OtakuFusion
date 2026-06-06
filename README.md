@@ -2,14 +2,14 @@
 
 # OtakuFusion
 
-**A modern anime streaming web app** — fast discovery, a custom HLS player, and multi-source playback in one polished UI.
+**A modern anime streaming web app** — discovery, a custom HLS player, and multi-provider playback in one UI.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[Features](#features) · [Quick start](#quick-start) · [Environment](#environment-variables) · [Deploy](#deployment-vercel) · [Contributing](#contributing)
+[Features](#features) · [Providers](#playback-providers) · [Quick start](#quick-start) · [Environment](#environment-variables) · [Deploy](#deployment-vercel)
 
 </div>
 
@@ -19,20 +19,34 @@
 
 ## Overview
 
-OtakuFusion is a full-stack **Next.js** application for browsing and watching anime. Metadata comes from **AniList**; playable streams are resolved server-side through the **[Crysoline API](https://docs.crysoline.moe/)** (Anilibria) with optional extra providers (Hikka, Anikoto). Playback runs in the browser via **Artplayer** and **HLS.js**, with a same-origin **`/api/m3u8-proxy`** when streams require Referer or CORS handling.
+OtakuFusion is a full-stack **Next.js** app for browsing and watching anime. Metadata comes from **AniList**; streams are resolved **server-side** through provider-specific BFF routes and **`/api/watch/resolve`**. Playback uses **Artplayer** + **HLS.js**, with an optional **Cloudflare HLS relay** for Anikoto CDN segments that need Referer/CORS proxying.
 
-| You get | How |
-|--------|-----|
-| Ukrainian dub | Anilibria via Crysoline |
-| Optional sources | Hikka (may need a Cloudflare relay on Vercel), Anikoto |
-| Accounts & favorites | MongoDB + JWT (HTTP-only cookies) |
-| Hero clear logos (optional) | TheTVDB API |
+---
+
+## Playback providers
+
+| Language / track | Provider | Backend |
+|------------------|----------|---------|
+| **Japanese (Sub)** | **Anikoto** | `ANIKOTO_API_BASE` → BFF `/api/anikoto/*` |
+| **English (Dub)** | **Anikoto** | same (sub→dub fallback on resolve when needed) |
+| **Ukrainian** | Anilibria | [Crysoline API](https://docs.crysoline.moe/) |
+| **Optional** | Hikka | direct or `HIKKA_FEATURES_RELAY_BASE` on Vercel |
+
+**Default watch provider** for new sessions is **Anikoto** (Japanese / English). Users can switch language in the player; **Continue watching** restores saved provider, dub/sub, and playback position.
+
+### Anikoto HLS notes
+
+- Resolve returns a master `.m3u8` from the Anikoto upstream CDN.
+- Set **`NEXT_PUBLIC_M3U8_PROXY_BASE`** to your [Cloudflare HLS relay](workers/hls-relay/) on production — edge passthrough for disguised segment URLs and stable CORS.
+- Without the relay, the app falls back to same-origin **`/api/m3u8-proxy`** (works locally; can be slower on serverless).
+- Player defaults to **720p** start with automatic quality fallback when a CDN rendition returns 522/5xx.
 
 ---
 
 ## Table of contents
 
 - [Features](#features)
+- [Playback providers](#playback-providers)
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
@@ -50,23 +64,23 @@ OtakuFusion is a full-stack **Next.js** application for browsing and watching an
 
 ### Watch
 
-- Custom **Artplayer** UI with HLS quality switching, subtitles, thumbnails
-- **Skip intro / outro** when segment hints are available
-- **Continue watching** and per-episode progress
-- **Provider switch** (Anilibria ↔ Hikka ↔ Anikoto) with warm catalog cache for faster swaps
-- Server-side **stream resolve** with probing, retries, and quality variants
+- **Anikoto** integration — catalog, episodes, stream resolve (sub/dub)
+- Custom **Artplayer** UI — HLS quality, subtitles, thumbnails, skip intro/outro
+- **Continue watching** — progress, preview frames, resume position, provider/lang restore
+- **Provider switch** — Anikoto ↔ Anilibria ↔ Hikka with warm catalog cache
+- Server-side **stream resolve** — probing, retries, quality variants
 
 ### Discover
 
-- Home **spotlight carousel** and trending rows
-- **Search** with debounce and genre browsing
-- **Release schedule** calendar
+- Home spotlight carousel and trending rows
+- Search with debounce and genre browsing
+- Release schedule calendar
 
 ### Account
 
-- Register / login with **email verification** (SMTP)
-- Profile, avatar upload (**Cloudinary**, optional)
-- **Favorites** synced to your account
+- Register / login with email verification (SMTP)
+- Profile, optional avatar upload (Cloudinary)
+- Favorites synced to MongoDB
 
 ---
 
@@ -76,13 +90,13 @@ OtakuFusion is a full-stack **Next.js** application for browsing and watching an
 |------|----------------|
 | App | Next.js 16 (App Router), React 19, TypeScript |
 | Styling | Tailwind CSS 4, SCSS |
-| Video | Artplayer, HLS.js, `/api/m3u8-proxy` |
-| Data (UI) | TanStack Query (home, search, details) |
-| Data (watch) | React hooks + `localStorage` mapping cache |
-| API layer | Next.js Route Handlers, Zod validation |
-| Auth | JWT access + refresh, HTTP-only cookies |
+| Video | Artplayer, HLS.js, `/api/m3u8-proxy`, optional Cloudflare relay |
+| Data (UI) | TanStack Query |
+| Data (watch) | React hooks + `localStorage` provider mapping cache |
+| API | Next.js Route Handlers, Zod |
+| Auth | JWT + HTTP-only cookies |
 | Database | MongoDB (Mongoose) |
-| Streams | [Crysoline](https://docs.crysoline.moe/) |
+| Streams | Anikoto API, Crysoline (Anilibria), Hikka |
 | Tests | Vitest |
 
 ---
@@ -98,38 +112,45 @@ flowchart LR
   end
 
   subgraph bff [Next.js BFF]
-    Catalog["/api/{provider}/catalog"]
+    AnikotoCatalog["/api/anikoto/catalog"]
     Resolve["/api/watch/resolve"]
     Proxy["/api/m3u8-proxy"]
+    Relay["Cloudflare HLS relay"]
   end
 
   subgraph server [Server modules]
     WR[watch-resolve providers]
+    AnikotoClient[anikoto client]
     Cryo[crysoline client]
+    WR --> AnikotoClient
     WR --> Cryo
   end
 
   subgraph external [External]
+    AnikotoAPI[ANIKOTO_API_BASE]
     Crysoline[Crysoline API]
     AniList[AniList GraphQL]
     DB[(MongoDB)]
   end
 
-  Pages --> Catalog
+  Pages --> AnikotoCatalog
   Pages --> Resolve
+  Player --> Relay
   Player --> Proxy
-  Catalog --> WR
+  AnikotoCatalog --> AnikotoClient
   Resolve --> WR
+  AnikotoClient --> AnikotoAPI
   Cryo --> Crysoline
+  Relay --> AnikotoAPI
   Pages --> AniList
   Pages --> DB
 ```
 
-**Resolve flow (simplified):**
+**Resolve flow (Anikoto):**
 
-1. Client loads anime + episode list from `/api/{provider}/catalog`.
-2. `GET /api/watch/resolve` picks a playable HLS URL (probe, cache).
-3. Player plays the stream directly or through `/api/m3u8-proxy`.
+1. Client loads episodes via `POST /api/anikoto/catalog` (search + slug mapping cached in `localStorage`).
+2. `GET /api/watch/resolve?provider=anikoto&lang=sub|dub` calls `ANIKOTO_API_BASE/api/stream`.
+3. Player plays the HLS URL via **`NEXT_PUBLIC_M3U8_PROXY_BASE`** or `/api/m3u8-proxy`; playlists are rewritten server-side/edge-side.
 
 ---
 
@@ -137,14 +158,16 @@ flowchart LR
 
 | Requirement | Required? | Notes |
 |-------------|-----------|--------|
-| [Node.js](https://nodejs.org/) 20 LTS | Yes | 18+ may work |
-| [MongoDB](https://www.mongodb.com/cloud/atlas) | Yes | Auth, favorites |
-| SMTP provider | Yes | Verification emails |
-| [Crysoline API key](https://docs.crysoline.moe/) | Yes | Catalogs + playback |
-| `NEXT_PUBLIC_SITE_URL` | Recommended | Metadata & server-side origin |
-| [Cloudinary](https://cloudinary.com/) | Optional | Avatar uploads only |
-| [TVDB API key](https://thetvdb.com/) | Optional | Hero clear logos |
-| [Cloudflare Worker](workers/hikka-features-relay/) | Optional | If Hikka is blocked on your host |
+| Node.js 20 LTS | Yes | |
+| MongoDB | Yes | Auth, favorites |
+| SMTP | Yes | Verification emails |
+| `CRYSOLINE_API_KEY` | Yes | Anilibria (Ukrainian) |
+| **`ANIKOTO_API_BASE`** | **Yes for JP/EN** | Server-only; e.g. `https://watch-api-alpha.vercel.app` |
+| `NEXT_PUBLIC_M3U8_PROXY_BASE` | **Strongly recommended** | Deploy `workers/hls-relay` on Cloudflare |
+| `NEXT_PUBLIC_SITE_URL` | Recommended | Metadata & resolve probes |
+| Cloudinary | Optional | Avatars |
+| TVDB API key | Optional | Hero clear logos |
+| Hikka relay worker | Optional | If Hikka blocks your host IP |
 
 ---
 
@@ -175,10 +198,17 @@ SMTP_PORT=587
 SMTP_USER=
 SMTP_PASS=
 CRYSOLINE_API_KEY=
+
+# Anikoto — Japanese / English playback
+ANIKOTO_API_BASE=https://watch-api-alpha.vercel.app
+
+# Recommended for Anikoto HLS on Vercel
+NEXT_PUBLIC_M3U8_PROXY_BASE=https://your-hls-relay.workers.dev
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+WATCH_PROBE_SKIP_VARIANT=1
 ```
 
-Full reference: **[`.env.example`](.env.example)** (grouped by feature, with optional tuning vars).
+Full reference: **[`.env.example`](.env.example)**.
 
 ### 3. Run locally
 
@@ -188,13 +218,20 @@ npm run dev
 
 Open **[http://localhost:3000](http://localhost:3000)**.
 
-### 4. Pre-deploy check
+### 4. Optional: deploy HLS relay
+
+```bash
+cd workers/hls-relay
+npx wrangler deploy
+```
+
+Set `NEXT_PUBLIC_M3U8_PROXY_BASE` to the worker URL, then redeploy OtakuFusion.
+
+### 5. Pre-deploy check
 
 ```bash
 npm run predeploy
 ```
-
-Runs `lint` → `tsc` → `test` → `build` in one go.
 
 ---
 
@@ -204,37 +241,37 @@ Runs `lint` → `tsc` → `test` → `build` in one go.
 
 | Variable | Purpose |
 |----------|---------|
-| `MONGODB_URI` | Database connection |
-| `NEXT_JWT_ACCESS_SECRET` | Access token signing |
-| `NEXT_JWT_REFRESH_SECRET` | Refresh token signing |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Transactional email |
-| `CRYSOLINE_API_KEY` | Stream catalogs & resolve |
+| `MONGODB_URI` | Database |
+| `NEXT_JWT_ACCESS_SECRET` / `NEXT_JWT_REFRESH_SECRET` | Auth tokens |
+| `SMTP_*` | Email |
+| `CRYSOLINE_API_KEY` | Anilibria catalog & resolve |
+
+### Required for Anikoto (Japanese / English)
+
+| Variable | Purpose |
+|----------|---------|
+| `ANIKOTO_API_BASE` | Upstream Anikoto API (server-only). Example: `https://watch-api-alpha.vercel.app` |
+| `ANIKOTO_FETCH_TIMEOUT_MS` | Optional; default `28000` |
 
 ### Recommended on Vercel
 
 | Variable | Purpose |
 |----------|---------|
-| `NEXT_PUBLIC_SITE_URL` | Canonical site URL (`https://your-app.vercel.app`). Falls back to `VERCEL_URL` if unset. |
-| `WATCH_PROBE_SKIP_VARIANT=1` | Faster watch resolve (skip variant playlist probe). |
+| `NEXT_PUBLIC_SITE_URL` | Canonical production URL |
+| `NEXT_PUBLIC_M3U8_PROXY_BASE` | Cloudflare HLS relay for Anikoto segments |
+| `WATCH_PROBE_SKIP_VARIANT=1` | Faster watch resolve |
 
-### Optional (enable only what you need)
-
-| Variable | Purpose |
-|----------|---------|
-| `CRYSOLINE_API_BASE_URL` | Custom Crysoline host (default `https://api.crysoline.moe`) |
-| `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | Comma-separated CDN host suffixes to skip `/api/m3u8-proxy` (not a proxy URL) |
-| `TVDB_API_KEY` | Clear logos & fanart on home / watch hero |
-| `CLOUDINARY_*` (all three) | Profile avatar upload |
-| `HIKKA_FEATURES_RELAY_BASE` | Hikka relay when server IP is blocked (see `workers/`) |
-
-### Local dev only
+### Optional
 
 | Variable | Purpose |
 |----------|---------|
-| `NEXT_IMAGE_OPTIMIZE_IN_DEV=true` | Next.js image optimizer in `npm run dev` |
-| `NEXT_PUBLIC_PLAYER_DEFER_STRICT_INIT=0` | Player HLS init debugging |
+| `CRYSOLINE_API_BASE_URL` | Custom Crysoline host |
+| `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | CDN hosts that skip proxy (e.g. Crysoline) |
+| `HIKKA_FEATURES_RELAY_BASE` | Hikka relay worker |
+| `TVDB_API_KEY` | Hero artwork |
+| `CLOUDINARY_*` | Avatar upload |
 
-Use **`.env.local`** for development. Never commit secrets.
+Never commit `.env` or secrets. Use **`.env.local`** for development.
 
 ---
 
@@ -246,12 +283,9 @@ Use **`.env.local`** for development. Never commit secrets.
 | `npm run build` | Production build |
 | `npm run start` | Serve production build |
 | `npm run lint` | ESLint |
-| `npm run test` | Vitest unit tests |
-| `npm run test:watch` | Vitest watch mode |
-| `npm run format` | Prettier (write) |
-| `npm run format:check` | Prettier (check only) |
-| `npm run predeploy` | Full CI-style check before release |
-| `npm run analyze` | Bundle analyzer build |
+| `npm run test` | Vitest |
+| `npm run predeploy` | lint → tsc → test → build |
+| `npm run analyze` | Bundle analyzer |
 
 ---
 
@@ -259,28 +293,25 @@ Use **`.env.local`** for development. Never commit secrets.
 
 ```
 src/
-├── app/                      # Pages & API routes
-│   └── api/
-│       ├── watch/resolve/    # Thin export → server/watch-resolve
-│       ├── m3u8-proxy/
-│       ├── aniliberty/
-│       └── hikka/
+├── app/api/
+│   ├── anikoto/              # Catalog, episodes, stream BFF
+│   ├── watch/resolve/
+│   ├── m3u8-proxy/
+│   ├── aniliberty/
+│   └── hikka/
 ├── features/
-│   ├── watch/                # Watch hooks, episode list, provider swap
-│   └── player/               # Artplayer, HLS lifecycle
+│   ├── watch/                # useWatch, provider swap, continue watching
+│   └── player/               # Artplayer, HLS lifecycle, resume
 ├── server/
-│   ├── watch-resolve/        # Per-provider resolve strategies
-│   ├── catalog/              # Shared createCatalogRoute factory
-│   └── crysoline/            # HTTP client + rate-limit handling
-├── lib/
-│   ├── bff/watch/            # Client catalog fetch helpers
-│   ├── catalog/providers/    # Search matching, stream candidates
-│   └── env.ts                # Validated server env (Zod)
-├── components/               # Shared UI & layout
-└── shared/                   # Types & utilities
+│   ├── anikoto/              # Upstream client + cache
+│   ├── watch-resolve/        # anikotoResolver, anilibertyResolver, …
+│   └── m3u8-proxy/
+├── lib/m3u8ProxyPublicBase.ts
+└── components/
 
-workers/hikka-features-relay/ # Optional Cloudflare Worker
-docs/readme-banner.png        # README screenshot
+workers/
+├── hls-relay/                # Cloudflare — Anikoto HLS edge relay
+└── hikka-features-relay/     # Optional Hikka relay
 ```
 
 ---
@@ -289,27 +320,25 @@ docs/readme-banner.png        # README screenshot
 
 **Checklist:**
 
-- [ ] Set all **required** env vars in the Vercel project settings
-- [ ] Set `NEXT_PUBLIC_SITE_URL` to your production domain
-- [ ] Redeploy after any `NEXT_PUBLIC_*` change (inlined at build time)
-- [ ] If using **Hikka**: deploy `workers/hikka-features-relay` and set `HIKKA_FEATURES_RELAY_BASE`
+- [ ] Required env vars (MongoDB, JWT, SMTP, `CRYSOLINE_API_KEY`)
+- [ ] **`ANIKOTO_API_BASE`** for Japanese / English
+- [ ] **`NEXT_PUBLIC_M3U8_PROXY_BASE`** → deploy `workers/hls-relay` first
+- [ ] `NEXT_PUBLIC_SITE_URL` → your production domain
+- [ ] `WATCH_PROBE_SKIP_VARIANT=1`
+- [ ] **Redeploy** after any `NEXT_PUBLIC_*` change
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Pashahu1/OtakuFusion)
 
-> You still need to add `CRYSOLINE_API_KEY`, MongoDB, SMTP, and JWT secrets in the Vercel dashboard after importing.
+After deploy, verify: open any title → **Japanese / Sub** → Network shows `watch/resolve` **200** and HLS requests via your relay worker.
 
 ---
 
 ## Contributing
 
-Contributions are welcome.
-
-1. Open an issue for bugs or feature ideas.
+1. Open an issue for bugs or ideas.
 2. Fork → branch (`feat/...` or `fix/...`).
-3. Run `npm run predeploy` before opening a PR.
-4. Keep PRs focused; follow patterns in `src/features/`.
-
-When reporting bugs, include steps to reproduce, expected vs actual behaviour, and your environment — **never paste API keys**.
+3. Run `npm run predeploy` before a PR.
+4. Never paste API keys in issues or PRs.
 
 ---
 

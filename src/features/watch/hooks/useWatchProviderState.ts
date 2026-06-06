@@ -1,19 +1,32 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   DEFAULT_WATCH_STREAM_PROVIDER,
   type WatchStreamProvider,
 } from '@/features/watch/lib/watch-provider';
 
-export function useWatchProviderState(animeId: string) {
-  const [watchStreamProvider, setWatchStreamProviderState] =
-    useState<WatchStreamProvider>(DEFAULT_WATCH_STREAM_PROVIDER);
+export function useWatchProviderState(
+  animeId: string,
+  initialProvider?: WatchStreamProvider,
+) {
+  const [watchStreamProvider, setWatchStreamProviderState] = useState<WatchStreamProvider>(
+    () => initialProvider ?? DEFAULT_WATCH_STREAM_PROVIDER,
+  );
   const [streamLangRevision, setStreamLangRevision] = useState(0);
   const [trackedAnimeId, setTrackedAnimeId] = useState(animeId);
+  const hydratedContinueProviderRef = useRef(false);
 
   if (trackedAnimeId !== animeId && animeId.trim()) {
+    hydratedContinueProviderRef.current = false;
     setTrackedAnimeId(animeId);
-    setWatchStreamProviderState(DEFAULT_WATCH_STREAM_PROVIDER);
+    setWatchStreamProviderState(initialProvider ?? DEFAULT_WATCH_STREAM_PROVIDER);
     setStreamLangRevision(0);
+  } else if (
+    initialProvider &&
+    !hydratedContinueProviderRef.current &&
+    watchStreamProvider !== initialProvider
+  ) {
+    hydratedContinueProviderRef.current = true;
+    setWatchStreamProviderState(initialProvider);
   }
 
   const setWatchStreamProvider = useCallback((next: WatchStreamProvider) => {

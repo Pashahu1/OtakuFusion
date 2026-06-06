@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import { useWatchAnime } from './useWatchAnime';
@@ -15,18 +15,35 @@ import {
 import { useWatchResolveOptions } from './use-watch/useWatchResolveOptions';
 import { useWatchOppositePrefetch } from './use-watch/useWatchOppositePrefetch';
 import { useWatchCatalogProviderFallback } from './useWatchCatalogProviderFallback';
+import { readContinueWatchingPlaybackPrefs } from '@/features/watch/lib/read-continue-watching-playback-prefs';
+
 import { useRestoreContinueWatchingPlayback } from './useRestoreContinueWatchingPlayback';
 
 export function useWatch(
   animeId: string,
   initialEpisodeId: string | undefined,
 ): UseWatchReturn {
+  const continuePrefsTokenRef = useRef('');
+  const continuePlaybackPrefsRef = useRef(
+    null as ReturnType<typeof readContinueWatchingPlaybackPrefs>,
+  );
+
+  const prefsToken = `${animeId}:${initialEpisodeId ?? ''}`;
+  if (continuePrefsTokenRef.current !== prefsToken) {
+    continuePrefsTokenRef.current = prefsToken;
+    continuePlaybackPrefsRef.current =
+      typeof window !== 'undefined'
+        ? readContinueWatchingPlaybackPrefs(animeId, initialEpisodeId)
+        : null;
+  }
+  const continuePlaybackPrefs = continuePlaybackPrefsRef.current;
+
   const {
     watchStreamProvider,
     setWatchStreamProvider,
     streamLangRevision,
     setStreamLangRevision,
-  } = useWatchProviderState(animeId);
+  } = useWatchProviderState(animeId, continuePlaybackPrefs?.watchStreamProvider);
 
   const anime = useWatchAnime(animeId, initialEpisodeId, watchStreamProvider);
 
@@ -49,11 +66,14 @@ export function useWatch(
     episodes: anime.episodes,
     dubFromTv,
     setStreamLangRevision,
+    initialStreamLang: continuePlaybackPrefs?.streamLang,
   });
 
   useRestoreContinueWatchingPlayback({
     animeId,
     episodeId: anime.episodeId,
+    urlEpisodeId: initialEpisodeId,
+    skipRestore: continuePlaybackPrefs != null,
     setWatchStreamProvider,
     setActiveServerId,
   });

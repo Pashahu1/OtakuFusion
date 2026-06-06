@@ -40,6 +40,35 @@ function logHlsErrorInDev(data: {
   log('[OtakuFusion][Hls]', payload);
 }
 
+function isLevelLoadHttpFailure(data: {
+  type?: string;
+  details?: string;
+  response?: { code?: number };
+}): boolean {
+  if (data.type !== Hls.ErrorTypes.NETWORK_ERROR) return false;
+  if (
+    data.details !== Hls.ErrorDetails.LEVEL_LOAD_ERROR &&
+    data.details !== Hls.ErrorDetails.FRAG_LOAD_ERROR
+  ) {
+    return false;
+  }
+  const http = data.response?.code;
+  return typeof http === 'number' && http >= 400;
+}
+
+/** CDN often returns 522/502 only for broken renditions — step down before hls.js exhausts retries. */
+function tryDowngradeOnLevelHttpFailure(
+  hls: InstanceType<typeof Hls>,
+  data: { type?: string; details?: string; response?: { code?: number } },
+  recoveryState: HlsRecoveryState,
+): boolean {
+  if (!isLevelLoadHttpFailure(data)) return false;
+  if (recoveryState.hlsQualityDowngrades >= 4) return false;
+  if (!tryDowngradeHlsQualityLevel(hls)) return false;
+  recoveryState.hlsQualityDowngrades += 1;
+  return true;
+}
+
 function tryRecoverHlsError(
   hls: InstanceType<typeof Hls>,
   data: { type?: string; fatal?: boolean; details?: string },
@@ -101,6 +130,28 @@ export function bindM3u8HlsInstanceHandler(
         if (!ctx.effectActive()) return;
 
         logHlsErrorInDev(data as Parameters<typeof logHlsErrorInDev>[0]);
+
+        if (tryDowngradeOnLevelHttpFailure(hls, data, recoveryState)) return;
+
+        const isManifestLoadFailure =
+          data?.type === Hls.ErrorTypes.NETWORK_ERROR &&
+          data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR;
+        const manifestHttp =
+          typeof data.response?.code === 'number' ? data.response.code : null;
+        if (
+          isManifestLoadFailure &&
+          manifestHttp != null &&
+          manifestHttp >= 500 &&
+          !recoveryState.hlsRecoverNetworkTried
+        ) {
+          recoveryState.hlsRecoverNetworkTried = true;
+          try {
+            hls.startLoad(-1);
+            return;
+          } catch {
+            /* fall through */
+          }
+        }
 
         if (data?.type === Hls.ErrorTypes.NETWORK_ERROR && isHardHttpFailure(data)) {
           reportError(art);

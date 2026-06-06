@@ -4,6 +4,8 @@ import { pauseOrphanPlayerVideos } from '../hooks/artplayer-hls/hardStopPlayerMe
 
 const MIN_BUFFER_AHEAD_SEC = 0.7;
 const MAX_BUFFER_WAIT_MS = 2800;
+const MIN_RESUME_SECONDS = 12;
+const RESUME_GATE_FALLBACK_MS = 4500;
 
 async function attemptAutoplay(art: Artplayer): Promise<boolean> {
   try {
@@ -24,16 +26,40 @@ async function attemptAutoplay(art: Artplayer): Promise<boolean> {
   }
 }
 
+export interface AttachPlaybackAutostartOptions {
+  /** Defer play until resume seek completes (Continue watching). */
+  resumeTargetSeconds?: number;
+}
+
 export function attachPlaybackAutostart(
   art: Artplayer,
   userPausedRef: React.RefObject<boolean>,
   artRef: React.RefObject<HTMLDivElement | null>,
+  options?: AttachPlaybackAutostartOptions,
 ): void {
   userPausedRef.current = false;
   let started = false;
 
+  const resumeTarget = options?.resumeTargetSeconds;
+  const needsResumeGate =
+    resumeTarget != null &&
+    Number.isFinite(resumeTarget) &&
+    resumeTarget >= MIN_RESUME_SECONDS;
+  let resumeGateOpen = !needsResumeGate;
+
+  const openResumeGate = () => {
+    if (resumeGateOpen) return;
+    resumeGateOpen = true;
+    tryPlay();
+  };
+
+  if (needsResumeGate) {
+    art.once('video:seeked', openResumeGate);
+    window.setTimeout(openResumeGate, RESUME_GATE_FALLBACK_MS);
+  }
+
   const tryPlay = () => {
-    if (started || userPausedRef.current) return;
+    if (!resumeGateOpen || started || userPausedRef.current) return;
     if (document.visibilityState !== 'visible') return;
     void attemptAutoplay(art).then((ok) => {
       if (ok) started = true;
@@ -44,7 +70,7 @@ export function attachPlaybackAutostart(
     typeof performance !== 'undefined' ? performance.now() : Date.now();
 
   const tryPlayWhenBuffered = () => {
-    if (started || userPausedRef.current) return;
+    if (!resumeGateOpen || started || userPausedRef.current) return;
     const v = art.video;
     if (!v) {
       tryPlay();
@@ -57,6 +83,7 @@ export function attachPlaybackAutostart(
         ahead = buf.end(buf.length - 1) - v.currentTime;
       }
     } catch {
+      /* noop */
     }
     const elapsed =
       (typeof performance !== 'undefined' ? performance.now() : Date.now()) -

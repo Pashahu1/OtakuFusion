@@ -10,20 +10,33 @@ export async function computeAnikotoWatchResolveOutcome(
 
   try {
     const servers = ['hd-2', 'hd-1'] as const;
-    let payload: Awaited<ReturnType<typeof getAnikotoStreamCached>> | null = null;
 
-    for (const server of servers) {
-      const attempt = await getAnikotoStreamCached({
-        id: anikotoSlug,
-        ep: String(episode),
-        server,
-        type: lang,
-      });
-      if (attempt.success && attempt.data?.m3u8?.trim()) {
-        payload = attempt;
-        break;
+    async function fetchStream(type: 'sub' | 'dub') {
+      let last: Awaited<ReturnType<typeof getAnikotoStreamCached>> | null = null;
+      for (const server of servers) {
+        const attempt = await getAnikotoStreamCached({
+          id: anikotoSlug,
+          ep: String(episode),
+          server,
+          type,
+        });
+        if (attempt.success && attempt.data?.m3u8?.trim()) {
+          return attempt;
+        }
+        last = attempt;
       }
-      payload = attempt;
+      return last;
+    }
+
+    let resolvedLang = lang;
+    let payload = await fetchStream(lang);
+
+    if ((!payload?.success || !payload.data?.m3u8?.trim()) && lang === 'sub') {
+      const dubPayload = await fetchStream('dub');
+      if (dubPayload?.success && dubPayload.data?.m3u8?.trim()) {
+        payload = dubPayload;
+        resolvedLang = 'dub';
+      }
     }
 
     if (!payload?.success || !payload.data?.m3u8?.trim()) {
@@ -67,13 +80,13 @@ export async function computeAnikotoWatchResolveOutcome(
         episode: {
           number: episode,
           ep_token: String(episode),
-          hasSub: lang !== 'dub',
-          hasDub: lang === 'dub',
+          hasSub: resolvedLang !== 'dub',
+          hasDub: resolvedLang === 'dub',
         },
         stream: {
           url: m3u8,
           format: 'hls',
-          lang,
+          lang: resolvedLang,
           server: 'Anikoto',
           request_headers: requestHeaders,
           tracks,
@@ -83,10 +96,10 @@ export async function computeAnikotoWatchResolveOutcome(
           outro: normalizeAnikotoSkipSegment(payload.data.outro),
         },
         fallback: {
-          applied: false,
-          from: null,
-          to: null,
-          reason: null,
+          applied: resolvedLang !== lang,
+          from: lang,
+          to: resolvedLang !== lang ? resolvedLang : null,
+          reason: resolvedLang !== lang ? 'anikoto_sub_empty_used_dub' : null,
         },
         debug: {
           latency_ms: Date.now() - startedAt,

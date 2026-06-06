@@ -47,7 +47,8 @@ export function useWatchStream(
     setBoundGenerationKey(generationKey);
   }, [streamUrl, buffering, generationKey]);
 
-  const streamGenerationStale = boundGenerationKey !== generationKey;
+  const streamGenerationStale =
+    boundGenerationKey != null && boundGenerationKey !== generationKey;
   const publicStreamUrl = streamGenerationStale ? null : streamUrl;
   const publicBuffering = streamGenerationStale || buffering;
 

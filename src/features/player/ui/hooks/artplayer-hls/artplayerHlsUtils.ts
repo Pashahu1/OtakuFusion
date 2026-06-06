@@ -34,11 +34,18 @@ export function destroyArtplayerInstance(
     clearArtplayerSubtitleResizeRaf(instance);
     hardStopArtplayerMedia(instance, container);
     teardownActivePlayerHlsSession();
-    instance.pause();
+    try {
+      instance.pause();
+    } catch {
+      /* video may already be detached during HLS teardown */
+    }
     instance.destroy(false);
   } catch (e) {
     if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
-      console.warn('Player cleanup:', e);
+      const message = e instanceof Error ? e.message : String(e);
+      if (!/pause/i.test(message)) {
+        console.warn('Player cleanup:', e);
+      }
     }
   }
   if (container && typeof container.innerHTML !== 'undefined') {

@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type SetStateAction,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 
 import { computeHasAnyDub } from '@/features/watch/lib/computeHasAnyDub';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
@@ -26,6 +19,7 @@ interface UseWatchStreamLangInput {
   episodes: EpisodesTypes[] | null;
   dubFromTv: number;
   setStreamLangRevision: React.Dispatch<React.SetStateAction<number>>;
+  initialStreamLang?: 'sub' | 'dub';
 }
 
 export function useWatchStreamLang({
@@ -35,17 +29,37 @@ export function useWatchStreamLang({
   episodes,
   dubFromTv,
   setStreamLangRevision,
+  initialStreamLang,
 }: UseWatchStreamLangInput): UseWatchStreamLangResult {
-  const [langState, setLangState] = useState<LangState>({
+  const [langState, setLangState] = useState<LangState>(() => ({
     animeId,
-    activeServerId: '1',
-    userChoseDub: false,
-  });
+    activeServerId: initialStreamLang === 'dub' ? '2' : '1',
+    userChoseDub: initialStreamLang === 'dub',
+  }));
   const userChoseDubRef = useRef(false);
   const [revisionBumpKey, setRevisionBumpKey] = useState('');
+  const hydratedContinueLangRef = useRef(false);
 
   if (langState.animeId !== animeId) {
-    setLangState({ animeId, activeServerId: '1', userChoseDub: false });
+    hydratedContinueLangRef.current = false;
+    setLangState({
+      animeId,
+      activeServerId: initialStreamLang === 'dub' ? '2' : '1',
+      userChoseDub: initialStreamLang === 'dub',
+    });
+  } else if (
+    initialStreamLang &&
+    !hydratedContinueLangRef.current
+  ) {
+    const targetId = initialStreamLang === 'dub' ? '2' : '1';
+    hydratedContinueLangRef.current = true;
+    if (langState.activeServerId !== targetId) {
+      setLangState((prev) => ({
+        ...prev,
+        activeServerId: targetId,
+        userChoseDub: initialStreamLang === 'dub',
+      }));
+    }
   }
 
   useEffect(() => {

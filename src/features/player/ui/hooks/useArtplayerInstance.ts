@@ -184,6 +184,7 @@ export function useArtplayerInstance({
         isEffectActive: () => effectActive,
         scheduleContinueWatchingUpdate,
         attachPlaybackProgressHandlers,
+        resumeTargetSeconds: resumePositionSeconds,
       });
 
       createdPlayer = mounted.art;
