@@ -162,7 +162,7 @@ flowchart LR
 | MongoDB | Yes | Auth, favorites |
 | SMTP | Yes | Verification emails |
 | `CRYSOLINE_API_KEY` | Yes | Anilibria (Ukrainian) |
-| **`ANIKOTO_API_BASE`** | **Yes for JP/EN** | Server-only; e.g. `https://watch-api-alpha.vercel.app` |
+| **`ANIKOTO_API_BASE`** | **Yes for JP/EN** | Server-only; use a compatible Anikoto API, e.g. `https://anikoto-api-nine.vercel.app` |
 | `NEXT_PUBLIC_M3U8_PROXY_BASE` | **Strongly recommended** | Deploy `workers/hls-relay` on Cloudflare |
 | `NEXT_PUBLIC_SITE_URL` | Recommended | Metadata & resolve probes |
 | Cloudinary | Optional | Avatars |
@@ -200,7 +200,7 @@ SMTP_PASS=
 CRYSOLINE_API_KEY=
 
 # Anikoto — Japanese / English playback
-ANIKOTO_API_BASE=https://watch-api-alpha.vercel.app
+ANIKOTO_API_BASE=https://anikoto-api-nine.vercel.app
 
 # Recommended for Anikoto HLS on Vercel
 NEXT_PUBLIC_M3U8_PROXY_BASE=https://your-hls-relay.workers.dev
@@ -250,7 +250,7 @@ npm run predeploy
 
 | Variable | Purpose |
 |----------|---------|
-| `ANIKOTO_API_BASE` | Upstream Anikoto API (server-only). Example: `https://watch-api-alpha.vercel.app` |
+| `ANIKOTO_API_BASE` | Upstream Anikoto API (server-only). Example: `https://anikoto-api-nine.vercel.app` |
 | `ANIKOTO_FETCH_TIMEOUT_MS` | Optional; default `28000` |
 
 ### Recommended on Vercel

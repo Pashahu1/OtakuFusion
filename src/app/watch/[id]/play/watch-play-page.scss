@@ -4,5 +4,20 @@
   box-sizing: border-box;
   background: #000;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
+
+  @media (orientation: landscape) and (max-height: 520px) {
+    padding: 60px 0 0;
+    min-height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .watch-play-shell__content {
+    padding-inline: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  }
 }
