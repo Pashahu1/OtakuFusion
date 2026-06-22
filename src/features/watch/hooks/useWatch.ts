@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 
 import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 import { useWatchAnime } from './useWatchAnime';
@@ -23,20 +23,10 @@ export function useWatch(
   animeId: string,
   initialEpisodeId: string | undefined,
 ): UseWatchReturn {
-  const continuePrefsTokenRef = useRef('');
-  const continuePlaybackPrefsRef = useRef(
-    null as ReturnType<typeof readContinueWatchingPlaybackPrefs>,
-  );
-
-  const prefsToken = `${animeId}:${initialEpisodeId ?? ''}`;
-  if (continuePrefsTokenRef.current !== prefsToken) {
-    continuePrefsTokenRef.current = prefsToken;
-    continuePlaybackPrefsRef.current =
-      typeof window !== 'undefined'
-        ? readContinueWatchingPlaybackPrefs(animeId, initialEpisodeId)
-        : null;
-  }
-  const continuePlaybackPrefs = continuePlaybackPrefsRef.current;
+  const continuePlaybackPrefs = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return readContinueWatchingPlaybackPrefs(animeId, initialEpisodeId);
+  }, [animeId, initialEpisodeId]);
 
   const {
     watchStreamProvider,
