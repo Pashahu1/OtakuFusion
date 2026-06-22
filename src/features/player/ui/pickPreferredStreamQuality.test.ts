@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { pickPreferredQualityVariant } from './pickPreferredStreamQuality';
 
 const variants = [
-  { height: 1080, url: 'https://cdn.example/1080.m3u8' },
-  { height: 720, url: 'https://cdn.example/720.m3u8' },
-  { height: 480, url: 'https://cdn.example/480.m3u8' },
+  { height: 1080, url: 'https://cdn.example/1080.m3u8', label: '1080p' },
+  { height: 720, url: 'https://cdn.example/720.m3u8', label: '720p' },
+  { height: 480, url: 'https://cdn.example/480.m3u8', label: '480p' },
 ];
 
 describe('pickPreferredQualityVariant', () => {

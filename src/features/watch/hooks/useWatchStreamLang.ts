@@ -38,10 +38,10 @@ export function useWatchStreamLang({
   }));
   const userChoseDubRef = useRef(false);
   const [revisionBumpKey, setRevisionBumpKey] = useState('');
-  const hydratedContinueLangRef = useRef(false);
+  const [hydratedContinueLangRef, setHydratedContinueLangRef] = useState(false);
 
   if (langState.animeId !== animeId) {
-    hydratedContinueLangRef.current = false;
+    setHydratedContinueLangRef(false);
     setLangState({
       animeId,
       activeServerId: initialStreamLang === 'dub' ? '2' : '1',
@@ -49,10 +49,10 @@ export function useWatchStreamLang({
     });
   } else if (
     initialStreamLang &&
-    !hydratedContinueLangRef.current
+    !hydratedContinueLangRef
   ) {
     const targetId = initialStreamLang === 'dub' ? '2' : '1';
-    hydratedContinueLangRef.current = true;
+    setHydratedContinueLangRef(true);
     if (langState.activeServerId !== targetId) {
       setLangState((prev) => ({
         ...prev,

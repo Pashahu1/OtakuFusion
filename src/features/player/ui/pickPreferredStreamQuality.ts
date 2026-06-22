@@ -6,6 +6,7 @@ export interface QualityVariantPick {
   url: string;
   request_headers?: Record<string, string>;
   height: number;
+  label: string;
 }
 
 function variantHeight(v: StreamQualityVariant): number {
@@ -23,6 +24,7 @@ function toVariantResult(v: StreamQualityVariant): QualityVariantPick {
     url: v.url.trim(),
     request_headers: v.request_headers,
     height: variantHeight(v),
+    label: v.label.trim(),
   };
 }
 
@@ -32,10 +34,10 @@ export function pickPreferredQualityVariant(
   fallbackUrl: string,
 ): QualityVariantPick {
   const raw = fallbackUrl.trim();
-  if (!variants?.length) return { url: raw, height: 0 };
+  if (!variants?.length) return { url: raw, height: 0, label: '1080p' };
 
   const ranked = sortedByHeightDesc(variants);
-  if (!ranked.length) return { url: raw, height: 0 };
+  if (!ranked.length) return { url: raw, height: 0, label: '1080p' };
 
   const exact1080 = ranked.find((v) => variantHeight(v) === DEFAULT_PLAYBACK_QUALITY_HEIGHT);
   if (exact1080) return toVariantResult(exact1080);
