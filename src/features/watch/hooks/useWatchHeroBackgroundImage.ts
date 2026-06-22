@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import type { SpotlightAnime } from '@/shared/types/GlobalAnimeTypes';
 import { spotlightHeroBackgroundUrl } from '@/shared/utils/thumbnail-url';
@@ -22,14 +22,13 @@ export function useWatchHeroBackgroundImage(
     return src.trim() || null;
   }, [hero, heroArtworkPending]);
 
-  const [isBackgroundReady, setIsBackgroundReady] = useState(false);
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
 
-  useEffect(() => {
-    setIsBackgroundReady(false);
-  }, [backgroundSrc]);
+  const isBackgroundReady =
+    backgroundSrc != null && loadedSrc === backgroundSrc;
 
   const onBackgroundLoad = () => {
-    setIsBackgroundReady(true);
+    if (backgroundSrc) setLoadedSrc(backgroundSrc);
   };
 
   const showBackgroundSkeleton =
