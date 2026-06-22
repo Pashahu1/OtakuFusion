@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   PLAYBACK_PREVIEW_UPDATED_EVENT,
@@ -8,42 +8,53 @@ import {
   readEpisodePreviewBlob,
 } from '@/features/watch/lib/playback-preview-store';
 
+interface LoadedPreview {
+  key: string;
+  url: string;
+}
+
 export function useEpisodePreviewObjectUrl(
   animeId: string | undefined,
   episodeId: string | undefined,
 ): string | null {
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const trimmedAnimeId = animeId?.trim() ?? '';
+  const trimmedEpisodeId = episodeId?.trim() ?? '';
+  const previewKey =
+    trimmedAnimeId && trimmedEpisodeId
+      ? episodePreviewKey(trimmedAnimeId, trimmedEpisodeId)
+      : null;
+
+  const [loadedPreview, setLoadedPreview] = useState<LoadedPreview | null>(null);
+
+  const objectUrl =
+    previewKey && loadedPreview?.key === previewKey ? loadedPreview.url : null;
 
   useEffect(() => {
-    if (!animeId?.trim() || !episodeId?.trim()) {
-      setObjectUrl(null);
-      return;
-    }
+    if (!previewKey) return;
 
     let cancelled = false;
     let activeUrl: string | null = null;
-    const key = episodePreviewKey(animeId, episodeId);
 
     const load = async () => {
-      const blob = await readEpisodePreviewBlob(key);
+      const blob = await readEpisodePreviewBlob(previewKey);
       if (cancelled) return;
       if (activeUrl) {
         URL.revokeObjectURL(activeUrl);
         activeUrl = null;
       }
       if (!blob) {
-        setObjectUrl(null);
+        setLoadedPreview(null);
         return;
       }
       activeUrl = URL.createObjectURL(blob);
-      setObjectUrl(activeUrl);
+      setLoadedPreview({ key: previewKey, url: activeUrl });
     };
 
     void load();
 
     const onUpdated = (event: Event) => {
       const detail = (event as CustomEvent<{ animeId?: string; episodeId?: string }>).detail;
-      if (detail?.animeId !== animeId || detail?.episodeId !== episodeId) return;
+      if (detail?.animeId !== trimmedAnimeId || detail?.episodeId !== trimmedEpisodeId) return;
       void load();
     };
 
@@ -53,7 +64,7 @@ export function useEpisodePreviewObjectUrl(
       window.removeEventListener(PLAYBACK_PREVIEW_UPDATED_EVENT, onUpdated);
       if (activeUrl) URL.revokeObjectURL(activeUrl);
     };
-  }, [animeId, episodeId]);
+  }, [previewKey, trimmedAnimeId, trimmedEpisodeId]);
 
   return objectUrl;
 }
@@ -62,13 +73,20 @@ export function useEpisodePreviewMap(
   animeId: string | undefined,
   episodeIds: string[],
 ): Record<string, string> {
+  const trimmedAnimeId = animeId?.trim() ?? '';
+  const episodeIdsKey = useMemo(() => episodeIds.join('|'), [episodeIds]);
+  const mapKey =
+    trimmedAnimeId && episodeIds.length > 0
+      ? `${trimmedAnimeId}|${episodeIdsKey}`
+      : null;
+
+  const [loadedMapKey, setLoadedMapKey] = useState<string | null>(null);
   const [map, setMap] = useState<Record<string, string>>({});
 
+  const publicMap = mapKey && loadedMapKey === mapKey ? map : {};
+
   useEffect(() => {
-    if (!animeId?.trim() || episodeIds.length === 0) {
-      setMap({});
-      return;
-    }
+    if (!mapKey) return;
 
     let cancelled = false;
     const activeUrls: string[] = [];
@@ -83,20 +101,23 @@ export function useEpisodePreviewMap(
       const next: Record<string, string> = {};
       for (const episodeId of episodeIds) {
         if (cancelled) break;
-        const blob = await readEpisodePreviewBlob(episodePreviewKey(animeId, episodeId));
+        const blob = await readEpisodePreviewBlob(episodePreviewKey(trimmedAnimeId, episodeId));
         if (!blob) continue;
         const url = URL.createObjectURL(blob);
         activeUrls.push(url);
         next[episodeId] = url;
       }
-      if (!cancelled) setMap(next);
+      if (!cancelled) {
+        setMap(next);
+        setLoadedMapKey(mapKey);
+      }
     };
 
     void load();
 
     const onUpdated = (event: Event) => {
       const detail = (event as CustomEvent<{ animeId?: string; episodeId?: string }>).detail;
-      if (detail?.animeId !== animeId) return;
+      if (detail?.animeId !== trimmedAnimeId) return;
       void load();
     };
 
@@ -106,7 +127,7 @@ export function useEpisodePreviewMap(
       window.removeEventListener(PLAYBACK_PREVIEW_UPDATED_EVENT, onUpdated);
       revokeActiveUrls();
     };
-  }, [animeId, episodeIds.join('|')]);
+  }, [mapKey, trimmedAnimeId, episodeIds, episodeIdsKey]);
 
-  return map;
+  return publicMap;
 }
