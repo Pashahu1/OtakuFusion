@@ -27,12 +27,14 @@ export interface ApplyResolveSuccessContext {
   watchStreamProvider: WatchStreamProvider;
   setStreamInfo: Dispatch<SetStateAction<StreamingData | null>>;
   setStreamUrl: Dispatch<SetStateAction<string | null>>;
+  setBoundGenerationKey: Dispatch<SetStateAction<string | null>>;
   setSubtitles: Dispatch<SetStateAction<SubtitleItem[]>>;
   setThumbnail: Dispatch<SetStateAction<string | null>>;
 }
 
 export function applyResolveSuccess(
   result: WatchResolveResponse,
+  generationKey: string,
   resolveParams: { lang: 'sub' | 'dub' },
   ctx: ApplyResolveSuccessContext,
 ): void {
@@ -47,6 +49,7 @@ export function applyResolveSuccess(
 
   ctx.setStreamInfo(mapped.streamInfo);
   ctx.setStreamUrl(mapped.streamUrl);
+  ctx.setBoundGenerationKey(generationKey);
   ctx.setSubtitles(mapped.subtitles);
   ctx.setThumbnail(mapped.thumbnail);
 

@@ -42,11 +42,6 @@ export function useWatchStream(
   const generationKey = buildWatchStreamGenerationKey(watchResolveOptions);
   const [boundGenerationKey, setBoundGenerationKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!streamUrl || buffering) return;
-    setBoundGenerationKey(generationKey);
-  }, [streamUrl, buffering, generationKey]);
-
   const streamGenerationStale =
     boundGenerationKey != null && boundGenerationKey !== generationKey;
   const publicStreamUrl = streamGenerationStale ? null : streamUrl;
@@ -61,6 +56,7 @@ export function useWatchStream(
       resetWatchStreamState({
         setStreamInfo,
         setStreamUrl,
+        setBoundGenerationKey,
         setSubtitles,
         setThumbnail,
         setBuffering,
@@ -93,6 +89,7 @@ export function useWatchStream(
       setBuffering,
       setStreamInfo,
       setStreamUrl,
+      setBoundGenerationKey,
       setSubtitles,
       setThumbnail,
     });
@@ -100,6 +97,7 @@ export function useWatchStream(
     void runWatchStreamResolve({
       activeOpts,
       streamAnime,
+      generationKey,
       signal,
       providerJustChanged,
       resolvePreferredLang: activeOpts.preferredLang,
@@ -113,6 +111,7 @@ export function useWatchStream(
       setters: {
         setStreamInfo,
         setStreamUrl,
+        setBoundGenerationKey,
         setSubtitles,
         setThumbnail,
         setBuffering,

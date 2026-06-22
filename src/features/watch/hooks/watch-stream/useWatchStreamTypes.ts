@@ -51,6 +51,7 @@ export interface WatchStreamResolveRefs {
 export interface WatchStreamResolveSetters {
   setStreamInfo: Dispatch<SetStateAction<StreamingData | null>>;
   setStreamUrl: Dispatch<SetStateAction<string | null>>;
+  setBoundGenerationKey: Dispatch<SetStateAction<string | null>>;
   setSubtitles: Dispatch<SetStateAction<SubtitleItem[]>>;
   setThumbnail: Dispatch<SetStateAction<string | null>>;
   setBuffering: Dispatch<SetStateAction<boolean>>;

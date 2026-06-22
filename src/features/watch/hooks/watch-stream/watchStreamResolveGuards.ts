@@ -36,6 +36,7 @@ export function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): bo
 export function resetWatchStreamState(setters: {
   setStreamInfo: Dispatch<SetStateAction<StreamingData | null>>;
   setStreamUrl: Dispatch<SetStateAction<string | null>>;
+  setBoundGenerationKey: Dispatch<SetStateAction<string | null>>;
   setSubtitles: Dispatch<SetStateAction<SubtitleItem[]>>;
   setThumbnail: Dispatch<SetStateAction<string | null>>;
   setBuffering: Dispatch<SetStateAction<boolean>>;
@@ -46,6 +47,7 @@ export function resetWatchStreamState(setters: {
 }): void {
   setters.setStreamInfo(null);
   setters.setStreamUrl(null);
+  setters.setBoundGenerationKey(null);
   setters.setSubtitles([]);
   setters.setThumbnail(null);
   setters.setBuffering(true);
@@ -63,6 +65,7 @@ export function primeWatchStreamResolve(setters: {
   setBuffering: Dispatch<SetStateAction<boolean>>;
   setStreamInfo: Dispatch<SetStateAction<StreamingData | null>>;
   setStreamUrl: Dispatch<SetStateAction<string | null>>;
+  setBoundGenerationKey: Dispatch<SetStateAction<string | null>>;
   setSubtitles: Dispatch<SetStateAction<SubtitleItem[]>>;
   setThumbnail: Dispatch<SetStateAction<string | null>>;
 }): void {
@@ -73,6 +76,7 @@ export function primeWatchStreamResolve(setters: {
   setters.setBuffering(true);
   setters.setStreamInfo(null);
   setters.setStreamUrl(null);
+  setters.setBoundGenerationKey(null);
   setters.setSubtitles([]);
   setters.setThumbnail(null);
 }

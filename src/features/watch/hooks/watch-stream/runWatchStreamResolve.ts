@@ -20,6 +20,7 @@ import type {
 interface RunWatchStreamResolveParams {
   activeOpts: WatchResolveOptions;
   streamAnime: WatchStreamAnimeMeta;
+  generationKey: string;
   signal: AbortSignal;
   providerJustChanged: boolean;
   resolvePreferredLang: 'sub' | 'dub';
@@ -42,6 +43,7 @@ function isExpectedNoSourceResolveError(err: unknown): boolean {
 export async function runWatchStreamResolve({
   activeOpts,
   streamAnime,
+  generationKey,
   signal,
   providerJustChanged,
   resolvePreferredLang,
@@ -56,6 +58,7 @@ export async function runWatchStreamResolve({
     watchStreamProvider: sp,
     setStreamInfo: setters.setStreamInfo,
     setStreamUrl: setters.setStreamUrl,
+    setBoundGenerationKey: setters.setBoundGenerationKey,
     setSubtitles: setters.setSubtitles,
     setThumbnail: setters.setThumbnail,
   };
@@ -94,7 +97,7 @@ export async function runWatchStreamResolve({
     }
 
     if (signal.aborted) return;
-    applyResolveSuccess(result, resolveParams, applySuccessCtx);
+    applyResolveSuccess(result, generationKey, resolveParams, applySuccessCtx);
   };
 
   const reportResolveError = (err: unknown) => {
