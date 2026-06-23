@@ -75,6 +75,7 @@ export async function computeWatchResolveOutcome(
     return computeAnikotoWatchResolveOutcome({
       startedAt,
       episode,
+      origin,
       anikotoSlug: seriesId,
       lang,
     });

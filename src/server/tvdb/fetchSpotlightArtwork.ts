@@ -142,7 +142,7 @@ export async function fetchTvdbSpotlightArtwork(input: {
   if (!getTvdbApiKey()) return emptySpotlightArtwork;
 
   const cacheKey = [
-    'tvdb-spotlight-art-v1',
+    'tvdb-spotlight-art-v2',
     title.toLowerCase(),
     input.malId ? String(input.malId) : 'no-mal',
     input.description?.slice(0, 40) ?? '',

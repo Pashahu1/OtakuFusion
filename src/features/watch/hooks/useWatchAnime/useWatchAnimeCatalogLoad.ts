@@ -186,6 +186,8 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
 
     });
 
+  // params object identity is unstable; primitive/ref deps are listed explicitly.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
 
     animeId,
@@ -241,9 +243,6 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
     stableWatchLoadRef,
 
     warmCatalogsRef,
-
-    params,
-
   ]);
 
 }

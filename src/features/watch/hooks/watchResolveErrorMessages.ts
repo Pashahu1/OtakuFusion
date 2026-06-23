@@ -15,6 +15,8 @@ export const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
     'Anikoto has no Japanese stream for this episode yet. Try another episode or Ukrainian.',
   'no_working_source|anikoto_stream_empty|dub_not_available':
     'Anikoto has no English dub for this episode yet. Try Japanese or Ukrainian.',
+  'no_working_source|anikoto_stream_probe_failed':
+    'Anikoto stream is blocked by the CDN (403). Switch to Ukrainian (Hikka) or Japanese (Anilibria) in the player menu.',
   hikka_catalog_not_found:
     'No Ukrainian dub catalog was found for this title on Hikka Features.',
   hikka_features_forbidden:

@@ -32,21 +32,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'query_required' }, { status: 400 });
   }
 
-  const upstream = await fetch(ANILIST_GRAPHQL_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'User-Agent': 'OtakuFusion/1.0 (Next.js AniList proxy)',
-    },
-    body: JSON.stringify({
-      query,
-      variables:
-        variables != null && typeof variables === 'object' && !Array.isArray(variables)
-          ? variables
-          : undefined,
-    }),
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(ANILIST_GRAPHQL_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'User-Agent': 'OtakuFusion/1.0 (Next.js AniList proxy)',
+      },
+      body: JSON.stringify({
+        query,
+        variables:
+          variables != null && typeof variables === 'object' && !Array.isArray(variables)
+            ? variables
+            : undefined,
+      }),
+    });
+  } catch (err) {
+    console.error('[anilist/graphql] upstream fetch failed:', err);
+    return NextResponse.json({ error: 'upstream_fetch_failed' }, { status: 502 });
+  }
 
   const text = await upstream.text();
   const contentType =

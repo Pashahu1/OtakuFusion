@@ -64,6 +64,8 @@ export interface AnikotoResolveParams {
 
   episode: number;
 
+  origin: string;
+
   anikotoSlug: string;
 
   lang: WatchLang;

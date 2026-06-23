@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 
 import {
   buildWatchStreamGenerationKey,
+  buildWatchStreamResolveEffectKey,
   isWatchResolveBlocked,
   primeWatchStreamResolve,
   resetWatchStreamState,
@@ -40,7 +41,14 @@ export function useWatchStream(
   const episodeHasDubRef = useRef(watchResolveOptions?.episodeHasDub);
   const lastResolveProviderRef = useRef<WatchStreamProvider | null>(null);
   const generationKey = buildWatchStreamGenerationKey(watchResolveOptions);
+  const resolveEffectKey = buildWatchStreamResolveEffectKey(watchResolveOptions);
   const [boundGenerationKey, setBoundGenerationKey] = useState<string | null>(null);
+
+  useLayoutEffect(() => {
+    resolveOptsRef.current = watchResolveOptions;
+    episodeEpTokenRef.current = watchResolveOptions?.episodeEpToken;
+    episodeHasDubRef.current = watchResolveOptions?.episodeHasDub;
+  }, [watchResolveOptions]);
 
   const streamGenerationStale =
     boundGenerationKey != null && boundGenerationKey !== generationKey;
@@ -48,11 +56,9 @@ export function useWatchStream(
   const publicBuffering = streamGenerationStale || buffering;
 
   useEffect(() => {
-    resolveOptsRef.current = watchResolveOptions;
-    episodeEpTokenRef.current = watchResolveOptions?.episodeEpToken;
-    episodeHasDubRef.current = watchResolveOptions?.episodeHasDub;
+    const opts = resolveOptsRef.current;
 
-    if (isWatchResolveBlocked(watchResolveOptions)) {
+    if (isWatchResolveBlocked(opts)) {
       resetWatchStreamState({
         setStreamInfo,
         setStreamUrl,
@@ -68,7 +74,7 @@ export function useWatchStream(
       return;
     }
 
-    const activeOpts = watchResolveOptions!;
+    const activeOpts = opts!;
     const streamAnime = activeOpts.streamAnime!;
     const sp = activeOpts.watchStreamProvider;
     const providerJustChanged = trackProviderChange(sp, activeOpts.animeId, {
@@ -123,29 +129,11 @@ export function useWatchStream(
     });
 
     return () => {
-      setStreamLoadingMessage(null);
       controller.abort();
     };
-  }, [
-    generationKey,
-    watchResolveOptions,
-    watchResolveOptions?.animeId,
-    watchResolveOptions?.episodeId,
-    watchResolveOptions?.providerAnimeId,
-    watchResolveOptions?.preferredLang,
-    watchResolveOptions?.watchStreamProvider,
-    watchResolveOptions?.streamLangRevision,
-    watchResolveOptions?.episodeDubStateKey,
-    watchResolveOptions?.episodeEpToken,
-    watchResolveOptions?.expectedEpisodes,
-    watchResolveOptions?.anilistStillAiring,
-    watchResolveOptions?.providerCatalogPending,
-    watchResolveOptions?.episodesSourceProvider,
-    watchResolveOptions?.anilibertyCatalogVerified,
-    watchResolveOptions?.streamAnime?.id,
-    watchResolveOptions?.streamAnime?.title,
-    watchResolveOptions?.streamAnime?.mal_id,
-  ]);
+    // generationKey is encoded in resolveEffectKey when resolve is allowed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resolveEffectKey only
+  }, [resolveEffectKey]);
 
   return {
     streamInfo: streamGenerationStale ? null : streamInfo,

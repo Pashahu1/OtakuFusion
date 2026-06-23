@@ -59,7 +59,7 @@
     "safari >= 16.4"
   ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NODE_OPTIONS=--use-system-ca next dev",
     "build": "next build",
     "start": "next start",
     "analyze": "cross-env ANALYZE=true next build",

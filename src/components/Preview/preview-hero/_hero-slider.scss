@@ -1,6 +1,21 @@
 .hero__slider {
+  position: relative;
+  z-index: 0;
   height: 100%;
   overflow: hidden;
+}
+
+/* Global theme transitions on * { opacity } break Swiper fade handoff */
+.hero__slider .swiper-slide {
+  transition-property: opacity;
+  transition-duration: var(--swiper-wrapper-transition-timing, 300ms);
+  transition-timing-function: ease;
+}
+
+.hero__slider .swiper-fade .swiper-slide-active,
+.hero__slider .swiper:not(.swiper-initialized) .swiper-slide:first-of-type {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Before Swiper init fade is not applied — hide all slides except first to avoid ghosting */

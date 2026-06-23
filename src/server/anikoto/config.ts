@@ -14,4 +14,4 @@ export function readAnikotoFetchTimeoutMs(): number {
   return 28_000;
 }
 
-export const ANIKOTO_STREAM_CACHE_SECONDS = 600;
+export const ANIKOTO_STREAM_CACHE_SECONDS = 120;

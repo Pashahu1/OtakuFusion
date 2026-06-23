@@ -34,6 +34,33 @@ function readContinueWatchingEpisodeProgress(
   };
 }
 
+function snapshotsEqual(
+  a: ContinueWatchingEpisodeProgress | null,
+  b: ContinueWatchingEpisodeProgress | null,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.episodeKey === b.episodeKey && a.progressRatio === b.progressRatio;
+}
+
+/** React requires getSnapshot to return a stable reference when data is unchanged. */
+const snapshotCache = new Map<
+  string,
+  ContinueWatchingEpisodeProgress | null
+>();
+
+function getCachedSnapshot(animeId: string): ContinueWatchingEpisodeProgress | null {
+  const next = readContinueWatchingEpisodeProgress(animeId);
+  const cached = snapshotCache.get(animeId);
+
+  if (snapshotsEqual(cached ?? null, next)) {
+    return cached ?? null;
+  }
+
+  snapshotCache.set(animeId, next);
+  return next;
+}
+
 function subscribeContinueWatching(onStoreChange: () => void) {
   if (typeof window === 'undefined') return () => {};
 
@@ -46,10 +73,7 @@ function subscribeContinueWatching(onStoreChange: () => void) {
 export function useContinueWatchingEpisodeProgress(
   animeId: string,
 ): ContinueWatchingEpisodeProgress | null {
-  const getSnapshot = useCallback(
-    () => readContinueWatchingEpisodeProgress(animeId),
-    [animeId],
-  );
+  const getSnapshot = useCallback(() => getCachedSnapshot(animeId), [animeId]);
 
   return useSyncExternalStore(
     subscribeContinueWatching,

@@ -19,6 +19,27 @@ export function buildWatchStreamGenerationKey(
   ].join('|');
 }
 
+export function buildWatchStreamResolveEffectKey(
+  opts: WatchResolveOptions | undefined,
+): string {
+  if (!opts?.streamAnime || !opts.episodeId) {
+    return 'blocked:missing-stream-input';
+  }
+
+  const generationKey = buildWatchStreamGenerationKey(opts);
+  if (isWatchResolveBlocked(opts)) {
+    return [
+      'blocked',
+      generationKey,
+      opts.providerCatalogPending ? 'pending' : 'ready',
+      opts.episodesSourceProvider ?? 'none',
+      opts.providerAnimeId ?? '',
+    ].join('|');
+  }
+
+  return `open|${generationKey}`;
+}
+
 export function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): boolean {
   if (!opts?.streamAnime || !opts.episodeId) return true;
   const sp = opts.watchStreamProvider;
