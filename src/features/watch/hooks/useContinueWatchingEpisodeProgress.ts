@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
 import {
   continueWatchingEpisodeParam,
@@ -14,43 +14,46 @@ export interface ContinueWatchingEpisodeProgress {
   progressRatio: number;
 }
 
+function readContinueWatchingEpisodeProgress(
+  animeId: string,
+): ContinueWatchingEpisodeProgress | null {
+  if (!animeId.trim()) return null;
+
+  const entry = findContinueWatchingEntry(readContinueWatchingList(), animeId);
+  if (!entry) return null;
+
+  const progressRatio = continueWatchingProgressRatio(
+    entry.positionSeconds,
+    entry.durationSeconds,
+  );
+  if (progressRatio <= 0) return null;
+
+  return {
+    episodeKey: continueWatchingEpisodeParam(entry),
+    progressRatio,
+  };
+}
+
+function subscribeContinueWatching(onStoreChange: () => void) {
+  if (typeof window === 'undefined') return () => {};
+
+  window.addEventListener('continueWatchingUpdated', onStoreChange);
+  return () => {
+    window.removeEventListener('continueWatchingUpdated', onStoreChange);
+  };
+}
+
 export function useContinueWatchingEpisodeProgress(
   animeId: string,
 ): ContinueWatchingEpisodeProgress | null {
-  const [state, setState] = useState<ContinueWatchingEpisodeProgress | null>(null);
+  const getSnapshot = useCallback(
+    () => readContinueWatchingEpisodeProgress(animeId),
+    [animeId],
+  );
 
-  const refresh = useCallback(() => {
-    if (!animeId.trim()) {
-      setState(null);
-      return;
-    }
-
-    const entry = findContinueWatchingEntry(readContinueWatchingList(), animeId);
-    if (!entry) {
-      setState(null);
-      return;
-    }
-
-    const progressRatio = continueWatchingProgressRatio(
-      entry.positionSeconds,
-      entry.durationSeconds,
-    );
-    if (progressRatio <= 0) {
-      setState(null);
-      return;
-    }
-
-    setState({
-      episodeKey: continueWatchingEpisodeParam(entry),
-      progressRatio,
-    });
-  }, [animeId]);
-
-  useEffect(() => {
-    refresh();
-    window.addEventListener('continueWatchingUpdated', refresh);
-    return () => window.removeEventListener('continueWatchingUpdated', refresh);
-  }, [refresh]);
-
-  return state;
+  return useSyncExternalStore(
+    subscribeContinueWatching,
+    getSnapshot,
+    () => null,
+  );
 }
