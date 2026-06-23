@@ -4,7 +4,7 @@
  * Deploy: npx wrangler deploy (from this folder)
  * Vercel env: HIKKA_FEATURES_RELAY_BASE=https://<your-worker>.workers.dev
  */
-export default {
+const hikkaFeaturesRelayWorker = {
   async fetch(request) {
     const url = new URL(request.url);
     const upstreamPath = url.pathname === '/' ? '' : url.pathname;
@@ -29,3 +29,5 @@ export default {
     });
   },
 };
+
+export default hikkaFeaturesRelayWorker;

@@ -86,7 +86,7 @@ export function useArtplayerInstance({
     const savedEp = continueWatchingEpisodeParam(entry);
     if (savedEp !== epKey) return undefined;
     return entry.positionSeconds;
-  }, [localAnimeId, animeInfo?.data_id, episodeId, episodeNum, watchStreamProvider, streamLang, streamUrl]);
+  }, [localAnimeId, animeInfo?.data_id, episodeId, episodeNum]);
 
   const onLanguageSwitchResume = useCallback(
     (progress: ContinueWatchingProgress) => {
@@ -220,6 +220,12 @@ export function useArtplayerInstance({
     };
   }, [
     streamBootKey,
+    streamUrl,
+    streamInfo,
+    subtitles,
+    thumbnail,
+    resumePositionSeconds,
+    userPausedRef,
     syncLanguageMenuIfReady,
     attachEpisodeEndedHandler,
     attachPlaybackSurfaceOnReady,

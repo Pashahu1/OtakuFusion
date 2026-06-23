@@ -127,6 +127,8 @@ export function useWatchStream(
       controller.abort();
     };
   }, [
+    generationKey,
+    watchResolveOptions,
     watchResolveOptions?.animeId,
     watchResolveOptions?.episodeId,
     watchResolveOptions?.providerAnimeId,

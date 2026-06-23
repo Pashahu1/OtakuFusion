@@ -300,7 +300,7 @@ async function handleProxy(request) {
   });
 }
 
-export default {
+const hlsRelayWorker = {
   async fetch(request) {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -313,3 +313,5 @@ export default {
     return handleProxy(request);
   },
 };
+
+export default hlsRelayWorker;

@@ -242,6 +242,8 @@ export function useWatchAnimeCatalogLoad(params: WatchAnimeCatalogLoadParams): v
 
     warmCatalogsRef,
 
+    params,
+
   ]);
 
 }

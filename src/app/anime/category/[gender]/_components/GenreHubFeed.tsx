@@ -70,16 +70,14 @@ interface GenreHubFeedProps {
 }
 
 export function GenreHubFeed({ genre, sections }: GenreHubFeedProps) {
-  let visibleSectionIndex = 0;
+  const visibleSections = GENRE_HUB_SECTIONS.filter(
+    (section) => (sections[section.id] ?? []).length > 0,
+  );
 
   return (
     <div className="home-feed flex w-full flex-col gap-8 pt-6 md:gap-10 md:pt-8 lg:gap-10">
-      {GENRE_HUB_SECTIONS.map((section) => {
+      {visibleSections.map((section, sectionIndex) => {
         const catalog = sections[section.id] ?? [];
-        if (!catalog.length) return null;
-
-        const sectionIndex = visibleSectionIndex;
-        visibleSectionIndex += 1;
 
         const swiperProps: SwiperCardProps = {
           title: section.label,

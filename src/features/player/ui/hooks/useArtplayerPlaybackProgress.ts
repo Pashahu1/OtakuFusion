@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type Artplayer from 'artplayer';
 
 import {
@@ -54,9 +54,11 @@ export function useArtplayerPlaybackProgress({
   const episodeKeyRef = useRef(normalizeEpisodeStorageKey(episodeId, episodeNum));
   const earlyPreviewDoneRef = useRef(false);
 
-  savedPositionRef.current = savedPositionSeconds;
-  localAnimeIdRef.current = localAnimeId;
-  episodeKeyRef.current = normalizeEpisodeStorageKey(episodeId, episodeNum);
+  useEffect(() => {
+    savedPositionRef.current = savedPositionSeconds;
+    localAnimeIdRef.current = localAnimeId;
+    episodeKeyRef.current = normalizeEpisodeStorageKey(episodeId, episodeNum);
+  }, [savedPositionSeconds, localAnimeId, episodeId, episodeNum]);
 
   const capturePreview = useCallback(async (video: HTMLVideoElement) => {
     const id = localAnimeIdRef.current?.trim();

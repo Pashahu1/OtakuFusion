@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Player } from '@/features/player';
 import { BouncingLoader } from '@/components/ui/Bouncingloader/Bouncingloader';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
@@ -73,20 +73,13 @@ export const WatchPlayerContent = ({
       subtitle: 'Please try another episode or server.',
     };
 
-  const [builtinRuntimeError, setBuiltinRuntimeError] = useState(false);
-  const [prevStreamKey, setPrevStreamKey] = useState<string | null>(null);
+  const [builtinErrorStreamKey, setBuiltinErrorStreamKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (prevStreamKey === streamKey) return;
-    setPrevStreamKey(streamKey);
-    setBuiltinRuntimeError(false);
-  }, [prevStreamKey, streamKey]);
+  const hasBuiltinError = builtinErrorStreamKey === streamKey;
 
   const handleBuiltinError = useCallback(() => {
-    setBuiltinRuntimeError(true);
-  }, []);
-
-  const hasBuiltinError = builtinRuntimeError;
+    setBuiltinErrorStreamKey(streamKey);
+  }, [streamKey]);
   const isStreamMissing = !playerShellPending && !buffering && !streamUrl;
   const allowFatalErrorUi =
     isStreamMissing &&
