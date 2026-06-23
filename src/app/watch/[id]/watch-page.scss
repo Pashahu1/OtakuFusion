@@ -10,6 +10,16 @@
     margin-top: -60px;
     padding-top: 60px;
     background: linear-gradient(180deg, #1a1b1e 0%, #000 100%);
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      height: calc(100dvh - 60px);
+      min-height: calc(100dvh - 60px);
+    }
+
+    @media (orientation: landscape) and (min-width: 568px) and (max-height: 820px) {
+      height: clamp(360px, calc(100dvh - 60px), 720px);
+      min-height: clamp(360px, calc(100dvh - 60px), 720px);
+    }
   }
 
   &__recommended {
