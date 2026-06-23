@@ -1,0 +1,26 @@
+.watch-play-share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgb(255 255 255 / 0.72);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-orange, #f97316);
+    outline-offset: 2px;
+  }
+}

@@ -165,5 +165,6 @@ export function useWatch(
     anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
+    playbackLang: resolverLang,
   };
 }

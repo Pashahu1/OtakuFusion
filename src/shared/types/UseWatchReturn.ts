@@ -43,4 +43,6 @@ export interface UseWatchReturn {
    * `null` — player not in fatal error state (still loading or URL present).
    */
   streamOverlayMessage: { title: string; subtitle: string } | null;
+  /** Active stream language for play-page metadata. */
+  playbackLang: 'sub' | 'dub';
 }

@@ -1,5 +1,7 @@
 import type Artplayer from 'artplayer';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
+import { shouldSuppressOutroSkipForUpNext } from '@/features/player/lib/episode-end-thresholds';
+import { readArtplayerHasNextEpisode } from '@/features/player/lib/artplayer-near-end-state';
 
 export function attachSkipIntroOutroOverlay(
   art: Artplayer,
@@ -63,7 +65,15 @@ export function attachSkipIntroOutroOverlay(
     if (introSkipOk && introSeg && t >= introSeg.start && t < introSeg.end) {
       nextKind = 'intro';
     } else if (outroSkipOk && outroSeg && t >= outroSeg.start && t < outroSeg.end) {
-      nextKind = 'outro';
+      const duration = art.video?.duration ?? art.duration;
+      const suppressOutro =
+        Number.isFinite(duration) &&
+        duration > 0 &&
+        shouldSuppressOutroSkipForUpNext(t, duration, readArtplayerHasNextEpisode(art));
+
+      if (!suppressOutro) {
+        nextKind = 'outro';
+      }
     }
 
     if (nextKind === null) {

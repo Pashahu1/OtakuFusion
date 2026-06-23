@@ -98,6 +98,8 @@ export default function WatchPlayPage() {
         anilibertyLanguageMenuEligible={watch.anilibertyLanguageMenuEligible}
         hikkaLanguageMenuEligible={watch.hikkaLanguageMenuEligible}
         anikotoLanguageMenuEligible={watch.anikotoLanguageMenuEligible}
+        playbackLang={watch.playbackLang}
+        nextEpisodeSchedule={watch.nextEpisodeSchedule}
       />
     </div>
   );

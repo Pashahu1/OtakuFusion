@@ -1,0 +1,137 @@
+@use '../watch-series/watch-series-tags';
+
+.watch-play-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  &__series {
+    min-width: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-brand-orange, #f97316);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.88;
+    }
+
+    &--skeleton {
+      display: block;
+      width: min(220px, 60%);
+      height: 15px;
+      border-radius: 4px;
+      background: rgb(255 255 255 / 0.08);
+      animation: watch-play-meta-pulse 1.4s ease-in-out infinite;
+    }
+  }
+
+  &__series-spacer {
+    flex: 1;
+    min-height: 1px;
+  }
+
+  &__episode {
+    margin: 0;
+    font-size: clamp(1.5rem, 3.2vw, 2rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: rgb(255 255 255 / 0.98);
+  }
+
+  .watch-series-tags {
+    color: rgb(255 255 255 / 0.72);
+
+    &__sep {
+      margin-inline: 8px;
+      color: rgb(255 255 255 / 0.38);
+    }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-width: 0;
+    padding-top: 2px;
+  }
+
+  &__schedule {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  &__schedule-spacer {
+    flex: 1;
+    min-height: 1px;
+  }
+}
+
+.watch-play-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgb(255 255 255 / 0.78);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-orange, #f97316);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    color: var(--color-brand-orange, #f97316);
+
+    .watch-play-save__icon {
+      fill: currentColor;
+      color: currentColor;
+    }
+  }
+
+  &__icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.75px;
+  }
+}
+
+@keyframes watch-play-meta-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}

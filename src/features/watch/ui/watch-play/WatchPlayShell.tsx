@@ -5,17 +5,20 @@ import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import type { NextEpisodeScheduleResult, ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { formatEpisodeDuration } from '@/features/watch/lib/format-episode-duration';
+import { getEpisodeThumbnailProgress } from '@/features/watch/lib/get-episode-thumbnail-progress';
 import {
   findNextWatchEpisode,
+  findPrevWatchEpisode,
   findWatchEpisode,
 } from '@/features/watch/lib/watch-play-episode-utils';
+import { useContinueWatchingEpisodeProgress } from '@/features/watch/hooks/useContinueWatchingEpisodeProgress';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { WatchPlayerContent } from '@/features/watch/ui/watch-player-content/WatchPlayerContent';
+import { WatchPlayAdjacentEpisode } from './WatchPlayAdjacentEpisode';
 import { WatchPlayMeta } from './WatchPlayMeta';
-import { WatchPlayNextEpisode } from './WatchPlayNextEpisode';
 import { WatchPlaySeeMoreButton } from './WatchPlaySeeMoreButton';
 import { WatchPlayEpisodesPanel } from './WatchPlayEpisodesPanel';
 import './WatchPlayShell.scss';
@@ -46,41 +49,67 @@ export interface WatchPlayShellProps {
   hikkaLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;
   watchedEpisodes: Record<string, boolean>;
+  playbackLang: 'sub' | 'dub';
+  nextEpisodeSchedule: NextEpisodeScheduleResult | null;
+}
+
+function episodeKeyFromEpisode(episode: EpisodesTypes): string {
+  return getEpisodeNumberFromId(episode.id) ?? String(episode.episode_no);
 }
 
 export function WatchPlayShell({
   animeId,
   watchedEpisodes,
   setEpisodeId,
+  playbackLang,
+  nextEpisodeSchedule,
   ...playerProps
 }: WatchPlayShellProps) {
   const { episodes, episodeId, animeInfo, playerShellPending } = playerProps;
   const [episodesPanelOpen, setEpisodesPanelOpen] = useState(false);
+  const continueProgress = useContinueWatchingEpisodeProgress(animeId);
 
   const currentEpisode = useMemo(
     () => findWatchEpisode(episodes, episodeId),
-    [episodes, episodeId]
+    [episodes, episodeId],
   );
 
   const nextEpisode = useMemo(
     () => findNextWatchEpisode(episodes, currentEpisode),
-    [episodes, currentEpisode]
+    [episodes, currentEpisode],
   );
 
-  const nextEpisodeWatched = useMemo(() => {
-    if (!nextEpisode) return false;
-    const id = getEpisodeNumberFromId(nextEpisode.id) ?? String(nextEpisode.episode_no);
-    return Boolean(watchedEpisodes[id]);
-  }, [nextEpisode, watchedEpisodes]);
+  const prevEpisode = useMemo(
+    () => findPrevWatchEpisode(episodes, currentEpisode),
+    [episodes, currentEpisode],
+  );
+
+  const nextEpisodeProgress = useMemo(() => {
+    if (!nextEpisode) return 0;
+    return getEpisodeThumbnailProgress(
+      episodeKeyFromEpisode(nextEpisode),
+      watchedEpisodes,
+      continueProgress,
+    );
+  }, [continueProgress, nextEpisode, watchedEpisodes]);
+
+  const prevEpisodeProgress = useMemo(() => {
+    if (!prevEpisode) return 0;
+    return getEpisodeThumbnailProgress(
+      episodeKeyFromEpisode(prevEpisode),
+      watchedEpisodes,
+      continueProgress,
+    );
+  }, [continueProgress, prevEpisode, watchedEpisodes]);
 
   const episodeDuration = useMemo(
     () => formatEpisodeDuration(animeInfo?.animeInfo?.tvInfo?.duration),
-    [animeInfo?.animeInfo?.tvInfo?.duration]
+    [animeInfo?.animeInfo?.tvInfo?.duration],
   );
 
   const seriesTitle = animeInfo?.title ?? '';
   const posterUrl = animeInfo?.poster ?? '';
-  const handleNextSelect = (id: string) => {
+  const handleEpisodeSelect = (id: string) => {
     setEpisodeId(id);
   };
 
@@ -103,15 +132,30 @@ export function WatchPlayShell({
             animeId={animeId}
             animeInfo={animeInfo}
             currentEpisode={currentEpisode}
+            episodeId={episodeId}
+            playbackLang={playbackLang}
+            nextEpisodeSchedule={nextEpisodeSchedule}
             isLoading={metaLoading}
           />
           <div className="watch-play-shell__aside">
-            <WatchPlayNextEpisode
-              nextEpisode={nextEpisode}
-              posterUrl={posterUrl}
-              isWatched={nextEpisodeWatched}
-              onSelect={handleNextSelect}
-            />
+            {nextEpisode ? (
+              <WatchPlayAdjacentEpisode
+                label="Next episode"
+                episode={nextEpisode}
+                posterUrl={posterUrl}
+                progressRatio={nextEpisodeProgress}
+                onSelect={handleEpisodeSelect}
+              />
+            ) : null}
+            {prevEpisode ? (
+              <WatchPlayAdjacentEpisode
+                label="Previous episode"
+                episode={prevEpisode}
+                posterUrl={posterUrl}
+                progressRatio={prevEpisodeProgress}
+                onSelect={handleEpisodeSelect}
+              />
+            ) : null}
             <WatchPlaySeeMoreButton
               onClick={() => setEpisodesPanelOpen(true)}
               disabled={!canOpenEpisodes}
@@ -130,7 +174,7 @@ export function WatchPlayShell({
         posterUrl={posterUrl}
         episodeDuration={episodeDuration}
         watchedEpisodes={watchedEpisodes}
-        onSelectEpisode={handleNextSelect}
+        onSelectEpisode={handleEpisodeSelect}
       />
     </div>
   );

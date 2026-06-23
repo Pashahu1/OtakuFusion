@@ -9,11 +9,14 @@ interface WatchSeriesInlineTagsProps {
   animeInfo: AnimeData;
   /** Play page: Sub | Dub only (no genre links). */
   showGenres?: boolean;
+  /** Play page: show active playback mode instead of catalog Sub | Dub. */
+  playbackLang?: 'sub' | 'dub';
 }
 
 export function WatchSeriesInlineTags({
   animeInfo,
   showGenres = true,
+  playbackLang,
 }: WatchSeriesInlineTagsProps) {
   const tv = animeInfo.animeInfo?.tvInfo;
   const genres = animeInfo.animeInfo?.Genres ?? [];
@@ -30,35 +33,47 @@ export function WatchSeriesInlineTags({
     );
   }
 
-  if (hasSub) {
+  if (playbackLang) {
     parts.push(
-      <span key="sub" className="watch-series-tags__lang">
-        Sub
+      <span key="playback" className="watch-series-tags__lang">
+        {playbackLang === 'dub' ? 'Dubbed' : 'Subtitled'}
       </span>
     );
-  }
+  } else {
+    if (hasSub) {
+      parts.push(
+        <span key="sub" className="watch-series-tags__lang">
+          Sub
+        </span>
+      );
+    }
 
-  if (hasDub) {
-    parts.push(
-      <span key="dub" className="watch-series-tags__lang">
-        Dub
-      </span>
-    );
-  }
+    if (hasDub) {
+      parts.push(
+        <span key="dub" className="watch-series-tags__lang">
+          Dub
+        </span>
+      );
+    }
 
-  if (!hasSub && !hasDub) {
-    parts.push(
-      <span key="sub-fallback" className="watch-series-tags__lang">
-        Sub
-      </span>
-    );
+    if (!hasSub && !hasDub) {
+      parts.push(
+        <span key="sub-fallback" className="watch-series-tags__lang">
+          Sub
+        </span>
+      );
+    }
   }
 
   return (
     <p className="watch-series-tags">
       {parts.map((node, index) => (
         <span key={index} className="watch-series-tags__segment">
-          {index > 0 ? <span className="watch-series-tags__sep" aria-hidden>|</span> : null}
+          {index > 0 ? (
+            <span className="watch-series-tags__sep" aria-hidden>
+              {playbackLang ? '•' : '|'}
+            </span>
+          ) : null}
           {node}
         </span>
       ))}

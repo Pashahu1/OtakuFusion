@@ -82,10 +82,11 @@ export function WatchEpisodeCard({
         {nowPlaying ? (
           <span className="watch-episode-card__now-playing">Now playing</span>
         ) : null}
-        {isWatched && !nowPlaying ? (
-          <span className="watch-episode-card__watched-overlay" aria-hidden>
-            <span className="watch-episode-card__watched-label">Watched</span>
-          </span>
+        {isWatched && !nowPlaying && progressRatio <= 0 ? (
+          <div
+            className="watch-episode-card__progress watch-episode-card__progress--watched"
+            aria-hidden
+          />
         ) : null}
       </div>
       <div className="watch-episode-card__body">

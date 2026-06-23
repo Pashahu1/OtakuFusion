@@ -96,6 +96,10 @@
     border-radius: 0 2px 0 0;
     max-width: 100%;
     pointer-events: none;
+
+    &--watched {
+      width: 100%;
+    }
   }
 
   &__now-playing {
@@ -129,22 +133,6 @@
     border: 1px solid rgb(234 179 8 / 0.5);
     box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
     backdrop-filter: blur(6px);
-  }
-
-  &__watched-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgb(0 0 0 / 0.55);
-  }
-
-  &__watched-label {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: rgb(255 255 255 / 0.92);
   }
 
   &__body {

@@ -2,6 +2,7 @@ import { createDesktopVideoToggleLayer } from './player-layers/desktopVideoToggl
 import { createMobileInteractionLayers } from './player-layers/mobileInteractionLayers';
 import { createSiteLogoLayer } from './player-layers/siteLogoLayer';
 import { createSkipIntroOutroLayer } from './player-layers/skipIntroOutroLayer';
+import { createUpNextLayer } from './player-layers/upNextLayer';
 
 export function getPlayerLayers(userPausedRef: React.RefObject<boolean>) {
   return [
@@ -9,5 +10,6 @@ export function getPlayerLayers(userPausedRef: React.RefObject<boolean>) {
     ...createMobileInteractionLayers(userPausedRef),
     createDesktopVideoToggleLayer(userPausedRef),
     createSkipIntroOutroLayer(),
+    createUpNextLayer(),
   ];
 }
