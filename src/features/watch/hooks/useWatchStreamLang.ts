@@ -151,10 +151,9 @@ export function useWatchStreamLang({
 
   const onPlaybackLangResolved = useCallback(
     (lang: 'sub' | 'dub') => {
-      if (langState.userChoseDub && lang === 'sub') return;
       setActiveServerIdRaw(lang === 'dub' ? '2' : '1');
     },
-    [langState.userChoseDub, setActiveServerIdRaw],
+    [setActiveServerIdRaw],
   );
 
   const episodeDubStateKey = useMemo(

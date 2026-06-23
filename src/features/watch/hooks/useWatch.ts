@@ -126,6 +126,7 @@ export function useWatch(
     streamResolveAttempted: stream.resolveAttempted,
     streamHardExhausted,
     catalogError: anime.error,
+    streamError: stream.error,
     episodes: anime.episodes,
     totalEpisodes: anime.totalEpisodes ?? 0,
   });

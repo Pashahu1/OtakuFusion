@@ -70,6 +70,39 @@
     color: rgb(255 255 255 / 0.8);
   }
 
+  &__error-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    max-width: 28rem;
+  }
+
+  &__error-control {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / 0.35);
+    background: rgb(0 0 0 / 0.35);
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease;
+
+    &:hover {
+      border-color: rgb(255 100 10 / 0.85);
+      background: rgb(255 100 10 / 0.12);
+    }
+
+    &--active {
+      border-color: rgb(255 100 10 / 0.95);
+      background: rgb(255 100 10 / 0.2);
+    }
+  }
+
   /* Phone landscape: use full viewport height under fixed header. */
   @media (orientation: landscape) and (max-height: 520px) {
     &__frame {

@@ -7,6 +7,7 @@ import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
+import { WatchPlayerErrorControls } from './WatchPlayerErrorControls';
 import './WatchPlayerContent.scss';
 
 type WatchPlayerContentProps = {
@@ -80,6 +81,7 @@ export const WatchPlayerContent = ({
   const handleBuiltinError = useCallback(() => {
     setBuiltinErrorStreamKey(streamKey);
   }, [streamKey]);
+
   const isStreamMissing = !playerShellPending && !buffering && !streamUrl;
   const allowFatalErrorUi =
     isStreamMissing &&
@@ -135,6 +137,15 @@ export const WatchPlayerContent = ({
           <div className="watch-player-content__error">
             <span className="watch-player-content__error-title">{overlayCopy.title}</span>
             <span className="watch-player-content__error-sub">{overlayCopy.subtitle}</span>
+            <WatchPlayerErrorControls
+              activeServerId={activeServerId}
+              watchStreamProvider={watchStreamProvider}
+              setWatchStreamProvider={setWatchStreamProvider}
+              setActiveServerId={setActiveServerId}
+              anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
+              hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
+              anikotoLanguageMenuEligible={anikotoLanguageMenuEligible}
+            />
           </div>
         )}
       </div>

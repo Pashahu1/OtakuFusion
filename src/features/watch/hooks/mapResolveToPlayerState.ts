@@ -54,10 +54,6 @@ export function applyResolveSuccess(
   ctx.setThumbnail(mapped.thumbnail);
 
   if (resolveParams.lang !== mapped.resolvedStreamLang) {
-    if (resolveParams.lang === 'dub' && mapped.resolvedStreamLang === 'sub') {
-      return;
-    }
-    if (opts?.preferredLang !== resolveParams.lang) return;
     opts?.onPlaybackLangResolved?.(mapped.resolvedStreamLang);
   }
 }

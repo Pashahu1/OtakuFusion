@@ -8,6 +8,7 @@ interface UseWatchStreamOverlayInput {
   streamResolveAttempted: boolean;
   streamHardExhausted: boolean;
   catalogError: string | null | undefined;
+  streamError: string | null | undefined;
   episodes: EpisodesTypes[] | null;
   totalEpisodes: number;
 }
@@ -19,6 +20,7 @@ export function useWatchStreamOverlay({
   streamResolveAttempted,
   streamHardExhausted,
   catalogError,
+  streamError,
   episodes,
   totalEpisodes,
 }: UseWatchStreamOverlayInput) {
@@ -43,6 +45,14 @@ export function useWatchStreamOverlay({
       };
     }
 
+    const resolveErr = streamError?.trim();
+    if (resolveErr) {
+      return {
+        title: 'This player is currently unavailable.',
+        subtitle: resolveErr,
+      };
+    }
+
     return {
       title: 'This player is currently unavailable.',
       subtitle:
@@ -55,6 +65,7 @@ export function useWatchStreamOverlay({
     streamResolveAttempted,
     streamHardExhausted,
     catalogError,
+    streamError,
   ]);
 
   const episodesForUi = streamHardExhausted ? [] : episodes;
