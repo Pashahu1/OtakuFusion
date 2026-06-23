@@ -8,18 +8,22 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![CI](https://github.com/Pashahu1/OtakuFusion/actions/workflows/ci.yml/badge.svg)](https://github.com/Pashahu1/OtakuFusion/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-otaku--fusion.vercel.app-9146FF?style=flat-square)](https://otaku-fusion.vercel.app/)
 
-[Features](#features) · [Providers](#playback-providers) · [Quick start](#quick-start) · [Environment](#environment-variables) · [Deploy](#deployment-vercel)
+[Live demo](https://otaku-fusion.vercel.app/) · [Features](#features) · [Screenshots](#screenshots) · [Quick start](#quick-start) · [Known limitations](#known-limitations) · [Deploy](#deployment-vercel)
 
 </div>
 
-![OtakuFusion — home page with spotlight hero and trending carousel](./docs/readme-banner.png)
+![OtakuFusion — home page with spotlight hero and trending carousel](./docs/readme-banner.jpg)
 
 ---
 
 ## Overview
 
 OtakuFusion is a full-stack **Next.js** app for browsing and watching anime. Metadata comes from **AniList**; streams are resolved **server-side** through provider-specific BFF routes and **`/api/watch/resolve`**. Playback uses **Artplayer** + **HLS.js**, with an optional **Cloudflare HLS relay** for Anikoto CDN segments that need Referer/CORS proxying.
+
+**Live demo:** [https://otaku-fusion.vercel.app/](https://otaku-fusion.vercel.app/)
 
 ---
 
@@ -46,9 +50,11 @@ OtakuFusion is a full-stack **Next.js** app for browsing and watching anime. Met
 ## Table of contents
 
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Playback providers](#playback-providers)
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
+- [Known limitations](#known-limitations)
 - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
 - [Environment variables](#environment-variables)
@@ -57,6 +63,24 @@ OtakuFusion is a full-stack **Next.js** app for browsing and watching anime. Met
 - [Deployment (Vercel)](#deployment-vercel)
 - [Contributing](#contributing)
 - [Author](#author)
+
+---
+
+## Screenshots
+
+Captured from the [live demo](https://otaku-fusion.vercel.app/). Drop your files into `docs/` using the names below.
+
+| Home — spotlight & trending | Watch — series hero & episode list | Player — HLS, sub/dub, provider switch |
+| :---: | :---: | :---: |
+| ![Home page](./docs/readme-banner.jpg) | ![Watch page](./docs/readme-watch.png) | ![HLS player](./docs/readme-player.png) |
+
+**Suggested capture flow**
+
+1. **Home** — `docs/readme-banner.jpg` (already in repo; replace if you want a fresher shot).
+2. **Watch** — open any title → save full-page or hero crop as `docs/readme-watch.png`.
+3. **Player** — start playback (JP/EN or UA) → capture controls overlay as `docs/readme-player.png`.
+
+Optional: add a short GIF of home → watch → play as `docs/readme-watch-flow.gif` and embed it here.
 
 ---
 
@@ -151,6 +175,25 @@ flowchart LR
 1. Client loads episodes via `POST /api/anikoto/catalog` (search + slug mapping cached in `localStorage`).
 2. `GET /api/watch/resolve?provider=anikoto&lang=sub|dub` calls `ANIKOTO_API_BASE/api/stream`.
 3. Player plays the HLS URL via **`NEXT_PUBLIC_M3U8_PROXY_BASE`** or `/api/m3u8-proxy`; playlists are rewritten server-side/edge-side.
+
+---
+
+## Known limitations
+
+OtakuFusion is a **portfolio / viewer-focused pet project** — not a licensed streaming platform. These constraints are intentional for v1.
+
+| Area | What to expect |
+|------|----------------|
+| **Third-party streams** | Playback depends on Anikoto, Crysoline (Anilibria), and Hikka. Catalog coverage and uptime are not under our control. |
+| **Anikoto CDN** | Some episodes fail probe with **403/404** (`anikoto_stream_probe_failed`). Switch language or provider (UA / JP) in the player, or try another episode. |
+| **HLS on Vercel** | Anikoto segments need **`NEXT_PUBLIC_M3U8_PROXY_BASE`** (Cloudflare `workers/hls-relay`). Same-origin `/api/m3u8-proxy` works locally but can be slower on serverless. |
+| **Hikka on Vercel** | Upstream may block the server IP — set **`HIKKA_FEATURES_RELAY_BASE`** if Ukrainian tracks return 403. |
+| **Account** | Register/login and **favorites** work; **email verification is optional** (Profile → verify when you want). |
+| **Admin** | No admin panel in v1 — out of scope while the product targets viewers, not operators. |
+| **Content policy** | Some titles return `CONTENT_BLOCKED` and cannot be played. |
+| **Scope** | No native app, offline/PWA, or guaranteed dub/sub for every episode. Continue watching is browser `localStorage` + MongoDB favorites for logged-in users. |
+
+For local/production setup details, see [Deployment (Vercel)](#deployment-vercel) and [Environment variables](#environment-variables).
 
 ---
 
@@ -329,7 +372,16 @@ workers/
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Pashahu1/OtakuFusion)
 
-After deploy, verify: open any title → **Japanese / Sub** → Network shows `watch/resolve` **200** and HLS requests via your relay worker.
+After deploy, verify on the [live demo](https://otaku-fusion.vercel.app/): open any title → **Japanese / Sub** → Network shows `watch/resolve` **200** and HLS requests via your relay worker.
+
+**Smoke test checklist (≈5 min)**
+
+- [ ] Home loads — spotlight + trending rows
+- [ ] Search returns results
+- [ ] Watch page — episode list loads
+- [ ] Player — at least one provider/language plays HLS
+- [ ] Register/login — session persists after refresh
+- [ ] Favorites — add/remove syncs when logged in
 
 ---
 
