@@ -33,10 +33,7 @@ export default function FavoritesPage() {
         <p className="text-sm text-[var(--color-brand-text-muted)]">
           Sign in to save and view your favorite anime.
         </p>
-        <Link
-          href="/login"
-          className="inline-flex rounded-md bg-[var(--color-brand-orange)] px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90"
-        >
+        <Link href="/auth/login" className="hero-cta">
           Log in
         </Link>
       </div>

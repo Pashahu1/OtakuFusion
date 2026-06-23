@@ -11,7 +11,6 @@ import { WatchSeriesDetails } from './WatchSeriesDetails';
 import { useHeroImageAccent } from '@/features/watch/hooks/useHeroImageAccent';
 import { useWatchHeroBackgroundImage } from '@/features/watch/hooks/useWatchHeroBackgroundImage';
 import type { SpotlightAnime } from '@/shared/types/GlobalAnimeTypes';
-import type { WatchCtaVariant } from '@/features/watch/lib/resolve-continue-watching-cta';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { WATCH_HERO_BG_QUALITY } from '@/lib/anime-card-poster';
 import { WatchSeriesSaveButton } from './WatchSeriesSaveButton';
@@ -36,7 +35,6 @@ interface WatchSeriesHeroProps {
   animeInfo: AnimeData;
   playHref: string;
   ctaLabel: string;
-  ctaVariant?: WatchCtaVariant;
   isDetailsExpanded: boolean;
   onToggleDetails: () => void;
   heroArtworkPending?: boolean;
@@ -47,7 +45,6 @@ export function WatchSeriesHero({
   animeInfo,
   playHref,
   ctaLabel,
-  ctaVariant = 'watch',
   isDetailsExpanded,
   onToggleDetails,
   heroArtworkPending = false,
@@ -112,14 +109,7 @@ export function WatchSeriesHero({
             <WatchSeriesInlineTags animeInfo={animeInfo} />
             <WatchSeriesRatingRow scorePercent={hero.scorePercent} />
             <div className="watch-series-hero__actions">
-              <Link
-                href={playHref}
-                className={
-                  ctaVariant === 'continue'
-                    ? 'watch-series-hero__cta watch-series-hero__cta--continue'
-                    : 'watch-series-hero__cta watch-series-hero__cta--watch'
-                }
-              >
+              <Link href={playHref} className="watch-series-hero__cta">
                 <Play className="h-5 w-5 shrink-0 fill-current" aria-hidden />
                 {ctaLabel}
               </Link>

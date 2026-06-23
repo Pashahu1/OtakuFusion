@@ -1,3 +1,5 @@
+@use '../../../style/mixins' as *;
+
 .hero {
   &__actions {
     display: flex;
@@ -14,52 +16,13 @@
   }
 
   &__cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    @include hero-cta-primary;
     width: 100%;
-    min-height: 48px;
-    padding: 0.75rem 1rem;
-    border: 2px solid transparent;
-    border-radius: 0.375rem;
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-decoration: none;
-    transition:
-      background-color 0.2s ease,
-      border-color 0.2s ease,
-      color 0.2s ease,
-      box-shadow 0.2s ease;
 
     @media (min-width: 768px) {
       padding-top: 0.625rem;
       padding-bottom: 0.625rem;
       font-size: 0.9375rem;
-    }
-
-    &--watch {
-      background: var(--color-brand-orange, #f97316);
-      color: var(--color-brand-gray-light, #f5f5f5);
-
-      &:hover {
-        background: var(--color-brand-orange-light, #fb923c);
-        color: var(--color-brand-gray, #1a1a1a);
-      }
-    }
-
-    &--continue {
-      border-color: var(--color-brand-orange, #f97316);
-      background: rgba(249, 115, 22, 0.14);
-      color: #fff;
-      box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25) inset;
-
-      &:hover {
-        background: rgba(249, 115, 22, 0.28);
-        color: #fff;
-        box-shadow: 0 0 20px rgba(249, 115, 22, 0.22);
-      }
     }
   }
 }

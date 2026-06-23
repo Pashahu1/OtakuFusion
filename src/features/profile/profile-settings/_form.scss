@@ -1,4 +1,6 @@
-﻿.profile-settings {
+﻿@use '../../../style/mixins' as *;
+
+.profile-settings {
   width: 100%;
 }
 
@@ -194,40 +196,20 @@
 
 .profile-settings__btn {
   min-width: 7.5rem;
-  height: 2.75rem;
-  padding: 0 1.125rem;
-  border-radius: 0.625rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease,
-    opacity 0.12s ease;
-}
-
-.profile-settings__btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .profile-settings__btn--ghost {
-  color: #d4d4d8;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.profile-settings__btn--ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
+  @include hero-cta-secondary;
+  min-height: 2.75rem;
+  padding-inline: 1.125rem;
+  font-size: 0.875rem;
 }
 
 .profile-settings__btn--primary {
-  color: #0a0a0a;
-  background: var(--color-brand-orange, #f97316);
-  border: 1px solid transparent;
-}
-
-.profile-settings__btn--primary:hover:not(:disabled) {
-  background: var(--color-brand-orange-light, #fb923c);
+  @include hero-cta-primary;
+  min-height: 2.75rem;
+  padding-inline: 1.125rem;
+  font-size: 0.875rem;
 }
 
 .profile-settings__btn--danger {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 import { ProfileEditAccountSection } from './profile-edit/ProfileEditAccountSection';
 import { ProfileEditFormActions } from './profile-edit/ProfileEditFormActions';
@@ -10,7 +10,7 @@ import { useProfileEditForm } from './profile-edit/useProfileEditForm';
 import '../profile-edit.scss';
 
 export function ProfileEditForm() {
-  const { openVerifyEmailModal } = useAuth();
+  const router = useRouter();
   const {
     user,
     fileInputId,
@@ -38,7 +38,13 @@ export function ProfileEditForm() {
       </div>
 
       {!user.isVerified ? (
-        <ProfileEditVerifyBanner onVerify={() => openVerifyEmailModal(user.email)} />
+        <ProfileEditVerifyBanner
+          onVerify={() =>
+            router.push(
+              `/auth/verification/verify-email?email=${encodeURIComponent(user.email)}`,
+            )
+          }
+        />
       ) : null}
 
       <form className="profile-edit__form" onSubmit={handleSave} aria-busy={isLoading}>

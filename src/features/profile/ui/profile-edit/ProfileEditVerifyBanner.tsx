@@ -6,8 +6,8 @@ export function ProfileEditVerifyBanner({ onVerify }: ProfileEditVerifyBannerPro
   return (
     <div className="profile-edit__verify" role="status">
       <p>
-        Confirm your email to unlock the full profile experience and keep your account
-        secure.
+        Verify your email when you are ready — it keeps your account secure and unlocks extra
+        features later.
       </p>
       <button type="button" className="profile-edit__verify-btn" onClick={onVerify}>
         Verify email

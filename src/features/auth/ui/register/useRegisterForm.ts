@@ -15,7 +15,7 @@ import {
 
 export function useRegisterForm() {
   const router = useRouter();
-  const { setUser, openVerifyEmailModal } = useAuth();
+  const { setUser } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -118,8 +118,7 @@ export function useRegisterForm() {
         );
       }
 
-      toast.success('Welcome! Enter the verification code from your email.');
-      openVerifyEmailModal(parsed.data.email);
+      toast.success('Welcome! Check your inbox for a verification code — verify anytime in Profile.');
       router.push('/');
       router.refresh();
     } catch {

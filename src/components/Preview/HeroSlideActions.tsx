@@ -10,14 +10,13 @@ interface HeroSlideActionsProps {
 }
 
 export function HeroSlideActions({ animeId, dataId }: HeroSlideActionsProps) {
-  const { playHref, ctaLabel, variant } = useWatchCta({
+  const { playHref, ctaLabel } = useWatchCta({
     animeId,
     dataId,
     episodes: null,
   });
 
-  const ctaClass =
-    variant === 'continue' ? 'hero__cta hero__cta--continue' : 'hero__cta hero__cta--watch';
+  const ctaClass = 'hero__cta';
 
   return (
     <div className="hero__actions">

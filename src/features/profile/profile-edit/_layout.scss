@@ -1,4 +1,6 @@
-﻿.profile-edit {
+﻿@use '../../../style/mixins' as *;
+
+.profile-edit {
   width: 100%;
 }
 
@@ -35,21 +37,12 @@
 }
 
 .profile-edit__verify-btn {
+  @include hero-cta-primary;
   flex-shrink: 0;
+  min-height: 2.25rem;
   padding: 0.45rem 0.875rem;
-  border: 0;
-  border-radius: 0.5rem;
   font-size: 0.75rem;
-  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #0a0a0a;
-  background: var(--color-brand-orange, #f97316);
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.profile-edit__verify-btn:hover {
-  opacity: 0.9;
 }
 

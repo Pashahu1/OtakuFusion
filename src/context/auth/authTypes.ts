@@ -24,7 +24,4 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   setUser: (user: AuthUser | null) => void;
   refreshUser: () => Promise<void>;
-  verifyEmailOpen: boolean;
-  openVerifyEmailModal: (email?: string) => void;
-  closeVerifyEmailModal: () => void;
 }

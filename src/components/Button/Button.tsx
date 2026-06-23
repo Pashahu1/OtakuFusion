@@ -8,15 +8,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
 }
 const baseStyles =
-  'flex items-center justify-center w-full h-10 rounded-md text-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-none';
+  'hero-cta hero-cta--block disabled:opacity-50 disabled:cursor-not-allowed';
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary:
-    'bg-brand-orange text-brand-gray-light lg:hover:bg-brand-orange-light lg:hover:text-brand-gray',
-  secondary:
-    'bg-brand-gray-light text-brand-text-primary lg:hover:bg-brand-gray-softer',
-  outline:
-    'border border-brand-orange text-brand-orange lg:hover:bg-brand-orange lg:hover:text-brand-gray-light',
+  primary: '',
+  secondary: 'hero-cta--secondary',
+  outline: 'hero-cta--secondary',
 };
 
 export const Button = ({

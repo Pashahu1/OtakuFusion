@@ -1,7 +1,6 @@
 'use client';
 
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
-import { VerifyEmailModal } from '@/features/auth/ui/VerifyEmailModal';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 import {
@@ -22,9 +21,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileSavePending, setProfileSavePending] = useState(false);
   const [profileNavbarAvatarHold, setProfileNavbarAvatarHold] = useState(false);
-  const [verifyEmailOpen, setVerifyEmailOpen] = useState(false);
-  const [verifyEmailAddress, setVerifyEmailAddress] = useState('');
-
   useEffect(() => {
     if (!isLoading) return;
     fetchAuthMe()
@@ -33,27 +29,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       .finally(() => setIsLoading(false));
   }, [isLoading]);
 
-  const openVerifyEmailModal = (email?: string) => {
-    const nextEmail = (email ?? user?.email ?? '').trim();
-    if (!nextEmail) return;
-    setVerifyEmailAddress(nextEmail);
-    setVerifyEmailOpen(true);
-  };
-
-  const closeVerifyEmailModal = () => {
-    setVerifyEmailOpen(false);
-  };
-
   const login = async (email: string, password: string) => {
     const result = await loginWithCredentials(email, password);
     if (!result.ok || !result.user) {
       return { ok: false, message: result.message };
     }
     setUser(result.user);
-    if (!result.user.isVerified) {
-      setVerifyEmailAddress(result.user.email);
-      setVerifyEmailOpen(true);
-    }
     return { ok: true };
   };
 
@@ -88,9 +69,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         login,
         logout,
         refreshUser,
-        verifyEmailOpen,
-        openVerifyEmailModal,
-        closeVerifyEmailModal,
       }}
     >
       {isLoading ? (
@@ -102,13 +80,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             <div className="fixed inset-x-0 bottom-0 top-[60px] z-[50] flex bg-zinc-950">
               <InitialLoader variant="container" className="min-h-0 flex-1" />
             </div>
-          ) : null}
-          {verifyEmailOpen && verifyEmailAddress ? (
-            <VerifyEmailModal
-              email={verifyEmailAddress}
-              onClose={closeVerifyEmailModal}
-              onVerified={closeVerifyEmailModal}
-            />
           ) : null}
         </>
       )}

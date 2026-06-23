@@ -66,46 +66,13 @@
   }
 
   &__cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+    @include hero-cta-primary;
     min-height: 48px;
-    padding: 0 32px;
-    border: 2px solid transparent;
-    border-radius: 6px;
-    background: var(--color-brand-orange, #f97316);
-    color: #1a1a1a;
-    font-family: var(--font-sans);
-    font-size: 0.9375rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    padding-inline: 32px;
     text-transform: uppercase;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-      background-color 0.2s ease,
-      border-color 0.2s ease,
-      color 0.2s ease,
-      box-shadow 0.2s ease;
-
-    &:hover {
-      background: var(--color-brand-orange-light, #fb923c);
-      color: #1a1a1a;
-    }
-
-    &--continue {
-      border-color: var(--color-brand-orange, #f97316);
-      background: rgba(249, 115, 22, 0.14);
-      color: #fff;
-      box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25) inset;
-
-      &:hover {
-        background: rgba(249, 115, 22, 0.28);
-        color: #fff;
-        box-shadow: 0 0 20px rgba(249, 115, 22, 0.22);
-      }
-    }
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    font-size: 0.9375rem;
   }
 
   .hero__title-block {
