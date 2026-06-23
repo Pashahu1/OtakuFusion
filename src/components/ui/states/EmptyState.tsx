@@ -8,6 +8,8 @@ type EmptyStateProps = {
   icon?: ReactNode;
   fullPage?: boolean;
   plain?: boolean;
+  /** `panel` matches header / profile surfaces (`#23252b`). */
+  surface?: 'default' | 'panel';
 };
 
 export function EmptyState({
@@ -16,12 +18,16 @@ export function EmptyState({
   icon,
   fullPage = false,
   plain = false,
+  surface = 'default',
 }: EmptyStateProps) {
   return (
     <section
       className={cn(
         'w-full space-y-6 px-4 py-8 md:px-6 lg:px-10',
-        !plain && 'bg-[#111]'
+        !plain &&
+          (surface === 'panel'
+            ? 'rounded-2xl border border-white/[0.06] bg-[#23252b]'
+            : 'bg-[#111]'),
       )}
     >
       <div

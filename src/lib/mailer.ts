@@ -1,18 +1,41 @@
 import nodemailer from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { env } from '@/lib/env';
 
-export async function sendVerificationEmail(email: string, code: string) {
-  const transporter = nodemailer.createTransport({
-    host: env.SMTP_HOST,
-    port: env.SMTP_PORT,
-    secure: false,
-    auth: {
-      user: env.SMTP_USER,
-      pass: env.SMTP_PASS,
-    },
-  });
+let transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null =
+  null;
+let transporterVerified = false;
 
-  const html = `
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      secure: false,
+      auth: {
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASS,
+      },
+    });
+  }
+  return transporter;
+}
+
+async function ensureTransporterReady() {
+  const smtp = getTransporter();
+  if (transporterVerified) return smtp;
+
+  await smtp.verify();
+  transporterVerified = true;
+  return smtp;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function buildVerificationEmailHtml(code: string) {
+  return `
   <div style="
     width: 100%;
     background: #0d0d0d;
@@ -100,11 +123,28 @@ export async function sendVerificationEmail(email: string, code: string) {
     </div>
   </div>
 `;
+}
 
-  await transporter.sendMail({
+export async function sendVerificationEmail(email: string, code: string) {
+  const smtp = await ensureTransporterReady();
+  const mail = {
     from: `"OtakuFusion" <${env.SMTP_USER}>`,
     to: email,
     subject: 'Your OtakuFusion verification code',
-    html,
-  });
+    html: buildVerificationEmailHtml(code),
+  };
+
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await smtp.sendMail(mail);
+      return;
+    } catch (error) {
+      lastError = error;
+      transporterVerified = false;
+      if (attempt === 0) await sleep(400);
+    }
+  }
+
+  throw lastError;
 }

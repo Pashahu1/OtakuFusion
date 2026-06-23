@@ -51,6 +51,13 @@ export const UpdateUserBodySchema = z.object({
   username: z.string().min(1, 'Username is required'),
 });
 
+export const PresetAvatarBodySchema = z.object({
+  presetId: z
+    .string()
+    .min(1, 'Preset id is required')
+    .regex(/^\d{2}$/, 'Invalid preset id.'),
+});
+
 export const FavoriteAnimeBodySchema = z.object({
   animeId: z.string().min(1, 'Anime id is required'),
 });

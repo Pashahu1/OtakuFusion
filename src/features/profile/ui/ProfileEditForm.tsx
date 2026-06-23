@@ -16,11 +16,13 @@ export function ProfileEditForm() {
     fileInputId,
     username,
     preview,
+    selectedPresetSrc,
     isLoading,
     usernameError,
     hasChanges,
     saveDisabled,
     handleAvatarChange,
+    handlePresetSelect,
     handleUsernameChange,
     handleDiscard,
     handleSave,
@@ -54,10 +56,12 @@ export function ProfileEditForm() {
             username={username}
             usernameError={usernameError}
             preview={preview}
+            selectedPresetSrc={selectedPresetSrc}
             avatarUrl={user.avatar}
             emailInitial={user.email?.[0]?.toUpperCase() ?? '?'}
             isLoading={isLoading}
             onAvatarChange={handleAvatarChange}
+            onPresetSelect={handlePresetSelect}
             onUsernameChange={handleUsernameChange}
           />
 

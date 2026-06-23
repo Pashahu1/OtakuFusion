@@ -61,6 +61,7 @@ export default function FavoritesPage() {
         title="No favorites yet"
         message="Use the bookmark on a card to add anime here."
         fullPage={false}
+        surface="panel"
       />
     );
   }

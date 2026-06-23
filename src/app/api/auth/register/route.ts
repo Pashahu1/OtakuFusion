@@ -1,15 +1,22 @@
-import { connectDB } from '@/lib/db';
-import { sendVerificationEmail } from '@/lib/mailer';
-import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+
 import { createSessionResponse } from '@/lib/auth-session-response';
-import { RegisterBodySchema } from '@/shared/schemas/api';
+import { connectDB } from '@/lib/db';
 import {
   handleRouteError,
   jsonMessage,
   parseWithSchema,
   readJsonBody,
 } from '@/lib/http';
+import User from '@/models/User';
+import { sendVerificationEmail } from '@/lib/mailer';
+import {
+  assignVerificationCode,
+  deliverVerificationEmail,
+} from '@/server/auth/verification';
+import { RegisterBodySchema } from '@/shared/schemas/api';
+
+export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
@@ -26,27 +33,30 @@ export async function POST(req: Request) {
     if (existingUser) {
       return jsonMessage('User with this email already exists.', 409);
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
-    const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
     const user = await User.create({
       username,
       email,
       password: hashedPassword,
       role: 'user',
       isVerified: false,
-      verificationCode,
-      verificationCodeExpires,
     });
 
-    await sendVerificationEmail(user.email, verificationCode);
-
-    return createSessionResponse(user, {
-      message: 'Registration successful. Check your email to verify your account.',
+    const verificationCode = await assignVerificationCode(user);
+    const response = await createSessionResponse(user, {
+      message:
+        'Registration successful. Check your email to verify your account.',
       status: 201,
     });
+
+    try {
+      await deliverVerificationEmail(user.email, verificationCode);
+    } catch (emailError) {
+      console.error('Initial verification email failed:', emailError);
+    }
+
+    return response;
   } catch (err) {
     return handleRouteError(err, 'Error during user registration:');
   }

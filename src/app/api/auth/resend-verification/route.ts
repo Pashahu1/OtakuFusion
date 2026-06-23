@@ -1,7 +1,12 @@
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
-import { sendVerificationEmail } from '@/lib/mailer';
+import {
+  assignVerificationCode,
+  deliverVerificationEmail,
+} from '@/server/auth/verification';
 import { handleRouteError, jsonMessage, readJsonBody } from '@/lib/http';
+
+export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
@@ -28,14 +33,9 @@ export async function POST(req: Request) {
     if (user.isVerified) {
       return jsonMessage('Email is already verified.', 200);
     }
-    const verificationCode = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
-    const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
-    user.verificationCode = verificationCode;
-    user.verificationCodeExpires = verificationCodeExpires;
-    await user.save();
-    await sendVerificationEmail(user.email, verificationCode);
+
+    const verificationCode = await assignVerificationCode(user);
+    await deliverVerificationEmail(user.email, verificationCode);
     return jsonMessage('Verification code resent.', 200);
   } catch (err) {
     return handleRouteError(err, 'Resend verification error:');

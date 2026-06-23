@@ -70,6 +70,10 @@ export const metadata = {
       follow: true,
     },
   },
+  icons: {
+    icon: [{ url: '/icon.png', type: 'image/png' }],
+    apple: [{ url: '/icon.png', type: 'image/png' }],
+  },
 };
 
 const montserrat = Montserrat({

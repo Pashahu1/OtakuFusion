@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/lib/toast';
+import { isPresetAvatarSrc, presetIdFromSrc } from '@/shared/constants/preset-avatars';
 
 import { messageFromResponse, validateUsername } from './profileEditValidation';
 
@@ -19,6 +20,9 @@ export function useProfileEditForm() {
   const [username, setUsername] = useState(user?.username ?? '');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [selectedPresetSrc, setSelectedPresetSrc] = useState<string | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
 
@@ -28,20 +32,33 @@ export function useProfileEditForm() {
 
   useEffect(() => {
     return () => {
-      if (preview) URL.revokeObjectURL(preview);
+      if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
     };
   }, [preview]);
 
   const trimmedUsername = username.trim();
+  const hasPresetChange =
+    selectedPresetSrc !== null &&
+    selectedPresetSrc !== user?.avatar &&
+    isPresetAvatarSrc(selectedPresetSrc);
+  const hasAvatarChange = Boolean(avatarFile) || hasPresetChange;
   const hasChanges =
     user !== null &&
-    (trimmedUsername !== user.username || Boolean(avatarFile));
+    (trimmedUsername !== user.username || hasAvatarChange);
   const saveDisabled = isLoading || !hasChanges || Boolean(usernameError);
 
   function handleAvatarChange(file: File | undefined) {
     if (!file) return;
+    setSelectedPresetSrc(null);
     setAvatarFile(file);
     setPreview(URL.createObjectURL(file));
+  }
+
+  function handlePresetSelect(src: string) {
+    setAvatarFile(null);
+    if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
+    setPreview(src);
+    setSelectedPresetSrc(src);
   }
 
   function handleUsernameChange(next: string) {
@@ -53,7 +70,8 @@ export function useProfileEditForm() {
     if (!user) return;
     setUsername(user.username);
     setAvatarFile(null);
-    if (preview) URL.revokeObjectURL(preview);
+    setSelectedPresetSrc(null);
+    if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
     setPreview(null);
     setUsernameError(null);
   }
@@ -104,12 +122,38 @@ export function useProfileEditForm() {
 
         setProfileNavbarAvatarHold(true);
         keepNavbarHoldAfterAvatarSuccess = true;
+      } else if (
+        selectedPresetSrc &&
+        selectedPresetSrc !== user.avatar &&
+        isPresetAvatarSrc(selectedPresetSrc)
+      ) {
+        const presetId = presetIdFromSrc(selectedPresetSrc);
+        if (!presetId) {
+          toast.error('Invalid preset avatar.');
+          return;
+        }
+
+        const presetRes = await fetch('/api/user/avatar/preset', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ presetId }),
+        });
+
+        if (!presetRes.ok) {
+          toast.error(await messageFromResponse(presetRes));
+          return;
+        }
+
+        setProfileNavbarAvatarHold(true);
+        keepNavbarHoldAfterAvatarSuccess = true;
       }
 
       await refreshUser();
       setAvatarFile(null);
+      setSelectedPresetSrc(null);
       setPreview(null);
-      toast.success(avatarFile ? 'Profile photo updated.' : 'Profile saved.');
+      toast.success(hasAvatarChange ? 'Profile photo updated.' : 'Profile saved.');
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Could not save profile.';
@@ -128,11 +172,13 @@ export function useProfileEditForm() {
     fileInputId,
     username,
     preview,
+    selectedPresetSrc,
     isLoading,
     usernameError,
     hasChanges,
     saveDisabled,
     handleAvatarChange,
+    handlePresetSelect,
     handleUsernameChange,
     handleDiscard,
     handleSave,
