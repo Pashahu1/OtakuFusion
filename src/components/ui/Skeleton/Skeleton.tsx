@@ -1,7 +1,9 @@
+import './Skeleton.scss';
+
 export const Skeleton = ({ className }: { className?: string }) => {
   return (
     <div
-      className={`min-h-[0.75rem] animate-pulse rounded-md bg-white/15 ${className ?? ''}`}
+      className={`ui-skeleton ${className ?? ''}`.trim()}
       aria-hidden
     />
   );

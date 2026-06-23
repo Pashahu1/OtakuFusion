@@ -21,12 +21,12 @@ export function SwiperSectionSkeleton({
     >
       <div className="swiper-section-skeleton__header">
         {title ? (
-          <div className="swiper-section-skeleton__title animate-pulse" aria-hidden />
+          <div className="swiper-section-skeleton__title" aria-hidden />
         ) : (
           <span />
         )}
         {showViewAll ? (
-          <div className="swiper-section-skeleton__view-all animate-pulse" aria-hidden />
+          <div className="swiper-section-skeleton__view-all" aria-hidden />
         ) : null}
       </div>
       <div className="swiper-section-skeleton__row">

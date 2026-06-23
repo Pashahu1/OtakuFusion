@@ -16,7 +16,7 @@ export function AnimeSectionSkeleton({
     <section className="anime-section-skeleton w-full space-y-6 px-4 py-8 md:px-6 lg:px-10" aria-hidden>
       <div className="mb-4 flex items-center justify-between">
         {title ? (
-          <div className="anime-section-skeleton__title animate-pulse" />
+          <div className="anime-section-skeleton__title" />
         ) : (
           <span />
         )}

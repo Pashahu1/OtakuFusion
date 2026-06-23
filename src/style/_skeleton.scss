@@ -1,0 +1,27 @@
+@keyframes of-skeleton-shimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+@mixin of-skeleton-surface($base: 0.1, $peak: 0.2) {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, $base) 0%,
+    rgba(255, 255, 255, $peak) 48%,
+    rgba(255, 255, 255, $base) 100%
+  );
+  background-size: 220% 100%;
+  animation: of-skeleton-shimmer 1.75s ease-in-out infinite;
+}
+
+@mixin of-skeleton-border {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.of-skeleton-shimmer {
+  @include of-skeleton-surface(0.1, 0.2);
+}

@@ -1,3 +1,5 @@
+@use '../../../style/skeleton' as *;
+
 .anime-card-skeleton {
   display: flex;
   flex-direction: column;
@@ -9,7 +11,9 @@
   &__poster {
     aspect-ratio: 2 / 3;
     width: 100%;
-    background: rgba(255, 255, 255, 0.07);
+    border-radius: 0.25rem;
+    @include of-skeleton-border;
+    @include of-skeleton-surface(0.1, 0.2);
   }
 
   &__footer {
@@ -25,7 +29,7 @@
   &__line {
     height: 0.8125rem;
     border-radius: 0.25rem;
-    background: rgba(255, 255, 255, 0.1);
+    @include of-skeleton-surface(0.09, 0.17);
 
     &--title {
       width: 92%;
@@ -35,7 +39,7 @@
     &--sub {
       width: 58%;
       height: 0.75rem;
-      background: rgba(255, 255, 255, 0.06);
+      @include of-skeleton-surface(0.07, 0.14);
     }
   }
 }

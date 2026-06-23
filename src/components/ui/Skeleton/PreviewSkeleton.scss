@@ -1,4 +1,5 @@
 @use '../../../style/mixins' as *;
+@use '../../../style/skeleton' as *;
 
 .preview-skeleton {
   &__slider {
@@ -13,6 +14,14 @@
     inset: 0;
     z-index: 0;
     background: linear-gradient(145deg, #141414 0%, #252525 45%, #1a1a1a 100%);
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.9;
+      @include of-skeleton-surface(0.04, 0.12);
+    }
   }
 
   &__media-shade {
@@ -30,7 +39,7 @@
     width: min(100%, 22rem);
     max-width: 520px;
     border-radius: 0.5rem;
-    background: rgba(255, 255, 255, 0.12);
+    @include of-skeleton-surface(0.11, 0.22);
 
     @media (min-width: 1024px) {
       height: clamp(100px, 18vh, 180px);
@@ -48,7 +57,7 @@
     height: 1rem;
     width: 5.5rem;
     border-radius: 0.25rem;
-    background: rgba(255, 255, 255, 0.08);
+    @include of-skeleton-surface(0.09, 0.18);
 
     @media (max-width: 1023px) {
       margin-inline: auto;
@@ -69,7 +78,7 @@
     height: 1.625rem;
     width: 4.25rem;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
+    @include of-skeleton-surface(0.09, 0.18);
 
     &:nth-child(2) {
       width: 3.5rem;
@@ -122,7 +131,7 @@
   &__desc-line {
     height: 0.875rem;
     border-radius: 0.25rem;
-    background: rgba(255, 255, 255, 0.07);
+    @include of-skeleton-surface(0.08, 0.16);
 
     &--short {
       width: 68%;
@@ -133,8 +142,8 @@
     height: 3rem;
     width: min(100%, 18.75rem);
     border-radius: 0.375rem;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    @include of-skeleton-border;
+    @include of-skeleton-surface(0.09, 0.17);
 
     @media (max-width: 1023px) {
       margin-inline: auto;
@@ -156,12 +165,12 @@
     min-width: 22px;
     height: 4px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.22);
+    @include of-skeleton-surface(0.12, 0.24);
 
     &--active {
       width: 40px;
       min-width: 40px;
-      background: rgba(255, 255, 255, 0.38);
+      @include of-skeleton-surface(0.16, 0.3);
     }
   }
 
@@ -169,6 +178,6 @@
     height: 0.8125rem;
     width: 2.75rem;
     border-radius: 0.25rem;
-    background: rgba(255, 255, 255, 0.08);
+    @include of-skeleton-surface(0.09, 0.18);
   }
 }
