@@ -68,19 +68,9 @@ OtakuFusion is a full-stack **Next.js** app for browsing and watching anime. Met
 
 ## Screenshots
 
-Captured from the [live demo](https://otaku-fusion.vercel.app/). Drop your files into `docs/` using the names below.
+The hero image at the top of this README is the **home page** (spotlight + trending).
 
-| Home — spotlight & trending | Watch — series hero & episode list | Player — HLS, sub/dub, provider switch |
-| :---: | :---: | :---: |
-| ![Home page](./docs/readme-banner.jpg) | ![Watch page](./docs/readme-watch.png) | ![HLS player](./docs/readme-player.png) |
-
-**Suggested capture flow**
-
-1. **Home** — `docs/readme-banner.jpg` (already in repo; replace if you want a fresher shot).
-2. **Watch** — open any title → save full-page or hero crop as `docs/readme-watch.png`.
-3. **Player** — start playback (JP/EN or UA) → capture controls overlay as `docs/readme-player.png`.
-
-Optional: add a short GIF of home → watch → play as `docs/readme-watch-flow.gif` and embed it here.
+For **watch**, **HLS playback**, and **provider switching** — open the [live demo](https://otaku-fusion.vercel.app/) and pick any title.
 
 ---
 
