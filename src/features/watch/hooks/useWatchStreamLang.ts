@@ -37,30 +37,33 @@ export function useWatchStreamLang({
     userChoseDub: initialStreamLang === 'dub',
   }));
   const userChoseDubRef = useRef(false);
-  const [revisionBumpKey, setRevisionBumpKey] = useState('');
-  const [hydratedContinueLangRef, setHydratedContinueLangRef] = useState(false);
+  const hydratedContinueLangRef = useRef<boolean>(false);
 
-  if (langState.animeId !== animeId) {
-    setHydratedContinueLangRef(false);
+  useEffect(() => {
+    hydratedContinueLangRef.current = false;
     setLangState({
       animeId,
       activeServerId: initialStreamLang === 'dub' ? '2' : '1',
       userChoseDub: initialStreamLang === 'dub',
     });
-  } else if (
-    initialStreamLang &&
-    !hydratedContinueLangRef
-  ) {
+  }, [animeId, initialStreamLang])
+
+  useEffect(() => {
+    if (!initialStreamLang) return;
+    if (hydratedContinueLangRef.current) return;
+    if (langState.animeId !== animeId) return;
     const targetId = initialStreamLang === 'dub' ? '2' : '1';
-    setHydratedContinueLangRef(true);
-    if (langState.activeServerId !== targetId) {
-      setLangState((prev) => ({
+    hydratedContinueLangRef.current = true;
+
+    setLangState((prev) => {
+      if (prev.activeServerId === targetId) return prev;
+      return {
         ...prev,
         activeServerId: targetId,
         userChoseDub: initialStreamLang === 'dub',
-      }));
-    }
-  }
+      }
+    })
+  }, [animeId, initialStreamLang, langState.animeId])
 
   useEffect(() => {
     userChoseDubRef.current = langState.userChoseDub;
@@ -92,19 +95,23 @@ export function useWatchStreamLang({
     episodeHasDubForResolve,
   );
 
-  if (clampedServerId !== langState.activeServerId) {
+  const activeServerId = clampedServerId;
+  const prevClampedRef = useRef(clampedServerId);
+
+  useEffect(() => {
+    if (clampedServerId === langState.activeServerId) return;
     setLangState((prev) => ({
       ...prev,
       activeServerId: clampedServerId,
       userChoseDub: false,
     }));
-    if (revisionBumpKey !== clampKey) {
-      setRevisionBumpKey(clampKey);
-      setStreamLangRevision((n) => n + 1);
-    }
-  }
+  }, [clampedServerId, langState.activeServerId])
 
-  const activeServerId = clampedServerId;
+  useEffect(() => {
+    if (prevClampedRef.current === clampedServerId) return;
+    prevClampedRef.current = clampedServerId;
+    setStreamLangRevision((n) => n + 1);
+  }, [clampedServerId, setStreamLangRevision])
 
   const resolverLang = useMemo<'sub' | 'dub'>(() => {
     if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') return 'sub';

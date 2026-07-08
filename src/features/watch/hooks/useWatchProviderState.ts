@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+﻿import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   DEFAULT_WATCH_STREAM_PROVIDER,
   type WatchStreamProvider,
@@ -13,23 +13,25 @@ export function useWatchProviderState(
   );
   const [streamLangRevision, setStreamLangRevision] = useState(0);
   const [trackedAnimeId, setTrackedAnimeId] = useState(animeId);
-  const [hydratedContinueProvider, setHydratedContinueProvider] = useState(false);
+  const hydratedContinueProviderRef = useRef(false);
 
-  if (trackedAnimeId !== animeId && animeId.trim()) {
-    setHydratedContinueProvider(false);
-    setTrackedAnimeId(animeId);
+
+  useEffect(() => {
+    hydratedContinueProviderRef.current = false;
     setWatchStreamProviderState(initialProvider ?? DEFAULT_WATCH_STREAM_PROVIDER);
     setStreamLangRevision(0);
-  } else if (
-    initialProvider &&
-    !hydratedContinueProvider &&
-    watchStreamProvider !== initialProvider
-  ) {
-    setHydratedContinueProvider(true);
+  }, [animeId, initialProvider])
+
+  useEffect(() => {
+    if(!initialProvider) return;
+    if(hydratedContinueProviderRef.current) return;
+
+    hydratedContinueProviderRef.current = true;
     setWatchStreamProviderState(initialProvider);
-  }
+  }, [animeId, initialProvider, trackedAnimeId])
 
   const setWatchStreamProvider = useCallback((next: WatchStreamProvider) => {
+    hydratedContinueProviderRef.current = true;
     setWatchStreamProviderState((prev) => {
       if (prev === next) return prev;
       setStreamLangRevision((n) => n + 1);
