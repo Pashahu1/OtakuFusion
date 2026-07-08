@@ -4,6 +4,7 @@ import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { findContinueWatchingEntry } from '@/features/watch/lib/resolve-continue-watching-cta';
 import { readContinueWatchingList } from '@/features/watch/lib/continue-watching-list';
 import { continueWatchingEpisodeParam } from '@/features/watch/lib/continue-watching-display';
+import { watchServerIdFromLang } from '@/shared/data/servers';
 
 interface UseRestoreContinueWatchingPlaybackInput {
   animeId: string;
@@ -46,10 +47,8 @@ export function useRestoreContinueWatchingPlayback({
     if (entry.watchStreamProvider) {
       setWatchStreamProvider(entry.watchStreamProvider);
     }
-    if (entry.streamLang === 'dub') {
-      setActiveServerId('2');
-    } else if (entry.streamLang === 'sub') {
-      setActiveServerId('1');
+    if (entry.streamLang === 'dub' || entry.streamLang === 'sub') {
+      setActiveServerId(watchServerIdFromLang(entry.streamLang));
     }
   }, [
     animeId,

@@ -2,6 +2,11 @@ import type Artplayer from 'artplayer';
 
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import {
+  isWatchDubServerId,
+  WATCH_SERVER_DUB_ID,
+  WATCH_SERVER_SUB_ID,
+} from '@/shared/data/servers';
 
 import { hardStopWatchPlayerSurface } from './hooks/artplayer-hls/hardStopPlayerMedia';
 import {
@@ -50,7 +55,7 @@ export function syncPlayerLanguageMenu(
 
   const anikotoActiveLang =
     watchStreamProvider === 'anikoto'
-      ? activeServerIdRef.current === '2'
+      ? isWatchDubServerId(activeServerIdRef.current)
         ? 'dub'
         : 'sub'
       : null;
@@ -111,7 +116,7 @@ export function syncPlayerLanguageMenu(
       }
       if (mode === 'anikoto-sub') {
         setWatchStreamProvider('anikoto');
-        setActiveServerId('1');
+        setActiveServerId(WATCH_SERVER_SUB_ID);
         try {
           localStorage.setItem('server_type', 'sub');
           localStorage.removeItem('server_name');
@@ -122,7 +127,7 @@ export function syncPlayerLanguageMenu(
       }
       if (mode === 'anikoto-dub') {
         setWatchStreamProvider('anikoto');
-        setActiveServerId('2');
+        setActiveServerId(WATCH_SERVER_DUB_ID);
         try {
           localStorage.setItem('server_type', 'dub');
           localStorage.removeItem('server_name');

@@ -4,7 +4,11 @@ import { computeHasAnyDub } from '@/features/watch/lib/computeHasAnyDub';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
-import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
+import {
+  isWatchDubServerId,
+  STORAGE_SERVER_TYPE,
+  watchServerIdFromLang,
+} from '@/shared/data/servers';
 import { episodeMatchesSelection } from '@/shared/utils/episodeUtils';
 
 import { clampActiveServerId } from './watch-stream-lang/clampActiveServerId';
@@ -33,7 +37,7 @@ export function useWatchStreamLang({
 }: UseWatchStreamLangInput): UseWatchStreamLangResult {
   const [langState, setLangState] = useState<LangState>(() => ({
     animeId,
-    activeServerId: initialStreamLang === 'dub' ? '2' : '1',
+    activeServerId: watchServerIdFromLang(initialStreamLang === 'dub' ? 'dub' : 'sub'),
     userChoseDub: initialStreamLang === 'dub',
   }));
   const userChoseDubRef = useRef(false);
@@ -43,16 +47,16 @@ export function useWatchStreamLang({
     hydratedContinueLangRef.current = false;
     setLangState({
       animeId,
-      activeServerId: initialStreamLang === 'dub' ? '2' : '1',
+      activeServerId: watchServerIdFromLang(initialStreamLang === 'dub' ? 'dub' : 'sub'),
       userChoseDub: initialStreamLang === 'dub',
     });
-  }, [animeId, initialStreamLang])
+  }, [animeId, initialStreamLang]);
 
   useEffect(() => {
     if (!initialStreamLang) return;
     if (hydratedContinueLangRef.current) return;
     if (langState.animeId !== animeId) return;
-    const targetId = initialStreamLang === 'dub' ? '2' : '1';
+    const targetId = watchServerIdFromLang(initialStreamLang);
     hydratedContinueLangRef.current = true;
 
     setLangState((prev) => {
@@ -61,9 +65,9 @@ export function useWatchStreamLang({
         ...prev,
         activeServerId: targetId,
         userChoseDub: initialStreamLang === 'dub',
-      }
-    })
-  }, [animeId, initialStreamLang, langState.animeId])
+      };
+    });
+  }, [animeId, initialStreamLang, langState.animeId]);
 
   useEffect(() => {
     userChoseDubRef.current = langState.userChoseDub;
@@ -86,7 +90,6 @@ export function useWatchStreamLang({
     return undefined;
   }, [selectedEpisode]);
 
-  const clampKey = `${watchStreamProvider}:${catalogHasDub}:${episodeHasDubForResolve}:${episodeId}:${langState.activeServerId}:${langState.userChoseDub}`;
   const clampedServerId = clampActiveServerId(
     langState.activeServerId,
     langState.userChoseDub,
@@ -105,24 +108,24 @@ export function useWatchStreamLang({
       activeServerId: clampedServerId,
       userChoseDub: false,
     }));
-  }, [clampedServerId, langState.activeServerId])
+  }, [clampedServerId, langState.activeServerId]);
 
   useEffect(() => {
     if (prevClampedRef.current === clampedServerId) return;
     prevClampedRef.current = clampedServerId;
     setStreamLangRevision((n) => n + 1);
-  }, [clampedServerId, setStreamLangRevision])
+  }, [clampedServerId, setStreamLangRevision]);
 
   const resolverLang = useMemo<'sub' | 'dub'>(() => {
     if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') return 'sub';
     if (watchStreamProvider === 'anikoto') {
-      return activeServerId === '2' ? 'dub' : 'sub';
+      return isWatchDubServerId(activeServerId) ? 'dub' : 'sub';
     }
-    if (activeServerId !== '2') return 'sub';
+    if (!isWatchDubServerId(activeServerId)) return 'sub';
     return 'dub';
   }, [watchStreamProvider, activeServerId]);
 
-  const preferredLang = activeServerId === '2' ? 'dub' : 'sub';
+  const preferredLang = isWatchDubServerId(activeServerId) ? 'dub' : 'sub';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -141,7 +144,7 @@ export function useWatchStreamLang({
     setLangState((prev) => ({
       ...prev,
       activeServerId: id,
-      userChoseDub: id === '2',
+      userChoseDub: isWatchDubServerId(id),
     }));
   }, []);
 
@@ -149,7 +152,7 @@ export function useWatchStreamLang({
     (value: SetStateAction<string | null>) => {
       setLangState((prev) => {
         const next = typeof value === 'function' ? value(prev.activeServerId) : value;
-        return { ...prev, activeServerId: next, userChoseDub: next === '2' };
+        return { ...prev, activeServerId: next, userChoseDub: isWatchDubServerId(next) };
       });
       setStreamLangRevision((n) => n + 1);
     },
@@ -158,7 +161,7 @@ export function useWatchStreamLang({
 
   const onPlaybackLangResolved = useCallback(
     (lang: 'sub' | 'dub') => {
-      setActiveServerIdRaw(lang === 'dub' ? '2' : '1');
+      setActiveServerIdRaw(watchServerIdFromLang(lang));
     },
     [setActiveServerIdRaw],
   );
@@ -181,4 +184,4 @@ export function useWatchStreamLang({
     userChoseDub: langState.userChoseDub,
     userChoseDubRef,
   };
-}
+};

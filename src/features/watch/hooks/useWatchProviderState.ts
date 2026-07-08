@@ -12,23 +12,21 @@ export function useWatchProviderState(
     () => initialProvider ?? DEFAULT_WATCH_STREAM_PROVIDER,
   );
   const [streamLangRevision, setStreamLangRevision] = useState(0);
-  const [trackedAnimeId, setTrackedAnimeId] = useState(animeId);
   const hydratedContinueProviderRef = useRef(false);
-
 
   useEffect(() => {
     hydratedContinueProviderRef.current = false;
     setWatchStreamProviderState(initialProvider ?? DEFAULT_WATCH_STREAM_PROVIDER);
     setStreamLangRevision(0);
-  }, [animeId, initialProvider])
+  }, [animeId, initialProvider]);
 
   useEffect(() => {
-    if(!initialProvider) return;
-    if(hydratedContinueProviderRef.current) return;
+    if (!initialProvider) return;
+    if (hydratedContinueProviderRef.current) return;
 
     hydratedContinueProviderRef.current = true;
     setWatchStreamProviderState(initialProvider);
-  }, [animeId, initialProvider, trackedAnimeId])
+  }, [animeId, initialProvider]);
 
   const setWatchStreamProvider = useCallback((next: WatchStreamProvider) => {
     hydratedContinueProviderRef.current = true;

@@ -5,7 +5,12 @@ import {
   buildFlatLanguageMenu,
   type LangMenuLeaf,
 } from '@/features/player/ui/language-menu/buildFlatLanguageMenu';
-import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
+import {
+  isWatchDubServerId,
+  STORAGE_SERVER_TYPE,
+  WATCH_SERVER_DUB_ID,
+  WATCH_SERVER_SUB_ID,
+} from '@/shared/data/servers';
 
 interface WatchPlayerErrorControlsProps {
   activeServerId: string | null;
@@ -48,7 +53,7 @@ function applyLanguageMenuSelection(
 
   if (mode === 'anikoto-sub') {
     setWatchStreamProvider('anikoto');
-    setActiveServerId('1');
+    setActiveServerId(WATCH_SERVER_SUB_ID);
     try {
       localStorage.setItem(STORAGE_SERVER_TYPE, 'sub');
       localStorage.removeItem('server_name');
@@ -60,7 +65,7 @@ function applyLanguageMenuSelection(
 
   if (mode === 'anikoto-dub') {
     setWatchStreamProvider('anikoto');
-    setActiveServerId('2');
+    setActiveServerId(WATCH_SERVER_DUB_ID);
     try {
       localStorage.setItem(STORAGE_SERVER_TYPE, 'dub');
       localStorage.removeItem('server_name');
@@ -80,7 +85,11 @@ export function WatchPlayerErrorControls({
   anikotoLanguageMenuEligible,
 }: WatchPlayerErrorControlsProps) {
   const anikotoActiveLang =
-    watchStreamProvider === 'anikoto' ? (activeServerId === '2' ? 'dub' : 'sub') : null;
+    watchStreamProvider === 'anikoto'
+      ? isWatchDubServerId(activeServerId)
+        ? 'dub'
+        : 'sub'
+      : null;
 
   const options = buildFlatLanguageMenu({
     watchStreamProvider,

@@ -11,6 +11,7 @@ import { findContinueWatchingEntry } from '@/features/watch/lib/resolve-continue
 import { readContinueWatchingList } from '@/features/watch/lib/continue-watching-list';
 import { continueWatchingEpisodeParam } from '@/features/watch/lib/continue-watching-display';
 import { peekPendingPlaybackResume } from '@/features/watch/lib/playback-resume-pending';
+import { isWatchDubServerId } from '@/shared/data/servers';
 import { normalizeEpisodeStorageKey } from '@/shared/utils/episodeUtils';
 import { destroyArtplayerInstance, readPlayerDeferStrictInit } from './useArtplayerHls';
 import { buildArtplayerStreamBootKey } from './artplayer-instance/buildArtplayerStreamBootKey';
@@ -59,7 +60,7 @@ export function useArtplayerInstance({
     onPlaybackErrorRef.current = onPlaybackError;
   });
 
-  const streamLang: 'sub' | 'dub' = activeServerId === '2' ? 'dub' : 'sub';
+  const streamLang: 'sub' | 'dub' = isWatchDubServerId(activeServerId) ? 'dub' : 'sub';
 
   const { scheduleContinueWatchingUpdate } = useArtplayerContinueWatching({
     animeInfo,
