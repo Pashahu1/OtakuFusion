@@ -1,5 +1,4 @@
 import './InitialLoader.scss';
-import { BrandFaviconLoader } from '@/components/ui/BrandFaviconLoader/BrandFaviconLoader';
 import { cn } from '@/lib/utils';
 
 interface InitialLoaderProps {
@@ -20,7 +19,7 @@ export function InitialLoader({
         className,
       )}
     >
-      <BrandFaviconLoader />
+      <span className="loader" aria-hidden />
     </div>
   );
 }

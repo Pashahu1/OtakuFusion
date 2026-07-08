@@ -35,6 +35,7 @@ interface WatchSeriesHeroProps {
   animeInfo: AnimeData;
   playHref: string;
   ctaLabel: string;
+  isCtaPlayable?: boolean;
   isDetailsExpanded: boolean;
   onToggleDetails: () => void;
   heroArtworkPending?: boolean;
@@ -45,6 +46,7 @@ export function WatchSeriesHero({
   animeInfo,
   playHref,
   ctaLabel,
+  isCtaPlayable = true,
   isDetailsExpanded,
   onToggleDetails,
   heroArtworkPending = false,
@@ -109,10 +111,19 @@ export function WatchSeriesHero({
             <WatchSeriesInlineTags animeInfo={animeInfo} />
             <WatchSeriesRatingRow scorePercent={hero.scorePercent} />
             <div className="watch-series-hero__actions">
-              <Link href={playHref} className="watch-series-hero__cta">
-                <Play className="h-5 w-5 shrink-0 fill-current" aria-hidden />
-                {ctaLabel}
-              </Link>
+              {isCtaPlayable ? (
+                <Link href={playHref} className="watch-series-hero__cta">
+                  <Play className="h-5 w-5 shrink-0 fill-current" aria-hidden />
+                  {ctaLabel}
+                </Link>
+              ) : (
+                <span
+                  className="watch-series-hero__cta watch-series-hero__cta--disabled"
+                  aria-disabled="true"
+                >
+                  {ctaLabel}
+                </span>
+              )}
               <WatchSeriesSaveButton anime={animeDataToFavorite(animeInfo)} />
             </div>
           </div>

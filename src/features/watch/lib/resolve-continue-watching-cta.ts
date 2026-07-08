@@ -2,13 +2,14 @@ import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { watchPlayPath } from '@/shared/utils/watch-routes';
 
-export type WatchCtaVariant = 'watch' | 'continue';
+export type WatchCtaVariant = 'watch' | 'continue' | 'unavailable';
 
 export interface WatchCtaModel {
   episodeNum: string;
   playHref: string;
   ctaLabel: string;
   variant: WatchCtaVariant;
+  isPlayable: boolean;
 }
 
 export interface EpisodeRef {
@@ -90,6 +91,17 @@ export function buildWatchCtaModel(
       ? `Continue Watching E${episodeNum}`
       : `Start Watching E${episodeNum}`,
     variant: isContinue ? 'continue' : 'watch',
+    isPlayable: true,
+  };
+}
+
+export function buildWatchUnavailableCtaModel(): WatchCtaModel {
+  return {
+    episodeNum: '',
+    playHref: '',
+    ctaLabel: 'Not available yet',
+    variant: 'unavailable',
+    isPlayable: false,
   };
 }
 
@@ -101,6 +113,10 @@ export function resolveWatchCtaModel(params: {
   watched: Record<string, boolean>;
   episodes: EpisodeRef[] | null;
 }): WatchCtaModel {
+  if (params.episodes !== null && params.episodes.length === 0) {
+    return buildWatchUnavailableCtaModel();
+  }
+
   const continueEntry = findContinueWatchingEntry(
     params.continueList,
     params.animeId,

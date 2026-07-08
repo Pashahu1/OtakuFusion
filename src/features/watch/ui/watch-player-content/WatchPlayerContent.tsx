@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Player } from '@/features/player';
-import { BrandFaviconLoader } from '@/components/ui/BrandFaviconLoader/BrandFaviconLoader';
+import '@/components/ui/InitialLoader/InitialLoader.scss';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
@@ -99,7 +99,7 @@ export const WatchPlayerContent = ({
       <div className="watch-player-content__frame">
         {showLoader && (
           <div className="watch-player-content__loader">
-            <BrandFaviconLoader />
+            <span className="loader" aria-hidden />
             {streamLoadingMessage ? (
               <p className="watch-player-content__loader-msg">{streamLoadingMessage}</p>
             ) : null}

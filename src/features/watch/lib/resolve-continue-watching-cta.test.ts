@@ -4,6 +4,7 @@ import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry
 
 import {
   buildWatchCtaModel,
+  buildWatchUnavailableCtaModel,
   findContinueWatchingEntry,
   pickContinueEpisodeNumber,
   resolveWatchCtaModel,
@@ -69,5 +70,16 @@ describe('resolveWatchCtaModel', () => {
     expect(model).toEqual(
       buildWatchCtaModel('195600', '2', true),
     );
+  });
+
+  it('returns unavailable CTA when catalog has no episodes', () => {
+    const model = resolveWatchCtaModel({
+      animeId: '195600',
+      continueList: [continueEntry],
+      watched: {},
+      episodes: [],
+    });
+
+    expect(model).toEqual(buildWatchUnavailableCtaModel());
   });
 });

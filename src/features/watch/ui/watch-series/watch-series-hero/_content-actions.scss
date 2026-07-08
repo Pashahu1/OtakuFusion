@@ -73,6 +73,15 @@
     letter-spacing: 0.06em;
     font-weight: 700;
     font-size: 0.9375rem;
+
+    &--disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      pointer-events: none;
+      border-color: rgb(255 255 255 / 0.35);
+      color: rgb(255 255 255 / 0.75);
+      box-shadow: none;
+    }
   }
 
   .hero__title-block {
