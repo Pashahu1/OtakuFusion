@@ -15,18 +15,12 @@ import { formatEpisodeDuration } from '@/features/watch/lib/format-episode-durat
 import { watchPlayPath } from '@/shared/utils/watch-routes';
 import { useWatchCta } from '@/features/watch/hooks/useWatchCta';
 import './watch-page.scss';
+import { useRouteAnimeId } from '@/hooks/useRouteAnimeId';
 
 export default function WatchSeriesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const params = useParams();
-  const animeIdRaw = params?.id;
-  const animeId =
-    typeof animeIdRaw === 'string'
-      ? animeIdRaw
-      : Array.isArray(animeIdRaw)
-        ? (animeIdRaw[0] ?? '')
-        : '';
+  const animeId = useRouteAnimeId();
   const urlEp = searchParams.get('ep') ?? undefined;
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 

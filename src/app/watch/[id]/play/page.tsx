@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { useSearchParams, useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   StreamOriginPreconnect,
   useWatch,
@@ -12,18 +12,12 @@ import { appendWatchActivity } from '@/features/profile';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { onEpisodeWatched as markWatchedInStorage } from '@/lib/watch/watched-episodes';
 import './watch-play-page.scss';
+import { useRouteAnimeId } from '@/hooks/useRouteAnimeId';
 
 export default function WatchPlayPage() {
-  const searchParams = useSearchParams();
-  const params = useParams();
-  const animeIdRaw = params?.id;
-  const animeId =
-    typeof animeIdRaw === 'string'
-      ? animeIdRaw
-      : Array.isArray(animeIdRaw)
-        ? (animeIdRaw[0] ?? '')
-        : '';
-  const urlEp = searchParams.get('ep') ?? undefined;
+  const animeId = useRouteAnimeId();
+
+  const urlEp = useSearchParams().get('ep') ?? undefined;
   const [showErrorBlock, setShowErrorBlock] = useState(false);
 
   const [watchedEpisodes, setWatchedEpisodes] = useLocalStorage<Record<string, boolean>>(
