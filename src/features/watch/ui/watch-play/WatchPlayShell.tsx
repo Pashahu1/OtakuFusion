@@ -1,12 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { SubtitleItem } from '@/shared/types/PlayerTypes';
-import type { StreamingData } from '@/shared/types/StreamingTypes';
-import type { AnimeData } from '@/shared/types/animeDetailsTypes';
-import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import type { NextEpisodeScheduleResult, ServerInfo } from '@/shared/types/GlobalAnimeTypes';
-import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { formatEpisodeDuration } from '@/features/watch/lib/format-episode-duration';
 import { getEpisodeThumbnailProgress } from '@/features/watch/lib/get-episode-thumbnail-progress';
 import {
@@ -21,51 +15,48 @@ import { WatchPlayAdjacentEpisode } from './WatchPlayAdjacentEpisode';
 import { WatchPlayMeta } from './WatchPlayMeta';
 import { WatchPlaySeeMoreButton } from './WatchPlaySeeMoreButton';
 import { WatchPlayEpisodesPanel } from './WatchPlayEpisodesPanel';
+import { useWatchPlay } from './WatchPlayProvider';
 import './WatchPlayShell.scss';
 
-export interface WatchPlayShellProps {
-  animeId: string;
-  buffering: boolean;
-  streamLoadingMessage: string | null;
-  streamUrl: string | null;
-  subtitles: SubtitleItem[] | null;
-  thumbnail: string | null;
-  episodeId: string | null;
-  episodes: EpisodesTypes[] | null;
-  setEpisodeId: React.Dispatch<React.SetStateAction<string | null>>;
-  onEpisodeWatched: (episodeId: string) => void;
-  animeInfo: AnimeData | null;
-  episodeNum: number | null;
-  streamInfo: StreamingData | null;
-  servers: ServerInfo[] | null;
-  activeServerId: string | null;
-  setActiveServerId: (id: string | null) => void;
-  showErrorBlock: boolean;
-  playerShellPending: boolean;
-  watchStreamProvider: WatchStreamProvider;
-  setWatchStreamProvider: (p: WatchStreamProvider) => void;
-  streamOverlayMessage: { title: string; subtitle: string } | null;
-  anilibertyLanguageMenuEligible: boolean;
-  hikkaLanguageMenuEligible: boolean;
-  anikotoLanguageMenuEligible: boolean;
-  watchedEpisodes: Record<string, boolean>;
-  playbackLang: 'sub' | 'dub';
-  nextEpisodeSchedule: NextEpisodeScheduleResult | null;
-}
-
-function episodeKeyFromEpisode(episode: EpisodesTypes): string {
+function episodeKeyFromEpisode(episode: { id: string; episode_no: number }): string {
   return getEpisodeNumberFromId(episode.id) ?? String(episode.episode_no);
 }
 
-export function WatchPlayShell({
-  animeId,
-  watchedEpisodes,
-  setEpisodeId,
-  playbackLang,
-  nextEpisodeSchedule,
-  ...playerProps
-}: WatchPlayShellProps) {
-  const { episodes, episodeId, animeInfo, playerShellPending } = playerProps;
+export function WatchPlayShell() {
+  const {
+    animeId,
+    watch,
+    watchedEpisodes,
+    onEpisodeWatched,
+    showErrorBlock,
+  } = useWatchPlay();
+
+  const {
+    buffering,
+    streamLoadingMessage,
+    streamUrl,
+    subtitles,
+    thumbnail,
+    episodeId,
+    episodes,
+    setEpisodeId,
+    animeInfo,
+    activeEpisodeNum,
+    streamInfo,
+    servers,
+    activeServerId,
+    setActiveServerId,
+    playerShellPending,
+    watchStreamProvider,
+    setWatchStreamProvider,
+    streamOverlayMessage,
+    anilibertyLanguageMenuEligible,
+    hikkaLanguageMenuEligible,
+    anikotoLanguageMenuEligible,
+    playbackLang,
+    nextEpisodeSchedule,
+  } = watch;
+
   const [episodesPanelOpen, setEpisodesPanelOpen] = useState(false);
   const continueProgress = useContinueWatchingEpisodeProgress(animeId);
 
@@ -121,8 +112,29 @@ export function WatchPlayShell({
       <div className="watch-play-shell__player-bleed">
         <WatchPlayerContent
           animeId={animeId}
+          buffering={buffering}
+          streamLoadingMessage={streamLoadingMessage}
+          streamUrl={streamUrl}
+          subtitles={subtitles}
+          thumbnail={thumbnail}
+          episodeId={episodeId}
+          episodes={episodes}
           setEpisodeId={setEpisodeId}
-          {...playerProps}
+          onEpisodeWatched={onEpisodeWatched}
+          animeInfo={animeInfo}
+          episodeNum={activeEpisodeNum}
+          streamInfo={streamInfo}
+          servers={servers}
+          activeServerId={activeServerId}
+          setActiveServerId={setActiveServerId}
+          watchStreamProvider={watchStreamProvider}
+          setWatchStreamProvider={setWatchStreamProvider}
+          showErrorBlock={showErrorBlock}
+          playerShellPending={playerShellPending}
+          streamOverlayMessage={streamOverlayMessage}
+          anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
+          hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
+          anikotoLanguageMenuEligible={anikotoLanguageMenuEligible}
         />
       </div>
 

@@ -8,6 +8,8 @@ export {
 } from './hooks/useWatchStream';
 export { useWatchPageEffects } from './hooks/useWatchPageEffects';
 export { useWatchSeries } from './hooks/useWatchSeries';
+export { useWatchPlayPage } from './hooks/useWatchPlayPage';
+export { WatchPlayProvider, useWatchPlay } from './ui/watch-play/WatchPlayProvider';
 
 export type { WatchStreamProvider } from './lib/watch-provider';
 export { normalizeWatchStreamProvider } from './lib/watch-provider';
