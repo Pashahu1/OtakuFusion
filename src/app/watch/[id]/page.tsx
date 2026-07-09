@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getWatchAnimeCatalogMeta } from '@/lib/api/anime-info';
 import { WEBSITE_NAME } from '@/config/website';
+import { buildWatchPageMetadata } from '@/features/watch/lib/build-watch-page-metadata';
 import { watchPlayPath } from '@/shared/utils/watch-routes';
 import WatchSeriesPageClient from './WatchSeriesPageClient';
 
@@ -14,11 +15,12 @@ export async function generateMetadata({ params }: PageProps) {
   const animeId = id?.trim() ?? '';
   try {
     const { results } = await getWatchAnimeCatalogMeta(animeId);
-    const title = results.data?.title ?? 'Watch Anime';
-    return {
-      title: `Watch ${title} — ${WEBSITE_NAME}`,
-      description: results.data?.animeInfo?.Overview?.slice(0, 160) ?? undefined,
-    };
+    const data = results.data;
+    return buildWatchPageMetadata({
+      title: data?.title ?? 'Anime',
+      description: data?.animeInfo?.Overview,
+      poster: data?.poster,
+    });
   } catch {
     return { title: `Watch — ${WEBSITE_NAME}` };
   }

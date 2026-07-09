@@ -111,7 +111,7 @@ export function Card({
         >
           <Image
             src={posterSrc}
-            alt=""
+            alt={`${anime.title} poster`}
             fill
             quality={posterQuality}
             priority={priority}
@@ -120,7 +120,6 @@ export function Card({
             onError={() => setPosterSrc(fallbackPosterSrc)}
             className="object-cover object-center transition-[filter] duration-300 ease-out group-hover/card:saturate-[0.78] group-focus-within/card:saturate-[0.78]"
             sizes={posterSizes}
-            aria-hidden
           />
 
           {isFavorite ? (

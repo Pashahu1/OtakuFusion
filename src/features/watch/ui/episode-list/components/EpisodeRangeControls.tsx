@@ -73,11 +73,11 @@ export function EpisodeRangeControls({
             aria-label="Episode range"
           >
             <ul className="flex flex-col gap-0">
-              {rangeOptions.map((item, index) => {
+              {rangeOptions.map((item) => {
                 const isActive = item === activeRange;
                 return (
                   <li
-                    key={index}
+                    key={item}
                     className={`w-full ${
                       isActive
                         ? 'bg-[#f47521]/14 text-[#f47521]'

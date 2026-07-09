@@ -23,52 +23,67 @@ export function WatchSeriesInlineTags({
   const hasSub = (tv?.has_sub ?? 0) > 0;
   const hasDub = (tv?.has_dub ?? 0) > 0;
 
-  const parts: ReactNode[] = [];
+  const parts: { id: string; node: ReactNode }[] = [];
 
   if (animeInfo.adultContent) {
-    parts.push(
-      <span key="age" className="watch-series-tags__age">
-        18+
-      </span>
-    );
+    parts.push({
+      id: 'age',
+      node: (
+        <span className="watch-series-tags__age">
+          18+
+        </span>
+      ),
+    });
   }
 
   if (playbackLang) {
-    parts.push(
-      <span key="playback" className="watch-series-tags__lang">
-        {playbackLang === 'dub' ? 'Dubbed' : 'Subtitled'}
-      </span>
-    );
+    parts.push({
+      id: 'playback',
+      node: (
+        <span className="watch-series-tags__lang">
+          {playbackLang === 'dub' ? 'Dubbed' : 'Subtitled'}
+        </span>
+      ),
+    });
   } else {
     if (hasSub) {
-      parts.push(
-        <span key="sub" className="watch-series-tags__lang">
-          Sub
-        </span>
-      );
+      parts.push({
+        id: 'sub',
+        node: (
+          <span className="watch-series-tags__lang">
+            Sub
+          </span>
+        ),
+      });
     }
 
     if (hasDub) {
-      parts.push(
-        <span key="dub" className="watch-series-tags__lang">
-          Dub
-        </span>
-      );
+      parts.push({
+        id: 'dub',
+        node: (
+          <span className="watch-series-tags__lang">
+            Dub
+          </span>
+        ),
+      });
     }
 
     if (!hasSub && !hasDub) {
-      parts.push(
-        <span key="sub-fallback" className="watch-series-tags__lang">
-          Sub
-        </span>
-      );
+      parts.push({
+        id: 'sub-fallback',
+        node: (
+          <span className="watch-series-tags__lang">
+            Sub
+          </span>
+        ),
+      });
     }
   }
 
   return (
     <p className="watch-series-tags">
-      {parts.map((node, index) => (
-        <span key={index} className="watch-series-tags__segment">
+      {parts.map(({ id, node }, index) => (
+        <span key={id} className="watch-series-tags__segment">
           {index > 0 ? (
             <span className="watch-series-tags__sep" aria-hidden>
               {playbackLang ? '•' : '|'}

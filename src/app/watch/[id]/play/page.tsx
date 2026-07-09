@@ -1,5 +1,6 @@
 import { getWatchAnimeCatalogMeta } from '@/lib/api/anime-info';
 import { WEBSITE_NAME } from '@/config/website';
+import { buildWatchPageMetadata } from '@/features/watch/lib/build-watch-page-metadata';
 import WatchPlayPageClient from './WatchPlayPageClient';
 import { Suspense } from 'react';
 
@@ -15,11 +16,14 @@ export async function generateMetadata({ params, searchParams }: PageProps) {
   const episode = ep?.trim();
   try {
     const { results } = await getWatchAnimeCatalogMeta(animeId);
-    const title = results.data?.title ?? 'Watch Anime';
+    const data = results.data;
     const epLabel = episode ? ` E${episode}` : '';
-    return {
-      title: `Watch ${title}${epLabel} — ${WEBSITE_NAME}`,
-    };
+    return buildWatchPageMetadata({
+      title: data?.title ?? 'Anime',
+      description: data?.animeInfo?.Overview,
+      poster: data?.poster,
+      episodeLabel: epLabel,
+    });
   } catch {
     return { title: `Watch — ${WEBSITE_NAME}` };
   }
