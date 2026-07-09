@@ -8,6 +8,7 @@ import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { WatchPlayerErrorControls } from './WatchPlayerErrorControls';
+import { resolveWatchPlayerPhase } from './resolveWatchPlayerPhase';
 import './WatchPlayerContent.scss';
 
 type WatchPlayerContentProps = {
@@ -82,22 +83,19 @@ export const WatchPlayerContent = ({
     setBuiltinErrorStreamKey(streamKey);
   }, [streamKey]);
 
-  const isStreamMissing = !playerShellPending && !buffering && !streamUrl;
-  const allowFatalErrorUi =
-    isStreamMissing &&
-    (showErrorBlock || hasBuiltinError || streamOverlayMessage != null);
-  const showBuiltinPlayer = !hasBuiltinError && !isStreamMissing && Boolean(streamUrl);
-  const showLoader =
-    !hasBuiltinError &&
-    (playerShellPending || buffering || !streamUrl) &&
-    !allowFatalErrorUi;
-  const showErrorOverlay =
-    isStreamMissing && (showErrorBlock || hasBuiltinError || streamOverlayMessage != null);
+  const phase = resolveWatchPlayerPhase({
+    playerShellPending,
+    buffering,
+    streamUrl,
+    showErrorBlock,
+    hasBuiltinError,
+    streamOverlayMessage,
+  });
 
   return (
     <div className="watch-player-content">
       <div className="watch-player-content__frame">
-        {showLoader && (
+        {phase === 'loading' && (
           <div className="watch-player-content__loader">
             <LoaderSpinner />
             {streamLoadingMessage ? (
@@ -106,7 +104,7 @@ export const WatchPlayerContent = ({
           </div>
         )}
 
-        {showBuiltinPlayer && (
+        {phase === 'playing' && (
           <div className="watch-player-content__player">
             <Player
               localAnimeId={animeId}
@@ -133,7 +131,7 @@ export const WatchPlayerContent = ({
           </div>
         )}
 
-        {showErrorOverlay && (
+        {phase === 'error' && (
           <div className="watch-player-content__error">
             <span className="watch-player-content__error-title">{overlayCopy.title}</span>
             <span className="watch-player-content__error-sub">{overlayCopy.subtitle}</span>
