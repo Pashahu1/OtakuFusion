@@ -1,6 +1,6 @@
-import WatchSeriesPageClient from './WatchSeriesPageClient';
 import { getWatchAnimeCatalogMeta } from '@/lib/api/anime-info';
 import { WEBSITE_NAME } from '@/config/website';
+import WatchSeriesPageClient from './WatchSeriesPageClient';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -21,10 +21,10 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function WatchSeriesPage({params}: PageProps) {
+export default async function WatchSeriesPage({ params }: PageProps) {
   const { id } = await params;
   const animeId = id?.trim() ?? '';
 
-  return <WatchSeriesPageClient animeId={animeId} />
+  return <WatchSeriesPageClient animeId={animeId} />;
 }
 

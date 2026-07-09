@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Episodelist } from '@/features/watch';
 import { WatchEpisodesEmptySection } from '@/features/watch/ui/episode-list/WatchEpisodesEmptySection';
 import { useWatchSeries } from '@/features/watch/hooks/useWatchSeries';
@@ -36,7 +36,7 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
     totalEpisodes,
     episodeId,
     nextEpisodeSchedule,
-  } = useWatchSeries(animeId || '', urlEp);
+  } = useWatchSeries(animeId, urlEp);
 
   useWatchPageDocumentTitle(animeInfo, animeId);
 
