@@ -6,6 +6,7 @@ import {
   getVideoRemainingSeconds,
   shouldMarkEpisodeWatched,
   shouldPromptUpNext,
+  shouldShowCreditsSkipFallback,
   shouldSuppressOutroSkipForUpNext,
 } from './episode-end-thresholds';
 
@@ -32,7 +33,7 @@ describe('episode-end-thresholds', () => {
     expect(shouldMarkEpisodeWatched(255, duration)).toBe(true);
   });
 
-  it('prompts up next ~2 min before end on normal episodes', () => {
+  it('prompts up next ~3 min before end on normal episodes', () => {
     const duration = 1440;
     const threshold = duration - EPISODE_UP_NEXT_BEFORE_END_SEC;
 
@@ -45,6 +46,16 @@ describe('episode-end-thresholds', () => {
 
     expect(shouldPromptUpNext(170, duration)).toBe(false);
     expect(shouldPromptUpNext(180, duration)).toBe(true);
+  });
+
+  it('shows credits skip fallback without outro markers', () => {
+    const duration = 1440;
+    const threshold = duration - EPISODE_UP_NEXT_BEFORE_END_SEC;
+
+    expect(shouldShowCreditsSkipFallback(threshold - 1, duration, false)).toBe(false);
+    expect(shouldShowCreditsSkipFallback(threshold, duration, false)).toBe(true);
+    expect(shouldShowCreditsSkipFallback(duration - 1, duration, false)).toBe(false);
+    expect(shouldShowCreditsSkipFallback(threshold, duration, true)).toBe(false);
   });
 
   it('suppresses Skip ED when up next should show and a successor exists', () => {

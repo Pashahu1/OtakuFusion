@@ -1,11 +1,17 @@
 import type Artplayer from 'artplayer';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
-import { shouldSuppressOutroSkipForUpNext } from '@/features/player/lib/episode-end-thresholds';
+import {
+  EPISODE_CREDITS_SKIP_LAND_SEC,
+  shouldShowCreditsSkipFallback,
+  shouldSuppressOutroSkipForUpNext,
+} from '@/features/player/lib/episode-end-thresholds';
 import { readArtplayerHasNextEpisode } from '@/features/player/lib/artplayer-near-end-state';
+
+type SkipKind = 'intro' | 'outro' | 'credits';
 
 export function attachSkipIntroOutroOverlay(
   art: Artplayer,
-  skipSegments: StreamingData['skipSegments'] | null | undefined
+  skipSegments: StreamingData['skipSegments'] | null | undefined,
 ): () => void {
   const introSeg = skipSegments?.intro;
   const outroSeg = skipSegments?.outro;
@@ -30,6 +36,7 @@ export function attachSkipIntroOutroOverlay(
   };
 
   const skipRoot = art.layers['skipIntroOutro'] as HTMLDivElement | undefined;
+  skipRoot?.classList.add('of-player-overlay');
   let skipOverlayVisible = false;
 
   if (skipRoot && !skipRoot.dataset.ofSkipSegmentBound) {
@@ -37,12 +44,17 @@ export function attachSkipIntroOutroOverlay(
     skipRoot.querySelector('[data-skip-segment]')?.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
-      const kind = skipRoot.dataset.activeKind;
+      const kind = skipRoot.dataset.activeKind as SkipKind | undefined;
+      const duration = art.video?.duration ?? art.duration;
+
       if (kind === 'intro' && introSkipOk && introSeg) {
         seekClampedToDuration(introSeg.end);
       } else if (kind === 'outro' && outroSkipOk && outroSeg) {
         seekClampedToDuration(outroSeg.end);
+      } else if (kind === 'credits' && Number.isFinite(duration) && duration > 0) {
+        seekClampedToDuration(Math.max(0, duration - EPISODE_CREDITS_SKIP_LAND_SEC));
       }
+
       skipRoot.style.display = 'none';
       skipRoot.style.pointerEvents = 'none';
       skipOverlayVisible = false;
@@ -51,8 +63,16 @@ export function attachSkipIntroOutroOverlay(
   }
 
   const syncSkipSegmentOverlay = (t: number) => {
-    if (!skipRoot || (!introSkipOk && !outroSkipOk)) {
-      if (skipRoot && skipOverlayVisible) {
+    if (!skipRoot) return;
+
+    const duration = art.video?.duration ?? art.duration;
+    const canFallbackCredits =
+      Number.isFinite(duration) &&
+      duration > 0 &&
+      shouldShowCreditsSkipFallback(t, duration, outroSkipOk);
+
+    if (!introSkipOk && !outroSkipOk && !canFallbackCredits) {
+      if (skipOverlayVisible) {
         skipRoot.style.display = 'none';
         skipRoot.style.pointerEvents = 'none';
         skipOverlayVisible = false;
@@ -61,11 +81,11 @@ export function attachSkipIntroOutroOverlay(
       return;
     }
 
-    let nextKind: 'intro' | 'outro' | null = null;
+    let nextKind: SkipKind | null = null;
+
     if (introSkipOk && introSeg && t >= introSeg.start && t < introSeg.end) {
       nextKind = 'intro';
     } else if (outroSkipOk && outroSeg && t >= outroSeg.start && t < outroSeg.end) {
-      const duration = art.video?.duration ?? art.duration;
       const suppressOutro =
         Number.isFinite(duration) &&
         duration > 0 &&
@@ -73,6 +93,15 @@ export function attachSkipIntroOutroOverlay(
 
       if (!suppressOutro) {
         nextKind = 'outro';
+      }
+    } else if (canFallbackCredits) {
+      const suppressCredits =
+        Number.isFinite(duration) &&
+        duration > 0 &&
+        shouldSuppressOutroSkipForUpNext(t, duration, readArtplayerHasNextEpisode(art));
+
+      if (!suppressCredits) {
+        nextKind = 'credits';
       }
     }
 
@@ -88,7 +117,10 @@ export function attachSkipIntroOutroOverlay(
 
     skipRoot.dataset.activeKind = nextKind;
     const btn = skipRoot.querySelector('[data-skip-segment]') as HTMLButtonElement | null;
-    if (btn) btn.textContent = nextKind === 'intro' ? 'Skip OP' : 'Skip ED';
+    if (btn) {
+      btn.textContent =
+        nextKind === 'intro' ? 'Skip OP' : nextKind === 'outro' ? 'Skip ED' : 'Skip credits';
+    }
     if (!skipOverlayVisible) {
       skipRoot.style.display = 'flex';
       skipRoot.style.pointerEvents = 'auto';

@@ -1,22 +1,26 @@
+@use '../../style/mixins' as *;
+
 .user-menu {
   position: relative;
   display: flex;
   align-items: center;
   height: 100%;
-  padding-inline: 1.25rem;
+  padding-inline: 1.125rem;
   cursor: pointer;
   transition: background 0.15s ease;
 
-  @media (min-width: 1024px) {
+  @include respond(desktop) {
     &:hover,
     &.user-menu--open {
-      background: #23252b;
+      background: #141519;
     }
   }
 }
 
 .user-menu--open {
-  background: #23252b;
+  @include respond(desktop) {
+    background: #141519;
+  }
 }
 
 .user-menu__avatar-wrap {
@@ -68,7 +72,7 @@
   transition: background 0.15s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -110,8 +114,8 @@
 .user-menu__actions {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
-  padding: 0.5rem;
+  gap: 0;
+  padding: 0;
 }
 
 .user-menu__item {
@@ -119,9 +123,9 @@
   width: 100%;
   align-items: center;
   gap: 0.625rem;
-  padding: 0.625rem 0.75rem;
+  padding: 0.75rem 1.125rem;
   border: 0;
-  border-radius: 0.5rem;
+  border-radius: 0;
   background: transparent;
   font-size: 0.875rem;
   font-weight: 500;
@@ -133,7 +137,7 @@
     color 0.15s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
     color: #fff;
   }
 
@@ -157,7 +161,7 @@
 }
 
 .user-menu__footer {
-  padding: 0.375rem 0.5rem 0.625rem;
+  padding: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 

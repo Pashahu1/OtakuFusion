@@ -113,6 +113,24 @@
   }
 }
 
+/* Skip / Up next overlays — stay visible in web fullscreen (mobile). */
+.art-video-player.art-fullscreen-web .of-player-overlay,
+.art-video-player:fullscreen .of-player-overlay,
+.art-video-player:-webkit-full-screen .of-player-overlay {
+  z-index: 10002 !important;
+  pointer-events: auto;
+}
+
+.art-video-player.art-fullscreen-web .of-player-overlay[style*='display: flex'],
+.art-video-player.art-fullscreen-web .of-player-overlay[style*='display: block'],
+.art-video-player:fullscreen .of-player-overlay[style*='display: flex'],
+.art-video-player:fullscreen .of-player-overlay[style*='display: block'],
+.art-video-player:-webkit-full-screen .of-player-overlay[style*='display: flex'],
+.art-video-player:-webkit-full-screen .of-player-overlay[style*='display: block'] {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 @media screen and (max-width: 370px) {
   .art-progress {
     padding-bottom: 5px !important;
