@@ -29,7 +29,8 @@
   top: 45%;
   width: 64px;
   height: 64px;
-  z-index: 10;
+  z-index: 20;
+  pointer-events: auto;
 
   display: flex;
   align-items: center;

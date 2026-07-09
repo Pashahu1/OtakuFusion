@@ -11,6 +11,7 @@
     z-index: 2;
     box-sizing: border-box;
     padding-bottom: clamp(240px, 32vh, 360px);
+    pointer-events: none;
 
     @media (max-width: 1023px) {
       align-items: center;
@@ -67,6 +68,7 @@
     padding-right: 16px;
     position: relative;
     z-index: 1;
+    pointer-events: auto;
 
     @media (max-width: 1023px) {
       width: 100%;
