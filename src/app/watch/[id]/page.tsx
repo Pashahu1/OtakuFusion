@@ -1,12 +1,12 @@
-import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import { getWatchAnimeCatalogMeta } from '@/lib/api/anime-info';
 import { WEBSITE_NAME } from '@/config/website';
-import { WatchPageSkeleton } from '@/features/watch/ui/watch-series/WatchPageSkeleton';
+import { watchPlayPath } from '@/shared/utils/watch-routes';
 import WatchSeriesPageClient from './WatchSeriesPageClient';
-import './watch-page.scss';
 
 type PageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ ep?: string }>;
 };
 
 export async function generateMetadata({ params }: PageProps) {
@@ -24,19 +24,15 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function WatchSeriesPage({ params }: PageProps) {
+export default async function WatchSeriesPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const { ep } = await searchParams;
   const animeId = id?.trim() ?? '';
+  const urlEp = ep?.trim();
 
-  return (
-    <Suspense
-      fallback={
-        <div className="watch-page">
-          <WatchPageSkeleton />
-        </div>
-      }
-    >
-      <WatchSeriesPageClient animeId={animeId} />
-    </Suspense>
-  );
+  if (animeId && urlEp) {
+    redirect(watchPlayPath(animeId, urlEp));
+  }
+
+  return <WatchSeriesPageClient animeId={animeId} />;
 }

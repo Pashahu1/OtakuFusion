@@ -15,9 +15,9 @@ export interface ContinueWatchingEpisodeProgress {
 }
 
 function readContinueWatchingEpisodeProgress(
-  animeId: string,
+  animeId: string | undefined,
 ): ContinueWatchingEpisodeProgress | null {
-  if (!animeId.trim()) return null;
+  if (!animeId?.trim()) return null;
 
   const entry = findContinueWatchingEntry(readContinueWatchingList(), animeId);
   if (!entry) return null;
@@ -49,15 +49,18 @@ const snapshotCache = new Map<
   ContinueWatchingEpisodeProgress | null
 >();
 
-function getCachedSnapshot(animeId: string): ContinueWatchingEpisodeProgress | null {
+function getCachedSnapshot(
+  animeId: string | undefined,
+): ContinueWatchingEpisodeProgress | null {
+  const key = animeId ?? '';
   const next = readContinueWatchingEpisodeProgress(animeId);
-  const cached = snapshotCache.get(animeId);
+  const cached = snapshotCache.get(key);
 
   if (snapshotsEqual(cached ?? null, next)) {
     return cached ?? null;
   }
 
-  snapshotCache.set(animeId, next);
+  snapshotCache.set(key, next);
   return next;
 }
 
@@ -71,7 +74,7 @@ function subscribeContinueWatching(onStoreChange: () => void) {
 }
 
 export function useContinueWatchingEpisodeProgress(
-  animeId: string,
+  animeId: string | undefined,
 ): ContinueWatchingEpisodeProgress | null {
   const getSnapshot = useCallback(() => getCachedSnapshot(animeId), [animeId]);
 

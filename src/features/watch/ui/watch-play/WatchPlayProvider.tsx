@@ -14,8 +14,14 @@ interface WatchPlayContextValue {
 
 const WatchPlayContext = createContext<WatchPlayContextValue | null>(null);
 
-export function WatchPlayProvider({ children }: { children: ReactNode }) {
-  const value = useWatchPlayPage();
+export function WatchPlayProvider({
+  children,
+  animeId,
+}: {
+  children: ReactNode;
+  animeId: string;
+}) {
+  const value = useWatchPlayPage(animeId);
   return (
     <WatchPlayContext.Provider value={value}>
       {children}

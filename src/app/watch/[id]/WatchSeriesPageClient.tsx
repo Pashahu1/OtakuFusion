@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Episodelist } from '@/features/watch';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';import { Episodelist } from '@/features/watch';
 import { WatchEpisodesEmptySection } from '@/features/watch/ui/episode-list/WatchEpisodesEmptySection';
 import { useWatchSeries } from '@/features/watch/hooks/useWatchSeries';
 import { useWatchSpotlightArtwork } from '@/features/watch/hooks/useWatchSpotlightArtwork';
@@ -20,15 +19,7 @@ import './watch-page.scss';
 
 export default function WatchSeriesPageClient({ animeId }: { animeId: string }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const urlEp = searchParams.get('ep') ?? undefined;
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
-
-  useEffect(() => {
-    const ep = urlEp?.trim();
-    if (!animeId || !ep) return;
-    router.replace(watchPlayPath(animeId, ep));
-  }, [animeId, urlEp, router]);
 
   const {
     animeInfo,
@@ -36,8 +27,7 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
     totalEpisodes,
     episodeId,
     nextEpisodeSchedule,
-  } = useWatchSeries(animeId, urlEp);
-
+  } = useWatchSeries(animeId);
   useWatchPageDocumentTitle(animeInfo, animeId);
 
   const { data: spotlightArtwork, isPending: heroArtworkPending } =
@@ -55,10 +45,8 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
   const { playHref, ctaLabel, isPlayable } = useWatchCta({
     animeId,
     dataId: animeInfo?.data_id,
-    urlEp,
     episodes,
   });
-
   const episodesUnavailableMessage = useMemo(
     () =>
       buildWatchUnavailableMessage({
@@ -75,12 +63,7 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
 
   const isPageReady = Boolean(animeInfo && episodes);
 
-  if (urlEp?.trim()) {
-    return <div className="watch-page__hero-skeleton" aria-busy aria-label="Loading player" />;
-  }
-
-  if (!isPageReady) {
-    return (
+  if (!isPageReady) {    return (
       <div className="watch-page">
         <WatchPageSkeleton />
       </div>
@@ -110,8 +93,7 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
         <Episodelist
           animeId={animeId}
           episodes={episodes!}
-          currentEpisode={episodeId ?? urlEp ?? null}
-          onEpisodeClick={handleEpisodeClick}
+          currentEpisode={episodeId ?? null}          onEpisodeClick={handleEpisodeClick}
           totalEpisodes={totalEpisodes ?? 0}
           watchedEpisodes={watchedEpisodes}
           seriesTitle={animeInfo!.title ?? ''}

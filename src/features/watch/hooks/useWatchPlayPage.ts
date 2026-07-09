@@ -1,16 +1,21 @@
 'use client';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useRouteAnimeId } from '@/hooks/useRouteAnimeId';
-import { useSearchParams } from 'next/navigation';
-import { useCallback, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';import { useCallback, useRef, useState } from 'react';
 import { useWatch } from './useWatch';
 import { useWatchPageEffects } from './useWatchPageEffects';
 import { onEpisodeWatched as markWatchedInStorage } from '@/lib/watch/watched-episodes';
 import { appendWatchActivity } from '@/features/profile';
+import type { UseWatchReturn } from '@/shared/types/UseWatchReturn';
 
-export function useWatchPlayPage() {
-    const animeId = useRouteAnimeId();
+interface UseWatchPlayPageResult {
+    watch: UseWatchReturn;
+    animeId: string;
+    watchedEpisodes: Record<string, boolean>;
+    onEpisodeWatched: (episodeId: string) => void;
+    showErrorBlock: boolean;
+  }
 
+export function useWatchPlayPage(animeId: string): UseWatchPlayPageResult {
     const urlEp = useSearchParams().get('ep') ?? undefined;
     const [showErrorBlock, setShowErrorBlock] = useState(false);
   
@@ -19,7 +24,7 @@ export function useWatchPlayPage() {
       {}
     );
   
-    const watch = useWatch(animeId || '', urlEp ?? undefined);
+    const watch = useWatch(animeId, urlEp ?? undefined);
   
     const errorBlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hasAppliedSavedEpisodeRef = useRef(false);
