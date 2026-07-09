@@ -1,6 +1,9 @@
+import { Suspense } from 'react';
 import { getWatchAnimeCatalogMeta } from '@/lib/api/anime-info';
 import { WEBSITE_NAME } from '@/config/website';
+import { WatchPageSkeleton } from '@/features/watch/ui/watch-series/WatchPageSkeleton';
 import WatchSeriesPageClient from './WatchSeriesPageClient';
+import './watch-page.scss';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -25,6 +28,15 @@ export default async function WatchSeriesPage({ params }: PageProps) {
   const { id } = await params;
   const animeId = id?.trim() ?? '';
 
-  return <WatchSeriesPageClient animeId={animeId} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="watch-page">
+          <WatchPageSkeleton />
+        </div>
+      }
+    >
+      <WatchSeriesPageClient animeId={animeId} />
+    </Suspense>
+  );
 }
-

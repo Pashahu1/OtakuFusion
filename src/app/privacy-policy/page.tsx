@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Section } from '@/components/Section/page';
+import { Section } from '@/components/Section/Section';
 
 export default function PrivacyPolicyPage() {
   return (
