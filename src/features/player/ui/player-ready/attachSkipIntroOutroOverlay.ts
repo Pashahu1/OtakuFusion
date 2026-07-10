@@ -36,7 +36,6 @@ export function attachSkipIntroOutroOverlay(
   };
 
   const skipRoot = art.layers['skipIntroOutro'] as HTMLDivElement | undefined;
-  skipRoot?.classList.add('of-player-overlay');
   let skipOverlayVisible = false;
 
   if (skipRoot && !skipRoot.dataset.ofSkipSegmentBound) {

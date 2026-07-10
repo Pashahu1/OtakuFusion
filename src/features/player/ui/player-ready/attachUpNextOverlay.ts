@@ -11,7 +11,6 @@ export function attachUpNextOverlay(
   onPlayNext: () => void,
 ): UpNextOverlaySession {
   const root = art.layers['upNext'] as HTMLDivElement | undefined;
-  root?.classList.add('of-player-overlay');
   let visible = false;
 
   const titleEl = root?.querySelector('[data-up-next-title]') as HTMLSpanElement | null;
