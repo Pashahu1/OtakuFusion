@@ -57,12 +57,3 @@ export function shouldShowCreditsSkipFallback(
 
   return remaining <= EPISODE_UP_NEXT_BEFORE_END_SEC && remaining > EPISODE_CREDITS_SKIP_LAND_SEC;
 }
-
-/** Up next wins over Skip ED when a next episode exists (no duplicate CTAs). */
-export function shouldSuppressOutroSkipForUpNext(
-  currentTime: number,
-  duration: number,
-  hasNextEpisode: boolean,
-): boolean {
-  return hasNextEpisode && shouldPromptUpNext(currentTime, duration);
-}

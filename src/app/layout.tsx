@@ -9,6 +9,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import type { Viewport } from 'next';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { AuthQueryBridge } from '@/components/providers/auth-query-bridge';
+import { Analytics } from '@vercel/analytics/react';
 
 /** Do not import `@/lib/env` in root layout — `EnvSchema.parse` fails on `next build` without all secrets on Vercel. */
 const siteUrl =
@@ -120,6 +121,7 @@ export default function RootLayout({
             </AuthProvider>
           </QueryProvider>
         </Suspense>
+        <Analytics />
       </body>
     </html>
   );

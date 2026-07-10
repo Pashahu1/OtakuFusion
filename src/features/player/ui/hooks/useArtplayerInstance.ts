@@ -62,6 +62,11 @@ export function useArtplayerInstance({
 
   const streamLang: 'sub' | 'dub' = isWatchDubServerId(activeServerId) ? 'dub' : 'sub';
 
+  const resolvedStreamLang = useMemo((): 'sub' | 'dub' | null => {
+    const raw = streamInfo?.streamingLink?.[0]?.type;
+    return raw === 'dub' || raw === 'sub' ? raw : null;
+  }, [streamInfo]);
+
   const { scheduleContinueWatchingUpdate } = useArtplayerContinueWatching({
     animeInfo,
     episodeId,
@@ -128,6 +133,7 @@ export function useArtplayerInstance({
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
+    resolvedStreamLang,
     animeId: localAnimeId,
     episodeId,
     episodeNum,

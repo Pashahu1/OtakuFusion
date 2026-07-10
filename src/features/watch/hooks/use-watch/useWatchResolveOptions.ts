@@ -6,6 +6,7 @@ import {
   type WatchStreamProvider,
 } from '@/features/watch/lib/watch-provider';
 import { nextWatchStreamProvider } from '@/features/watch/lib/watch-provider-fallback';
+import { WATCH_SERVER_SUB_ID } from '@/shared/data/servers';
 import type { WatchResolveOptions } from '../useWatchStream';
 
 import {
@@ -71,13 +72,15 @@ export function useWatchResolveOptions({
     // Anikoto is menu-only — stay on user choice instead of falling back to Hikka.
     if (watchStreamProvider === 'anikoto') return;
 
+    setActiveServerIdRaw(WATCH_SERVER_SUB_ID);
+
     const next = nextWatchStreamProvider(watchStreamProvider);
     if (next) {
       setWatchStreamProvider(next);
       return;
     }
     setWatchStreamProvider(DEFAULT_WATCH_STREAM_PROVIDER);
-  }, [watchStreamProvider, setWatchStreamProvider]);
+  }, [watchStreamProvider, setWatchStreamProvider, setActiveServerIdRaw]);
 
   return useMemo(
     () => ({

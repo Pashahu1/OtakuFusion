@@ -29,7 +29,22 @@ export interface SyncPlayerLanguageMenuParams {
   anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;
+  resolvedStreamLang?: 'sub' | 'dub' | null;
   onBeforeLanguageSwitch?: (art: Artplayer) => LanguageSwitchResumeContext | null;
+}
+
+function applyLanguageSettingTooltip(art: Artplayer, tooltip: string): void {
+  try {
+    const setting = art.setting as Artplayer['setting'] & {
+      get?: (name: string) => { tooltip?: string; $tooltip?: HTMLElement } | undefined;
+    };
+    const item = setting.get?.('language');
+    if (!item) return;
+    item.tooltip = tooltip;
+    if (item.$tooltip) item.$tooltip.textContent = tooltip;
+  } catch {
+    /* setting may not exist yet */
+  }
 }
 
 export function syncPlayerLanguageMenu(
@@ -44,8 +59,15 @@ export function syncPlayerLanguageMenu(
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
+    resolvedStreamLang,
     onBeforeLanguageSwitch,
   } = params;
+
+  try {
+    (art.setting as { hide?: () => void }).hide?.();
+  } catch {
+    /* panel may be closed */
+  }
 
   try {
     art.setting.remove('language');
@@ -53,30 +75,28 @@ export function syncPlayerLanguageMenu(
     /* setting may not exist yet */
   }
 
-  const anikotoActiveLang =
+  const anikotoActiveLang: 'sub' | 'dub' | null =
     watchStreamProvider === 'anikoto'
       ? isWatchDubServerId(activeServerIdRef.current)
         ? 'dub'
         : 'sub'
       : null;
 
-  const flatLanguage = buildFlatLanguageMenu({
+  const menuInput = {
     watchStreamProvider,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
+    activeServerId: activeServerIdRef.current,
     anikotoActiveLang,
-  });
+    resolvedStreamLang,
+  };
+
+  const flatLanguage = buildFlatLanguageMenu(menuInput);
 
   if (flatLanguage.length === 0) return;
 
-  const langTooltip = languageMenuTooltip({
-    watchStreamProvider,
-    hikkaLanguageMenuEligible,
-    anilibertyLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
-    anikotoActiveLang,
-  });
+  const langTooltip = languageMenuTooltip(menuInput);
 
   art.setting.add({
     name: 'language',
@@ -86,7 +106,6 @@ export function syncPlayerLanguageMenu(
     position: 'right',
     selector: flatLanguage,
     onSelect: function (item: Record<string, unknown>) {
-      const mode = item.__mode;
       onBeforeLanguageSwitch?.(art);
       const container = art.template?.$player ?? null;
       hardStopWatchPlayerSurface(
@@ -94,7 +113,7 @@ export function syncPlayerLanguageMenu(
         container instanceof HTMLDivElement ? container : null,
       );
 
-      if (mode === 'aniliberty') {
+      if (item.__mode === 'aniliberty') {
         setWatchStreamProvider('aniliberty');
         try {
           localStorage.setItem('server_type', 'sub');
@@ -102,9 +121,9 @@ export function syncPlayerLanguageMenu(
         } catch {
           /* ignore */
         }
-        return typeof item.html === 'string' ? item.html : '';
+        return;
       }
-      if (mode === 'hikka') {
+      if (item.__mode === 'hikka') {
         setWatchStreamProvider('hikka');
         try {
           localStorage.setItem('server_type', 'sub');
@@ -112,9 +131,9 @@ export function syncPlayerLanguageMenu(
         } catch {
           /* ignore */
         }
-        return typeof item.html === 'string' ? item.html : '';
+        return;
       }
-      if (mode === 'anikoto-sub') {
+      if (item.__mode === 'anikoto-sub') {
         setWatchStreamProvider('anikoto');
         setActiveServerId(WATCH_SERVER_SUB_ID);
         try {
@@ -123,9 +142,9 @@ export function syncPlayerLanguageMenu(
         } catch {
           /* ignore */
         }
-        return typeof item.html === 'string' ? item.html : '';
+        return;
       }
-      if (mode === 'anikoto-dub') {
+      if (item.__mode === 'anikoto-dub') {
         setWatchStreamProvider('anikoto');
         setActiveServerId(WATCH_SERVER_DUB_ID);
         try {
@@ -134,7 +153,7 @@ export function syncPlayerLanguageMenu(
         } catch {
           /* ignore */
         }
-        return typeof item.html === 'string' ? item.html : '';
+        return;
       }
       const dataId = item.data_id != null ? String(item.data_id) : null;
       if (dataId) setActiveServerId(dataId);
@@ -142,7 +161,8 @@ export function syncPlayerLanguageMenu(
         localStorage.setItem('server_name', item.serverName);
       if (typeof item.type === 'string')
         localStorage.setItem('server_type', item.type);
-      return typeof item.html === 'string' ? item.html : '';
     },
   });
+
+  applyLanguageSettingTooltip(art, langTooltip);
 }

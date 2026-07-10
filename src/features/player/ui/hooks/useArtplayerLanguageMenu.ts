@@ -19,6 +19,7 @@ export interface UseArtplayerLanguageMenuParams {
   anilibertyLanguageMenuEligible: PlayerProps['anilibertyLanguageMenuEligible'];
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
   anikotoLanguageMenuEligible: PlayerProps['anikotoLanguageMenuEligible'];
+  resolvedStreamLang?: 'sub' | 'dub' | null;
   animeId: string | null | undefined;
   episodeId: PlayerProps['episodeId'];
   episodeNum?: number | null;
@@ -38,6 +39,7 @@ export function useArtplayerLanguageMenu({
   anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
   anikotoLanguageMenuEligible,
+  resolvedStreamLang,
   animeId,
   episodeId,
   episodeNum,
@@ -51,6 +53,7 @@ export function useArtplayerLanguageMenu({
   const anilibertyEligibleRef = useRef(anilibertyLanguageMenuEligible ?? false);
   const hikkaEligibleRef = useRef(hikkaLanguageMenuEligible ?? false);
   const anikotoEligibleRef = useRef(anikotoLanguageMenuEligible ?? false);
+  const resolvedStreamLangRef = useRef(resolvedStreamLang ?? null);
   const onLanguageSwitchResumeRef = useRef(onLanguageSwitchResume);
   const animeIdRef = useRef(animeId);
   const episodeIdRef = useRef(episodeId);
@@ -72,6 +75,7 @@ export function useArtplayerLanguageMenu({
     anilibertyEligibleRef.current = anilibertyLanguageMenuEligible ?? false;
     hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
     anikotoEligibleRef.current = anikotoLanguageMenuEligible ?? false;
+    resolvedStreamLangRef.current = resolvedStreamLang ?? null;
   }, [
     servers,
     activeServerId,
@@ -81,6 +85,7 @@ export function useArtplayerLanguageMenu({
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
+    resolvedStreamLang,
   ]);
 
   const syncLanguageMenuIfReady = useCallback(() => {
@@ -95,6 +100,7 @@ export function useArtplayerLanguageMenu({
       anilibertyLanguageMenuEligible: anilibertyEligibleRef.current,
       hikkaLanguageMenuEligible: hikkaEligibleRef.current,
       anikotoLanguageMenuEligible: anikotoEligibleRef.current,
+      resolvedStreamLang: resolvedStreamLangRef.current,
       onBeforeLanguageSwitch: (player) => {
         const current = player.currentTime;
         if (!Number.isFinite(current) || current < 3) return null;
@@ -133,6 +139,7 @@ export function useArtplayerLanguageMenu({
     anikotoLanguageMenuEligible,
     watchStreamProvider,
     activeServerId,
+    resolvedStreamLang,
     servers,
     syncLanguageMenuIfReady,
   ]);

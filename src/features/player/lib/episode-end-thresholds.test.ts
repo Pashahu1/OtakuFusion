@@ -7,7 +7,6 @@ import {
   shouldMarkEpisodeWatched,
   shouldPromptUpNext,
   shouldShowCreditsSkipFallback,
-  shouldSuppressOutroSkipForUpNext,
 } from './episode-end-thresholds';
 
 describe('episode-end-thresholds', () => {
@@ -56,14 +55,5 @@ describe('episode-end-thresholds', () => {
     expect(shouldShowCreditsSkipFallback(threshold, duration, false)).toBe(true);
     expect(shouldShowCreditsSkipFallback(duration - 1, duration, false)).toBe(false);
     expect(shouldShowCreditsSkipFallback(threshold, duration, true)).toBe(false);
-  });
-
-  it('suppresses Skip ED when up next should show and a successor exists', () => {
-    const duration = 1440;
-    const threshold = duration - EPISODE_UP_NEXT_BEFORE_END_SEC;
-
-    expect(shouldSuppressOutroSkipForUpNext(threshold, duration, false)).toBe(false);
-    expect(shouldSuppressOutroSkipForUpNext(threshold - 1, duration, true)).toBe(false);
-    expect(shouldSuppressOutroSkipForUpNext(threshold, duration, true)).toBe(true);
   });
 });

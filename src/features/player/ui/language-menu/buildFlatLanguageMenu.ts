@@ -1,5 +1,7 @@
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 
+import { resolveLanguageMenuAnikotoLang } from './resolveLanguageMenuAnikotoLang';
+
 export type LangMenuLeaf = {
   html: string;
   default?: boolean;
@@ -11,27 +13,38 @@ export function buildFlatLanguageMenu(input: {
   anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;
+  activeServerId?: string | null;
   anikotoActiveLang?: 'sub' | 'dub' | null;
+  resolvedStreamLang?: 'sub' | 'dub' | null;
 }): LangMenuLeaf[] {
   const {
     watchStreamProvider,
     anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
+    activeServerId,
     anikotoActiveLang,
+    resolvedStreamLang,
   } = input;
+
+  const effectiveAnikotoLang =
+    resolveLanguageMenuAnikotoLang({
+      watchStreamProvider,
+      activeServerId: activeServerId ?? null,
+      resolvedStreamLang,
+    }) ?? anikotoActiveLang;
 
   const flatLanguage: LangMenuLeaf[] = [];
 
   if (anikotoLanguageMenuEligible) {
     flatLanguage.push({
       html: 'Japanese',
-      default: watchStreamProvider === 'anikoto' && anikotoActiveLang !== 'dub',
+      default: watchStreamProvider === 'anikoto' && effectiveAnikotoLang !== 'dub',
       __mode: 'anikoto-sub',
     });
     flatLanguage.push({
       html: 'English',
-      default: watchStreamProvider === 'anikoto' && anikotoActiveLang === 'dub',
+      default: watchStreamProvider === 'anikoto' && effectiveAnikotoLang === 'dub',
       __mode: 'anikoto-dub',
     });
   }
@@ -60,22 +73,33 @@ export function languageMenuTooltip(input: {
   hikkaLanguageMenuEligible: boolean;
   anilibertyLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;
+  activeServerId?: string | null;
   anikotoActiveLang?: 'sub' | 'dub' | null;
+  resolvedStreamLang?: 'sub' | 'dub' | null;
 }): string {
   const {
     watchStreamProvider,
     hikkaLanguageMenuEligible,
     anilibertyLanguageMenuEligible,
     anikotoLanguageMenuEligible,
+    activeServerId,
     anikotoActiveLang,
+    resolvedStreamLang,
   } = input;
+
+  const effectiveAnikotoLang =
+    resolveLanguageMenuAnikotoLang({
+      watchStreamProvider,
+      activeServerId: activeServerId ?? null,
+      resolvedStreamLang,
+    }) ?? anikotoActiveLang;
 
   if (watchStreamProvider === 'hikka' && hikkaLanguageMenuEligible) return 'Ukrainian';
   if (watchStreamProvider === 'aniliberty' && anilibertyLanguageMenuEligible) {
     return 'Anilibria';
   }
   if (watchStreamProvider === 'anikoto' && anikotoLanguageMenuEligible) {
-    return anikotoActiveLang === 'dub' ? 'English' : 'Japanese';
+    return effectiveAnikotoLang === 'dub' ? 'English' : 'Japanese';
   }
   if (anikotoLanguageMenuEligible) return 'Japanese';
   if (hikkaLanguageMenuEligible) return 'Ukrainian';

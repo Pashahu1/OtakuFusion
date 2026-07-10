@@ -7,6 +7,7 @@ import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import {
   isWatchDubServerId,
   STORAGE_SERVER_TYPE,
+  WATCH_SERVER_SUB_ID,
   watchServerIdFromLang,
 } from '@/shared/data/servers';
 import { episodeMatchesSelection } from '@/shared/utils/episodeUtils';
@@ -72,6 +73,18 @@ export function useWatchStreamLang({
   useEffect(() => {
     userChoseDubRef.current = langState.userChoseDub;
   }, [langState.userChoseDub]);
+
+  useEffect(() => {
+    if (watchStreamProvider === 'anikoto') return;
+    setLangState((prev) => {
+      if (!isWatchDubServerId(prev.activeServerId)) return prev;
+      return {
+        ...prev,
+        activeServerId: WATCH_SERVER_SUB_ID,
+        userChoseDub: false,
+      };
+    });
+  }, [watchStreamProvider]);
 
   const catalogHasDub = useMemo(
     () => computeHasAnyDub({ dubFromTv, episodes }),

@@ -3,11 +3,15 @@ import type { StreamingData } from '@/shared/types/StreamingTypes';
 import {
   EPISODE_CREDITS_SKIP_LAND_SEC,
   shouldShowCreditsSkipFallback,
-  shouldSuppressOutroSkipForUpNext,
 } from '@/features/player/lib/episode-end-thresholds';
-import { readArtplayerHasNextEpisode } from '@/features/player/lib/artplayer-near-end-state';
 
 type SkipKind = 'intro' | 'outro' | 'credits';
+
+function skipSegmentButtonLabel(kind: SkipKind): string {
+  if (kind === 'intro') return 'Skip OP';
+  if (kind === 'outro') return 'Skip ED';
+  return 'Skip Outro';
+}
 
 export function attachSkipIntroOutroOverlay(
   art: Artplayer,
@@ -85,23 +89,9 @@ export function attachSkipIntroOutroOverlay(
     if (introSkipOk && introSeg && t >= introSeg.start && t < introSeg.end) {
       nextKind = 'intro';
     } else if (outroSkipOk && outroSeg && t >= outroSeg.start && t < outroSeg.end) {
-      const suppressOutro =
-        Number.isFinite(duration) &&
-        duration > 0 &&
-        shouldSuppressOutroSkipForUpNext(t, duration, readArtplayerHasNextEpisode(art));
-
-      if (!suppressOutro) {
-        nextKind = 'outro';
-      }
+      nextKind = 'outro';
     } else if (canFallbackCredits) {
-      const suppressCredits =
-        Number.isFinite(duration) &&
-        duration > 0 &&
-        shouldSuppressOutroSkipForUpNext(t, duration, readArtplayerHasNextEpisode(art));
-
-      if (!suppressCredits) {
-        nextKind = 'credits';
-      }
+      nextKind = 'credits';
     }
 
     if (nextKind === null) {
@@ -117,8 +107,7 @@ export function attachSkipIntroOutroOverlay(
     skipRoot.dataset.activeKind = nextKind;
     const btn = skipRoot.querySelector('[data-skip-segment]') as HTMLButtonElement | null;
     if (btn) {
-      btn.textContent =
-        nextKind === 'intro' ? 'Skip OP' : nextKind === 'outro' ? 'Skip ED' : 'Skip credits';
+      btn.textContent = skipSegmentButtonLabel(nextKind);
     }
     if (!skipOverlayVisible) {
       skipRoot.style.display = 'flex';

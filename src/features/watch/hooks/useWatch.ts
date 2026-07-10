@@ -15,6 +15,7 @@ import {
 import { useWatchResolveOptions } from './use-watch/useWatchResolveOptions';
 import { useWatchOppositePrefetch } from './use-watch/useWatchOppositePrefetch';
 import { useWatchCatalogProviderFallback } from './useWatchCatalogProviderFallback';
+import { useWatchAnikotoDubUnavailableFallback } from './useWatchAnikotoDubUnavailableFallback';
 import { readContinueWatchingPlaybackPrefs } from '@/features/watch/lib/read-continue-watching-playback-prefs';
 
 import { useRestoreContinueWatchingPlayback } from './useRestoreContinueWatchingPlayback';
@@ -90,6 +91,13 @@ export function useWatch(
   const stream = useWatchStream(watchResolveOptions);
 
   const streamHardExhausted = useWatchDubFallback();
+
+  useWatchAnikotoDubUnavailableFallback({
+    watchStreamProvider,
+    activeServerId,
+    streamErrorCode: stream.errorCode,
+    setActiveServerIdRaw,
+  });
 
   useWatchCatalogProviderFallback({
     animeId,

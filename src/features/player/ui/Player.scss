@@ -101,6 +101,29 @@
   white-space: inherit !important;
 }
 
+/* Skip OP / ED / Outro — right-side pill (same layer for intro + outro). */
+.of-skip-segment-inner [data-skip-segment] {
+  &:hover {
+    background: rgba(32, 32, 36, 0.98);
+    border-color: rgba(255, 100, 10, 0.45);
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.45),
+      0 0 0 1px rgba(255, 100, 10, 0.12);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.of-up-next-inner [data-up-next-play]:hover {
+  background: #ff751f;
+}
+
+.of-up-next-inner [data-up-next-play]:active {
+  transform: scale(0.98);
+}
+
 /* Mobile: keep controls above custom touch layers (play / seek zones). */
 @media (hover: none) and (pointer: coarse) {
   .art-video-player .art-bottom,

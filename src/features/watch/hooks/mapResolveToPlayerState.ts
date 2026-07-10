@@ -40,20 +40,21 @@ export function applyResolveSuccess(
 ): void {
   const opts = ctx.resolveOptsRef.current;
   if (opts?.streamLangRevision !== ctx.resolveLangRevision) return;
-  if (opts?.preferredLang !== resolveParams.lang) return;
 
   const mapped = mapResolveToPlayerState({
     result,
     watchStreamProvider: ctx.watchStreamProvider,
   });
 
+  if (resolveParams.lang !== mapped.resolvedStreamLang) {
+    opts?.onPlaybackLangResolved?.(mapped.resolvedStreamLang);
+  }
+
+  if (opts?.preferredLang !== resolveParams.lang) return;
+
   ctx.setStreamInfo(mapped.streamInfo);
   ctx.setStreamUrl(mapped.streamUrl);
   ctx.setBoundGenerationKey(generationKey);
   ctx.setSubtitles(mapped.subtitles);
   ctx.setThumbnail(mapped.thumbnail);
-
-  if (resolveParams.lang !== mapped.resolvedStreamLang) {
-    opts?.onPlaybackLangResolved?.(mapped.resolvedStreamLang);
-  }
 }
