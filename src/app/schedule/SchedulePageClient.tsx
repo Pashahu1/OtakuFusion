@@ -15,6 +15,7 @@ import {
   formatScheduleTimeZoneLabel,
   SCHEDULE_TIME_ZONE,
 } from '@/lib/schedule/schedule-timezone';
+import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
 import type { ScheduleAnime } from '@/shared/types/GlobalAnimeTypes';
 
@@ -25,6 +26,7 @@ interface SchedulePageClientProps {
 }
 
 export default function SchedulePageClient({ initialDate }: SchedulePageClientProps) {
+  const { t } = useTranslation('common');
   const [selectedDate, setSelectedDate] = useState(initialDate);
 
   const {
@@ -40,9 +42,9 @@ export default function SchedulePageClient({ initialDate }: SchedulePageClientPr
     if (!isError || !isFetched || events.length > 0) return;
     const normalizedError = normalizeError(error);
     toast.error(
-      normalizedError.message ?? 'Could not load the schedule for this day.',
+      normalizedError.message ?? t('schedule.toastError'),
     );
-  }, [isError, isFetched, events.length, error]);
+  }, [isError, isFetched, events.length, error, t]);
 
   const handleDateChange = useCallback(
     ({ year, month, day }: { year: number; month: number; day: number }) => {
@@ -74,7 +76,7 @@ export default function SchedulePageClient({ initialDate }: SchedulePageClientPr
   }
 
   if (isError && events.length === 0) {
-    return <ErrorState fullPage message="Failed to load schedule." />;
+    return <ErrorState fullPage message={t('schedule.loadError')} />;
   }
 
   const showCalendarOverlay = isFetching && isFetched;
@@ -88,14 +90,14 @@ export default function SchedulePageClient({ initialDate }: SchedulePageClientPr
             <CalendarDays size={22} />
           </div>
           <div>
-            <h1 className="schedule-page__title">Release schedule</h1>
+            <h1 className="schedule-page__title">{t('schedule.title')}</h1>
             <p className="schedule-page__subtitle">
-              {selectedLabel} · times in {formatScheduleTimeZoneLabel()}
+              {selectedLabel} · {t('schedule.timesIn', { zone: formatScheduleTimeZoneLabel() })}
             </p>
           </div>
           {isFetched && events.length > 0 ? (
             <span className="schedule-page__badge">
-              {events.length} {events.length === 1 ? 'release' : 'releases'}
+              {t('schedule.release', { count: events.length })}
             </span>
           ) : null}
         </header>
@@ -115,14 +117,14 @@ export default function SchedulePageClient({ initialDate }: SchedulePageClientPr
               role="status"
             >
               <Loader2 className="schedule-page__overlay-spinner" aria-hidden />
-              <span>Updating schedule…</span>
+              <span>{t('schedule.updating')}</span>
             </div>
           ) : null}
         </div>
 
         {isFetched && !isFetching && events.length === 0 ? (
           <p className="schedule-page__empty">
-            No releases on this day — pick another date in the week strip above.
+            {t('schedule.empty')}
           </p>
         ) : null}
       </div>

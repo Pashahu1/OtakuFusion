@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { SignJWT, jwtVerify } from 'jose';
 import { authSessionCookieDefaults } from '@/lib/auth-cookie-options';
+import {
+  ACCESS_TOKEN_MAX_AGE_SECONDS,
+  jwtSubjectId,
+  signAccessToken,
+  verifyHs256Jwt,
+} from '@/lib/jwt';
 
-/**
- * Edge proxy cannot reliably use `jsonwebtoken` (Node crypto).
- * `jose` works on Edge — otherwise verify/sign fail at runtime and all protected
- * routes redirect to login.
- */
 function getProxyJwtSecrets(): { access: string; refresh: string } | null {
   const access =
     process.env.NEXT_JWT_ACCESS_SECRET?.trim() ||
@@ -19,28 +19,16 @@ function getProxyJwtSecrets(): { access: string; refresh: string } | null {
   return { access, refresh };
 }
 
-function payloadIdToString(id: unknown): string | null {
-  if (typeof id === 'string' && id.length > 0) return id;
-  if (id != null && typeof id === 'object' && '$oid' in id) {
-    const oid = (id as { $oid?: string }).$oid;
-    return typeof oid === 'string' && oid.length > 0 ? oid : null;
-  }
-  return null;
-}
-
 export async function proxy(req: NextRequest) {
   const secrets = getProxyJwtSecrets();
   if (!secrets) {
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }
 
-  const accessKey = new TextEncoder().encode(secrets.access);
-  const refreshKey = new TextEncoder().encode(secrets.refresh);
-
   const accessToken = req.cookies.get('accessToken')?.value;
   if (accessToken) {
     try {
-      await jwtVerify(accessToken, accessKey, { algorithms: ['HS256'] });
+      await verifyHs256Jwt(accessToken, secrets.access);
       return NextResponse.next();
     } catch {
       // try refresh token update
@@ -50,24 +38,17 @@ export async function proxy(req: NextRequest) {
   const refreshToken = req.cookies.get('refreshToken')?.value;
   if (refreshToken) {
     try {
-      const { payload } = await jwtVerify(refreshToken, refreshKey, {
-        algorithms: ['HS256'],
-      });
-      const id = payloadIdToString(payload.id);
+      const payload = await verifyHs256Jwt(refreshToken, secrets.refresh);
+      const id = jwtSubjectId(payload.id);
       if (!id) {
         return NextResponse.redirect(new URL('/auth/login', req.url));
       }
 
-      const newAccessToken = await new SignJWT({ id })
-        .setProtectedHeader({ alg: 'HS256' })
-        .setIssuedAt()
-        .setExpirationTime('15m')
-        .sign(accessKey);
-
+      const newAccessToken = await signAccessToken({ id }, secrets.access);
       const res = NextResponse.next();
       res.cookies.set('accessToken', newAccessToken, {
         ...authSessionCookieDefaults,
-        maxAge: 60 * 15,
+        maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
       });
       return res;
     } catch {
@@ -79,5 +60,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/profile/:path*', '/admin/:path*'],
+  matcher: ['/profile/:path*'],
 };

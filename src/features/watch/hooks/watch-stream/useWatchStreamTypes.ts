@@ -33,12 +33,9 @@ export interface WatchResolveOptions {
   watchStreamProvider: WatchStreamProvider;
   streamLangRevision: number;
   episodeDubStateKey: string;
-  expectedEpisodes?: number;
-  anilistStillAiring?: boolean;
   providerCatalogPending?: boolean;
   episodesSourceProvider?: WatchStreamProvider | null;
   onAutoRetryExhausted?: () => void;
-  anilibertyCatalogVerified?: boolean;
 }
 
 export interface WatchStreamResolveRefs {

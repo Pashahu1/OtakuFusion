@@ -1,46 +1,43 @@
 'use client';
-import { type ReactNode } from 'react';
-import { cn } from '@/lib/utils';
 
-type EmptyStateProps = {
+import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import './empty-error-state.scss';
+
+interface EmptyStateProps {
   title?: string;
   message?: string;
   icon?: ReactNode;
   fullPage?: boolean;
   plain?: boolean;
-  /** `panel` matches header / profile surfaces (`#23252b`). */
+  /** `panel` matches profile / schedule surfaces. */
   surface?: 'default' | 'panel';
-};
+}
 
 export function EmptyState({
-  title = 'Empty',
-  message = 'Here is no data to display.',
+  title,
+  message,
   icon,
   fullPage = false,
   plain = false,
   surface = 'default',
 }: EmptyStateProps) {
+  const { t } = useTranslation('common');
+
   return (
     <section
       className={cn(
-        'w-full space-y-6 px-4 py-8 md:px-6 lg:px-10',
-        !plain &&
-          (surface === 'panel'
-            ? 'rounded-2xl border border-white/[0.06] bg-[#23252b]'
-            : 'bg-[#111]'),
+        'of-feedback',
+        fullPage && 'of-feedback--full',
+        !plain && surface === 'panel' && 'of-feedback--panel',
       )}
     >
-      <div
-        className={`flex flex-col items-center justify-center text-center ${fullPage ? 'h-screen' : 'py-10'}`}
-      >
-        {icon && <div className="mb-4 text-5xl opacity-80">{icon}</div>}
-        <h2 className="mb-2 text-xl font-bold text-white sm:text-2xl">
-          {title}
-        </h2>
-        <p className="max-w-[min(100%,320px)] px-2 text-sm text-gray-400 sm:text-base">
-          {message}
-        </p>
-      </div>
+      {icon ? <div className="of-feedback__icon">{icon}</div> : null}
+      <h2 className="of-feedback__title">{title ?? t('empty.title')}</h2>
+      {message || !title ? (
+        <p className="of-feedback__message">{message ?? t('empty.message')}</p>
+      ) : null}
     </section>
   );
 }

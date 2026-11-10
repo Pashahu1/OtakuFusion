@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ANIME_SEARCH_MIN_QUERY_LENGTH } from '@/lib/api/anime-search';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAnimeSearchQuery } from '@/hooks/queries';
+import { useTranslation } from 'react-i18next';
+
 import { SearchData } from './SearchData';
 import './search-page.scss';
 
@@ -13,6 +15,7 @@ interface SearchViewProps {
 }
 
 export function SearchView({ initialKeyword }: SearchViewProps) {
+  const { t } = useTranslation('common');
   const [query, setQuery] = useState(initialKeyword);
   const debouncedQuery = useDebounce(query, 250);
   const router = useRouter();
@@ -46,13 +49,13 @@ export function SearchView({ initialKeyword }: SearchViewProps) {
         <div className="search-page__input-wrap">
           <input
             type="search"
-            placeholder="Search anime by title..."
+            placeholder={t('search.placeholder')}
             autoFocus
             autoComplete="off"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="search-page__input"
-            aria-label="Search anime"
+            aria-label={t('search.aria')}
           />
         </div>
       </div>

@@ -4,14 +4,20 @@ import { UnderlineField } from '@/components/auth/underline-field';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/lib/toast';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
-const LOGIN_INVALID_MESSAGE = 'Invalid email or password';
+import { sanitizeNextPath, withNextQuery } from '@/features/auth/lib/safe-next-path';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
+  const { t } = useTranslation('common');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
+  const nextPath = sanitizeNextPath(searchParams.get('next'));
+  const afterAuthPath = nextPath ?? '/';
+  const registerHref = withNextQuery('/auth/register', nextPath);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,11 +58,11 @@ export default function LoginPage() {
     if (!result.ok) {
       setEmailError(true);
       setPasswordError(true);
-      toast.error(LOGIN_INVALID_MESSAGE);
+      toast.error(t('auth.invalidCredentials'));
       return;
     }
 
-    router.push('/');
+    router.push(afterAuthPath);
     router.refresh();
   };
 
@@ -67,13 +73,13 @@ export default function LoginPage() {
       noValidate
       aria-busy={loading}
     >
-      <h2 className="mb-5 text-center font-serif text-xl font-normal tracking-tight text-white sm:text-2xl">
-        Log In
+      <h2 className="mb-5 text-center font-serif text-xl font-normal tracking-tight text-foreground sm:text-2xl">
+        {t('auth.logIn')}
       </h2>
 
       <UnderlineField
         id="login-email"
-        label="Email Address"
+        label={t('auth.emailAddress')}
         hasError={emailError}
       >
         <input
@@ -84,13 +90,13 @@ export default function LoginPage() {
           disabled={loading}
           onChange={(e) => handleEmailChange(e.target.value)}
           className="w-full bg-transparent px-0 py-2.5 text-[var(--color-brand-text-primary)] outline-none transition-colors placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="mail@example.com"
+          placeholder={t('auth.placeholderEmail')}
         />
       </UnderlineField>
 
       <UnderlineField
         id="login-password"
-        label="Password"
+        label={t('auth.password')}
         hasError={passwordError}
       >
         <div className="flex items-center gap-2">
@@ -102,15 +108,15 @@ export default function LoginPage() {
             disabled={loading}
             onChange={(e) => handlePasswordChange(e.target.value)}
             className="min-w-0 flex-1 bg-transparent px-0 py-2.5 text-[var(--color-brand-text-primary)] outline-none transition-colors placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-50"
-            placeholder="password"
+            placeholder={t('auth.placeholderPassword')}
           />
           <button
             type="button"
             disabled={loading}
             onClick={() => setShowPassword((v) => !v)}
-            className="touch-manipulation shrink-0 rounded-md px-2 py-2 text-xs font-medium tracking-wide text-zinc-400 uppercase transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
+            className="touch-manipulation shrink-0 rounded-md px-2 py-2 text-xs font-medium tracking-wide text-[var(--of-text-muted)] uppercase transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
           >
-            {showPassword ? 'HIDE' : 'SHOW'}
+            {showPassword ? t('actions.hide') : t('actions.show')}
           </button>
         </div>
       </UnderlineField>
@@ -123,22 +129,22 @@ export default function LoginPage() {
         {loading ? (
           <>
             <Loader2
-              className="h-4 w-4 shrink-0 animate-spin text-[var(--color-brand-orange)]"
+              className="h-4 w-4 shrink-0 animate-spin text-current"
               aria-hidden
             />
-            <span>Signing in…</span>
+            <span>{t('auth.signingIn')}</span>
           </>
         ) : (
-          'Log In'
+          t('auth.logIn')
         )}
       </button>
 
       <p className="mt-7 text-center text-xs font-bold tracking-wide text-[var(--color-brand-orange)]">
         <a
-          href="/auth/register"
+          href={registerHref}
           className="rounded-sm px-1 py-0.5 underline-offset-4 transition-colors hover:underline hover:text-[var(--color-brand-orange-light)] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40 focus-visible:outline-none"
         >
-          Create account
+          {t('auth.createAccount')}
         </a>
       </p>
     </form>

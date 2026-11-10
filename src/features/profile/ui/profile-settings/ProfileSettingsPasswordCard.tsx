@@ -1,6 +1,7 @@
 'use client';
 
 import { KeyRound } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
 
@@ -32,6 +33,7 @@ export function ProfileSettingsPasswordCard(props: PasswordState) {
     handlePasswordSubmit,
     handleDiscardPassword,
   } = props;
+  const { t } = useTranslation('common');
 
   return (
     <form
@@ -44,14 +46,16 @@ export function ProfileSettingsPasswordCard(props: PasswordState) {
           <KeyRound size={18} />
         </span>
         <div>
-          <h3 className="profile-settings__card-title">Change password</h3>
-          <p className="profile-settings__card-desc">Signed in as {userEmail}</p>
+          <h3 className="profile-settings__card-title">{t('settings.changePassword')}</h3>
+          <p className="profile-settings__card-desc">
+            {t('settings.signedInAs', { email: userEmail })}
+          </p>
         </div>
       </div>
 
       <PasswordField
         id="current-password"
-        label="Current password"
+        label={t('settings.currentPassword')}
         value={oldPassword}
         visible={showOld}
         onToggle={() => setShowOld((v) => !v)}
@@ -62,7 +66,7 @@ export function ProfileSettingsPasswordCard(props: PasswordState) {
 
       <PasswordField
         id="new-password"
-        label="New password"
+        label={t('settings.newPassword')}
         value={newPassword}
         visible={showNew}
         onToggle={() => setShowNew((v) => !v)}
@@ -73,7 +77,7 @@ export function ProfileSettingsPasswordCard(props: PasswordState) {
 
       <PasswordField
         id="confirm-password"
-        label="Confirm new password"
+        label={t('settings.confirmNewPassword')}
         value={confirmPassword}
         visible={showConfirm}
         onToggle={() => setShowConfirm((v) => !v)}
@@ -83,7 +87,7 @@ export function ProfileSettingsPasswordCard(props: PasswordState) {
         mismatch={confirmPassword.length > 0 && newPassword !== confirmPassword}
       />
 
-      <ul className="profile-settings__rules" aria-label="Password requirements">
+      <ul className="profile-settings__rules" aria-label={t('settings.passwordRequirements')}>
         {passwordRules.map((rule) => (
           <li
             key={rule.id}
@@ -101,7 +105,7 @@ export function ProfileSettingsPasswordCard(props: PasswordState) {
             passwordsMatch && newPassword.length > 0 && 'profile-settings__rule--met',
           )}
         >
-          Passwords match
+          {t('settings.passwordsMatch')}
         </li>
       </ul>
 
@@ -117,14 +121,14 @@ export function ProfileSettingsPasswordCard(props: PasswordState) {
           onClick={handleDiscardPassword}
           disabled={isSaving || !hasPasswordChanges}
         >
-          Discard
+          {t('actions.discard')}
         </button>
         <button
           type="submit"
           className="profile-settings__btn profile-settings__btn--primary"
           disabled={isSaving || !canSavePassword}
         >
-          {isSaving ? 'Saving…' : 'Update password'}
+          {isSaving ? t('actions.saving') : t('settings.updatePassword')}
         </button>
       </div>
     </form>

@@ -1,9 +1,46 @@
 .header {
+  --of-header-height: 60px;
+
   position: fixed;
   left: 0;
   right: 0;
-  display: flex;
-  height: 60px;
-  background-color: #23252b;
   z-index: 100;
+  display: flex;
+  height: var(--of-header-height);
+  color: var(--of-header-fg);
+  background: var(--of-header-bg);
+  border-bottom: 1px solid var(--of-header-border);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  transition:
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease;
+}
+
+.header--over-hero {
+  background: var(--of-header-bg-hero);
+  border-bottom-color: transparent;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.header--scrolled {
+  background: var(--of-header-bg-scrolled);
+  border-bottom-color: var(--of-header-border);
+}
+
+.header .navigation-list__link img,
+.header .burger-menu {
+  filter: var(--of-header-icon-filter);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .header,
+  .header--over-hero,
+  .header--scrolled {
+    background: var(--of-header-bg-scrolled);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }

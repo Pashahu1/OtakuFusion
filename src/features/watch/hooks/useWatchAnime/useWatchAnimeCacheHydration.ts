@@ -1,6 +1,9 @@
 import { useEffect, useLayoutEffect } from 'react';
 
-import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
+import {
+  ANIKOTO_PLAYBACK_ENABLED,
+  type WatchStreamProvider,
+} from '@/features/watch/lib/watch-provider';
 import {
   applyWatchAnimeHydratedState,
   readWatchAnimeHydratedState,
@@ -37,11 +40,9 @@ export function useWatchAnimeCacheHydration({
     setAnimeInfo,
     setEpisodes,
     setNextEpisodeSchedule,
-    setAnilibertyCatalogProviderId,
     setHikkaCatalogProviderId,
     setTotalEpisodes,
     setEpisodeId,
-    setAnilibertyLanguageMenuEligible,
     setHikkaLanguageMenuEligible,
     setAnikotoCatalogProviderId,
     setAnikotoLanguageMenuEligible,
@@ -82,11 +83,9 @@ export function useWatchAnimeCacheHydration({
         setAnimeInfo,
         setEpisodes,
         setNextEpisodeSchedule,
-        setAnilibertyCatalogProviderId,
         setHikkaCatalogProviderId,
         setTotalEpisodes,
         setEpisodeId,
-        setAnilibertyLanguageMenuEligible,
         setHikkaLanguageMenuEligible,
         setEpisodesSourceProvider,
         setAnimeInfoLoading,
@@ -94,6 +93,7 @@ export function useWatchAnimeCacheHydration({
         setError,
       });
       if (
+        ANIKOTO_PLAYBACK_ENABLED &&
         !applyCachedAnikotoLanguageMenu(animeId, {
           setAnikotoCatalogProviderId,
           setAnikotoLanguageMenuEligible,
@@ -121,13 +121,11 @@ export function useWatchAnimeCacheHydration({
 
     resetWatchAnimeLoadState({
       setEpisodes,
-      setAnilibertyCatalogProviderId,
       setEpisodeId,
       setAnimeInfo,
       setTotalEpisodes,
       setAnimeInfoLoading,
       setError,
-      setAnilibertyLanguageMenuEligible,
       setHikkaLanguageMenuEligible,
       setHikkaCatalogProviderId,
       setProviderCatalogPending,
@@ -144,8 +142,6 @@ export function useWatchAnimeCacheHydration({
     oppositePrefetchDoneRef,
     setAnimeInfo,
     setAnimeInfoLoading,
-    setAnilibertyCatalogProviderId,
-    setAnilibertyLanguageMenuEligible,
     setHikkaLanguageMenuEligible,
     setHikkaCatalogProviderId,
     setAnikotoCatalogProviderId,

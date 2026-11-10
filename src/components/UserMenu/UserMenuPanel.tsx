@@ -1,6 +1,7 @@
 'use client';
 
 import { Bookmark, LogOut, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { VerifiedSealIcon } from '@/components/icons/verified-seal-icon';
@@ -23,6 +24,8 @@ export function UserMenuPanel({
   onNavigate,
   onLogout,
 }: UserMenuPanelProps) {
+  const { t } = useTranslation('common');
+
   return (
     <div
       ref={menuRef}
@@ -53,7 +56,7 @@ export function UserMenuPanel({
             {user.isVerified ? (
               <VerifiedSealIcon
                 className="h-4 w-4 shrink-0 text-zinc-100"
-                title="Email verified"
+                title={t('profile.emailVerified')}
               />
             ) : null}
           </span>
@@ -71,7 +74,7 @@ export function UserMenuPanel({
           <span className="user-menu__item-icon" aria-hidden>
             <Settings size={15} strokeWidth={2.25} />
           </span>
-          Settings
+          {t('userMenu.settings')}
         </button>
 
         <button
@@ -83,7 +86,7 @@ export function UserMenuPanel({
           <span className="user-menu__item-icon" aria-hidden>
             <Bookmark size={15} strokeWidth={2.25} />
           </span>
-          Wish List
+          {t('userMenu.wishList')}
         </button>
       </div>
 
@@ -98,7 +101,7 @@ export function UserMenuPanel({
           <span className="user-menu__item-icon" aria-hidden>
             <LogOut size={15} strokeWidth={2.25} />
           </span>
-          {loading ? 'Logging out…' : 'Logout'}
+          {loading ? t('userMenu.loggingOut') : t('userMenu.logout')}
         </button>
       </div>
     </div>

@@ -1,9 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
+import { sanitizeNextPath, withNextQuery } from '@/features/auth/lib/safe-next-path';
+
 import { useAuth } from '@/context/AuthContext';
+import { tStatic } from '@/i18n/t';
 import { toast } from '@/lib/toast';
 import { RegisterPageFormSchema } from '@/shared/schemas/api';
 
@@ -15,7 +18,11 @@ import {
 
 export function useRegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser } = useAuth();
+  const nextPath = sanitizeNextPath(searchParams.get('next'));
+  const afterAuthPath = nextPath ?? '/';
+  const loginHref = withNextQuery('/auth/login', nextPath);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -118,11 +125,11 @@ export function useRegisterForm() {
         );
       }
 
-      toast.success('Welcome! Check your inbox for a verification code — verify anytime in Profile.');
-      router.push('/');
+      toast.success(tStatic('auth.welcomeVerify'));
+      router.push(afterAuthPath);
       router.refresh();
     } catch {
-      toast.error('Something went wrong. Please try again.');
+      toast.error(tStatic('auth.genericError'));
     } finally {
       setLoading(false);
     }
@@ -144,6 +151,7 @@ export function useRegisterForm() {
     setPassword,
     setConfirm,
     clearInvalid,
+    loginHref,
     handleRegister,
   };
 }

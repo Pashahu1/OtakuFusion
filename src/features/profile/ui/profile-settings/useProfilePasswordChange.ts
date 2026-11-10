@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
+import { tStatic } from '@/i18n/t';
 import { toast } from '@/lib/toast';
 
 import { buildPasswordRules } from './profilePasswordRules';
@@ -44,16 +45,16 @@ export function useProfilePasswordChange(userEmail: string | undefined) {
 
       const data = (await res.json()) as { message?: string };
       if (!res.ok) {
-        toast.error(data.message || 'Could not update password.');
+        toast.error(data.message || tStatic('settings.passwordUpdateFailed'));
         return;
       }
 
-      toast.success('Password updated successfully.');
+      toast.success(tStatic('settings.passwordUpdated'));
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch {
-      toast.error('Something went wrong. Try again.');
+      toast.error(tStatic('toast.tryAgain'));
     } finally {
       setIsSaving(false);
     }

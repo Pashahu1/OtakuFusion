@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface VerifyEmailFormActionsProps {
   isLoading: boolean;
   canResend: boolean;
@@ -9,6 +11,8 @@ export function VerifyEmailFormActions({
   canResend,
   onResend,
 }: VerifyEmailFormActionsProps) {
+  const { t } = useTranslation('common');
+
   return (
     <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:gap-3">
       <button
@@ -16,7 +20,7 @@ export function VerifyEmailFormActions({
         disabled={isLoading}
         className="hero-cta hero-cta--block flex-1"
       >
-        {isLoading ? 'Verifying…' : 'Verify'}
+        {isLoading ? t('auth.verifying') : t('auth.verify')}
       </button>
       <button
         type="button"
@@ -24,7 +28,7 @@ export function VerifyEmailFormActions({
         onClick={onResend}
         className="hero-cta hero-cta--secondary hero-cta--block flex-1"
       >
-        Send again
+        {t('auth.sendAgain')}
       </button>
     </div>
   );

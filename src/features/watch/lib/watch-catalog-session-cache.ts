@@ -17,10 +17,8 @@ export interface WatchCatalogSessionSnapshot {
   animeInfo: AnimeData;
   episodes: EpisodesTypes[];
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
-  anilibertyCatalogProviderId: string | null;
   hikkaCatalogProviderId: string | null;
   totalEpisodes: number | null;
-  anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
   episodesSourceProvider: WatchStreamProvider | null;
   stableWatchLoad: StableWatchLoadSnapshot;

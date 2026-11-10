@@ -1,34 +1,32 @@
 import type Artplayer from 'artplayer';
 import Hls from 'hls.js';
 
+import { lockHlsQualityLevel } from '../../playback-preferences/lockHlsQualityLevel';
 import {
+  getHighestAvailableLevelIndex,
   readHlsQualityPreference,
   resolveLevelIndexForStoredQuality,
 } from '../../playerPlaybackPreferences';
 
 export function createHlsBeforeLoadHandler() {
   return (hls: InstanceType<typeof Hls>) => {
-    const storedQualitySnapshot = readHlsQualityPreference();
     const applyInitialLevelOnce = () => {
       hls.off(Hls.Events.MANIFEST_PARSED, applyInitialLevelOnce);
       try {
-        if (!hls.levels?.length) {
-          hls.loadLevel = -1;
+        const levels = hls.levels as Array<{ height?: number; bitrate?: number }>;
+        if (!levels?.length) {
+          lockHlsQualityLevel(hls, -1);
           return;
         }
-        const idx = resolveLevelIndexForStoredQuality(
-          hls.levels as Array<{ height?: number; bitrate?: number }>,
-          storedQualitySnapshot,
-        );
-        if (idx < 0) {
-          hls.currentLevel = 0;
-          hls.nextLevel = 0;
-          hls.loadLevel = 0;
-        } else {
-          hls.currentLevel = idx;
-          hls.nextLevel = idx;
-          hls.loadLevel = idx;
-        }
+        const stored = readHlsQualityPreference();
+        const fromPref = resolveLevelIndexForStoredQuality(levels, stored);
+        const idx =
+          stored === 'auto'
+            ? -1
+            : fromPref >= 0
+              ? fromPref
+              : getHighestAvailableLevelIndex(levels);
+        lockHlsQualityLevel(hls, idx);
       } finally {
         try {
           hls.startLoad();

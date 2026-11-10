@@ -1,0 +1,45 @@
+.of-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-family: var(--font-sans, system-ui, sans-serif);
+
+  &--full {
+    min-height: calc(100dvh - 60px);
+  }
+
+  &--panel {
+    border: 1px solid var(--of-border);
+    border-radius: 16px;
+    background: var(--of-surface);
+  }
+
+  &__icon {
+    margin-bottom: 12px;
+    color: var(--of-text-muted);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--of-text);
+  }
+
+  &__message {
+    margin: 8px 0 0;
+    max-width: 22rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--of-text-muted);
+  }
+
+  &__action {
+    margin-top: 1.25rem;
+  }
+}

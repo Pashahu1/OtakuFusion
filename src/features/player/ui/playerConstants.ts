@@ -1,14 +1,17 @@
 export const KEY_CODES = {
   M: 'm',
-  I: 'i',
   F: 'f',
   V: 'v',
+  J: 'j',
+  L: 'l',
   SPACE: ' ',
+  ENTER: 'enter',
   ARROW_UP: 'arrowup',
   ARROW_DOWN: 'arrowdown',
   ARROW_RIGHT: 'arrowright',
   ARROW_LEFT: 'arrowleft',
   ESCAPE: 'escape',
+  MEDIA_PLAY_PAUSE: 'mediaplaypause',
 } as const;
 
 export type KeyCode = (typeof KEY_CODES)[keyof typeof KEY_CODES];
@@ -23,7 +26,10 @@ export const HLS_CDN_FALLBACK_REFERER = 'https://anikage.cc/';
 export const HLS_CDN_FALLBACK_ORIGIN = 'https://anikage.cc';
 
 export const DEFAULT_REFERER = 'https://megacloud.club/';
-export const PLAYER_THEME_COLOR = '#ff640a';
+export const PLAYER_THEME_COLOR = '#f47521';
+export const PLAYER_SKIP_SECONDS = 10;
+export const SUBTITLE_NONE_ID = 'off';
+export const SUBTITLE_NONE_LABEL = 'None';
 
 export const SUBTITLE_DEFAULT_STYLE: Record<string, string> = {
   'font-weight': '400',
@@ -39,3 +45,6 @@ export const SUBTITLE_DEFAULT_STYLE: Record<string, string> = {
 
 export const LOGO_HIDE_DELAY_MS = 4500;
 export const LOGO_FADE_OUT_MS = 900;
+
+/** Idle delay before chrome (timeline included) hides while the cursor sits still. */
+export const PLAYER_CHROME_IDLE_MS = 2500;

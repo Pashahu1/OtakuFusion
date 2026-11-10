@@ -1,15 +1,21 @@
 import type Artplayer from 'artplayer';
 import Hls from 'hls.js';
 
-import { isHardHttpFailure } from '../../playerPlaybackPreferences';
+import {
+  isHardHttpFailure,
+  isRetryableHttpFailure,
+} from '../../playerPlaybackPreferences';
 import { tryDowngradeHlsQualityLevel } from '../../playback-preferences/hlsQualityFallback';
 
 import type { ArtplayerHlsRuntimeContext } from './types';
+
+const RATE_LIMIT_RECOVERY_DELAYS_MS = [2500, 6000] as const;
 
 export interface HlsRecoveryState {
   hlsRecoverNetworkTried: boolean;
   hlsMediaRecoveryStep: number;
   hlsQualityDowngrades: number;
+  hlsRateLimitRecoveries: number;
 }
 
 function logHlsErrorInDev(data: {
@@ -62,10 +68,38 @@ function tryDowngradeOnLevelHttpFailure(
   data: { type?: string; details?: string; response?: { code?: number } },
   recoveryState: HlsRecoveryState,
 ): boolean {
+  if (isRetryableHttpFailure(data)) return false;
   if (!isLevelLoadHttpFailure(data)) return false;
   if (recoveryState.hlsQualityDowngrades >= 4) return false;
   if (!tryDowngradeHlsQualityLevel(hls)) return false;
   recoveryState.hlsQualityDowngrades += 1;
+  return true;
+}
+
+function tryRecoverRateLimit(
+  hls: InstanceType<typeof Hls>,
+  recoveryState: HlsRecoveryState,
+  effectActive: () => boolean,
+): boolean {
+  if (recoveryState.hlsRateLimitRecoveries >= RATE_LIMIT_RECOVERY_DELAYS_MS.length) {
+    return false;
+  }
+  const delayMs =
+    RATE_LIMIT_RECOVERY_DELAYS_MS[recoveryState.hlsRateLimitRecoveries] ?? 2500;
+  recoveryState.hlsRateLimitRecoveries += 1;
+  try {
+    hls.stopLoad();
+  } catch {
+    /* noop */
+  }
+  globalThis.setTimeout(() => {
+    if (!effectActive()) return;
+    try {
+      hls.startLoad();
+    } catch {
+      /* noop */
+    }
+  }, delayMs);
   return true;
 }
 
@@ -130,6 +164,13 @@ export function bindM3u8HlsInstanceHandler(
         if (!ctx.effectActive()) return;
 
         logHlsErrorInDev(data as Parameters<typeof logHlsErrorInDev>[0]);
+
+        if (isRetryableHttpFailure(data)) {
+          if (!data.fatal) return;
+          if (tryRecoverRateLimit(hls, recoveryState, ctx.effectActive)) return;
+          reportError(art);
+          return;
+        }
 
         if (tryDowngradeOnLevelHttpFailure(hls, data, recoveryState)) return;
 

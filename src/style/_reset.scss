@@ -82,8 +82,8 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-background-clip: text;
-  -webkit-text-fill-color: #ffffff;
-  caret-color: white !important;
+  -webkit-text-fill-color: var(--of-text);
+  caret-color: var(--of-text) !important;
 
   transition: background-color 5000s ease-in-out 0s;
 }
@@ -96,7 +96,7 @@ button {
 
 a {
   text-decoration: none;
-  color: #dadada;
+  color: var(--of-text-secondary);
   cursor: pointer;
 }
 
@@ -109,8 +109,12 @@ menu {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  min-height: 100dvh;
 }
 
 .main {
-  flex-grow: 1;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
 }

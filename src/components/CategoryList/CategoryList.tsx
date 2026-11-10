@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+import { localizeGenreName } from "@/i18n/localize-genre";
+
 import { genres } from "@/shared/data/genres";
 import { NavLink } from "@/components/NavLink/NavLink";
 import Image from "next/image";
@@ -11,6 +14,7 @@ function genreHref(genre: string) {
 }
 
 export const CategoryList = () => {
+  const { t } = useTranslation("common");
   const { isOpen, toggle, close, triggerRef, menuRef } = useDropdown<
     HTMLButtonElement,
     HTMLDivElement
@@ -26,7 +30,7 @@ export const CategoryList = () => {
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
-        Categories
+        {t("nav.categories")}
         <Image
           src="/icon/down.png"
           alt=""
@@ -45,21 +49,21 @@ export const CategoryList = () => {
           }`}
           role="presentation"
         >
-          <nav className="category__mega" aria-label="Anime categories">
+          <nav className="category__mega" aria-label={t("nav.categoriesAria")}>
             <div className="category__mega-sidebar">
               <NavLink
                 className="category__mega-primary-link"
                 href="/schedule"
                 onClick={close}
               >
-                Release Calendar
+                {t("nav.schedule")}
               </NavLink>
             </div>
 
             <div className="category__mega-divider" aria-hidden />
 
             <section className="category-genres">
-              <p className="category-genres__title">Genres</p>
+              <p className="category-genres__title">{t("nav.genres")}</p>
               <ul className="category-genres__list">
                 {genres.map((gen) => (
                   <li key={gen} className="category-genres__item">
@@ -68,7 +72,7 @@ export const CategoryList = () => {
                       href={genreHref(gen)}
                       onClick={close}
                     >
-                      {gen}
+                      {localizeGenreName(gen, t)}
                     </NavLink>
                   </li>
                 ))}

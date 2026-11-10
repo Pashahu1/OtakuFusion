@@ -1,4 +1,5 @@
 import { Eye, EyeOff, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface PasswordFieldProps {
@@ -24,6 +25,8 @@ export function PasswordField({
   disabled,
   mismatch,
 }: PasswordFieldProps) {
+  const { t } = useTranslation('common');
+
   return (
     <label className="profile-settings__field" htmlFor={id}>
       <span className="profile-settings__label">{label}</span>
@@ -48,7 +51,7 @@ export function PasswordField({
           type="button"
           className="profile-settings__toggle"
           onClick={onToggle}
-          aria-label={visible ? 'Hide password' : 'Show password'}
+          aria-label={visible ? t('settings.hidePassword') : t('settings.showPassword')}
           tabIndex={-1}
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}

@@ -1,11 +1,8 @@
 import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
 import User from '@/models/User';
 import { connectDB } from './db';
 import { env } from '@/lib/env';
-interface TokenPayload extends jwt.JwtPayload {
-  id: string;
-}
+import { verifyAccessTokenId } from '@/lib/jwt';
 
 export async function getUserFromRequest() {
   await connectDB();
@@ -15,11 +12,8 @@ export async function getUserFromRequest() {
 
   if (!token) return null;
 
-  try {
-    const payload = jwt.verify(token, env.NEXT_JWT_ACCESS_SECRET) as TokenPayload;
-    const user = await User.findById(payload.id).lean();
-    return user;
-  } catch {
-    return null;
-  }
+  const id = await verifyAccessTokenId(token, env.NEXT_JWT_ACCESS_SECRET);
+  if (!id) return null;
+
+  return User.findById(id).lean();
 }

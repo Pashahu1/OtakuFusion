@@ -1,6 +1,6 @@
 import type { VideoTrack } from "./VideoTrackTypes";
 
-/** Quality variants when API returns separate HLS per resolution (Anicore / Aniliberty). */
+/** Quality variants when API returns separate HLS playlists per resolution. */
 export interface StreamQualityVariant {
   height: number;
   label: string;
@@ -11,7 +11,7 @@ export interface StreamQualityVariant {
 export interface StreamingData {
   streamingLink: StreamingType[];
   servers: StreamServer[];
-  /** Optional intervals (seconds), e.g. from Aniliberty / Crysoline `sources`. */
+  /** Optional intervals (seconds) from provider `sources`. */
   skipSegments?: {
     intro: { start: number; end: number } | null;
     outro: { start: number; end: number } | null;

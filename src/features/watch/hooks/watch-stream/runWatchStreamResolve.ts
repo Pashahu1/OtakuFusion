@@ -1,5 +1,4 @@
 import { resolveWatchStream } from '@/features/watch/lib/resolve-watch-stream';
-import { readAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 import { applyResolveSuccess } from '@/features/watch/hooks/mapResolveToPlayerState';
 import { getWatchResolveErrorMessage } from '@/features/watch/hooks/watchResolveErrorMessages';
@@ -80,11 +79,9 @@ export async function runWatchStreamResolve({
 
     const hadServerHint =
       typeof window !== 'undefined' &&
-      (activeOpts.watchStreamProvider === 'aniliberty'
-        ? Boolean(readAnilibertyPlaybackQualityHint())
-        : activeOpts.watchStreamProvider === 'hikka'
-          ? Boolean(localStorage.getItem(STORAGE_SERVER_NAME)?.trim())
-          : false);
+      (activeOpts.watchStreamProvider === 'hikka'
+        ? Boolean(localStorage.getItem(STORAGE_SERVER_NAME)?.trim())
+        : false);
 
     let result: Awaited<ReturnType<typeof resolveWatchStream>>;
     try {
@@ -92,7 +89,7 @@ export async function runWatchStreamResolve({
     } catch (firstErr) {
       if (signal.aborted) return;
       if (!hadServerHint) throw firstErr;
-      clearStoredServerHint(activeOpts.watchStreamProvider, activeOpts.animeId);
+      clearStoredServerHint();
       result = await resolveWatchStream(resolveParams, signal);
     }
 
@@ -121,10 +118,7 @@ export async function runWatchStreamResolve({
     if (firstErr instanceof Error && firstErr.name === 'AbortError') return;
 
     if (!shouldAutoRetryWatchResolve(firstErr)) {
-      if (
-        isExpectedNoSourceResolveError(firstErr) &&
-        activeOpts.watchStreamProvider !== 'anikoto'
-      ) {
+      if (isExpectedNoSourceResolveError(firstErr)) {
         activeOpts.onAutoRetryExhausted?.();
         return;
       }
@@ -158,7 +152,7 @@ export async function runWatchStreamResolve({
 
 export function trackProviderChange(
   sp: WatchResolveOptions['watchStreamProvider'],
-  animeId: string,
+  _animeId: string,
   refs: WatchStreamResolveRefs,
 ): boolean {
   const providerJustChanged =
@@ -166,7 +160,7 @@ export function trackProviderChange(
     refs.lastResolveProviderRef.current !== sp;
   refs.lastResolveProviderRef.current = sp;
   if (providerJustChanged) {
-    clearStoredServerHint(sp, animeId);
+    clearStoredServerHint();
   }
   return providerJustChanged;
 }

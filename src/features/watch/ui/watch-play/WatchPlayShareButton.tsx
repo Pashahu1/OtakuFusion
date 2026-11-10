@@ -1,6 +1,7 @@
 'use client';
 
 import { Share2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
 import { watchPlayPath, watchSeriesPath } from '@/shared/utils/watch-routes';
 import './WatchPlayShareButton.scss';
@@ -16,6 +17,8 @@ export function WatchPlayShareButton({
   animeId,
   episodeId,
 }: WatchPlayShareButtonProps) {
+  const { t } = useTranslation('common');
+
   async function handleShare() {
     const path = episodeId
       ? watchPlayPath(animeId, episodeId)
@@ -35,10 +38,10 @@ export function WatchPlayShareButton({
       }
 
       await navigator.clipboard.writeText(shareUrl);
-      toast.success('Link copied to clipboard.');
+      toast.success(t('watch.shareCopied'));
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return;
-      toast.error('Could not share this link.');
+      toast.error(t('watch.shareFailed'));
     }
   }
 
@@ -46,7 +49,7 @@ export function WatchPlayShareButton({
     <button
       type="button"
       className="watch-play-share"
-      aria-label="Share episode link"
+      aria-label={t('watch.share')}
       onClick={() => void handleShare()}
     >
       <Share2 className="watch-play-share__icon" aria-hidden size={18} />

@@ -62,8 +62,32 @@ export const FavoriteAnimeBodySchema = z.object({
   animeId: z.string().min(1, 'Anime id is required'),
 });
 
+export const ContinueWatchingEntrySchema = z.object({
+  id: z.string().min(1).max(64),
+  data_id: z.number().int().positive(),
+  episodeId: z.string().min(1).max(128),
+  episodeNum: z.number().int().nonnegative().optional(),
+  poster: z.string().max(2000).optional(),
+  title: z.string().max(500).optional(),
+  japanese_title: z.string().max(500).optional(),
+  adultContent: z.boolean().optional(),
+  genres: z.array(z.string().max(80)).max(20).optional(),
+  positionSeconds: z.number().nonnegative().max(86_400).optional(),
+  durationSeconds: z.number().positive().max(86_400).optional(),
+  updatedAt: z.number().int().nonnegative().optional(),
+  watchStreamProvider: z.enum(['hikka', 'anikoto']).optional(),
+  streamLang: z.enum(['sub', 'dub']).optional(),
+});
+
+export const ContinueWatchingPutSchema = z.union([
+  z.object({ entry: ContinueWatchingEntrySchema }),
+  z.object({ entries: z.array(ContinueWatchingEntrySchema).max(40) }),
+]);
+
 export type LoginBody = z.infer<typeof LoginBodySchema>;
 export type RegisterBody = z.infer<typeof RegisterBodySchema>;
 export type ChangePasswordBody = z.infer<typeof ChangePasswordBodySchema>;
 export type UpdateUserBody = z.infer<typeof UpdateUserBodySchema>;
 export type FavoriteAnimeBody = z.infer<typeof FavoriteAnimeBodySchema>;
+export type ContinueWatchingEntryBody = z.infer<typeof ContinueWatchingEntrySchema>;
+export type ContinueWatchingPutBody = z.infer<typeof ContinueWatchingPutSchema>;

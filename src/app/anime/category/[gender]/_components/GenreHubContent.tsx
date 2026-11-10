@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { GenreHubHeader } from '@/components/genre-hub/GenreHubHeader';
-import { EmptyState } from '@/components/ui/states/EmptyState';
+import { I18nEmpty } from '@/components/ui/states/I18nEmpty';
 import { ErrorState } from '@/components/ui/states/ErrorState';
 import { getGenreHubSections } from '@/lib/api/genre-hub';
 import {
@@ -25,11 +25,17 @@ export async function GenreHubContent({ slug }: GenreHubContentProps) {
   try {
     sections = await getGenreHubSections(genre);
   } catch {
-    return <ErrorState message="Failed to load genre." />;
+    return <ErrorState />;
   }
 
   if (!sections) {
-    return <EmptyState fullPage message="This genre is not available." />;
+    return (
+      <I18nEmpty
+        fullPage
+        titleKey="genreHub.unavailableTitle"
+        messageKey="genreHub.unavailableMessage"
+      />
+    );
   }
 
   const hasAny = GENRE_HUB_SECTIONS.some(
@@ -40,7 +46,12 @@ export async function GenreHubContent({ slug }: GenreHubContentProps) {
     return (
       <div className="mt-[80px]">
         <GenreHubHeader genre={genre} />
-        <EmptyState message={`No anime found for ${genre}.`} />
+        <I18nEmpty
+          titleKey="genreHub.noTitles"
+          messageKey="genreHub.noTitlesHint"
+          values={{ genre }}
+          tValues={{ genre: `genreNames.${genre}` }}
+        />
       </div>
     );
   }

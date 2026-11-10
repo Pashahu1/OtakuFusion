@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useId, useMemo } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
+import { useTranslation } from 'react-i18next';
+
 import { Card } from '@/components/Card/Card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { SwiperCardProps } from '@/shared/types/SwiperCardProps';
@@ -34,6 +36,7 @@ export function SwiperCard({
   viewAllHref,
   prioritySlideCount = 0,
 }: SwiperCardProps) {
+  const { t } = useTranslation('common');
   const reactId = useId().replace(/:/g, '');
   const slug = sectionId ? slugify(sectionId) : '';
   const id = sectionId && slug.length > 0 ? `${slug}-${reactId}` : reactId;
@@ -65,7 +68,7 @@ export function SwiperCard({
             href={viewAllHref}
             className="shrink-0 text-xs font-semibold uppercase tracking-[0.14em] text-white/65 transition-colors hover:text-brand-orange"
           >
-            View all
+            {t('actions.viewAll')}
           </Link>
         ) : null}
       </div>
@@ -82,7 +85,7 @@ export function SwiperCard({
           type="button"
           id={nextId}
           className="nav-zone nav-zone--right"
-          aria-label="Next slide"
+          aria-label={t('actions.nextSlide')}
         >
           <ChevronRight strokeWidth={2} aria-hidden />
         </button>
@@ -90,7 +93,7 @@ export function SwiperCard({
           type="button"
           id={prevId}
           className="nav-zone nav-zone--left"
-          aria-label="Previous slide"
+          aria-label={t('actions.previousSlide')}
         >
           <ChevronLeft strokeWidth={2} aria-hidden />
         </button>

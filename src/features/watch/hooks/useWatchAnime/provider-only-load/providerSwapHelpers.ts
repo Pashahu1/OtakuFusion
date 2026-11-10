@@ -29,23 +29,14 @@ export function applyWarmProviderSwap(
   dataForResolve: AnimeData,
   list: EpisodesTypes[],
   providerId: string,
-  provider: 'hikka' | 'aniliberty',
   preserveEpisodeNum: string | null,
   setHikkaCatalogProviderId: WatchAnimeCatalogLoadParams['setHikkaCatalogProviderId'],
   setHikkaLanguageMenuEligible: WatchAnimeCatalogLoadParams['setHikkaLanguageMenuEligible'],
-  setAnilibertyCatalogProviderId: WatchAnimeCatalogLoadParams['setAnilibertyCatalogProviderId'],
-  setAnilibertyLanguageMenuEligible: WatchAnimeCatalogLoadParams['setAnilibertyLanguageMenuEligible'],
 ): void {
-  if (provider === 'hikka') {
-    setHikkaCatalogProviderId(providerId);
-    setHikkaLanguageMenuEligible(true);
-  } else {
-    setAnilibertyCatalogProviderId(providerId);
-    setAnilibertyLanguageMenuEligible(true);
-  }
+  setHikkaCatalogProviderId(providerId);
+  setHikkaLanguageMenuEligible(true);
   applyWatchCatalogSuccess(applyCtx, dataForResolve, list, providerId, {
     forceFuzzy: false,
-    freshLibertyCatalog: null,
     freshHikkaCatalog: null,
     preserveEpisodeNum,
     settleLoading: { current: false },

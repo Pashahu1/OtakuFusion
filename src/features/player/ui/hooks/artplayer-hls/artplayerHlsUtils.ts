@@ -1,5 +1,6 @@
 import type Artplayer from 'artplayer';
 
+import { swallowPictureInPictureRejections } from '../../player-pip/safePictureInPicture';
 import { clearArtplayerSubtitleResizeRaf } from '../useArtplayerSubtitleResize';
 import { hardStopArtplayerMedia } from './hardStopPlayerMedia';
 import { teardownActivePlayerHlsSession } from './playerHlsSession';
@@ -30,6 +31,7 @@ export function destroyArtplayerInstance(
   instance: Artplayer,
   container: HTMLDivElement | null,
 ) {
+  const clearPipRejectionGuard = swallowPictureInPictureRejections();
   try {
     clearArtplayerSubtitleResizeRaf(instance);
     hardStopArtplayerMedia(instance, container);
@@ -43,10 +45,12 @@ export function destroyArtplayerInstance(
   } catch (e) {
     if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       const message = e instanceof Error ? e.message : String(e);
-      if (!/pause/i.test(message)) {
+      if (!/pause/i.test(message) && !/permissions check failed/i.test(message)) {
         console.warn('Player cleanup:', e);
       }
     }
+  } finally {
+    window.setTimeout(clearPipRejectionGuard, 0);
   }
   if (container && typeof container.innerHTML !== 'undefined') {
     container.innerHTML = '';

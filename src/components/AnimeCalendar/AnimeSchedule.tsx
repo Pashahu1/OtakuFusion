@@ -3,7 +3,6 @@
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 
 import './AnimeCalendar.scss';
@@ -13,6 +12,7 @@ import {
   buildWeekDays,
   formatSlotRangeLabel,
   selectedDayIndex,
+  slotStartForHour,
   TIME_SLOT_STARTS_HOUR,
 } from './anime-schedule/scheduleUtils';
 import type { CalendarEvent } from './anime-schedule/scheduleTypes';
@@ -27,11 +27,20 @@ type Props = {
 
 export function AnimeSchedule({ events, selectedDate, onDateChange }: Props) {
   const route = useRouter();
-  const isWeekGrid = useMediaQuery('(min-width: 1024px)', false);
 
   const days = buildWeekDays(selectedDate);
   const dayIndex = selectedDayIndex(days, selectedDate);
+  const selectedDay = days[dayIndex];
+  const selectedKey = format(selectedDay, 'yyyy-MM-dd');
   const releaseCount = events.length;
+
+  const visibleSlots = TIME_SLOT_STARTS_HOUR.filter((slotStartHour) =>
+    events.some(
+      (event) =>
+        format(event.start, 'yyyy-MM-dd') === selectedKey &&
+        slotStartForHour(event.start.getHours()) === slotStartHour,
+    ),
+  );
 
   function handleSelectEvent(animeId: string, episodeNumber: number) {
     const href =
@@ -50,12 +59,9 @@ export function AnimeSchedule({ events, selectedDate, onDateChange }: Props) {
   }
 
   return (
-    <div className={cn('anime-schedule', !isWeekGrid && 'anime-schedule--compact')}>
-      <div
-        className={cn('schedule-toolbar', !isWeekGrid && 'schedule-toolbar--compact')}
-      >
-        {isWeekGrid ? <div className="schedule-toolbar__spacer" aria-hidden /> : null}
-        <div className={cn('schedule-days', !isWeekGrid && 'schedule-days--compact')}>
+    <div className="anime-schedule anime-schedule--compact">
+      <div className="schedule-toolbar schedule-toolbar--compact">
+        <div className="schedule-days schedule-days--compact">
           {days.map((day) => (
             <ScheduleDayHeader
               key={day.toString()}
@@ -68,37 +74,30 @@ export function AnimeSchedule({ events, selectedDate, onDateChange }: Props) {
         </div>
       </div>
 
-      <div className="schedule-grid">
-        {TIME_SLOT_STARTS_HOUR.map((slotStartHour) => (
-          <div
-            key={slotStartHour}
-            className={cn('schedule-row', !isWeekGrid && 'schedule-row--compact')}
-          >
-            <div className="schedule-time" title={formatSlotRangeLabel(slotStartHour)}>
-              {formatSlotRangeLabel(slotStartHour)}
-            </div>
+      {visibleSlots.length > 0 ? (
+        <div className="schedule-grid">
+          {visibleSlots.map((slotStartHour) => (
+            <div
+              key={slotStartHour}
+              className={cn('schedule-row', 'schedule-row--compact')}
+            >
+              <div
+                className="schedule-time"
+                title={formatSlotRangeLabel(slotStartHour)}
+              >
+                {formatSlotRangeLabel(slotStartHour)}
+              </div>
 
-            {isWeekGrid
-              ? days.map((day) => (
-                  <ScheduleGridCell
-                    key={`${format(day, 'yyyy-MM-dd')}-${slotStartHour}`}
-                    day={day}
-                    slotStartHour={slotStartHour}
-                    events={events}
-                    onSelectEvent={handleSelectEvent}
-                  />
-                ))
-              : (
-                <ScheduleGridCell
-                  day={days[dayIndex]}
-                  slotStartHour={slotStartHour}
-                  events={events}
-                  onSelectEvent={handleSelectEvent}
-                />
-              )}
-          </div>
-        ))}
-      </div>
+              <ScheduleGridCell
+                day={selectedDay}
+                slotStartHour={slotStartHour}
+                events={events}
+                onSelectEvent={handleSelectEvent}
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

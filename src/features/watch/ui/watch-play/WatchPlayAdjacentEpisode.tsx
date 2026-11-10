@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { WATCH_PLAY_NEXT_THUMB_QUALITY } from '@/lib/anime-card-poster';
+import { formatEpisodeLangLine } from '@/features/watch/lib/watch-availability';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
@@ -28,12 +29,7 @@ export function WatchPlayAdjacentEpisode({
   const thumbSrc = thumbnailUrl(posterUrl, LIST_THUMBNAIL_RES);
   const epLabel = `E${episode.episode_no}`;
   const titleLine = episode.title ? `${epLabel} — ${episode.title}` : epLabel;
-  const langLine = [
-    episode.hasDub ? 'Dub' : null,
-    episode.hasSub !== false ? 'Sub' : null,
-  ]
-    .filter(Boolean)
-    .join(' | ');
+  const langLine = formatEpisodeLangLine(episode);
 
   return (
     <aside className="watch-play-adjacent" aria-labelledby={`watch-play-adjacent-${episodeId}`}>

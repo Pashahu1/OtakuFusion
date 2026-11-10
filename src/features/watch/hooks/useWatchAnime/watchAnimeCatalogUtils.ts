@@ -1,37 +1,16 @@
-import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
-import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import {
-  isAnilibertyEpisodeCountAcceptable,
-  isAnilistStillAiringFromStatus,
-} from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
+  ANIKOTO_PLAYBACK_ENABLED,
+  type WatchStreamProvider,
+} from '@/features/watch/lib/watch-provider';
+import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { AlternateLanguageMenuSetters } from './types';
 import {
   readVerifiedAnikotoMapping,
   readVerifiedHikkaMapping,
-  readVerifiedLibertyMapping,
 } from '@/features/watch/lib/provider-mapping-cache';
 
 export function getWatchAnimeErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : 'An error occurred.';
-}
-
-function readExpectedEpisodeCountFromAnime(data: AnimeData): number | null {
-  const et = data.animeInfo?.tvInfo?.episodeTotal?.trim();
-  if (!et || !/^\d+$/.test(et)) return null;
-  const n = parseInt(et, 10);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-export function isLibertyCatalogAcceptableForAnime(
-  data: AnimeData,
-  actualEpisodeCount: number
-): boolean {
-  const stillAiring = isAnilistStillAiringFromStatus(data.animeInfo?.Status);
-  return isAnilibertyEpisodeCountAcceptable(
-    readExpectedEpisodeCountFromAnime(data),
-    actualEpisodeCount,
-    { isOngoing: stillAiring, allowPartialCatalog: stillAiring }
-  );
 }
 
 export function catalogBodyFromAnimeData(data: AnimeData, anilistKey: string) {
@@ -56,6 +35,7 @@ export function applyCachedAnikotoLanguageMenu(
     'setAnikotoCatalogProviderId' | 'setAnikotoLanguageMenuEligible'
   >,
 ): boolean {
+  if (!ANIKOTO_PLAYBACK_ENABLED) return false;
   const cached = readVerifiedAnikotoMapping(localAnimeId);
   if (!cached?.anikotoSlug) return false;
   apply.setAnikotoCatalogProviderId(cached.anikotoSlug);
@@ -75,14 +55,7 @@ export function restoreCachedAlternateLanguageMenu(
       apply.setHikkaLanguageMenuEligible(true);
     }
   }
-  if (activeProvider !== 'aniliberty') {
-    const cachedLiberty = readVerifiedLibertyMapping(localAnimeId);
-    if (cachedLiberty?.libertyId) {
-      apply.setAnilibertyCatalogProviderId(cachedLiberty.libertyId);
-      apply.setAnilibertyLanguageMenuEligible(true);
-    }
-  }
-  if (activeProvider !== 'anikoto') {
+  if (ANIKOTO_PLAYBACK_ENABLED && activeProvider !== 'anikoto') {
     const cachedAnikoto = readVerifiedAnikotoMapping(localAnimeId);
     if (cachedAnikoto?.anikotoSlug) {
       apply.setAnikotoCatalogProviderId(cachedAnikoto.anikotoSlug);

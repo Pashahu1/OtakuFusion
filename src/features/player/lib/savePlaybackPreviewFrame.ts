@@ -6,16 +6,19 @@ import {
   saveEpisodePreview,
 } from '@/features/watch/lib/playback-preview-store';
 
+export type EarlyPreviewResult = 'saved' | 'exists' | 'skipped';
+
 export async function savePlaybackPreviewFrame(
   animeId: string,
   episodeId: string,
   video: HTMLVideoElement,
+  options?: { rejectDark?: boolean },
 ): Promise<boolean> {
   const id = animeId.trim();
   const ep = episodeId.trim();
   if (!id || !ep) return false;
 
-  const blob = await captureVideoFrame(video);
+  const blob = await captureVideoFrame(video, { rejectDark: options?.rejectDark });
   if (!blob) return false;
 
   const key = episodePreviewKey(id, ep);
@@ -24,18 +27,22 @@ export async function savePlaybackPreviewFrame(
   return true;
 }
 
-/** First watch: capture a distinct still once natural playback passes ~12s. */
+/** First watch: capture a distinct still once, never overwrite later (credits/pause). */
 export async function saveEarlyEpisodePreviewIfMissing(
   animeId: string,
   episodeId: string,
   video: HTMLVideoElement,
-): Promise<boolean> {
+  options?: { allowDark?: boolean },
+): Promise<EarlyPreviewResult> {
   const id = animeId.trim();
   const ep = episodeId.trim();
-  if (!id || !ep) return false;
+  if (!id || !ep) return 'skipped';
 
   const key = episodePreviewKey(id, ep);
-  if (await hasEpisodePreview(key)) return false;
+  if (await hasEpisodePreview(key)) return 'exists';
 
-  return savePlaybackPreviewFrame(id, ep, video);
+  const saved = await savePlaybackPreviewFrame(id, ep, video, {
+    rejectDark: options?.allowDark ? false : true,
+  });
+  return saved ? 'saved' : 'skipped';
 }

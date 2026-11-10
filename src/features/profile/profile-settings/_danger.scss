@@ -1,7 +1,7 @@
-﻿.profile-settings__danger {
+.profile-settings__danger {
   margin-top: 1.25rem;
   border-color: rgba(239, 68, 68, 0.22);
-  background: #141519;
+  background: var(--of-surface);
 }
 
 .profile-settings__danger-head {
@@ -19,13 +19,13 @@
 .profile-settings__danger-title {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #fca5a5;
+  color: var(--of-danger);
 }
 
 .profile-settings__danger-desc {
   margin-top: 0.35rem;
   font-size: 0.8125rem;
-  color: #71717a;
+  color: var(--of-text-muted);
   line-height: 1.5;
   max-width: 42rem;
 }
@@ -58,7 +58,7 @@
 
 .profile-settings__danger-question {
   font-size: 0.875rem;
-  color: #e4e4e7;
+  color: var(--of-text);
 }
 
 .profile-settings__danger-actions {

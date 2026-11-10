@@ -7,7 +7,7 @@ export const PLAYBACK_PREVIEW_UPDATED_EVENT = 'playbackPreviewUpdated';
 export function episodePreviewKey(animeId: string, episodeId: string): string {
   const id = animeId.trim();
   const ep = episodeId.trim();
-  return `ep:${id}:${ep}`;
+  return `epv2:${id}:${ep}`;
 }
 
 function openPreviewDb(): Promise<IDBDatabase> {

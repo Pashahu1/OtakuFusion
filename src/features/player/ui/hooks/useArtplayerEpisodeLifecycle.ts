@@ -5,11 +5,14 @@ import {
   shouldMarkEpisodeWatched,
   shouldPromptUpNext,
 } from '@/features/player/lib/episode-end-thresholds';
-import { setArtplayerHasNextEpisode } from '@/features/player/lib/artplayer-near-end-state';
-import { formatUpNextEpisodeLabel } from '@/features/player/lib/format-up-next-episode-label';
+import {
+  setArtplayerHasNextEpisode,
+  setArtplayerPlayNextHandler,
+} from '@/features/player/lib/artplayer-near-end-state';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { removeFromContinueWatching } from '../updateContinueWatching';
 import { attachUpNextOverlay } from '../player-ready/attachUpNextOverlay';
+import { buildUpNextOverlayModel } from '../player-ready/buildUpNextOverlayModel';
 import type { PlayerProps } from '@/shared/types/PlayerTypes';
 
 const PLAYBACK_SURFACE_READY_TIMEOUT_MS = 7200;
@@ -120,16 +123,16 @@ export function useArtplayerEpisodeLifecycle({
 
       setArtplayerHasNextEpisode(art, hasNextEpisode);
 
-      if (!hasNextEpisode || hasTriggeredNextRef.current) {
-        upNextOverlay?.hide();
+      if (!hasNextEpisode || hasTriggeredNextRef.current || !next) {
+        upNextOverlay?.setModel(null);
+        upNextOverlay?.setPinned(false);
         return;
       }
 
-      if (shouldPromptUpNext(currentTime, duration) && next) {
-        upNextOverlay?.show(formatUpNextEpisodeLabel(next));
-      } else {
-        upNextOverlay?.hide();
-      }
+      upNextOverlay?.setModel(
+        buildUpNextOverlayModel(next, animeInfoRef.current?.poster),
+      );
+      upNextOverlay?.setPinned(shouldPromptUpNext(currentTime, duration));
     };
 
     const onTimeUpdate = () => {
@@ -138,7 +141,7 @@ export function useArtplayerEpisodeLifecycle({
 
     const onEnded = () => {
       markWatchedOnce();
-      upNextOverlay?.hide();
+      upNextOverlay?.setPinned(false);
 
       if (hasTriggeredNextRef.current) return;
 
@@ -155,12 +158,23 @@ export function useArtplayerEpisodeLifecycle({
     };
 
     const onReady = () => {
+      setArtplayerPlayNextHandler(art, () => {
+        triggerPlayNext();
+      });
+      const list = episodesRef.current;
+      const idx = currentEpisodeIndexRef.current ?? -1;
+      const next = list?.[idx + 1];
+      setArtplayerHasNextEpisode(art, Boolean(next));
       upNextOverlay = attachUpNextOverlay(art, () => {
         triggerPlayNext();
       });
+      if (next) {
+        upNextOverlay.setModel(buildUpNextOverlayModel(next, animeInfoRef.current?.poster));
+      }
     };
 
     const onDestroy = () => {
+      setArtplayerPlayNextHandler(art, undefined);
       upNextOverlay?.clear();
       upNextOverlay = null;
     };

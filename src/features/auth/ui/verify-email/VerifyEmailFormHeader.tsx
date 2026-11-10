@@ -1,4 +1,8 @@
+import { useTranslation } from 'react-i18next';
+
 export function VerifyEmailFormHeader() {
+  const { t } = useTranslation('common');
+
   return (
     <>
       <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--color-brand-orange)]/25 bg-[var(--color-brand-orange)]/10 shadow-[0_0_32px_-4px_rgba(244,117,33,0.35)]">
@@ -20,14 +24,13 @@ export function VerifyEmailFormHeader() {
 
       <h2
         id="verify-email-modal-title"
-        className="mb-2 text-center font-serif text-2xl font-normal tracking-tight text-white sm:text-[1.65rem]"
+        className="mb-2 text-center font-serif text-2xl font-normal tracking-tight text-foreground sm:text-[1.65rem]"
       >
-        Verify your email
+        {t('auth.verifyTitle')}
       </h2>
 
       <p className="mx-auto mb-6 max-w-[32ch] text-center text-sm leading-relaxed text-zinc-400">
-        We sent a 6-digit code to your inbox. Paste it below — check spam if you don&apos;t see
-        it.
+        {t('auth.verifyHint')}
       </p>
     </>
   );

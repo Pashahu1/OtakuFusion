@@ -1,4 +1,4 @@
-/** Crysoline HLS: playlist compatibility often breaks on hls.js > 1.5.x — see pinned version in package.json. */
+/** HLS playlist compatibility often breaks on hls.js > 1.5.x — see pinned version in package.json. */
 import Hls from 'hls.js';
 import Artplayer from 'artplayer';
 
@@ -42,45 +42,31 @@ export function playM3u8(
     const hls = new Hls({
       enableWorker: false,
       preferManagedMediaSource: false,
-      manifestLoadingMaxRetry: 1,
-      levelLoadingMaxRetry: 1,
-      fragLoadingMaxRetry: 4,
-      fragLoadingMaxRetryTimeout: 60000,
-      manifestLoadingRetryDelay: 300,
-      levelLoadingRetryDelay: 300,
-      fragLoadingRetryDelay: 400,
+      manifestLoadingMaxRetry: 3,
+      levelLoadingMaxRetry: 4,
+      fragLoadingMaxRetry: 8,
+      fragLoadingMaxRetryTimeout: 120000,
+      manifestLoadingRetryDelay: 800,
+      levelLoadingRetryDelay: 1000,
+      fragLoadingRetryDelay: 2000,
       manifestLoadingTimeOut: 12000,
       levelLoadingTimeOut: 10000,
       fragLoadingTimeOut: 45000,
-      maxBufferLength: 120,
-      maxMaxBufferLength: 900,
-      maxBufferSize: 256 * 1024 * 1024,
+      maxBufferLength: 30,
+      maxMaxBufferLength: 60,
+      maxBufferSize: 80 * 1024 * 1024,
       maxBufferHole: 0.85,
       lowLatencyMode: false,
       autoStartLoad: false,
-      startLevel: 0,
-      startFragPrefetch: false,
-      capLevelToPlayerSize: true,
-      abrBandWidthUpFactor: 2.4,
-      abrBandWidthFactor: 0.92,
-      maxStarvationDelay: 12,
-      maxLoadingDelay: 12,
-      abrEwmaDefaultEstimate: 2_000_000,
-      backBufferLength: 45,
-      ...(typeof process !== 'undefined' && process.env.NODE_ENV === 'development'
-        ? {
-            xhrSetup(xhr: XMLHttpRequest, url: string) {
-              if (url.includes('/api/m3u8-proxy')) {
-                try {
-                  xhr.setRequestHeader('Cache-Control', 'no-cache');
-                  xhr.setRequestHeader('Pragma', 'no-cache');
-                } catch {
-                  /* ignore */
-                }
-              }
-            },
-          }
-        : {}),
+      startLevel: -1,
+      startFragPrefetch: true,
+      capLevelToPlayerSize: false,
+      abrBandWidthUpFactor: 0.8,
+      abrBandWidthFactor: 0.95,
+      maxStarvationDelay: 8,
+      maxLoadingDelay: 8,
+      abrEwmaDefaultEstimate: 12_000_000,
+      backBufferLength: 30,
     });
     hooks?.onHlsBeforeLoad?.(hls);
     hls.loadSource(url);

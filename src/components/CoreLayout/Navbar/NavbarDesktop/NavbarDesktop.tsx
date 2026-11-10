@@ -1,9 +1,15 @@
+'use client';
+
+import { useTranslation } from 'react-i18next';
+
 import { CategoryList } from '@/components/CategoryList/CategoryList';
 import { NavLink } from '@/components/NavLink/NavLink';
 import { DISCOVER_NAV_SECTIONS } from '@/shared/data/discover-nav';
 import './NavbarDesktop.scss';
 
 export const NavbarDesktop = () => {
+  const { t } = useTranslation('common');
+
   return (
     <div className="navbar__desktop">
       <div className="navbar__desktop-list">
@@ -15,7 +21,7 @@ export const NavbarDesktop = () => {
       <div className="navbar__desktop-list navbar__desktop-list--discover">
         {DISCOVER_NAV_SECTIONS.map((item) => (
           <NavLink key={item.id} href={item.href}>
-            {item.label}
+            {t(`nav.${item.id}`)}
           </NavLink>
         ))}
       </div>

@@ -87,3 +87,17 @@
   [data-close-button]:hover {
   background: rgba(69, 10, 10, 0.08) !important;
 }
+
+.of-auth-toast a {
+  color: rgb(255 255 255 / 0.78);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 0.32);
+  text-underline-offset: 3px;
+  pointer-events: auto;
+}
+
+.of-auth-toast a:hover {
+  color: #fff;
+  text-decoration-color: rgb(255 255 255 / 0.7);
+}

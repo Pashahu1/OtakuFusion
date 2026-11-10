@@ -1,12 +1,16 @@
-﻿@use '../../../../../style/mixins' as *;
+@use '../../../../../style/mixins' as *;
 
 .watch-series-hero {
   --watch-hero-header: 60px;
   /* Banner + info (full red-outline area on CR) */
-  --watch-hero-height: clamp(680px, 88vh, 1040px);
+  --watch-hero-height: clamp(560px, 92svh, 1040px);
+
+  @media (max-width: 767px) {
+    --watch-hero-height: min(92svh, 640px);
+  }
   --watch-hero-accent-border: rgb(255 255 255 / 0.14);
   --watch-hero-accent-tint: rgb(0 0 0 / 0.35);
-  --watch-hero-accent: rgb(249 115 22);
+  --watch-hero-accent: var(--color-brand-orange, #f47521);
 
   position: relative;
   width: 100%;

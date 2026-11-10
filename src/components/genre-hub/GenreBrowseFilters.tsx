@@ -1,15 +1,17 @@
 'use client';
 
 import { SlidersHorizontal } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
+import { localizeGenreName } from '@/i18n/localize-genre';
 import type { GenreMediaFilter } from '@/shared/data/genre-hub';
 import './GenreBrowseFilters.scss';
 
-const MEDIA_OPTIONS: { id: GenreMediaFilter; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'tv', label: 'Series' },
-  { id: 'movie', label: 'Movies' },
+const MEDIA_OPTIONS: { id: GenreMediaFilter; labelKey: string }[] = [
+  { id: 'all', labelKey: 'genreHub.mediaAll' },
+  { id: 'tv', labelKey: 'genreHub.mediaSeries' },
+  { id: 'movie', labelKey: 'genreHub.mediaMovies' },
 ];
 
 interface GenreBrowseFiltersProps {
@@ -25,6 +27,7 @@ export function GenreBrowseFilters({
   sectionLabel,
   media,
 }: GenreBrowseFiltersProps) {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -69,9 +72,9 @@ export function GenreBrowseFilters({
     <div className="genre-browse-toolbar genre-browse-layout__toolbar">
       <div className="genre-browse-toolbar__heading">
         <p className="genre-browse-toolbar__breadcrumb">
-          <span>{genre}</span>
+          <span>{localizeGenreName(genre, t)}</span>
           <span aria-hidden>/</span>
-          <span>{sectionLabel}</span>
+          <span>{t(`genreHub.${sectionId}`, { defaultValue: sectionLabel })}</span>
         </p>
       </div>
 
@@ -98,18 +101,18 @@ export function GenreBrowseFilters({
             aria-label="Browse filters"
           >
             <fieldset className="genre-browse-filter__group">
-              <legend className="genre-browse-filter__legend">Language</legend>
+              <legend className="genre-browse-filter__legend">{t('genreHub.language')}</legend>
               <label className="genre-browse-filter__option genre-browse-filter__option--active">
                 <input type="radio" name="language" defaultChecked disabled />
-                <span>All</span>
+                <span>{t('genreHub.mediaAll')}</span>
               </label>
               <p className="genre-browse-filter__hint">
-                Sub / dub filters need catalog data — coming later.
+                {t('genreHub.filterHint')}
               </p>
             </fieldset>
 
             <fieldset className="genre-browse-filter__group">
-              <legend className="genre-browse-filter__legend">Media</legend>
+              <legend className="genre-browse-filter__legend">{t('genreHub.media')}</legend>
               {MEDIA_OPTIONS.map((opt) => (
                 <label
                   key={opt.id}
@@ -123,7 +126,7 @@ export function GenreBrowseFilters({
                     checked={media === opt.id}
                     onChange={() => setMedia(opt.id)}
                   />
-                  <span>{opt.label}</span>
+                  <span>{t(opt.labelKey)}</span>
                 </label>
               ))}
             </fieldset>

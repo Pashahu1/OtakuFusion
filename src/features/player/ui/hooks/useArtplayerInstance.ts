@@ -23,6 +23,9 @@ export type { UseArtplayerInstanceParams } from './useArtplayerInstanceTypes';
 
 Artplayer.LOG_VERSION = false;
 Artplayer.CONTEXTMENU = false;
+Artplayer.CONTROL_HIDE_TIME = 2800;
+Artplayer.SEEK_STEP = 10;
+Artplayer.MOBILE_DBCLICK_PLAY = false;
 
 /**
  * Facade: compound hooks + single mount effect for Artplayer.
@@ -48,7 +51,6 @@ export function useArtplayerInstance({
   setWatchStreamProvider,
   onPlaybackError,
   onPlaybackSurfaceReady,
-  anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
   anikotoLanguageMenuEligible,
 }: UseArtplayerInstanceParams) {
@@ -130,7 +132,6 @@ export function useArtplayerInstance({
     setActiveServerId,
     watchStreamProvider,
     setWatchStreamProvider,
-    anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
     resolvedStreamLang,
@@ -192,6 +193,12 @@ export function useArtplayerInstance({
         scheduleContinueWatchingUpdate,
         attachPlaybackProgressHandlers,
         resumeTargetSeconds: resumePositionSeconds,
+        animeTitle: animeInfo?.title,
+        episodeNum,
+        episodeTitle:
+          episodeNum != null
+            ? animeInfo?.anilistEpisodeTitles?.[String(episodeNum)]
+            : undefined,
       });
 
       createdPlayer = mounted.art;

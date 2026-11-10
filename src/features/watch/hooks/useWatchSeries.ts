@@ -25,8 +25,6 @@ export function useWatchSeries(animeId: string, highlightEpisode?: string) {
     setWatchStreamProvider,
     animeInfoLoading: anime.animeInfoLoading,
     providerCatalogPending: anime.providerCatalogPending,
-    error: anime.error,
-    anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
   });

@@ -6,6 +6,7 @@ import {
   WatchPlayShell,
   useWatchPlay,
 } from '@/features/watch';
+import { useTheaterMode } from '@/features/watch/hooks/useTheaterMode';
 import './watch-play-page.scss';
 
 function WatchPlayPageContent() {
@@ -20,6 +21,7 @@ function WatchPlayPageContent() {
 }
 
 export default function WatchPlayPageClient({animeId}: {animeId: string}) {
+  useTheaterMode();
   return (
     <div className="watch-play-page">
       <WatchPlayProvider animeId={animeId}>

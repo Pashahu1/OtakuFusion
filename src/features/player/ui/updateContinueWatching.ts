@@ -1,48 +1,18 @@
 import { isBlockedAnimeInfo } from '@/lib/anime-content-policy';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
+import {
+  MAX_CONTINUE_WATCHING_ENTRIES,
+  readContinueWatchingList,
+  writeContinueWatchingList,
+} from '@/features/watch/lib/continue-watching-list';
+import {
+  scheduleContinueWatchingServerDelete,
+  scheduleContinueWatchingServerUpsert,
+} from '@/features/watch/lib/continue-watching-sync';
+import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 
-export const CONTINUE_WATCHING_STORAGE_KEY = 'continueWatching';
-
-/** How many titles to keep in localStorage (MRU). */
-const MAX_STORED_ENTRIES = 40;
-
-type StoredEntry = {
-  id: string;
-  data_id: number;
-  episodeId: string;
-  episodeNum?: number | null;
-  positionSeconds?: number;
-  durationSeconds?: number;
-  adultContent?: boolean;
-  genres?: string[];
-  poster?: string;
-  title?: string;
-  japanese_title?: string;
-  updatedAt?: number;
-  watchStreamProvider?: WatchStreamProvider;
-  streamLang?: 'sub' | 'dub';
-};
-
-function emitContinueWatchingUpdated(): void {
-  if (typeof window === 'undefined') return;
-  window.dispatchEvent(new Event('continueWatchingUpdated'));
-}
-
-function readRawList(): StoredEntry[] {
-  try {
-    const raw = localStorage.getItem(CONTINUE_WATCHING_STORAGE_KEY) || '[]';
-    const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as StoredEntry[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function persistAndNotify(list: StoredEntry[]): void {
-  localStorage.setItem(CONTINUE_WATCHING_STORAGE_KEY, JSON.stringify(list));
-  emitContinueWatchingUpdated();
-}
+export { CONTINUE_WATCHING_STORAGE_KEY } from '@/features/watch/lib/continue-watching-list';
 
 export interface ContinueWatchingProgress {
   positionSeconds: number;
@@ -55,8 +25,8 @@ export interface ContinueWatchingPlaybackContext {
 }
 
 /**
- * Updates continue watching: on rewatch title moves to end of list (MRU),
- * so tail slice does not drop the title just watched.
+ * Updates continue watching: on rewatch title moves to front (MRU).
+ * Local cache writes immediately; signed-in users sync to the account (debounced).
  */
 export function updateContinueWatching(
   animeInfo: AnimeInfo | null,
@@ -71,7 +41,7 @@ export function updateContinueWatching(
   if (isBlockedAnimeInfo({ genres: animeInfo.genres })) return;
 
   try {
-    const continueWatching = readRawList();
+    const continueWatching = readContinueWatchingList();
     const existing = continueWatching.find(
       (item) => item.data_id === animeInfo.data_id || item.id === animeInfo.id,
     );
@@ -80,11 +50,11 @@ export function updateContinueWatching(
       (item) => item.data_id !== animeInfo.data_id && item.id !== animeInfo.id,
     );
 
-    const newEntry: StoredEntry = {
+    const newEntry: ContinueWatchingEntry = {
       id: animeInfo.id,
       data_id: animeInfo.data_id,
       episodeId,
-      episodeNum,
+      episodeNum: episodeNum ?? undefined,
       adultContent: animeInfo.adultContent,
       genres: animeInfo.genres,
       poster: animeInfo.poster,
@@ -110,13 +80,10 @@ export function updateContinueWatching(
       newEntry.streamLang = playback.streamLang;
     }
 
-    filtered.push(newEntry);
-    const capped =
-      filtered.length > MAX_STORED_ENTRIES
-        ? filtered.slice(-MAX_STORED_ENTRIES)
-        : filtered;
-
-    persistAndNotify(capped);
+    writeContinueWatchingList(
+      [newEntry, ...filtered].slice(0, MAX_CONTINUE_WATCHING_ENTRIES),
+    );
+    scheduleContinueWatchingServerUpsert(newEntry);
   } catch {
     return;
   }
@@ -128,10 +95,11 @@ export function removeFromContinueWatching(animeId: string, data_id: number): vo
   if (!animeId || !Number.isFinite(data_id)) return;
 
   try {
-    const list = readRawList();
+    const list = readContinueWatchingList();
     const next = list.filter((item) => item.id !== animeId && item.data_id !== data_id);
     if (next.length === list.length) return;
-    persistAndNotify(next);
+    writeContinueWatchingList(next);
+    scheduleContinueWatchingServerDelete(animeId);
   } catch {
     return;
   }

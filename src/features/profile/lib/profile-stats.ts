@@ -1,10 +1,14 @@
 import {
   format,
   startOfDay,
+  startOfWeek,
   subDays,
+  subWeeks,
   eachDayOfInterval,
   differenceInCalendarDays,
 } from 'date-fns';
+
+import { tStatic } from '@/i18n/t';
 
 import type { WatchActivityEntry } from './watch-activity-log';
 
@@ -16,10 +20,12 @@ export interface ProfileStatsSummary {
   currentStreak: number;
 }
 
+export type HeatmapLevel = 0 | 1 | 2 | 3 | 4 | 5;
+
 export interface HeatmapCell {
   dateKey: string;
   count: number;
-  level: 0 | 1 | 2 | 3 | 4;
+  level: HeatmapLevel;
 }
 
 export interface ProfileDashboardData {
@@ -32,7 +38,7 @@ export interface ProfileDashboardData {
 const GENRE_COLORS: Record<string, string> = {
   Action: '#22c55e',
   Adventure: '#ec4899',
-  Comedy: '#f97316',
+  Comedy: '#f47521',
   Drama: '#a855f7',
   Fantasy: '#3b82f6',
   Romance: '#f43f5e',
@@ -48,25 +54,66 @@ const FALLBACK_GENRE_COLORS = [
   '#22c55e',
   '#3b82f6',
   '#a855f7',
-  '#f97316',
+  '#f47521',
   '#ec4899',
   '#06b6d4',
   '#eab308',
   '#14b8a6',
 ];
 
-const HEATMAP_WEEKS = 52;
+const HEATMAP_WEEKS = 20;
+
+const MILESTONE_LADDERS: number[][] = [
+  [10, 25, 50],
+  [50, 100, 150],
+  [100, 150, 200],
+  [200, 350, 500],
+  [500, 750, 1000],
+  [1000, 2500, 5000],
+  [2500, 5000, 7500],
+  [5000, 7500, 10000],
+];
+
+export interface MilestoneScale {
+  ticks: number[];
+  max: number;
+  percent: number;
+}
+
+export function milestoneScale(value: number): MilestoneScale {
+  const safeValue = Math.max(0, value);
+  const ticks =
+    MILESTONE_LADDERS.find((ladder) => (ladder.at(-1) ?? 0) > safeValue) ??
+    MILESTONE_LADDERS[MILESTONE_LADDERS.length - 1];
+  const max = ticks.at(-1) ?? 50;
+
+  return {
+    ticks,
+    max,
+    percent: max === 0 ? 0 : Math.min(100, (safeValue / max) * 100),
+  };
+}
 
 function dateKeyLocal(date: Date): string {
   return format(date, 'yyyy-MM-dd');
 }
 
-function countToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
+export function countToHeatLevel(count: number): HeatmapLevel {
   if (count <= 0) return 0;
   if (count === 1) return 1;
-  if (count === 2) return 2;
-  if (count <= 4) return 3;
-  return 4;
+  if (count <= 3) return 2;
+  if (count <= 6) return 3;
+  if (count <= 10) return 4;
+  return 5;
+}
+
+export function countToStatLevel(count: number): HeatmapLevel {
+  if (count <= 0) return 0;
+  if (count < 10) return 1;
+  if (count < 25) return 2;
+  if (count < 50) return 3;
+  if (count < 100) return 4;
+  return 5;
 }
 
 function genreColor(name: string, index: number): string {
@@ -93,7 +140,7 @@ export interface GenreStat {
 
 function buildHeatmap(dailyCounts: Map<string, number>): HeatmapCell[] {
   const end = startOfDay(new Date());
-  const start = subDays(end, HEATMAP_WEEKS * 7 - 1);
+  const start = startOfWeek(subWeeks(end, HEATMAP_WEEKS - 1), { weekStartsOn: 0 });
   const days = eachDayOfInterval({ start, end });
 
   return days.map((date) => {
@@ -102,7 +149,7 @@ function buildHeatmap(dailyCounts: Map<string, number>): HeatmapCell[] {
     return {
       dateKey: key,
       count,
-      level: countToLevel(count),
+      level: countToHeatLevel(count),
     };
   });
 }
@@ -168,12 +215,12 @@ export function buildProfileDashboardData(
 
 export function formatActivityRelativeTime(watchedAt: number): string {
   const days = differenceInCalendarDays(new Date(), new Date(watchedAt));
-  if (days <= 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days} days ago`;
-  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-  if (days < 365) return `${Math.floor(days / 30)} months ago`;
-  return `${Math.floor(days / 365)} years ago`;
+  if (days <= 0) return tStatic('profile.relativeToday');
+  if (days === 1) return tStatic('profile.relativeYesterday');
+  if (days < 7) return tStatic('profile.relativeDays', { count: days });
+  if (days < 30) return tStatic('profile.relativeWeeks', { count: Math.floor(days / 7) });
+  if (days < 365) return tStatic('profile.relativeMonths', { count: Math.floor(days / 30) });
+  return tStatic('profile.relativeYears', { count: Math.floor(days / 365) });
 }
 
 export function heatmapWeekColumns(cells: HeatmapCell[]): HeatmapCell[][] {

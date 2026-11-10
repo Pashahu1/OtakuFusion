@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { displayCatalogTitle } from '@/i18n/catalog-title';
 import type { SpotlightAnime } from '@/shared/types/GlobalAnimeTypes';
 
 interface HeroSlideTitleProps {
@@ -18,6 +19,7 @@ export function HeroSlideTitle({ anime, priority = false }: HeroSlideTitleProps)
   const logoUrl = anime.clearLogoUrl?.trim();
   const showLogo = Boolean(logoUrl) && !logoFailed;
   const seasonLabel = anime.seasonLabel?.trim();
+  const catalogTitle = displayCatalogTitle(anime);
 
   if (showLogo && logoUrl) {
     return (
@@ -25,7 +27,7 @@ export function HeroSlideTitle({ anime, priority = false }: HeroSlideTitleProps)
         <div className="hero__title-logo-wrap">
           <Image
             src={logoUrl}
-            alt={anime.title}
+            alt={catalogTitle}
             width={520}
             height={202}
             sizes="(max-width: 767px) min(92vw, 340px), (max-width: 1023px) min(460px, 92vw), 520px"
@@ -42,7 +44,7 @@ export function HeroSlideTitle({ anime, priority = false }: HeroSlideTitleProps)
 
   return (
     <div className="hero__title-block">
-      <h1 className="hero__title">{anime.title}</h1>
+      <h1 className="hero__title">{catalogTitle}</h1>
       {seasonLabel ? <HeroSeasonLabel label={seasonLabel} /> : null}
     </div>
   );

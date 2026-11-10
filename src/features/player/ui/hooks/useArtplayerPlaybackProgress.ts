@@ -3,10 +3,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import type Artplayer from 'artplayer';
 
-import {
-  saveEarlyEpisodePreviewIfMissing,
-  savePlaybackPreviewFrame,
-} from '@/features/player/lib/savePlaybackPreviewFrame';
+import { episodePreviewCaptureAtSeconds } from '@/features/player/lib/episode-preview-capture';
+import { saveEarlyEpisodePreviewIfMissing } from '@/features/player/lib/savePlaybackPreviewFrame';
 import {
   consumePendingPlaybackResume,
   peekPendingPlaybackResume,
@@ -19,7 +17,7 @@ const PROGRESS_SAVE_INTERVAL_MS = 12_000;
 const RESUME_END_BUFFER_SECONDS = 8;
 const MIN_RESUME_SECONDS = 12;
 const MIN_PENDING_RESUME_SECONDS = 2;
-const EARLY_PREVIEW_SECONDS = 12;
+const PREVIEW_RETRY_WINDOW_SECONDS = 90;
 const RESUME_DRIFT_TOLERANCE_SECONDS = 2;
 
 export interface UseArtplayerPlaybackProgressParams {
@@ -36,7 +34,7 @@ export interface UseArtplayerPlaybackProgressParams {
 
 /**
  * Throttled progress persistence + resume seek with drift retry after language switch.
- * Captures JPEG preview frames into IndexedDB for Continue watching / episode grid.
+ * Captures one mid-episode JPEG into IndexedDB for the episode grid.
  */
 export function useArtplayerPlaybackProgress({
   localAnimeId,
@@ -53,6 +51,7 @@ export function useArtplayerPlaybackProgress({
   const localAnimeIdRef = useRef(localAnimeId);
   const episodeKeyRef = useRef(normalizeEpisodeStorageKey(episodeId, episodeNum));
   const earlyPreviewDoneRef = useRef(false);
+  const earlyPreviewBusyRef = useRef(false);
 
   useEffect(() => {
     savedPositionRef.current = savedPositionSeconds;
@@ -60,19 +59,13 @@ export function useArtplayerPlaybackProgress({
     episodeKeyRef.current = normalizeEpisodeStorageKey(episodeId, episodeNum);
   }, [savedPositionSeconds, localAnimeId, episodeId, episodeNum]);
 
-  const capturePreview = useCallback(async (video: HTMLVideoElement) => {
-    const id = localAnimeIdRef.current?.trim();
-    const ep = episodeKeyRef.current;
-    if (!id || !ep) return;
-    await savePlaybackPreviewFrame(id, ep, video);
-  }, []);
-
   const attachPlaybackProgressHandlers = useCallback(
     (art: Artplayer) => {
       resumeAppliedRef.current = false;
       resumeTargetRef.current = null;
       lastSaveAtRef.current = 0;
       earlyPreviewDoneRef.current = false;
+      earlyPreviewBusyRef.current = false;
 
       const readResumeTarget = (): number | null => {
         const saved = savedPositionRef.current;
@@ -150,33 +143,40 @@ export function useArtplayerPlaybackProgress({
         confirmOrRetryResume();
       });
 
-      const onVisibilityChange = () => {
-        if (document.visibilityState !== 'hidden') return;
-        void capturePreview(art.video);
-      };
-
-      document.addEventListener('visibilitychange', onVisibilityChange);
-
-      art.on('video:pause', () => {
-        void capturePreview(art.video);
-      });
-
       art.on('video:timeupdate', () => {
         confirmOrRetryResume();
 
         const id = localAnimeIdRef.current?.trim();
         const ep = episodeKeyRef.current;
         const video = art.video;
+        const duration = art.duration;
+        const current = art.currentTime;
 
-        if (!earlyPreviewDoneRef.current && id && ep && art.currentTime >= EARLY_PREVIEW_SECONDS) {
-          earlyPreviewDoneRef.current = true;
-          void saveEarlyEpisodePreviewIfMissing(id, ep, video);
+        if (
+          !earlyPreviewDoneRef.current &&
+          !earlyPreviewBusyRef.current &&
+          id &&
+          ep &&
+          Number.isFinite(duration) &&
+          duration > 0 &&
+          Number.isFinite(current)
+        ) {
+          const target = episodePreviewCaptureAtSeconds(ep, duration);
+          if (current >= target) {
+            earlyPreviewBusyRef.current = true;
+            const allowDark = current >= target + PREVIEW_RETRY_WINDOW_SECONDS;
+            void saveEarlyEpisodePreviewIfMissing(id, ep, video, { allowDark })
+              .then((result) => {
+                if (result !== 'skipped') earlyPreviewDoneRef.current = true;
+              })
+              .finally(() => {
+                earlyPreviewBusyRef.current = false;
+              });
+          }
         }
 
         const now = Date.now();
         if (now - lastSaveAtRef.current < PROGRESS_SAVE_INTERVAL_MS) return;
-        const duration = art.duration;
-        const current = art.currentTime;
         if (!Number.isFinite(duration) || duration <= 0 || !Number.isFinite(current)) return;
         if (current < MIN_RESUME_SECONDS) return;
         if (current >= duration - RESUME_END_BUFFER_SECONDS) return;
@@ -186,14 +186,9 @@ export function useArtplayerPlaybackProgress({
           positionSeconds: Math.floor(current),
           durationSeconds: Math.floor(duration),
         });
-        void capturePreview(video);
-      });
-
-      art.on('destroy', () => {
-        document.removeEventListener('visibilitychange', onVisibilityChange);
       });
     },
-    [capturePreview, scheduleContinueWatchingUpdate, consumePendingOnResume],
+    [scheduleContinueWatchingUpdate, consumePendingOnResume],
   );
 
   return { attachPlaybackProgressHandlers };

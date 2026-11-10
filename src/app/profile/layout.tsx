@@ -17,7 +17,6 @@ export default function LayoutProfile({ children }: LayoutProfileType) {
         <>
           <ProfileHero
             username={user.username}
-            email={user.email}
             avatar={user.avatar}
             isVerified={user.isVerified}
           />

@@ -2,8 +2,14 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
+import { localizeGenreName } from '@/i18n/localize-genre';
 import { genreToSlug } from '@/shared/utils/genre-slug';
+import {
+  isUkrainianDubOnlyPlayback,
+  seriesCatalogLangBadges,
+} from '@/features/watch/lib/watch-availability';
 
 interface WatchSeriesInlineTagsProps {
   animeInfo: AnimeData;
@@ -18,10 +24,15 @@ export function WatchSeriesInlineTags({
   showGenres = true,
   playbackLang,
 }: WatchSeriesInlineTagsProps) {
+  const { t } = useTranslation('common');
   const tv = animeInfo.animeInfo?.tvInfo;
   const genres = animeInfo.animeInfo?.Genres ?? [];
-  const hasSub = (tv?.has_sub ?? 0) > 0;
-  const hasDub = (tv?.has_dub ?? 0) > 0;
+  const catalogBadges = seriesCatalogLangBadges(tv);
+  const shownPlaybackLang = playbackLang
+    ? isUkrainianDubOnlyPlayback()
+      ? 'dub'
+      : playbackLang
+    : undefined;
 
   const parts: { id: string; node: ReactNode }[] = [];
 
@@ -36,44 +47,22 @@ export function WatchSeriesInlineTags({
     });
   }
 
-  if (playbackLang) {
+  if (shownPlaybackLang) {
     parts.push({
       id: 'playback',
       node: (
         <span className="watch-series-tags__lang">
-          {playbackLang === 'dub' ? 'Dubbed' : 'Subtitled'}
+          {shownPlaybackLang === 'dub' ? 'Dubbed' : 'Subtitled'}
         </span>
       ),
     });
   } else {
-    if (hasSub) {
+    for (const badge of catalogBadges) {
       parts.push({
-        id: 'sub',
+        id: badge,
         node: (
           <span className="watch-series-tags__lang">
-            Sub
-          </span>
-        ),
-      });
-    }
-
-    if (hasDub) {
-      parts.push({
-        id: 'dub',
-        node: (
-          <span className="watch-series-tags__lang">
-            Dub
-          </span>
-        ),
-      });
-    }
-
-    if (!hasSub && !hasDub) {
-      parts.push({
-        id: 'sub-fallback',
-        node: (
-          <span className="watch-series-tags__lang">
-            Sub
+            {badge === 'dub' ? 'Dub' : 'Sub'}
           </span>
         ),
       });
@@ -103,7 +92,9 @@ export function WatchSeriesInlineTags({
                 {index > 0 ? (
                   <span className="watch-series-tags__genre-comma">, </span>
                 ) : null}
-                <Link href={`/anime/category/${genreToSlug(genre)}`}>{genre}</Link>
+                <Link href={`/anime/category/${genreToSlug(genre)}`}>
+                  {localizeGenreName(genre, t)}
+                </Link>
               </span>
             ))}
           </span>

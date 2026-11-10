@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 import { ProfileEditAccountSection } from './profile-edit/ProfileEditAccountSection';
 import { ProfileEditFormActions } from './profile-edit/ProfileEditFormActions';
@@ -10,6 +11,7 @@ import { useProfileEditForm } from './profile-edit/useProfileEditForm';
 import '../profile-edit.scss';
 
 export function ProfileEditForm() {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const {
     user,
@@ -33,10 +35,8 @@ export function ProfileEditForm() {
   return (
     <div className="profile-edit">
       <div className="profile-edit__intro">
-        <h2 className="profile-edit__title">Edit profile</h2>
-        <p className="profile-edit__subtitle">
-          Update how you appear across OtakuFusion — avatar and display name.
-        </p>
+        <h2 className="profile-edit__title">{t('profile.editTitle')}</h2>
+        <p className="profile-edit__subtitle">{t('profile.editSubtitle')}</p>
       </div>
 
       {!user.isVerified ? (

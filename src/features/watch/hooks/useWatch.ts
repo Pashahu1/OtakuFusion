@@ -112,8 +112,6 @@ export function useWatch(
     setWatchStreamProvider,
     animeInfoLoading: anime.animeInfoLoading,
     providerCatalogPending: anime.providerCatalogPending,
-    error: anime.error,
-    anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
   });
@@ -170,7 +168,6 @@ export function useWatch(
     setWatchStreamProvider,
     streamErrorCode: stream.errorCode,
     streamOverlayMessage,
-    anilibertyLanguageMenuEligible: anime.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
     playbackLang: resolverLang,

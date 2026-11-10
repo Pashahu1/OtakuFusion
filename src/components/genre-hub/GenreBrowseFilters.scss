@@ -21,11 +21,11 @@
   font-family: var(--font-sans);
   font-size: clamp(1.5rem, 3.5vw, 2rem);
   font-weight: 700;
-  color: #fff;
+  color: var(--of-text);
   letter-spacing: -0.02em;
 
   span:nth-child(2) {
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--of-text-muted);
     font-weight: 500;
   }
 }
@@ -41,13 +41,13 @@
   gap: 8px;
   cursor: pointer;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--of-border-strong);
+  background: var(--of-fill);
   padding: 10px 14px;
   font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--of-text);
   user-select: none;
   transition:
     border-color 0.2s ease,
@@ -55,8 +55,8 @@
 }
 
 .genre-browse-filter--open .genre-browse-filter__trigger {
-  border-color: rgba(249, 115, 22, 0.45);
-  background: rgba(255, 255, 255, 0.09);
+  border-color: rgb(244 117 33 /  0.45);
+  background: var(--of-fill-hover);
 }
 
 .genre-browse-filter__panel {
@@ -69,8 +69,8 @@
   max-width: min(280px, calc(100vw - 32px));
   box-sizing: border-box;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #1a1b1f;
+  border: 1px solid var(--of-border-strong);
+  background: var(--of-menu-bg);
   padding: 16px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
   isolation: isolate;
@@ -100,7 +100,7 @@
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--of-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -112,15 +112,15 @@
   padding: 8px 4px;
   font-family: var(--font-sans);
   font-size: 0.9375rem;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--of-text-secondary);
   cursor: pointer;
 
   input {
-    accent-color: var(--color-brand-orange, #f97316);
+    accent-color: var(--color-brand-orange, #f47521);
   }
 
   &--active {
-    color: #fff;
+    color: var(--of-text);
   }
 }
 
@@ -128,5 +128,5 @@
   margin: 4px 0 0;
   font-size: 0.75rem;
   line-height: 1.4;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--of-text-muted);
 }

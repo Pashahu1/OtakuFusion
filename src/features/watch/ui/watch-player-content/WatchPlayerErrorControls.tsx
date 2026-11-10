@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import {
   buildFlatLanguageMenu,
@@ -17,7 +19,6 @@ interface WatchPlayerErrorControlsProps {
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   setActiveServerId: (id: string | null) => void;
-  anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;
 }
@@ -28,17 +29,6 @@ function applyLanguageMenuSelection(
   setActiveServerId: (id: string | null) => void,
 ): void {
   const mode = item.__mode;
-
-  if (mode === 'aniliberty') {
-    setWatchStreamProvider('aniliberty');
-    try {
-      localStorage.setItem(STORAGE_SERVER_TYPE, 'sub');
-      localStorage.removeItem('server_name');
-    } catch {
-      /* ignore */
-    }
-    return;
-  }
 
   if (mode === 'hikka') {
     setWatchStreamProvider('hikka');
@@ -80,10 +70,10 @@ export function WatchPlayerErrorControls({
   watchStreamProvider,
   setWatchStreamProvider,
   setActiveServerId,
-  anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
   anikotoLanguageMenuEligible,
 }: WatchPlayerErrorControlsProps) {
+  const { t } = useTranslation('common');
   const anikotoActiveLang =
     watchStreamProvider === 'anikoto'
       ? isWatchDubServerId(activeServerId)
@@ -93,7 +83,6 @@ export function WatchPlayerErrorControls({
 
   const options = buildFlatLanguageMenu({
     watchStreamProvider,
-    anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
     anikotoActiveLang,
@@ -102,7 +91,11 @@ export function WatchPlayerErrorControls({
   if (options.length === 0) return null;
 
   return (
-    <div className="watch-player-content__error-controls" role="group" aria-label="Stream language">
+    <div
+      className="watch-player-content__error-controls"
+      role="group"
+      aria-label={t('watch.streamLanguage')}
+    >
       {options.map((item) => {
         const isActive = item.default === true;
         return (

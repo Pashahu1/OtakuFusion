@@ -3,9 +3,7 @@ import {
   getStreamProvider,
   missingSeriesIdError,
   parseEpisodeNumber,
-  parseExpectedEpisodesParam,
 } from '@/server/watch-resolve/params';
-import { computeAnilibertyWatchResolveOutcome } from '@/server/watch-resolve/providers/anilibertyResolver';
 import { computeAnikotoWatchResolveOutcome } from '@/server/watch-resolve/providers/anikotoResolver';
 import { computeHikkaWatchResolveOutcome } from '@/server/watch-resolve/providers/hikkaResolver';
 import type { WatchResolveOutcome } from '@/server/watch-resolve/types';
@@ -34,7 +32,6 @@ export async function computeWatchResolveOutcome(
 
   const seriesId = url.searchParams.get('ani_id')?.trim();
   const provider = getStreamProvider(url.searchParams);
-  const preferredHint = url.searchParams.get('preferred_server_hint')?.trim() ?? null;
 
   if (!seriesId) {
     return {
@@ -47,19 +44,6 @@ export async function computeWatchResolveOutcome(
   }
 
   const epTokenOverride = url.searchParams.get('ep_token')?.trim() || null;
-
-  if (provider === 'aniliberty') {
-    return computeAnilibertyWatchResolveOutcome({
-      startedAt,
-      episode,
-      origin,
-      seriesId,
-      preferredHint,
-      epTokenOverride,
-      expectedEpisodes: parseExpectedEpisodesParam(url.searchParams),
-      anilistStillAiring: url.searchParams.get('anilist_still_airing')?.trim() === '1',
-    });
-  }
 
   if (provider === 'hikka') {
     return computeHikkaWatchResolveOutcome({

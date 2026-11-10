@@ -1,11 +1,17 @@
 import Artplayer from 'artplayer';
 
-import { backwardIcon, forwardIcon } from '../PlayerIcons';
+import { PLAYER_SKIP_SECONDS } from '../playerConstants';
 
 import { bindPlayPauseLayerClick, bindToggleControlsClick } from './playPauseClick';
 
+function seekFlashMarkup(direction: 'back' | 'forward'): string {
+  const label = direction === 'back' ? `−${PLAYER_SKIP_SECONDS}` : `+${PLAYER_SKIP_SECONDS}`;
+  return `<div class="of-seek-flash of-seek-flash--${direction}" aria-hidden="true"><span class="of-seek-flash__badge">${label}</span></div>`;
+}
+
 /** Artplayer bottom bar (progress + controls) — touch layers must not cover it. */
-const MOBILE_CONTROLS_CLEARANCE = '54px';
+const MOBILE_CONTROLS_CLEARANCE =
+  'calc(var(--art-bottom-height, 92px) + env(safe-area-inset-bottom, 0px))';
 
 function mobileVideoTouchZoneStyle(
   partial: Record<string, string>,
@@ -54,28 +60,26 @@ export function createMobileInteractionLayers(userPausedRef: React.RefObject<boo
     },
     {
       name: 'backwardIcon',
-      html: backwardIcon,
+      html: seekFlashMarkup('back'),
       style: {
         position: 'absolute',
-        left: '25%',
+        left: '8%',
         top: '50%',
-        transform: 'translate(50%,-50%)',
+        transform: 'translateY(-50%)',
         opacity: '0',
-        transition: 'opacity 0.5s ease-in-out',
         pointerEvents: 'none',
       },
       disable: !Artplayer.utils.isMobile,
     },
     {
       name: 'forwardIcon',
-      html: forwardIcon,
+      html: seekFlashMarkup('forward'),
       style: {
         position: 'absolute',
-        right: '25%',
+        right: '8%',
         top: '50%',
-        transform: 'translate(50%, -50%)',
+        transform: 'translateY(-50%)',
         opacity: '0',
-        transition: 'opacity 0.5s ease-in-out',
         pointerEvents: 'none',
       },
       disable: !Artplayer.utils.isMobile,

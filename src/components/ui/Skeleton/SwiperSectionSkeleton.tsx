@@ -1,4 +1,5 @@
 import { AnimeCardSkeleton } from './AnimeCardSkeleton';
+import { CAROUSEL_SKELETON_SLIDE_COUNT } from './skeleton-counts';
 import './SwiperSectionSkeleton.scss';
 
 interface SwiperSectionSkeletonProps {
@@ -10,7 +11,7 @@ interface SwiperSectionSkeletonProps {
 
 export function SwiperSectionSkeleton({
   title,
-  slideCount = 6,
+  slideCount = CAROUSEL_SKELETON_SLIDE_COUNT,
   showViewAll = false,
   className = '',
 }: SwiperSectionSkeletonProps) {

@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+import { localizeGenreName } from "@/i18n/localize-genre";
+
 import { genres } from "@/shared/data/genres";
 import { DISCOVER_NAV_SECTIONS } from "@/shared/data/discover-nav";
 import { NavLink } from "@/components/NavLink/NavLink";
@@ -12,6 +15,7 @@ type Props = {
 };
 
 export function SidebarMenu({ menuRef, close }: Props) {
+  const { t } = useTranslation("common");
   const [isCategoryOpen, setCategoryOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -31,7 +35,7 @@ export function SidebarMenu({ menuRef, close }: Props) {
       ref={menuRef}
     >
       <NavLink className="aside-bar__link" href="/schedule" onClick={close}>
-        Release Calendar
+        {t("nav.schedule")}
       </NavLink>
 
       {DISCOVER_NAV_SECTIONS.map((item) => (
@@ -41,7 +45,7 @@ export function SidebarMenu({ menuRef, close }: Props) {
           href={item.href}
           onClick={close}
         >
-          {item.label}
+          {t(`nav.${item.id}`)}
         </NavLink>
       ))}
 
@@ -53,13 +57,13 @@ export function SidebarMenu({ menuRef, close }: Props) {
             handleOpenCategory();
           }}
         >
-          Categories
+          {t("nav.categories")}
         </div>
 
         <div
           className={`aside-bar__category-content ${isCategoryOpen ? "aside-bar__category-content--open" : ""
             }`}
-          aria-label="Mobile Category"
+          aria-label={t('nav.mobileCategory')}
         >
           {genres.map((item, idx) => (
             <NavLink
@@ -68,7 +72,7 @@ export function SidebarMenu({ menuRef, close }: Props) {
               href={`/anime/category/${encodeURIComponent(item)}`}
               onClick={close}
             >
-              {item}
+              {localizeGenreName(item, t)}
             </NavLink>
           ))}
         </div>

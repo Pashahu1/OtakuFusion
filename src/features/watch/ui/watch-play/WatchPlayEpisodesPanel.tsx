@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { WatchEpisodeGrid } from '@/features/watch/ui/shared/WatchEpisodeGrid';
@@ -31,10 +32,13 @@ export function WatchPlayEpisodesPanel({
   episodeDuration,
   watchedEpisodes,
   onSelectEpisode,
-  seasonLabel = 'Season 1',
+  seasonLabel,
 }: WatchPlayEpisodesPanelProps) {
+  const { t } = useTranslation('common');
+  const resolvedSeasonLabel = seasonLabel ?? t('watch.season', { n: 1 });
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -55,8 +59,16 @@ export function WatchPlayEpisodesPanel({
   }, [open, onClose]);
 
   useEffect(() => {
-    if (open) panelRef.current?.focus();
-  }, [open]);
+    if (!open) return;
+    panelRef.current?.focus();
+    const frame = window.requestAnimationFrame(() => {
+      const active = scrollRef.current?.querySelector<HTMLElement>(
+        '.watch-episode-card--now-playing, .watch-episode-card--active',
+      );
+      active?.scrollIntoView({ block: 'center', behavior: 'auto' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [open, currentEpisodeId]);
 
   if (!open) return null;
 
@@ -65,7 +77,7 @@ export function WatchPlayEpisodesPanel({
       <button
         type="button"
         className="watch-play-episodes-panel__backdrop"
-        aria-label="Close episode list"
+        aria-label={t('watch.closeEpisodes')}
         onClick={onClose}
       />
       <div
@@ -76,20 +88,29 @@ export function WatchPlayEpisodesPanel({
         aria-labelledby={titleId}
         tabIndex={-1}
       >
+        <div className="watch-play-episodes-panel__handle" aria-hidden />
         <header className="watch-play-episodes-panel__header">
-          <h2 id={titleId} className="watch-play-episodes-panel__title">
-            {seasonLabel}
-          </h2>
+          <div className="watch-play-episodes-panel__heading">
+            {seriesTitle ? (
+              <p className="watch-play-episodes-panel__kicker">{seriesTitle}</p>
+            ) : null}
+            <h2 id={titleId} className="watch-play-episodes-panel__title">
+              {resolvedSeasonLabel}
+            </h2>
+            <p className="watch-play-episodes-panel__meta">
+              {t('watch.episode', { count: episodes.length })}
+            </p>
+          </div>
           <button
             type="button"
             className="watch-play-episodes-panel__close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('actions.close')}
           >
-            <X className="h-6 w-6" aria-hidden />
+            <X size={20} strokeWidth={2.25} aria-hidden />
           </button>
         </header>
-        <div className="watch-play-episodes-panel__scroll">
+        <div ref={scrollRef} className="watch-play-episodes-panel__scroll">
           <WatchEpisodeGrid
             className="watch-play-episodes-panel__grid"
             animeId={animeId}

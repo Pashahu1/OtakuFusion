@@ -1,7 +1,6 @@
-import { readAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
 import { DEFAULT_WATCH_STREAM_PROVIDER } from '@/features/watch/lib/watch-provider';
 
-export type WatchResolveStreamProvider = 'aniliberty' | 'hikka' | 'anikoto';
+export type WatchResolveStreamProvider = 'hikka' | 'anikoto';
 
 export interface WatchResolveParams {
   anilistId?: number;
@@ -13,14 +12,10 @@ export interface WatchResolveParams {
   episodeHasDub?: boolean;
   episode: number;
 
-  expectedEpisodes?: number;
-  anilistStillAiring?: boolean;
   lang: 'sub' | 'dub';
   keyword?: string;
   localAnimeId?: string;
   streamProvider?: WatchResolveStreamProvider;
-
-  anilibertyCatalogVerified?: boolean;
 }
 
 export interface WatchResolveResponse {
@@ -88,30 +83,9 @@ export async function resolveWatchStream(
   }
   if (params.localAnimeId) query.set('local_anime_id', params.localAnimeId);
   query.set('episode', String(params.episode));
-  if (params.expectedEpisodes != null && params.expectedEpisodes > 0) {
-    query.set('expected_episodes', String(Math.floor(params.expectedEpisodes)));
-  }
-  if (params.anilistStillAiring === true) {
-    query.set('anilist_still_airing', '1');
-  }
   query.set('lang', params.lang === 'dub' ? 'dub' : 'sub');
   const sp = params.streamProvider ?? DEFAULT_WATCH_STREAM_PROVIDER;
-  query.set(
-    'stream_provider',
-    sp === 'aniliberty'
-      ? 'aniliberty'
-      : sp === 'anikoto'
-        ? 'anikoto'
-        : 'hikka',
-  );
-
-  if (sp === 'aniliberty') {
-    const qualityHint = readAnilibertyPlaybackQualityHint();
-    if (qualityHint) query.set('preferred_server_hint', qualityHint);
-    if (params.anilibertyCatalogVerified === true) {
-      query.set('aniliberty_catalog_verified', '1');
-    }
-  }
+  query.set('stream_provider', sp === 'anikoto' ? 'anikoto' : 'hikka');
 
   const res = await fetch(`/api/watch/resolve?${query.toString()}`, {
     method: 'GET',

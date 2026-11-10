@@ -14,6 +14,6 @@ export interface ContinueWatchingEntry {
   durationSeconds?: number;
   /** For MRU sort (legacy entries without field → 0). */
   updatedAt?: number;
-  watchStreamProvider?: 'aniliberty' | 'hikka' | 'anikoto';
+  watchStreamProvider?: 'hikka' | 'anikoto';
   streamLang?: 'sub' | 'dub';
 }

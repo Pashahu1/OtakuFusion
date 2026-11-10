@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
 
-import { isAnilistStillAiringFromStatus } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
 import {
   DEFAULT_WATCH_STREAM_PROVIDER,
   type WatchStreamProvider,
@@ -55,23 +54,7 @@ export function useWatchResolveOptions({
     [anime, watchStreamProvider],
   );
 
-  const anilistStillAiring = useMemo(
-    () => isAnilistStillAiringFromStatus(anime.animeInfo?.animeInfo?.Status),
-    [anime.animeInfo?.animeInfo?.Status],
-  );
-
-  const expectedEpisodesForResolve = useMemo((): number | undefined => {
-    if (anilistStillAiring) return undefined;
-    const et = anime.animeInfo?.animeInfo?.tvInfo?.episodeTotal?.trim();
-    if (!et || !/^\d+$/.test(et)) return undefined;
-    const n = parseInt(et, 10);
-    return Number.isFinite(n) && n > 0 ? n : undefined;
-  }, [anilistStillAiring, anime.animeInfo?.animeInfo?.tvInfo?.episodeTotal]);
-
   const onAutoRetryExhausted = useCallback(() => {
-    // Anikoto is menu-only — stay on user choice instead of falling back to Hikka.
-    if (watchStreamProvider === 'anikoto') return;
-
     setActiveServerIdRaw(WATCH_SERVER_SUB_ID);
 
     const next = nextWatchStreamProvider(watchStreamProvider);
@@ -90,8 +73,6 @@ export function useWatchResolveOptions({
       providerAnimeId: selectProviderAnimeId(anime, watchStreamProvider),
       episodeEpToken,
       episodeHasDub: episodeHasDubForResolve,
-      expectedEpisodes: expectedEpisodesForResolve,
-      anilistStillAiring,
       preferredLang: resolverLang,
       onPlaybackLangResolved,
       watchStreamProvider,
@@ -100,10 +81,6 @@ export function useWatchResolveOptions({
       providerCatalogPending: anime.providerCatalogPending,
       episodesSourceProvider: anime.episodesSourceProvider,
       onAutoRetryExhausted,
-      anilibertyCatalogVerified:
-        watchStreamProvider === 'aniliberty' &&
-        Boolean(anime.anilibertyCatalogProviderId?.trim()) &&
-        anime.episodesSourceProvider === 'aniliberty',
     }),
     [
       animeId,
@@ -112,8 +89,6 @@ export function useWatchResolveOptions({
       watchStreamProvider,
       episodeEpToken,
       episodeHasDubForResolve,
-      expectedEpisodesForResolve,
-      anilistStillAiring,
       resolverLang,
       onPlaybackLangResolved,
       streamLangRevision,

@@ -12,11 +12,9 @@ export interface WatchAnimeHydratedState {
   animeInfo: AnimeData;
   episodes: EpisodesTypes[];
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
-  anilibertyCatalogProviderId: string | null;
   hikkaCatalogProviderId: string | null;
   totalEpisodes: number | null;
   episodeId: string | null;
-  anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
   episodesSourceProvider: WatchStreamProvider | null;
 }
@@ -39,11 +37,9 @@ function mapSnapshotToHydratedState(
     animeInfo: cached.animeInfo,
     episodes: cached.episodes,
     nextEpisodeSchedule: cached.nextEpisodeSchedule,
-    anilibertyCatalogProviderId: cached.anilibertyCatalogProviderId,
     hikkaCatalogProviderId: cached.hikkaCatalogProviderId,
     totalEpisodes: cached.totalEpisodes,
     episodeId: resolveEpisodeIdAfterCatalog(cached.episodes, null, initialEpisodeId),
-    anilibertyLanguageMenuEligible: cached.anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible: cached.hikkaLanguageMenuEligible,
     episodesSourceProvider: cached.episodesSourceProvider,
   };
@@ -55,11 +51,9 @@ export function applyWatchAnimeHydratedState(
     setAnimeInfo: (v: AnimeData) => void;
     setEpisodes: (v: EpisodesTypes[]) => void;
     setNextEpisodeSchedule: (v: NextEpisodeScheduleResult | null) => void;
-    setAnilibertyCatalogProviderId: (v: string | null) => void;
     setHikkaCatalogProviderId: (v: string | null) => void;
     setTotalEpisodes: (v: number | null) => void;
     setEpisodeId: (v: string | null) => void;
-    setAnilibertyLanguageMenuEligible: (v: boolean) => void;
     setHikkaLanguageMenuEligible: (v: boolean) => void;
     setEpisodesSourceProvider: (v: WatchStreamProvider | null) => void;
     setAnimeInfoLoading: (v: boolean) => void;
@@ -70,11 +64,9 @@ export function applyWatchAnimeHydratedState(
   setters.setAnimeInfo(hydrated.animeInfo);
   setters.setEpisodes(hydrated.episodes);
   setters.setNextEpisodeSchedule(hydrated.nextEpisodeSchedule);
-  setters.setAnilibertyCatalogProviderId(hydrated.anilibertyCatalogProviderId);
   setters.setHikkaCatalogProviderId(hydrated.hikkaCatalogProviderId);
   setters.setTotalEpisodes(hydrated.totalEpisodes);
   setters.setEpisodeId(hydrated.episodeId);
-  setters.setAnilibertyLanguageMenuEligible(hydrated.anilibertyLanguageMenuEligible);
   setters.setHikkaLanguageMenuEligible(hydrated.hikkaLanguageMenuEligible);
   setters.setEpisodesSourceProvider(hydrated.episodesSourceProvider);
   setters.setAnimeInfoLoading(false);

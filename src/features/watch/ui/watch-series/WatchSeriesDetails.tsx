@@ -1,34 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
+import { localizeGenreName } from '@/i18n/localize-genre';
 import { genreToSlug } from '@/shared/utils/genre-slug';
+import { buildWatchAvailabilityLines } from '@/features/watch/lib/watch-availability';
 import './WatchSeriesDetails.scss';
-
-function buildAvailabilityLines(anime: AnimeData | null): {
-  audio: string;
-  subtitles: string;
-} {
-  if (!anime?.animeInfo?.tvInfo) {
-    return {
-      audio: 'Japanese',
-      subtitles: 'Embedded in stream (hardsub); use Sub / Dub in the player',
-    };
-  }
-
-  const tv = anime.animeInfo.tvInfo;
-  const hasDub = (tv.has_dub ?? 0) > 0;
-  const hasSub = (tv.has_sub ?? 0) > 0;
-
-  return {
-    audio: hasDub
-      ? 'Japanese, English, Deutsch, Español (América Latina), Español (España), Français, Italiano, Português (Brasil), हिंदी, العربية (مصر), العربية, 中文 (简体), 中文 (繁體), 한국어, ภาษาไทย, Українська'
-      : 'Japanese',
-    subtitles: hasSub
-      ? 'Embedded in stream (hardsub); use Sub / Dub in the player'
-      : 'Embedded in stream; use Sub / Dub in the player',
-  };
-}
 
 interface WatchSeriesDetailsProps {
   animeInfo: AnimeData | null;
@@ -44,8 +22,12 @@ export function WatchSeriesDetails({
   onToggleExpanded,
   embedded = false,
 }: WatchSeriesDetailsProps) {
+  const { t } = useTranslation('common');
   const overview = animeInfo?.animeInfo?.Overview?.trim();
-  const { audio, subtitles } = buildAvailabilityLines(animeInfo);
+  const { audio, subtitles } = buildWatchAvailabilityLines(
+    t,
+    animeInfo?.animeInfo?.tvInfo,
+  );
   const genres = animeInfo?.animeInfo?.Genres ?? [];
   const details = animeInfo?.animeInfo;
 
@@ -61,7 +43,7 @@ export function WatchSeriesDetails({
           ? 'watch-series-details watch-series-details--embedded'
           : 'watch-series-details'
       }
-      aria-label="About this series"
+      aria-label={t('watch.aboutSeries')}
     >
       <div className="watch-series-details__inner">
         <div className="watch-series-details__synopsis">
@@ -76,18 +58,18 @@ export function WatchSeriesDetails({
               className="watch-series-details__toggle"
               onClick={onToggleExpanded}
             >
-              {isExpanded ? 'Fewer Details' : 'More Details'}
+              {isExpanded ? t('watch.fewerDetails') : t('watch.moreDetails')}
             </button>
           ) : null}
         </div>
 
         <div className="watch-series-details__meta">
           <p className="watch-series-details__meta-row">
-            <span className="watch-series-details__label">Audio:</span>
+            <span className="watch-series-details__label">{t('watch.audio')}</span>
             <span>{audio}</span>
           </p>
           <p className="watch-series-details__meta-row">
-            <span className="watch-series-details__label">Subtitles:</span>
+            <span className="watch-series-details__label">{t('watch.subtitles')}</span>
             <span>{subtitles}</span>
           </p>
 
@@ -95,19 +77,19 @@ export function WatchSeriesDetails({
             <div className="watch-series-details__extended">
               {animeInfo?.adultContent ? (
                 <p className="watch-series-details__meta-row">
-                  <span className="watch-series-details__label">Content Advisory:</span>
-                  <span>Mature themes — 18+ recommended</span>
+                  <span className="watch-series-details__label">{t('watch.contentAdvisory')}</span>
+                  <span>{t('watch.mature')}</span>
                 </p>
               ) : null}
               {genres.length > 0 ? (
                 <p className="watch-series-details__meta-row watch-series-details__meta-row--genres">
-                  <span className="watch-series-details__label">Genres:</span>
+                  <span className="watch-series-details__label">{t('watch.genres')}</span>
                   <span className="watch-series-details__genre-links">
                     {genres.map((genre, index) => (
                       <span key={genre}>
                         {index > 0 ? ', ' : null}
                         <Link href={`/anime/category/${genreToSlug(genre)}`}>
-                          {genre}
+                          {localizeGenreName(genre, t)}
                         </Link>
                       </span>
                     ))}
@@ -116,31 +98,31 @@ export function WatchSeriesDetails({
               ) : null}
               {details.Status ? (
                 <p className="watch-series-details__meta-row">
-                  <span className="watch-series-details__label">Status:</span>
+                  <span className="watch-series-details__label">{t('watch.status')}</span>
                   <span>{details.Status}</span>
                 </p>
               ) : null}
               {details.Aired ? (
                 <p className="watch-series-details__meta-row">
-                  <span className="watch-series-details__label">Aired:</span>
+                  <span className="watch-series-details__label">{t('watch.aired')}</span>
                   <span>{details.Aired}</span>
                 </p>
               ) : null}
               {details.Duration ? (
                 <p className="watch-series-details__meta-row">
-                  <span className="watch-series-details__label">Duration:</span>
+                  <span className="watch-series-details__label">{t('watch.duration')}</span>
                   <span>{details.Duration}</span>
                 </p>
               ) : null}
               {details['MAL Score'] ? (
                 <p className="watch-series-details__meta-row">
-                  <span className="watch-series-details__label">MAL Score:</span>
+                  <span className="watch-series-details__label">{t('watch.malScore')}</span>
                   <span>{details['MAL Score']}</span>
                 </p>
               ) : null}
               {details.Studios?.length ? (
                 <p className="watch-series-details__meta-row">
-                  <span className="watch-series-details__label">Studios:</span>
+                  <span className="watch-series-details__label">{t('watch.studios')}</span>
                   <span>{details.Studios.join(', ')}</span>
                 </p>
               ) : null}

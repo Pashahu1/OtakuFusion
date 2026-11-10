@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { CatalogHints } from '@/lib/catalog/catalog-hints';
-import { isAnilistStillAiringFromStatus } from '@/lib/catalog/providers/aniliberty/anilibertyEpisodeMatch';
+import { isAnilistStillAiringFromStatus } from '@/lib/catalog/anilistStillAiring';
 
 /** Shared POST catalog route body (AniList / MAL metadata for match). */
 export const CatalogRequestBodySchema = z.object({
@@ -15,7 +15,7 @@ export const CatalogRequestBodySchema = z.object({
   synonyms: z.string().optional(),
 });
 
-/** Aniliberty: also AniList status for ongoing / partial catalog. */
+/** AniList status for catalog match (ongoing / still airing). */
 export const CatalogRequestBodyWithAnilistStatusSchema =
   CatalogRequestBodySchema.extend({
     anilistStatus: z.string().optional(),

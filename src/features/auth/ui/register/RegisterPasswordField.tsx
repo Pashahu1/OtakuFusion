@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
+
 import { UnderlineField } from '@/components/auth/underline-field';
 
 const passwordToggleClassName =
-  'touch-manipulation shrink-0 rounded-md border border-zinc-600/70 bg-transparent px-2.5 py-2 text-xs font-semibold tracking-wide text-zinc-300 uppercase transition-colors hover:border-zinc-500 hover:bg-zinc-800/45 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40';
+  'touch-manipulation shrink-0 rounded-md border border-[var(--of-border-strong)] bg-transparent px-2.5 py-2 text-xs font-semibold tracking-wide text-[var(--of-text-muted)] uppercase transition-colors hover:border-[var(--of-accent)] hover:bg-[var(--of-fill)] hover:text-[var(--of-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/40';
 
 interface RegisterPasswordFieldProps {
   id: string;
@@ -24,6 +26,8 @@ export function RegisterPasswordField({
   onToggle,
   onChange,
 }: RegisterPasswordFieldProps) {
+  const { t } = useTranslation('common');
+
   return (
     <UnderlineField id={id} label={label} hasError={hasError}>
       <div className="flex items-center gap-2">
@@ -43,7 +47,7 @@ export function RegisterPasswordField({
           className={passwordToggleClassName}
           aria-pressed={visible}
         >
-          {visible ? 'HIDE' : 'SHOW'}
+          {visible ? t('actions.hide') : t('actions.show')}
         </button>
       </div>
     </UnderlineField>

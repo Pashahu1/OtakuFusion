@@ -1,5 +1,6 @@
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { WatchEpisodeGrid } from '../shared/WatchEpisodeGrid';
 import { EpisodeRangeControls } from './components/EpisodeRangeControls';
 import { EpisodelistHeader } from './components/EpisodelistHeader';
@@ -35,6 +36,7 @@ export function Episodelist({
   posterUrl,
   episodeDuration = null,
 }: EpisodelistProps) {
+  const { t } = useTranslation('common');
   const { activeEpisodeId, setActiveEpisodeId, episodeNum } =
     useEpisodelistState(currentEpisode, episodes);
 
@@ -77,7 +79,7 @@ export function Episodelist({
 
   return (
     <div className="watch-episodes-section relative flex w-full flex-col">
-      <EpisodelistHeader title="Episodes">
+      <EpisodelistHeader title={t('watch.episodes')}>
         {totalEpisodes > 100 ? (
           <EpisodeRangeControls
             totalEpisodes={totalEpisodes}

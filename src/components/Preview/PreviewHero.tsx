@@ -7,6 +7,7 @@ import 'swiper/css/pagination';
 import './PreviewHero.scss';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { SpotlightAnime, TrendingAnime } from '@/shared/types/GlobalAnimeTypes';
 import { EmptyState } from '../ui/states/EmptyState';
 import { SwiperCard } from '../SwiperCard/SwiperCard';
@@ -20,14 +21,15 @@ type Props = {
 };
 
 export const Preview = ({ spotlights, trending }: Props) => {
+  const { t } = useTranslation('common');
   const [currentIndex, setCurrentIndex] = useState(0);
   const { paginationReady, setPaginationNode, handleSwiper } = useHeroPagination();
 
   if (!Array.isArray(spotlights)) {
     return (
       <EmptyState
-        title="Spotlight data is unavailable"
-        message="Please try again later."
+        title={t('home.spotlightUnavailable')}
+        message={t('empty.tryLater')}
       />
     );
   }
@@ -35,8 +37,8 @@ export const Preview = ({ spotlights, trending }: Props) => {
   if (spotlights.length === 0) {
     return (
       <EmptyState
-        title="No spotlight anime available"
-        message="Please check back later."
+        title={t('home.noSpotlight')}
+        message={t('empty.checkLater')}
       />
     );
   }
@@ -65,12 +67,12 @@ export const Preview = ({ spotlights, trending }: Props) => {
       <div className="hero-trending">
         {safeTrending.length === 0 ? (
           <EmptyState
-            title="No trending anime"
-            message="Please check back later."
+            title={t('home.noTrending')}
+            message={t('empty.checkLater')}
           />
         ) : (
           <SwiperCard
-            title="Trending"
+            title={t('home.trending')}
             catalog={safeTrending}
             sectionId="trending"
             prioritySlideCount={4}

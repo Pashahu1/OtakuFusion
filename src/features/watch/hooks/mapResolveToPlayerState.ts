@@ -43,7 +43,6 @@ export function applyResolveSuccess(
 
   const mapped = mapResolveToPlayerState({
     result,
-    watchStreamProvider: ctx.watchStreamProvider,
   });
 
   if (resolveParams.lang !== mapped.resolvedStreamLang) {

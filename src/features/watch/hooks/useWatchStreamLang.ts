@@ -130,7 +130,7 @@ export function useWatchStreamLang({
   }, [clampedServerId, setStreamLangRevision]);
 
   const resolverLang = useMemo<'sub' | 'dub'>(() => {
-    if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') return 'sub';
+    if (watchStreamProvider === 'hikka') return 'sub';
     if (watchStreamProvider === 'anikoto') {
       return isWatchDubServerId(activeServerId) ? 'dub' : 'sub';
     }

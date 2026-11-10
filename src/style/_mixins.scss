@@ -86,17 +86,17 @@
   gap: 8px;
   min-height: 48px;
   padding: 0.75rem 1.5rem;
-  border: 2px solid var(--color-brand-orange, #f47521);
-  border-radius: 0.375rem;
-  background: rgb(244 117 33 / 0.14);
-  color: #fff;
+  border: 2px solid var(--of-accent, var(--color-brand-orange, #f47521));
+  border-radius: var(--radius-sm, 6px);
+  background: var(--of-cta-primary-bg);
+  color: var(--of-cta-primary-fg);
   font-family: var(--font-sans);
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 0 0 1px rgb(244 117 33 / 0.25) inset;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--of-accent, #f47521) 25%, transparent) inset;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -104,13 +104,13 @@
     box-shadow 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: rgb(244 117 33 / 0.28);
-    color: #fff;
-    box-shadow: 0 0 20px rgb(244 117 33 / 0.22);
+    background: var(--of-cta-primary-bg-hover);
+    color: var(--of-cta-primary-fg);
+    box-shadow: 0 0 20px var(--of-cta-primary-glow);
   }
 
   &:focus-visible {
-    outline: 2px solid rgb(244 117 33 / 0.55);
+    outline: 2px solid color-mix(in srgb, var(--color-brand-orange, #f47521) 55%, transparent);
     outline-offset: 2px;
   }
 
@@ -127,10 +127,10 @@
   gap: 8px;
   min-height: 48px;
   padding: 0.75rem 1.5rem;
-  border: 1px solid rgb(255 255 255 / 0.35);
-  border-radius: 0.375rem;
-  background: rgb(0 0 0 / 0.35);
-  color: #e4e4e7;
+  border: 1px solid var(--of-cta-secondary-border);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--of-cta-secondary-bg);
+  color: var(--of-cta-secondary-fg);
   font-family: var(--font-sans);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -143,13 +143,13 @@
     color 0.2s ease;
 
   &:hover:not(:disabled) {
-    border-color: rgb(255 255 255 / 0.5);
-    background: rgb(255 255 255 / 0.08);
-    color: #fff;
+    border-color: var(--of-cta-secondary-border-hover);
+    background: var(--of-cta-secondary-bg-hover);
+    color: var(--of-cta-secondary-fg-hover);
   }
 
   &:focus-visible {
-    outline: 2px solid rgb(244 117 33 / 0.55);
+    outline: 2px solid color-mix(in srgb, var(--color-brand-orange, #f47521) 55%, transparent);
     outline-offset: 2px;
   }
 

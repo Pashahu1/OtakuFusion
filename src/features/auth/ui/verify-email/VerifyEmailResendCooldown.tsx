@@ -1,9 +1,13 @@
+import { useTranslation } from 'react-i18next';
+
 interface VerifyEmailResendCooldownProps {
   time: number;
   progress: number;
 }
 
 export function VerifyEmailResendCooldown({ time, progress }: VerifyEmailResendCooldownProps) {
+  const { t } = useTranslation('common');
+
   return (
     <div className="mt-5">
       <div
@@ -19,11 +23,10 @@ export function VerifyEmailResendCooldown({ time, progress }: VerifyEmailResendC
       <p className="mt-2 text-center text-xs text-zinc-500">
         {time > 0 ? (
           <>
-            Resend available in{' '}
-            <span className="tabular-nums font-medium text-zinc-300">{time}s</span>
+            {t('auth.resendIn', { time })}
           </>
         ) : (
-          <span className="text-[var(--color-brand-orange)]">You can resend the code now</span>
+          <span className="text-[var(--color-brand-orange)]">{t('auth.resendReady')}</span>
         )}
       </p>
     </div>

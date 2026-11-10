@@ -2,6 +2,7 @@ import '@/components/Layout/anime-card-feed.scss';
 import '@/components/genre-hub/genre-browse-layout.scss';
 
 import { AnimeCardSkeleton } from '@/components/ui/Skeleton/AnimeCardSkeleton';
+import { CATALOG_GRID_SKELETON_COUNT } from '@/components/ui/Skeleton/skeleton-counts';
 
 export function GenreBrowseSkeleton() {
   return (
@@ -15,7 +16,7 @@ export function GenreBrowseSkeleton() {
         </div>
       </div>
       <div className="anime-card-feed">
-        {Array.from({ length: 12 }).map((_, i) => (
+        {Array.from({ length: CATALOG_GRID_SKELETON_COUNT }).map((_, i) => (
           <AnimeCardSkeleton key={i} />
         ))}
       </div>

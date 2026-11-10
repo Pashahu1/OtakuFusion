@@ -3,6 +3,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const nextConfig = {
+  transpilePackages: ['artplayer-plugin-anime4k', 'anime4k-webgpu-async'],
   experimental: {
     inlineCss: true,
   },
@@ -56,7 +57,7 @@ const nextConfig = {
       320,
       384,
     ],
-    qualities: [52, 55, 58, 60, 62, 65, 68, 70, 72, 75, 80, 82, 85, 90, 95],
+    qualities: [52, 55, 58, 60, 62, 65, 68, 70, 72, 75, 80, 82, 85, 90, 92, 95],
     formats: ['image/avif', 'image/webp'],
     unoptimized:
       process.env.NEXT_IMAGE_UNOPTIMIZED === 'true' ||

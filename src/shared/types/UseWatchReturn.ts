@@ -33,8 +33,6 @@ export interface UseWatchReturn {
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (provider: WatchStreamProvider) => void;
   streamErrorCode: string | null;
-  /** Anilibria menu item only after successful Anilibria catalog (empty search — hidden). */
-  anilibertyLanguageMenuEligible: boolean;
   /** Ukrainian (Hikka Features) item in Language menu. */
   hikkaLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;

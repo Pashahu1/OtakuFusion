@@ -1,15 +1,21 @@
-$color-text-secondary: #999999;
-$color-accent: #ff640a;
+$color-text-secondary: var(--of-text-muted);
+$color-accent: var(--of-accent);
 
-$font-primary: 'Rubik', sans-serif;
-$font-headings: 'Montserrat', sans-serif;
+$radius-sm: var(--of-radius-sm);
+$radius-md: var(--of-radius-md);
+$radius-lg: var(--of-radius-lg);
+$radius-xl: var(--of-radius-xl);
+$radius-pill: var(--of-radius-pill);
+
+$font-primary: var(--of-font-sans);
+$font-headings: var(--of-font-display);
 
 $font-weight-regular: 400;
 $font-weight-medium: 500;
 $font-weight-bold: 700;
 
-$color-text-primary: #f0f0f0;
-$color-bg: #000000;
+$color-text-primary: var(--of-text);
+$color-bg: var(--of-bg);
 
 $font-size-phone: 14px;
 $font-size-tablet: 16px;

@@ -1,5 +1,4 @@
 import type { z } from 'zod';
-import { getCrysolineApiKey } from '@/server/crysoline/config';
 import {
   CatalogRequestBodySchema,
   catalogHintsFromBody,
@@ -30,7 +29,6 @@ export interface CatalogRouteContext {
 
 export interface CreateCatalogRouteConfig<TBody extends CatalogRequestBody> {
   bodySchema?: z.ZodType<TBody>;
-  requireCrysolineApiKey?: boolean;
   requireSearchTerms?: boolean;
   emptySearchTermsError?: string;
   dedupeInflight?: boolean;
@@ -51,17 +49,6 @@ export function createCatalogRoute<TBody extends CatalogRequestBody = CatalogReq
   const schema = (config.bodySchema ?? CatalogRequestBodySchema) as z.ZodType<TBody>;
 
   return async function POST(req: Request): Promise<Response> {
-    if (config.requireCrysolineApiKey) {
-      try {
-        getCrysolineApiKey();
-      } catch {
-        return jsonResponse(
-          { success: false, error: 'crysoline_api_key_missing' },
-          503
-        );
-      }
-    }
-
     let json: unknown;
     try {
       json = await req.json();

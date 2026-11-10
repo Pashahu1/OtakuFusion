@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 
+import { useTranslation } from 'react-i18next';
+
 import { SwiperSectionSkeleton } from '@/components/ui/Skeleton/SwiperSectionSkeleton';
 import type { SwiperCardProps } from '@/shared/types/SwiperCardProps';
 import {
@@ -70,17 +72,18 @@ interface GenreHubFeedProps {
 }
 
 export function GenreHubFeed({ genre, sections }: GenreHubFeedProps) {
+  const { t } = useTranslation('common');
   const visibleSections = GENRE_HUB_SECTIONS.filter(
     (section) => (sections[section.id] ?? []).length > 0,
   );
 
   return (
-    <div className="home-feed flex w-full flex-col gap-8 pt-6 md:gap-10 md:pt-8 lg:gap-10">
+    <div className="home-feed flex w-full flex-col gap-8 pt-6 pb-6 md:gap-10 md:pt-8 md:pb-8 lg:gap-10">
       {visibleSections.map((section, sectionIndex) => {
         const catalog = sections[section.id] ?? [];
 
         const swiperProps: SwiperCardProps = {
-          title: section.label,
+          title: t(`genreHub.${section.id}`),
           catalog,
           sectionId: `genre-${section.id}`,
           viewAllHref: genreBrowsePath(genre, section.id),

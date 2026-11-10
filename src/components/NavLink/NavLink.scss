@@ -11,14 +11,15 @@
     justify-content: center;
     height: 100%;
     padding: 0 1.125rem;
+    color: var(--of-header-fg);
   }
 
   @include respond(desktop) {
     &__link {
       justify-content: start;
       &:hover {
-        color: #fff;
-        background-color: #141519;
+        color: var(--of-header-fg-hover);
+        background-color: var(--of-header-hover-bg);
       }
     }
   }

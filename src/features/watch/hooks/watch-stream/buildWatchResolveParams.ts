@@ -11,7 +11,6 @@ export function buildWatchResolveParams(
   refs: WatchStreamResolveRefs,
 ) {
   const episodeNumber = Number(activeOpts.episodeId);
-  const opts = refs.resolveOptsRef.current;
   const anilistFromMeta = (() => {
     const raw = streamAnime.id?.trim();
     if (!raw) return undefined;
@@ -31,20 +30,10 @@ export function buildWatchResolveParams(
     episodeEpToken: refs.episodeEpTokenRef.current?.trim() || undefined,
     episodeHasDub: refs.episodeHasDubRef.current,
     episode: episodeNumber,
-    expectedEpisodes:
-      typeof opts?.expectedEpisodes === 'number' && opts.expectedEpisodes > 0
-        ? Math.floor(opts.expectedEpisodes)
-        : undefined,
-    anilistStillAiring: opts?.anilistStillAiring === true,
     lang: preferredLang,
     streamProvider:
-      activeOpts.watchStreamProvider === 'aniliberty'
-        ? ('aniliberty' as const)
-        : activeOpts.watchStreamProvider === 'anikoto'
-          ? ('anikoto' as const)
-          : ('hikka' as const),
-    anilibertyCatalogVerified:
-      activeOpts.watchStreamProvider === 'aniliberty' &&
-      activeOpts.anilibertyCatalogVerified === true,
+      activeOpts.watchStreamProvider === 'anikoto'
+        ? ('anikoto' as const)
+        : ('hikka' as const),
   };
 }

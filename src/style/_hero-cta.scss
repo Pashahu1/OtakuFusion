@@ -18,3 +18,39 @@
     box-shadow: none;
   }
 }
+
+.catalog-load-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.75rem;
+  border: 1px solid var(--of-border-strong);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--of-fill);
+  color: var(--of-text);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--color-brand-orange, #f47521) 45%, transparent);
+    background: var(--of-fill-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-brand-orange, #f47521) 55%, transparent);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

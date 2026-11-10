@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
 import User from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { env } from '@/lib/env';
@@ -8,6 +7,8 @@ import {
   type SessionUserDoc,
   userToClientPayload,
 } from '@/lib/auth-session-response';
+import { verifyAccessTokenId } from '@/lib/jwt';
+
 export async function GET() {
   await connectDB();
 
@@ -18,24 +19,17 @@ export async function GET() {
     return NextResponse.json({ user: null });
   }
 
-  try {
-    const payload = jwt.verify(
-      token,
-      env.NEXT_JWT_ACCESS_SECRET
-    ) as {
-      id: string;
-    };
-
-    const user = await User.findById(payload.id).lean();
-
-    if (!user) {
-      return NextResponse.json({ user: null });
-    }
-
-    return NextResponse.json({
-      user: userToClientPayload(user as unknown as SessionUserDoc),
-    });
-  } catch {
+  const id = await verifyAccessTokenId(token, env.NEXT_JWT_ACCESS_SECRET);
+  if (!id) {
     return NextResponse.json({ user: null });
   }
+
+  const user = await User.findById(id).lean();
+  if (!user) {
+    return NextResponse.json({ user: null });
+  }
+
+  return NextResponse.json({
+    user: userToClientPayload(user as unknown as SessionUserDoc),
+  });
 }

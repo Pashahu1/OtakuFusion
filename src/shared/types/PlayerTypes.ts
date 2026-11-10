@@ -29,8 +29,6 @@ export interface PlayerProps {
   onPlaybackError?: () => void;
   /** First stable frame / playback — so shell can remove loader without flash. */
   onPlaybackSurfaceReady?: () => void;
-  /** If false — Anilibria item is not added to Language menu. */
-  anilibertyLanguageMenuEligible?: boolean;
   hikkaLanguageMenuEligible?: boolean;
   anikotoLanguageMenuEligible?: boolean;
   localAnimeId: string;

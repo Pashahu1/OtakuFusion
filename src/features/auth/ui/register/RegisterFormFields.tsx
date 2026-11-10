@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { UnderlineField } from '@/components/auth/underline-field';
 
 import type { InvalidFields } from '@/features/auth/lib/register-field-errors';
@@ -35,11 +37,13 @@ export function RegisterFormFields({
   onTogglePassword,
   onToggleConfirm,
 }: RegisterFormFieldsProps) {
+  const { t } = useTranslation('common');
+
   return (
     <>
       <UnderlineField
         id="register-username"
-        label="Username"
+        label={t('auth.username')}
         hasError={Boolean(invalidFields.username)}
       >
         <input
@@ -50,13 +54,13 @@ export function RegisterFormFields({
           onChange={(e) => onUsernameChange(e.target.value)}
           aria-invalid={Boolean(invalidFields.username)}
           className="w-full bg-transparent px-0 py-2.5 text-[var(--color-brand-text-primary)] outline-none transition-colors placeholder:text-zinc-500"
-          placeholder="username"
+          placeholder={t('auth.placeholderUsername')}
         />
       </UnderlineField>
 
       <UnderlineField
         id="register-email"
-        label="Email"
+        label={t('auth.email')}
         hasError={Boolean(invalidFields.email)}
       >
         <input
@@ -67,28 +71,28 @@ export function RegisterFormFields({
           onChange={(e) => onEmailChange(e.target.value)}
           aria-invalid={Boolean(invalidFields.email)}
           className="w-full bg-transparent px-0 py-2.5 text-[var(--color-brand-text-primary)] outline-none transition-colors placeholder:text-zinc-500"
-          placeholder="mail@example.com"
+          placeholder={t('auth.placeholderEmail')}
         />
       </UnderlineField>
 
       <RegisterPasswordField
         id="register-password"
-        label="Password"
+        label={t('auth.password')}
         value={password}
         visible={showPassword}
         hasError={Boolean(invalidFields.password)}
-        placeholder="password"
+        placeholder={t('auth.placeholderPassword')}
         onToggle={onTogglePassword}
         onChange={onPasswordChange}
       />
 
       <RegisterPasswordField
         id="register-confirm"
-        label="Confirm Password"
+        label={t('auth.confirmPassword')}
         value={confirm}
         visible={showConfirm}
         hasError={Boolean(invalidFields.confirm)}
-        placeholder="confirm password"
+        placeholder={t('auth.placeholderConfirm')}
         onToggle={onToggleConfirm}
         onChange={onConfirmChange}
       />

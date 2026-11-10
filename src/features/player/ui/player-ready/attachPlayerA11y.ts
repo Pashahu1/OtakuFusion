@@ -16,6 +16,9 @@ function patchArtplayerA11y(root: HTMLElement): void {
     if (control.tagName !== 'BUTTON' && !control.hasAttribute('role')) {
       control.setAttribute('role', 'button');
     }
+    if (!control.hasAttribute('tabindex')) {
+      control.setAttribute('tabindex', '0');
+    }
   }
 
   for (const icon of root.querySelectorAll<HTMLElement>('.art-icon[aria-label]')) {

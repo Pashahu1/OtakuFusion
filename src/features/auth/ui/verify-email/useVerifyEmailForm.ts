@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
+import { tStatic } from '@/i18n/t';
 import { toast } from '@/lib/toast';
 import {
   emailsMatch,
@@ -71,17 +72,17 @@ export function useVerifyEmailForm({ initialEmail, onVerified }: UseVerifyEmailF
           await handleAlreadyVerified(message);
           return;
         }
-        toast.success('We sent a new code to your email.');
+        toast.success(tStatic('auth.codeSent'));
         setTime(RESEND_COOLDOWN_SEC);
         return;
       }
       if (res.status === 404) {
-        toast.error('No account with this email.');
+        toast.error(tStatic('auth.noAccount'));
         return;
       }
-      toast.error(message || 'Could not resend code.');
+      toast.error(message || tStatic('auth.resendFailed'));
     } catch {
-      toast.error('Something went wrong. Try again.');
+      toast.error(tStatic('toast.tryAgain'));
     } finally {
       setIsLoading(false);
     }
@@ -93,8 +94,8 @@ export function useVerifyEmailForm({ initialEmail, onVerified }: UseVerifyEmailF
     setCodeError(!code.trim());
 
     if (!trimmedEmail || !code.trim()) {
-      if (!trimmedEmail) toast.error('Enter your email.');
-      else if (!code.trim()) toast.error('Enter the 6-digit code.');
+      if (!trimmedEmail) toast.error(tStatic('auth.enterEmail'));
+      else if (!code.trim()) toast.error(tStatic('auth.enterCode'));
       return;
     }
 
@@ -116,14 +117,14 @@ export function useVerifyEmailForm({ initialEmail, onVerified }: UseVerifyEmailF
         return;
       }
 
-      toast.success('Email verified!');
+      toast.success(tStatic('auth.verified'));
       if (user && emailsMatch(user.email, trimmedEmail)) {
         await refreshAuthSession(refreshUser);
       }
       onVerified?.();
     } catch {
       setCodeError(true);
-      toast.error('Something went wrong. Try again.');
+      toast.error(tStatic('toast.tryAgain'));
     } finally {
       setIsLoading(false);
     }

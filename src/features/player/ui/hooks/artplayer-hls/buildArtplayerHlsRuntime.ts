@@ -17,6 +17,7 @@ export function buildArtplayerHlsRuntime(
     hlsRecoverNetworkTried: false,
     hlsMediaRecoveryStep: 0,
     hlsQualityDowngrades: 0,
+    hlsRateLimitRecoveries: 0,
   };
 
   const onM3u8HlsBeforeLoad = createHlsBeforeLoadHandler();

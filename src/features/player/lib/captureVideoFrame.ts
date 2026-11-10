@@ -1,7 +1,19 @@
+import {
+  averageLumaFromRgba,
+  isLumaTooDark,
+} from '@/features/player/lib/episode-preview-capture';
+
 const CAPTURE_MAX_WIDTH = 640;
 const JPEG_QUALITY = 0.72;
 
-export async function captureVideoFrame(video: HTMLVideoElement): Promise<Blob | null> {
+export interface CaptureVideoFrameOptions {
+  rejectDark?: boolean;
+}
+
+export async function captureVideoFrame(
+  video: HTMLVideoElement,
+  options: CaptureVideoFrameOptions = {},
+): Promise<Blob | null> {
   if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return null;
 
   const sourceWidth = video.videoWidth;
@@ -23,6 +35,15 @@ export async function captureVideoFrame(video: HTMLVideoElement): Promise<Blob |
     ctx.drawImage(video, 0, 0, width, height);
   } catch {
     return null;
+  }
+
+  if (options.rejectDark !== false) {
+    try {
+      const { data } = ctx.getImageData(0, 0, width, height);
+      if (isLumaTooDark(averageLumaFromRgba(data))) return null;
+    } catch {
+      return null;
+    }
   }
 
   return new Promise((resolve) => {

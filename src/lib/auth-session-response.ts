@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { env } from '@/lib/env';
 import { authSessionCookieDefaults } from '@/lib/auth-cookie-options';
+import {
+  ACCESS_TOKEN_MAX_AGE_SECONDS,
+  REFRESH_TOKEN_MAX_AGE_SECONDS,
+  signAccessToken,
+  signRefreshToken,
+} from '@/lib/jwt';
 
 export interface SessionUserDoc {
   _id: { toString(): string };
@@ -29,22 +34,18 @@ export async function createSessionResponse(
   user: SessionUserDoc,
   options: { message: string; status: number },
 ): Promise<NextResponse> {
-  const accessToken = jwt.sign(
+  const id = user._id.toString();
+  const accessToken = await signAccessToken(
     {
-      id: user._id,
+      id,
       username: user.username,
       email: user.email,
       role: user.role,
       isVerified: user.isVerified,
     },
     env.NEXT_JWT_ACCESS_SECRET,
-    { expiresIn: '15m' },
   );
-  const refreshToken = jwt.sign(
-    { id: user._id },
-    env.NEXT_JWT_REFRESH_SECRET,
-    { expiresIn: '7d' },
-  );
+  const refreshToken = await signRefreshToken(id, env.NEXT_JWT_REFRESH_SECRET);
   user.refreshToken = refreshToken;
   await user.save();
 
@@ -57,12 +58,12 @@ export async function createSessionResponse(
 
   response.cookies.set('accessToken', accessToken, {
     ...authSessionCookieDefaults,
-    maxAge: 60 * 15,
+    maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
   });
 
   response.cookies.set('refreshToken', refreshToken, {
     ...authSessionCookieDefaults,
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
   });
 
   return response;

@@ -2,8 +2,11 @@
 
 import Link from 'next/link';
 import { Pencil, Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function ProfileSettingsSecurityAside() {
+  const { t } = useTranslation('common');
+
   return (
     <aside className="profile-settings__card profile-panel profile-settings__aside">
       <div className="profile-settings__card-head">
@@ -11,22 +14,20 @@ export function ProfileSettingsSecurityAside() {
           <Shield size={18} />
         </span>
         <div>
-          <h3 className="profile-settings__card-title">Security tips</h3>
-          <p className="profile-settings__card-desc">
-            Keep your OtakuFusion account safe.
-          </p>
+          <h3 className="profile-settings__card-title">{t('settings.securityTips')}</h3>
+          <p className="profile-settings__card-desc">{t('settings.securityHint')}</p>
         </div>
       </div>
 
       <ul className="profile-settings__tips">
-        <li>Use a password you do not reuse on other sites.</li>
-        <li>Change your password if you sign in on a shared device.</li>
-        <li>Verify your email so you can recover access later.</li>
+        <li>{t('settings.tipReuse')}</li>
+        <li>{t('settings.tipShared')}</li>
+        <li>{t('settings.tipVerify')}</li>
       </ul>
 
       <Link href="/profile/manage" className="profile-settings__link-row">
         <Pencil aria-hidden size={16} />
-        <span>Edit profile & avatar</span>
+        <span>{t('settings.editProfileAvatar')}</span>
       </Link>
     </aside>
   );

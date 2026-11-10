@@ -1,6 +1,7 @@
 'use client';
 
 import { ListVideo } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import './WatchPlaySeeMoreButton.scss';
 
 interface WatchPlaySeeMoreButtonProps {
@@ -9,6 +10,8 @@ interface WatchPlaySeeMoreButtonProps {
 }
 
 export function WatchPlaySeeMoreButton({ onClick, disabled }: WatchPlaySeeMoreButtonProps) {
+  const { t } = useTranslation('common');
+
   return (
     <button
       type="button"
@@ -18,7 +21,7 @@ export function WatchPlaySeeMoreButton({ onClick, disabled }: WatchPlaySeeMoreBu
       aria-haspopup="dialog"
     >
       <ListVideo className="watch-play-see-more__icon" aria-hidden />
-      <span>See more episodes</span>
+      <span>{t('watch.seeMoreEpisodes')}</span>
     </button>
   );
 }

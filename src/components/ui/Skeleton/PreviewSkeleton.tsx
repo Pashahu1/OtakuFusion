@@ -1,3 +1,7 @@
+'use client';
+
+import { useTranslation } from 'react-i18next';
+
 import '@/components/Preview/PreviewHero.scss';
 
 import { SwiperSectionSkeleton } from './SwiperSectionSkeleton';
@@ -7,6 +11,8 @@ const PAGINATION_DASH_COUNT = 10;
 const ACTIVE_PAGINATION_INDEX = 2;
 
 export function PreviewSkeleton() {
+  const { t } = useTranslation('common');
+
   return (
     <>
       <div className="hero preview-skeleton relative w-full" aria-hidden>
@@ -66,7 +72,7 @@ export function PreviewSkeleton() {
       </div>
 
       <div className="hero-trending">
-        <SwiperSectionSkeleton title="Trending" />
+        <SwiperSectionSkeleton title={t('home.trending')} />
       </div>
     </>
   );

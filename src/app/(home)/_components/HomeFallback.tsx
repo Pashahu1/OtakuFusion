@@ -5,13 +5,15 @@ import { ContinueWatchingSectionSkeleton } from '@/components/ui/Skeleton/Contin
 import { PreviewSkeleton } from '@/components/ui/Skeleton/PreviewSkeleton';
 import { SwiperSectionSkeleton } from '@/components/ui/Skeleton/SwiperSectionSkeleton';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const LOADER_OVERLAY_MS = 350;
 
 const HOME_FEED_CLASS =
-  'home-feed flex w-full flex-col gap-8 pt-8 md:gap-10 md:pt-10 lg:gap-10';
+  'home-feed flex w-full flex-col gap-8 pt-8 pb-6 md:gap-10 md:pt-10 md:pb-8 lg:gap-10';
 
 export function HomeFallback() {
+  const { t } = useTranslation('common');
   const [hideLoaderOverlay, setHideLoaderOverlay] = useState(false);
 
   useEffect(() => {
@@ -25,10 +27,10 @@ export function HomeFallback() {
         <PreviewSkeleton />
         <div className={HOME_FEED_CLASS}>
           <ContinueWatchingSectionSkeleton />
-          <SwiperSectionSkeleton title="Top Airing" />
-          <SwiperSectionSkeleton title="Most Favorite" />
-          <SwiperSectionSkeleton title="Latest Episode" />
-          <SwiperSectionSkeleton title="Latest Completed" />
+          <SwiperSectionSkeleton title={t('home.topAiring')} />
+          <SwiperSectionSkeleton title={t('home.mostFavorite')} />
+          <SwiperSectionSkeleton title={t('home.latestEpisode')} />
+          <SwiperSectionSkeleton title={t('home.latestCompleted')} />
         </div>
       </div>
       {!hideLoaderOverlay && (

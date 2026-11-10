@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslation } from 'react-i18next';
 import { ContinueWatchingSectionSkeleton } from '@/components/ui/Skeleton/ContinueWatchingSectionSkeleton';
 import { SwiperSectionSkeleton } from '@/components/ui/Skeleton/SwiperSectionSkeleton';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
@@ -32,7 +33,7 @@ interface HomeBelowFoldProps {
 }
 
 const HOME_FEED_SECTION_CLASS =
-  'home-feed flex w-full flex-col gap-8 pt-8 md:gap-10 md:pt-10 lg:gap-10';
+  'home-feed flex w-full flex-col gap-8 pt-8 pb-6 md:gap-10 md:pt-10 md:pb-8 lg:gap-10';
 
 export function HomeBelowFold({
   topAiring,
@@ -40,27 +41,29 @@ export function HomeBelowFold({
   latestEpisode,
   latestCompleted,
 }: HomeBelowFoldProps) {
+  const { t } = useTranslation('common');
+
   return (
     <div className={HOME_FEED_SECTION_CLASS}>
       <ContinueWatchingSection />
       <SwiperCard
-        title="Top Airing"
+        title={t('home.topAiring')}
         catalog={topAiring}
         sectionId="top-airing"
         prioritySlideCount={4}
       />
       <SwiperCard
-        title="Most Favorite"
+        title={t('home.mostFavorite')}
         catalog={mostFavorite}
         sectionId="most-favorite"
       />
       <SwiperCard
-        title="Latest Episode"
+        title={t('home.latestEpisode')}
         catalog={latestEpisode}
         sectionId="latest-episode"
       />
       <SwiperCard
-        title="Latest Completed"
+        title={t('home.latestCompleted')}
         catalog={latestCompleted}
         sectionId="latest-completed"
       />

@@ -2,8 +2,7 @@ import { alignEpisodesToAnilistSeasonStart } from '@/features/watch/lib/alignEpi
 import { applyAnilistEpisodeDisplayTitles } from '@/features/watch/lib/anilistEpisodeDisplayTitles';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
-import { writeLibertyEpisodesCache } from '@/features/watch/lib/provider-mapping-cache';
-import { upsertWarmHikkaCatalog, upsertWarmLibertyCatalog } from './watchAnimeWarmCatalog';
+import { upsertWarmHikkaCatalog } from './watchAnimeWarmCatalog';
 import { resolveEpisodeIdAfterCatalog } from './resolveEpisodeIdAfterCatalog';
 import { applyProviderCatalogState } from './apply-watch-catalog/applyProviderCatalogState';
 import type {
@@ -72,15 +71,7 @@ export function applyWatchCatalogSuccess(
   );
 
   if (!getIsCancelled() && mergedEpisodes.length > 0) {
-    if (watchStreamProvider === 'aniliberty') {
-      upsertWarmLibertyCatalog(warmCatalogsRef, animeId, providerId, mergedEpisodes);
-      writeLibertyEpisodesCache(
-        animeId,
-        providerId,
-        mergedEpisodes,
-        mergedEpisodes.length,
-      );
-    } else if (watchStreamProvider === 'hikka') {
+    if (watchStreamProvider === 'hikka') {
       upsertWarmHikkaCatalog(warmCatalogsRef, animeId, providerId, mergedEpisodes);
     }
   }

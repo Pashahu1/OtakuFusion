@@ -2,13 +2,27 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bookmark } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { resolveReturnPath, withNextQuery } from '@/features/auth/lib/safe-next-path';
 import { addFavoriteAnime, removeFavoriteAnime } from '@/lib/api/favorites';
 import { useFavoritesQuery } from '@/hooks/useFavorites';
 import { queryKeys } from '@/lib/query/keys';
 import { toast } from '@/lib/toast';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { cn } from '@/lib/utils';
+
+function toastSignInToSaveFavorites(nextPath: string | null, t: (key: string) => string) {
+  toast(
+    <span className="of-auth-toast">
+      {t('toast.signInFavorites')}{' '}
+      <a href={withNextQuery('/auth/login', nextPath)}>{t('auth.logIn')}</a>
+      <span aria-hidden> · </span>
+      <a href={withNextQuery('/auth/register', nextPath)}>{t('auth.register')}</a>
+    </span>,
+  );
+}
 
 interface FavoriteBookmarkProps {
   anime: AnimeInfo;
@@ -23,8 +37,15 @@ export function FavoriteBookmark({
   buttonClassName,
   variant = 'default',
 }: FavoriteBookmarkProps) {
+  const { t } = useTranslation('common');
   const { user } = useAuth();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const returnPath = resolveReturnPath(
+    pathname,
+    searchParams.toString() ? `?${searchParams.toString()}` : '',
+  );
 
   const { data: favorites = [] } = useFavoritesQuery(Boolean(user));
 
@@ -51,11 +72,11 @@ export function FavoriteBookmark({
           context.previousFavorites,
         );
       }
-      const msg =
-        err.message === 'Unauthorized'
-          ? 'Sign in to save favorites.'
-          : err.message || 'Could not update favorites.';
-      toast.error(msg);
+      if (err.message === 'Unauthorized') {
+        toastSignInToSaveFavorites(returnPath, t);
+        return;
+      }
+      toast.error(err.message || t('toast.favoritesUpdate'));
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.favorites });
@@ -77,13 +98,13 @@ export function FavoriteBookmark({
             ),
       )}
       aria-pressed={isFavorite}
-      aria-label={isFavorite ? 'Remove from watchlist' : 'Save to watchlist'}
+      aria-label={isFavorite ? t('watch.removeFromWatchlist') : t('watch.saveToWatchlist')}
       disabled={mutation.isPending}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
         if (!user) {
-          toast('Sign in to save favorites.');
+          toastSignInToSaveFavorites(returnPath, t);
           return;
         }
         mutation.mutate();

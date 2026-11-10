@@ -16,8 +16,8 @@
   width: 56px;
   height: 56px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--of-fill);
+  border: 1px solid var(--of-border);
 }
 
 .genre-hub-header__icon {
@@ -32,7 +32,7 @@
   font-size: clamp(2rem, 5vw, 2.75rem);
   font-weight: 700;
   line-height: 1.1;
-  color: #fff;
+  color: var(--of-text);
   letter-spacing: -0.02em;
 }
 
@@ -41,5 +41,5 @@
   font-family: var(--font-sans);
   font-size: 0.9375rem;
   line-height: 1.55;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--of-text-secondary);
 }

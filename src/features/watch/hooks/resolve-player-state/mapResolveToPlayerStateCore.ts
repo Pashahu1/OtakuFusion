@@ -1,14 +1,9 @@
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { VideoTrack } from '@/shared/types/VideoTrackTypes';
-import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { WatchResolveResponse } from '@/features/watch/lib/resolve-watch-stream';
 import { pickPreferredQualityVariant } from '@/features/player/ui/pickPreferredStreamQuality';
 import { inferStreamMediaKind, urlLooksLikeHlsStream } from '@/lib/streamMediaType';
-import {
-  heightFromAnilibertyServerLabel,
-  writeAnilibertyPlaybackQualityHint,
-} from '@/shared/utils/anilibertyPlaybackQualityHint';
 
 import { normalizeQualityVariantsFromResolve } from './qualityVariants';
 import {
@@ -27,25 +22,14 @@ export interface MappedWatchPlayerState {
 
 export interface MapResolveToPlayerStateParams {
   result: WatchResolveResponse;
-  watchStreamProvider: WatchStreamProvider;
 }
 
 export function mapResolveToPlayerState(
   params: MapResolveToPlayerStateParams,
 ): MappedWatchPlayerState {
-  const { result, watchStreamProvider } = params;
+  const { result } = params;
 
   const tracks: VideoTrack[] = [];
-  const resolvedServerLabel = result.stream.server?.trim();
-
-  if (typeof window !== 'undefined' && watchStreamProvider === 'aniliberty') {
-    try {
-      const h = heightFromAnilibertyServerLabel(resolvedServerLabel ?? '');
-      if (h != null) writeAnilibertyPlaybackQualityHint(h);
-    } catch {
-      /* ignore */
-    }
-  }
 
   for (const t of result.stream.tracks ?? []) {
     if (!t.file?.trim()) continue;

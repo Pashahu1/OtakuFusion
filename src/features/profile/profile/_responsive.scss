@@ -1,29 +1,61 @@
-﻿@media (max-width: 960px) {
+@media (max-width: 960px) {
   .profile-dashboard {
     grid-template-columns: 1fr;
-  }
-
-  .profile-stats__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
-  .profile-hero__banner {
-    height: 6rem;
+  .profile-hero {
+    padding-bottom: 1rem;
   }
 
   .profile-hero__avatar {
-    width: 4.5rem;
-    height: 4.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
   }
 
   .profile-hero__name {
     font-size: 1.25rem;
   }
 
-  .profile-stats__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .profile-nav {
+    gap: 0.15rem 1rem;
+  }
+
+  .profile-nav__link {
+    font-size: 0.8125rem;
+    padding: 0.6rem 0.05rem;
+  }
+
+  .profile-stats__value {
+    font-size: 1.35rem;
+  }
+
+  .profile-stats__label {
+    font-size: 0.6875rem;
+  }
+
+  .profile-activity__item {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    grid-template-areas:
+      'poster text'
+      'poster time';
+    gap: 0.35rem 0.75rem;
+  }
+
+  .profile-activity__poster {
+    grid-area: poster;
+    width: 2.75rem;
+    height: 3.85rem;
+  }
+
+  .profile-activity__text {
+    grid-area: text;
+  }
+
+  .profile-activity__time {
+    grid-area: time;
+    padding-top: 0;
   }
 
   .profile-heatmap__peak {

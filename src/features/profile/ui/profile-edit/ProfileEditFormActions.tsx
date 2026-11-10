@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { cn } from '@/lib/utils';
 
 interface ProfileEditFormActionsProps {
@@ -13,6 +15,8 @@ export function ProfileEditFormActions({
   saveDisabled,
   onDiscard,
 }: ProfileEditFormActionsProps) {
+  const { t } = useTranslation('common');
+
   return (
     <div
       className={cn(
@@ -26,14 +30,14 @@ export function ProfileEditFormActions({
         onClick={onDiscard}
         disabled={isLoading || !hasChanges}
       >
-        Discard
+        {t('actions.discard')}
       </button>
       <button
         type="submit"
         className="profile-edit__btn profile-edit__btn--primary"
         disabled={saveDisabled}
       >
-        {isLoading ? 'Saving…' : 'Save changes'}
+        {isLoading ? t('actions.saving') : t('actions.save')}
       </button>
     </div>
   );

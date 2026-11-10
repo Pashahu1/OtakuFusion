@@ -12,16 +12,3 @@ export function aggregateCatalogStreamCounts(episodes: EpisodesTypes[]): {
   }
   return { has_sub, has_dub };
 }
-
-export function aggregateTvInfoStreamCounts(
-  episodes: EpisodesTypes[],
-  opts: {
-    provider: 'aniliberty' | 'hikka';
-  }
-): { has_sub: number; has_dub: number } {
-  const counts = aggregateCatalogStreamCounts(episodes);
-  if (opts.provider === 'hikka' || opts.provider === 'aniliberty') {
-    return { has_sub: counts.has_sub, has_dub: 0 };
-  }
-  return counts;
-}

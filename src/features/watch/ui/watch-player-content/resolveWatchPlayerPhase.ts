@@ -23,8 +23,9 @@ export function resolveWatchPlayerVisibility(
     !input.playerShellPending && !input.buffering && !input.streamUrl;
 
   const allowFatalErrorUi =
-    isStreamMissing &&
-    (input.showErrorBlock || input.hasBuiltinError || input.streamOverlayMessage != null);
+    input.hasBuiltinError ||
+    (isStreamMissing &&
+      (input.showErrorBlock || input.streamOverlayMessage != null));
 
   return {
     showBuiltinPlayer:
@@ -33,9 +34,7 @@ export function resolveWatchPlayerVisibility(
       !input.hasBuiltinError &&
       (input.playerShellPending || input.buffering || !input.streamUrl) &&
       !allowFatalErrorUi,
-    showErrorOverlay:
-      isStreamMissing &&
-      (input.showErrorBlock || input.hasBuiltinError || input.streamOverlayMessage != null),
+    showErrorOverlay: allowFatalErrorUi,
   };
 }
 

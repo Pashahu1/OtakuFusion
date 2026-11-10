@@ -7,7 +7,7 @@ export async function HomeContent() {
   const homeCatalog = await getHomePage();
 
   if (!homeCatalog)
-    return <ErrorState fullPage message="No home page data available." />;
+    return <ErrorState fullPage />;
 
   return (
     <div className="flex flex-col">

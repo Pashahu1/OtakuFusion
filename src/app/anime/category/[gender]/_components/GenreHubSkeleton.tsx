@@ -13,7 +13,7 @@ export function GenreHubSkeleton() {
         <div className="mx-auto h-4 w-full max-w-md animate-pulse rounded bg-white/5" />
         <div className="mx-auto mt-1 h-4 w-[85%] max-w-sm animate-pulse rounded bg-white/5" />
       </header>
-      <div className="home-feed flex w-full flex-col gap-8 pt-6 md:gap-10 md:pt-8 lg:gap-10">
+      <div className="home-feed flex w-full flex-col gap-8 pt-6 pb-6 md:gap-10 md:pt-8 md:pb-8 lg:gap-10">
         {GENRE_HUB_SECTIONS.map((section) => (
           <SwiperSectionSkeleton
             key={section.id}

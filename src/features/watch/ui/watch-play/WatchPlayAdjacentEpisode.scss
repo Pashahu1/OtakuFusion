@@ -33,7 +33,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid var(--color-brand-orange, #f97316);
+      outline: 2px solid var(--color-brand-orange, #f47521);
       outline-offset: 4px;
     }
   }
@@ -70,7 +70,7 @@
     bottom: 0;
     z-index: 3;
     height: 3px;
-    background: var(--color-brand-orange, #f97316);
+    background: var(--color-brand-orange, #f47521);
     border-radius: 0 2px 0 0;
     max-width: 100%;
     pointer-events: none;

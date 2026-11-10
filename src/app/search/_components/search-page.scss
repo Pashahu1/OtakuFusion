@@ -1,7 +1,6 @@
 .search-page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
 .search-page__hero {
@@ -34,8 +33,17 @@
   padding: 0 0.625rem 0.25rem;
   border: 0;
   background: transparent;
-  color: #fff;
+  color: var(--of-text);
   outline: none;
+  appearance: none;
+
+  &::-webkit-search-cancel-button,
+  &::-webkit-search-decoration,
+  &::-webkit-search-results-button,
+  &::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
 
   &::placeholder {
     color: #71717a;
@@ -43,5 +51,99 @@
 
   @media (min-width: 640px) {
     height: 3.125rem;
+  }
+}
+
+.search-page__landing,
+.search-page__status,
+.search-page__status-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3.5rem;
+  text-align: center;
+}
+
+.search-page__status-wrap {
+  padding-top: 0;
+}
+
+.search-page__status-wrap .search-page__status {
+  padding-bottom: 0;
+}
+
+.search-page__status-wrap .search-page__genres {
+  margin-top: 22px;
+}
+
+.search-page__kicker {
+  margin: 0 0 8px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--of-text-muted);
+}
+
+.search-page__title,
+.search-page__status-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--of-text);
+}
+
+.search-page__hint,
+.search-page__status-message {
+  margin: 10px 0 0;
+  max-width: 28rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--of-text-muted);
+}
+
+.search-page__genres {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-page__genre {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--of-border);
+  border-radius: 999px;
+  background: var(--of-fill);
+  color: var(--of-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--of-fill-hover);
+    border-color: color-mix(in srgb, var(--of-accent) 42%, transparent);
+    color: var(--of-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand-orange, #f47521);
+    outline-offset: 2px;
   }
 }

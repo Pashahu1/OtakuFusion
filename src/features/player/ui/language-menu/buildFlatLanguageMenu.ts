@@ -1,16 +1,16 @@
 import type { WatchStreamProvider } from '@/lib/watch-provider';
+import { ANIKOTO_PLAYBACK_ENABLED } from '@/features/watch/lib/watch-provider';
 
 import { resolveLanguageMenuAnikotoLang } from './resolveLanguageMenuAnikotoLang';
 
 export type LangMenuLeaf = {
   html: string;
   default?: boolean;
-  __mode?: 'aniliberty' | 'hikka' | 'anikoto-sub' | 'anikoto-dub';
+  __mode?: 'hikka' | 'anikoto-sub' | 'anikoto-dub';
 };
 
 export function buildFlatLanguageMenu(input: {
   watchStreamProvider: WatchStreamProvider;
-  anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;
   activeServerId?: string | null;
@@ -19,7 +19,6 @@ export function buildFlatLanguageMenu(input: {
 }): LangMenuLeaf[] {
   const {
     watchStreamProvider,
-    anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
     activeServerId,
@@ -36,7 +35,10 @@ export function buildFlatLanguageMenu(input: {
 
   const flatLanguage: LangMenuLeaf[] = [];
 
-  if (anikotoLanguageMenuEligible) {
+  const anikotoMenuOpen =
+    ANIKOTO_PLAYBACK_ENABLED && anikotoLanguageMenuEligible;
+
+  if (anikotoMenuOpen) {
     flatLanguage.push({
       html: 'Japanese',
       default: watchStreamProvider === 'anikoto' && effectiveAnikotoLang !== 'dub',
@@ -57,21 +59,12 @@ export function buildFlatLanguageMenu(input: {
     });
   }
 
-  if (anilibertyLanguageMenuEligible) {
-    flatLanguage.push({
-      html: 'Anilibria',
-      default: watchStreamProvider === 'aniliberty',
-      __mode: 'aniliberty',
-    });
-  }
-
   return flatLanguage;
 }
 
 export function languageMenuTooltip(input: {
   watchStreamProvider: WatchStreamProvider;
   hikkaLanguageMenuEligible: boolean;
-  anilibertyLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;
   activeServerId?: string | null;
   anikotoActiveLang?: 'sub' | 'dub' | null;
@@ -80,7 +73,6 @@ export function languageMenuTooltip(input: {
   const {
     watchStreamProvider,
     hikkaLanguageMenuEligible,
-    anilibertyLanguageMenuEligible,
     anikotoLanguageMenuEligible,
     activeServerId,
     anikotoActiveLang,
@@ -94,15 +86,14 @@ export function languageMenuTooltip(input: {
       resolvedStreamLang,
     }) ?? anikotoActiveLang;
 
+  const anikotoMenuOpen =
+    ANIKOTO_PLAYBACK_ENABLED && anikotoLanguageMenuEligible;
+
   if (watchStreamProvider === 'hikka' && hikkaLanguageMenuEligible) return 'Ukrainian';
-  if (watchStreamProvider === 'aniliberty' && anilibertyLanguageMenuEligible) {
-    return 'Anilibria';
-  }
-  if (watchStreamProvider === 'anikoto' && anikotoLanguageMenuEligible) {
+  if (watchStreamProvider === 'anikoto' && anikotoMenuOpen) {
     return effectiveAnikotoLang === 'dub' ? 'English' : 'Japanese';
   }
-  if (anikotoLanguageMenuEligible) return 'Japanese';
+  if (anikotoMenuOpen) return 'Japanese';
   if (hikkaLanguageMenuEligible) return 'Ukrainian';
-  if (anilibertyLanguageMenuEligible) return 'Anilibria';
   return 'Language';
 }

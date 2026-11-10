@@ -12,6 +12,8 @@ import {
 } from '../useArtplayerHls';
 import { attachArtplayerSkipSegmentsOnReady } from '../useArtplayerSkipSegments';
 import { attachArtplayerSubtitleResize } from '../useArtplayerSubtitleResize';
+import { formatNowPlayingEpisode } from '../../player-layers/nowPlayingLayer';
+import { attachNowPlayingOverlay } from '../../player-ready/attachNowPlayingOverlay';
 import type { UseArtplayerInstanceParams } from '../useArtplayerInstanceTypes';
 
 export interface MountArtplayerInstanceParams {
@@ -31,6 +33,9 @@ export interface MountArtplayerInstanceParams {
   scheduleContinueWatchingUpdate?: () => void;
   attachPlaybackProgressHandlers?: (art: Artplayer) => void;
   resumeTargetSeconds?: number;
+  animeTitle?: string | null;
+  episodeNum?: number | null;
+  episodeTitle?: string | null;
 }
 
 export interface MountArtplayerInstanceResult {
@@ -55,6 +60,9 @@ export function mountArtplayerInstance({
   scheduleContinueWatchingUpdate,
   attachPlaybackProgressHandlers,
   resumeTargetSeconds,
+  animeTitle,
+  episodeNum,
+  episodeTitle,
 }: MountArtplayerInstanceParams): MountArtplayerInstanceResult {
   let suppressPlaybackError = false;
   let clearSurfaceReady: (() => void) | null = null;
@@ -78,10 +86,11 @@ export function mountArtplayerInstance({
     url: fullURL,
     type: playerMediaType,
     autoplay: true,
+    miniProgressBar: false,
     volume: 1,
-    setting: true,
-    playbackRate: true,
-    pip: true,
+    setting: false,
+    playbackRate: false,
+    pip: false,
     hotkey: false,
     fullscreen: true,
     mutex: true,
@@ -90,8 +99,8 @@ export function mountArtplayerInstance({
     airplay: true,
     autoOrientation: true,
     fastForward: true,
-    aspectRatio: true,
-    subtitleOffset: true,
+    aspectRatio: false,
+    subtitleOffset: false,
     theme: PLAYER_THEME_COLOR,
     ...getArtplayerOptions(
       userPausedRef,
@@ -128,6 +137,10 @@ export function mountArtplayerInstance({
       streamUrl,
       resumeTargetSeconds,
     );
+    attachNowPlayingOverlay(art, {
+      title: animeTitle?.trim() ?? '',
+      episodeLabel: formatNowPlayingEpisode(episodeNum, episodeTitle),
+    });
     syncLanguageMenuIfReady();
     attachStreamQualityMenu(art, streamInfo ?? null, streamUrl);
     attachArtplayerSkipSegmentsOnReady(art, streamInfo?.skipSegments);

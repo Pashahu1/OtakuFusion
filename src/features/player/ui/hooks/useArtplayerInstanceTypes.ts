@@ -20,7 +20,6 @@ export interface UseArtplayerInstanceParams {
   setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
   onPlaybackError: PlayerProps['onPlaybackError'];
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
-  anilibertyLanguageMenuEligible: PlayerProps['anilibertyLanguageMenuEligible'];
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
   anikotoLanguageMenuEligible: PlayerProps['anikotoLanguageMenuEligible'];
 }

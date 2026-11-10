@@ -1,4 +1,5 @@
 import { Camera } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,7 @@ export function ProfileEditIdentitySection({
   onPresetSelect,
   onUsernameChange,
 }: ProfileEditIdentitySectionProps) {
+  const { t } = useTranslation('common');
   const displayAvatarSrc =
     preview || cloudinaryAvatarUrl(avatarUrl, 160) || avatarUrl;
   const activeSrc = selectedPresetSrc ?? avatarUrl;
@@ -51,7 +53,7 @@ export function ProfileEditIdentitySection({
 
   return (
     <section className="profile-edit__card profile-panel">
-      <h3 className="profile-edit__card-title">Public identity</h3>
+      <h3 className="profile-edit__card-title">{t('profile.publicIdentity')}</h3>
 
       <div className="profile-edit__avatar-block">
         <div className="profile-edit__avatar-preview">
@@ -72,7 +74,7 @@ export function ProfileEditIdentitySection({
           {presetLabel ? (
             <p className="profile-edit__avatar-name">{presetLabel}</p>
           ) : isCustomPhoto ? (
-            <p className="profile-edit__avatar-name">Custom photo</p>
+            <p className="profile-edit__avatar-name">{t('profile.customPhoto')}</p>
           ) : null}
         </div>
 
@@ -108,7 +110,7 @@ export function ProfileEditIdentitySection({
       </div>
 
       <label className="profile-edit__field">
-        <span className="profile-edit__label">Display name</span>
+        <span className="profile-edit__label">{t('profile.displayName')}</span>
         <input
           className={cn(
             'profile-edit__input',
@@ -121,7 +123,7 @@ export function ProfileEditIdentitySection({
           disabled={isLoading}
         />
         <span className="profile-edit__field-hint">
-          Shown on your profile, comments, and watch activity.
+          {t('profile.displayNameHint')}
         </span>
         {usernameError ? (
           <span className="profile-edit__field-error">{usernameError}</span>

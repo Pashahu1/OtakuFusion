@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
+import { tStatic } from '@/i18n/t';
 import { toast } from '@/lib/toast';
 import { isPresetAvatarSrc, presetIdFromSrc } from '@/shared/constants/preset-avatars';
 
@@ -129,7 +130,7 @@ export function useProfileEditForm() {
       ) {
         const presetId = presetIdFromSrc(selectedPresetSrc);
         if (!presetId) {
-          toast.error('Invalid preset avatar.');
+          toast.error(tStatic('profile.invalidPreset'));
           return;
         }
 
@@ -153,7 +154,7 @@ export function useProfileEditForm() {
       setAvatarFile(null);
       setSelectedPresetSrc(null);
       setPreview(null);
-      toast.success(hasAvatarChange ? 'Profile photo updated.' : 'Profile saved.');
+      toast.success(hasAvatarChange ? tStatic('profile.photoUpdated') : tStatic('profile.saved'));
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Could not save profile.';

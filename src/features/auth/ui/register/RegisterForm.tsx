@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 import { RegisterFormFields } from './RegisterFormFields';
 import { useRegisterForm } from './useRegisterForm';
 
@@ -20,8 +22,10 @@ export function RegisterForm() {
     setPassword,
     setConfirm,
     clearInvalid,
+    loginHref,
     handleRegister,
   } = useRegisterForm();
+  const { t } = useTranslation('common');
 
   return (
     <form
@@ -29,8 +33,8 @@ export function RegisterForm() {
       className="flex flex-col gap-1 p-4 sm:gap-2 sm:p-8"
       noValidate
     >
-      <h2 className="mb-5 text-center font-serif text-xl font-normal tracking-tight text-white sm:text-2xl">
-        Create Account
+      <h2 className="mb-5 text-center font-serif text-xl font-normal tracking-tight text-foreground sm:text-2xl">
+        {t('auth.createAccount')}
       </h2>
 
       <RegisterFormFields
@@ -67,15 +71,15 @@ export function RegisterForm() {
         disabled={loading}
         className="hero-cta hero-cta--block mt-4"
       >
-        {loading ? 'Loading...' : 'Register'}
+        {loading ? t('actions.loading') : t('auth.register')}
       </button>
 
       <p className="mt-5 text-center text-sm text-zinc-500">
         <a
-          href="/auth/login"
+          href={loginHref}
           className="rounded-md px-2 py-1 font-medium text-zinc-300 underline-offset-4 transition-colors hover:text-[var(--color-brand-orange-light)] hover:underline focus-visible:text-[var(--color-brand-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)]/45"
         >
-          Already have an account?
+          {t('auth.alreadyHaveAccount')}
         </a>
       </p>
     </form>

@@ -1,3 +1,4 @@
+@use './tokens';
 @use './variables' as *;
 @use './mixins' as *;
 @use './reset.scss' as *;
@@ -9,10 +10,10 @@
   --text-display: 2.5rem;
   --text-display--line-height: 1.1;
 
-  --text-title: 1.5rem; 
+  --text-title: 1.5rem;
   --text-title--line-height: 1.2;
 
-  --text-body: 1rem; 
+  --text-body: 1rem;
   --text-body--line-height: 1.6;
 
   --text-small: 0.875rem;
@@ -31,19 +32,33 @@
   --font-weight-medium: 500;
   --font-weight-regular: 400;
 
-  --color-brand-orange: #f47521;
-  --color-brand-orange-light: #ff8a3d;
-  --color-brand-orange-dark: #d45f16;
+  --color-accent: var(--of-accent);
+  --color-background: var(--of-bg);
+  --color-surface: var(--of-surface);
+  --color-foreground: var(--of-text);
 
-  --color-brand-gray: #1a1a1a;
-  --color-brand-gray-light: #2a2a2a;
-  --color-brand-gray-softer: #3a3a3a;
+  --color-brand-orange: var(--of-accent);
+  --color-brand-orange-light: var(--of-accent-hover);
+  --color-brand-orange-dark: var(--of-accent-pressed);
 
-  --color-brand-text-primary: #ffffff;
-  --color-brand-text-secondary: #dadada;
-  --color-brand-text-muted: #9a9a9a;
+  --color-brand-gray: var(--of-surface-raised);
+  --color-brand-gray-light: var(--of-surface-hover);
+  --color-brand-gray-softer: var(--of-surface-muted);
+  --color-brand-gray-dark: var(--of-bg);
 
-  --font-sans: 'Rubik', system-ui, -apple-system, sans-serif;
+  --radius-sm: var(--of-radius-sm);
+  --radius-md: var(--of-radius-md);
+  --radius-lg: var(--of-radius-lg);
+  --radius-xl: var(--of-radius-xl);
+  --radius-pill: var(--of-radius-pill);
+
+  --color-brand-text-primary: var(--of-text);
+  --color-brand-text-secondary: var(--of-text-secondary);
+  --color-brand-text-muted: var(--of-text-muted);
+
+  --font-sans: var(--of-font-sans);
+
+  --breakpoint-tv: 120rem;
 }
 
 @layer utilities {

@@ -1,9 +1,11 @@
 import type Artplayer from 'artplayer';
 
+import { releaseVideoPictureInPicture } from '../../player-pip/safePictureInPicture';
 import { clearPlayerHlsSession, teardownActivePlayerHlsSession } from './playerHlsSession';
 
 export function hardStopVideoElement(video: HTMLVideoElement | null | undefined): void {
   if (!video) return;
+  releaseVideoPictureInPicture(video);
   try {
     video.pause();
     video.removeAttribute('src');

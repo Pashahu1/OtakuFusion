@@ -1,4 +1,8 @@
 .watch-play-episodes-panel {
+  --of-ep-panel-bg: #141416;
+  --of-ep-panel-radius: 16px;
+  --of-ep-scroll-size: 8px;
+
   position: fixed;
   inset: 0;
   z-index: 200;
@@ -6,18 +10,22 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0;
+  color-scheme: dark;
+  font-family: var(--font-sans, system-ui, sans-serif);
 
   @media (min-width: 768px) {
     align-items: center;
-    padding: 24px;
+    padding: 28px 24px;
   }
 
   &__backdrop {
     position: absolute;
     inset: 0;
     border: none;
-    background: rgb(0 0 0 / 0.72);
+    background: rgb(0 0 0 / 0.62);
+    backdrop-filter: blur(10px);
     cursor: pointer;
+    animation: of-ep-panel-backdrop-in 0.22s ease;
   }
 
   &__dialog {
@@ -26,58 +34,134 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1120px;
     max-height: min(88vh, 900px);
-    background: #141416;
+    overflow: hidden;
+    background:
+      radial-gradient(1200px 280px at 50% -80px, rgb(244 117 33 / 0.08), transparent 60%),
+      var(--of-ep-panel-bg);
     outline: none;
+    animation: of-ep-panel-dialog-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 
     @media (min-width: 768px) {
-      border-radius: 8px;
-      box-shadow: 0 24px 80px rgb(0 0 0 / 0.65);
+      border-radius: var(--of-ep-panel-radius);
+      border: 1px solid rgb(255 255 255 / 0.08);
+      box-shadow:
+        0 28px 80px rgb(0 0 0 / 0.62),
+        0 0 0 1px rgb(255 255 255 / 0.03) inset;
     }
 
     @media (max-width: 767px) {
       max-height: 92vh;
-      border-radius: 12px 12px 0 0;
+      border-radius: 18px 18px 0 0;
+      border: 1px solid rgb(255 255 255 / 0.06);
+      border-bottom: 0;
+      box-shadow: 0 -18px 48px rgb(0 0 0 / 0.45);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: var(--of-ep-scroll-size);
+      bottom: 0;
+      height: 40px;
+      pointer-events: none;
+      background: linear-gradient(to top, var(--of-ep-panel-bg), transparent);
+      border-radius: 0 0 var(--of-ep-panel-radius) var(--of-ep-panel-radius);
+    }
+  }
+
+  &__handle {
+    display: none;
+    width: 40px;
+    height: 4px;
+    margin: 10px auto 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.22);
+    flex-shrink: 0;
+
+    @media (max-width: 767px) {
+      display: block;
     }
   }
 
   &__header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 16px;
     flex-shrink: 0;
-    padding: 20px 20px 12px;
+    padding: 18px 20px 12px;
+    background: linear-gradient(
+      to bottom,
+      var(--of-ep-panel-bg) 70%,
+      rgb(20 20 22 / 0.88)
+    );
 
     @media (min-width: 768px) {
-      padding: 24px 28px 16px;
+      padding: 26px 32px 14px;
     }
+  }
+
+  &__heading {
+    min-width: 0;
+  }
+
+  &__kicker {
+    margin: 0 0 4px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.48);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__title {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
     color: #fff;
   }
 
+  &__meta {
+    margin: 6px 0 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: rgb(255 255 255 / 0.52);
+  }
+
   &__close {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: rgb(255 255 255 / 0.85);
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.06);
+    color: rgb(255 255 255 / 0.88);
     cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
 
     &:hover {
-      background: rgb(255 255 255 / 0.08);
+      color: #fff;
+      background: rgb(255 255 255 / 0.12);
+      border-color: rgb(255 255 255 / 0.16);
     }
 
     &:focus-visible {
-      outline: 2px solid var(--color-brand-orange, #f97316);
+      outline: 2px solid var(--color-brand-orange, #f47521);
       outline-offset: 2px;
     }
   }
@@ -85,22 +169,175 @@
   &__scroll {
     flex: 1;
     min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
-    padding: 8px 20px 28px;
+    overscroll-behavior: contain;
+    padding: 4px 16px 36px;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.28) transparent;
 
     @media (min-width: 768px) {
-      padding: 8px 28px 32px;
+      padding: 4px 24px 40px 32px;
+    }
+
+    &::-webkit-scrollbar {
+      width: var(--of-ep-scroll-size);
+    }
+
+    &::-webkit-scrollbar-button,
+    &::-webkit-scrollbar-button:start:decrement,
+    &::-webkit-scrollbar-button:end:increment,
+    &::-webkit-scrollbar-button:vertical:start:increment,
+    &::-webkit-scrollbar-button:vertical:end:decrement {
+      display: none !important;
+      width: 0;
+      height: 0;
+    }
+
+    &::-webkit-scrollbar-track {
+      margin-block: 4px 20px;
+      background: rgb(255 255 255 / 0.04);
+      border-radius: 999px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      background-color: rgb(255 255 255 / 0.28);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-brand-orange, #f47521);
+    }
+
+    &::-webkit-scrollbar-corner {
+      background: transparent;
     }
   }
 
   &__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px 16px;
+    gap: 18px 14px;
 
     @media (min-width: 640px) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 24px 20px;
+      gap: 22px 20px;
     }
+  }
+
+  .watch-episode-card {
+    gap: 8px;
+
+    &__thumb {
+      border-radius: 8px;
+    }
+
+    &__duration {
+      backdrop-filter: blur(8px);
+      background: rgb(0 0 0 / 0.72);
+      font-variant-numeric: tabular-nums;
+    }
+
+    &--active .watch-episode-card__thumb {
+      outline: none;
+      box-shadow:
+        0 0 0 2px var(--color-brand-orange, #f47521),
+        0 10px 28px rgb(244 117 33 / 0.22);
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .watch-episode-card {
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .watch-play-episodes-panel__header {
+    padding: 12px 14px 8px;
+  }
+
+  .watch-play-episodes-panel__title {
+    font-size: 1.25rem;
+  }
+
+  .watch-play-episodes-panel__close {
+    width: 36px;
+    height: 36px;
+  }
+
+  .watch-play-episodes-panel__scroll {
+    padding: 2px 12px max(28px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .watch-play-episodes-panel__grid {
+    gap: 14px 10px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) {
+  .watch-play-episodes-panel {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .watch-play-episodes-panel__dialog {
+    max-width: none;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: 0;
+  }
+
+  .watch-play-episodes-panel__handle {
+    display: none;
+  }
+
+  .watch-play-episodes-panel__header {
+    padding-block: 10px 8px;
+  }
+
+  .watch-play-episodes-panel__title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .watch-play-episodes-panel__backdrop,
+  .watch-play-episodes-panel__dialog {
+    animation: none;
+  }
+
+  .watch-play-episodes-panel .watch-episode-card {
+    transition: none;
+  }
+}
+
+@keyframes of-ep-panel-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes of-ep-panel-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

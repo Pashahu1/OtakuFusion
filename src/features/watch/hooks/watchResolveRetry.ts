@@ -1,5 +1,4 @@
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
-import { clearAnilibertyPlaybackQualityHint } from '@/shared/utils/anilibertyPlaybackQualityHint';
 import { STORAGE_SERVER_NAME } from '@/shared/data/servers';
 
 export const WATCH_RESOLVE_AUTO_RETRY_DELAY_SEC = 3;
@@ -29,16 +28,9 @@ export function delayMs(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
-export function clearStoredServerHint(
-  provider: WatchStreamProvider,
-  localAnimeId?: string
-): void {
+export function clearStoredServerHint(): void {
   if (typeof window === 'undefined') return;
   try {
-    if (provider === 'aniliberty') {
-      clearAnilibertyPlaybackQualityHint();
-      return;
-    }
     localStorage.removeItem(STORAGE_SERVER_NAME);
   } catch {
 
@@ -75,14 +67,12 @@ export async function runWatchResolveAutoRetry(
   const {
     signal,
     providerJustChanged,
-    watchStreamProvider,
-    localAnimeId,
     setStreamLoadingMessage,
     runResolveAttempt,
   } = params;
 
   if (providerJustChanged) {
-    clearStoredServerHint(watchStreamProvider, localAnimeId);
+    clearStoredServerHint();
     await runResolveAttempt();
     return;
   }
@@ -94,7 +84,7 @@ export async function runWatchResolveAutoRetry(
   }
 
   setStreamLoadingMessage(WATCH_RESOLVE_AUTO_RETRY_REFRESHING_MSG);
-  clearStoredServerHint(watchStreamProvider, localAnimeId);
+  clearStoredServerHint();
   await runResolveAttempt();
   setStreamLoadingMessage(null);
 }

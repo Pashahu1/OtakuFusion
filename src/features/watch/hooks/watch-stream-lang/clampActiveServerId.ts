@@ -12,7 +12,7 @@ export function clampActiveServerId(
   episodeHasDubForResolve: boolean | undefined,
 ): string | null {
   if (userChoseDub) return id;
-  if (watchStreamProvider === 'aniliberty' || watchStreamProvider === 'hikka') {
+  if (watchStreamProvider === 'hikka') {
     return id === WATCH_SERVER_DUB_ID ? WATCH_SERVER_SUB_ID : id;
   }
   if (watchStreamProvider === 'anikoto') {

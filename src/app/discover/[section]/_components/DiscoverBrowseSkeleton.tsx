@@ -3,6 +3,7 @@ import '@/components/genre-hub/genre-browse-layout.scss';
 import '@/components/discover/DiscoverBrowseHeader.scss';
 
 import { AnimeCardSkeleton } from '@/components/ui/Skeleton/AnimeCardSkeleton';
+import { CATALOG_GRID_SKELETON_COUNT } from '@/components/ui/Skeleton/skeleton-counts';
 
 export function DiscoverBrowseSkeleton() {
   return (
@@ -12,7 +13,7 @@ export function DiscoverBrowseSkeleton() {
         <div className="mt-2 h-4 w-full max-w-md animate-pulse rounded bg-white/5" />
       </header>
       <div className="anime-card-feed">
-        {Array.from({ length: 12 }).map((_, i) => (
+        {Array.from({ length: CATALOG_GRID_SKELETON_COUNT }).map((_, i) => (
           <AnimeCardSkeleton key={i} />
         ))}
       </div>

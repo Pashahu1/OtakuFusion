@@ -165,7 +165,7 @@
 /* Portrait phones with limited height (small devices, mobile browser chrome) */
 @media (orientation: portrait) and (max-width: 767px) and (max-height: 700px) {
   .hero__content {
-    padding-bottom: clamp(170px, 26vh, 230px);
+    padding-bottom: clamp(12px, 2.5vh, 24px);
   }
 
   .hero__title-logo-wrap > span,

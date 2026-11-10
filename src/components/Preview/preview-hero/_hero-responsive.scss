@@ -3,7 +3,7 @@
 /* Mobile: tighter vertical stack, logo fits narrow viewports */
 @media (max-width: 767px) {
   .hero__content {
-    padding-bottom: clamp(210px, 30vh, 300px);
+    padding-bottom: clamp(16px, 3vh, 28px);
   }
 
   .hero__info {
@@ -35,7 +35,7 @@
   }
 
   .hero__content {
-    padding-bottom: clamp(190px, 28vh, 255px);
+    padding-bottom: clamp(12px, 2.5vh, 24px);
   }
 }
 
@@ -121,7 +121,7 @@
 /* Tablet (768–1023px): centered stack, room for trending overlap */
 @media (min-width: 768px) and (max-width: 1023px) {
   .hero__content {
-    padding-bottom: clamp(260px, 31vh, 340px);
+    padding-bottom: clamp(88px, 14vh, 140px);
   }
 
   .hero__info {

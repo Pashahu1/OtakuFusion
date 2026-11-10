@@ -15,7 +15,6 @@
   }
 
   @media (min-width: 1024px) {
-    grid-template-columns: repeat(auto-fill, 315px);
-    justify-content: start;
+    grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
   }
 }

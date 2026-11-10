@@ -1,7 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';import { Episodelist } from '@/features/watch';
+import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+
+import { Episodelist } from '@/features/watch';
 import { WatchEpisodesEmptySection } from '@/features/watch/ui/episode-list/WatchEpisodesEmptySection';
 import { useWatchSeries } from '@/features/watch/hooks/useWatchSeries';
 import { useWatchSpotlightArtwork } from '@/features/watch/hooks/useWatchSpotlightArtwork';
@@ -18,6 +21,7 @@ import { useWatchCta } from '@/features/watch/hooks/useWatchCta';
 import './watch-page.scss';
 
 export default function WatchSeriesPageClient({ animeId }: { animeId: string }) {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
@@ -105,7 +109,7 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
       {(animeInfo!.recommended_data?.length ?? 0) > 0 ? (
         <div className="watch-page__recommended">
           <AnimeSection
-            title="Recommended for you"
+            title={t('watch.recommended')}
             catalog={animeInfo!.recommended_data ?? []}
           />
         </div>

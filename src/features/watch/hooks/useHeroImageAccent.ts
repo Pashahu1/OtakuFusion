@@ -7,8 +7,8 @@ import { nextImageProxyUrl } from '@/shared/utils/thumbnail-url';
 const ACCENT_SAMPLE_WIDTH = 48;
 const ACCENT_SAMPLE_QUALITY = 40;
 
-const FALLBACK_ACCENT = 'rgb(249 115 22 / 0.45)';
-const FALLBACK_ACCENT_SOFT = 'rgb(249 115 22 / 0.12)';
+const FALLBACK_ACCENT = 'rgb(244 117 33 / 0.45)';
+const FALLBACK_ACCENT_SOFT = 'rgb(244 117 33 / 0.12)';
 const FALLBACK_BORDER = 'rgb(255 255 255 / 0.14)';
 
 interface HeroImageAccent {
@@ -78,7 +78,7 @@ export function useHeroImageAccent(imageUrl: string | undefined): HeroImageAccen
   const [accent, setAccent] = useState<HeroImageAccent>({
     borderColor: FALLBACK_BORDER,
     panelTint: FALLBACK_ACCENT_SOFT,
-    accentColor: 'rgb(249 115 22)',
+    accentColor: 'rgb(244 117 33)',
   });
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export function useHeroImageAccent(imageUrl: string | undefined): HeroImageAccen
       setAccent({
         borderColor: FALLBACK_ACCENT,
         panelTint: FALLBACK_ACCENT_SOFT,
-        accentColor: 'rgb(249 115 22)',
+        accentColor: 'rgb(244 117 33)',
       });
     });
 

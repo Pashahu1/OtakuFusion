@@ -11,7 +11,7 @@
   color: inherit;
 
   &--active .watch-episode-card__thumb {
-    outline: 2px solid var(--color-brand-orange, #f97316);
+    outline: 2px solid var(--color-brand-orange, #f47521);
     outline-offset: 2px;
   }
 
@@ -37,7 +37,7 @@
     aspect-ratio: 16 / 9;
     width: 100%;
     overflow: hidden;
-    border-radius: 4px;
+    border-radius: 8px;
     background: #1a1b1e;
   }
 
@@ -79,8 +79,9 @@
     bottom: 8px;
     z-index: 3;
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: 6px;
     background: rgb(0 0 0 / 0.82);
+    backdrop-filter: blur(8px);
     font-size: 0.75rem;
     font-weight: 600;
     color: #fff;
@@ -92,7 +93,7 @@
     bottom: 0;
     z-index: 4;
     height: 3px;
-    background: var(--color-brand-orange, #f97316);
+    background: var(--color-brand-orange, #f47521);
     border-radius: 0 2px 0 0;
     max-width: 100%;
     pointer-events: none;
@@ -102,14 +103,35 @@
     }
   }
 
+  &__ep-badge {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    z-index: 2;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgb(8 8 10 / 0.72);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    backdrop-filter: blur(8px);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #fff;
+    pointer-events: none;
+  }
+
+  &--now-playing &__ep-badge {
+    display: none;
+  }
+
   &__now-playing {
     position: absolute;
     left: 8px;
     top: 8px;
     z-index: 2;
     padding: 3px 8px;
-    border-radius: 3px;
-    background: var(--color-brand-orange, #f97316);
+    border-radius: 6px;
+    background: var(--color-brand-orange, #f47521);
     font-size: 0.625rem;
     font-weight: 800;
     letter-spacing: 0.04em;
@@ -123,7 +145,7 @@
     right: 8px;
     z-index: 3;
     padding: 3px 8px;
-    border-radius: 3px;
+    border-radius: 6px;
     font-size: 0.625rem;
     font-weight: 800;
     letter-spacing: 0.06em;
@@ -140,18 +162,6 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
-  }
-
-  &__series {
-    margin: 0;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgb(255 255 255 / 0.45);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   &__title {

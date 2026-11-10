@@ -1,0 +1,168 @@
+// =============================================================================
+// OtakuFusion design tokens
+//
+// Change look here. Components should use var(--of-*) or the aliases below.
+// =============================================================================
+
+:root {
+  color-scheme: dark;
+
+  --of-accent: #f47521;
+  --of-accent-hover: #ff8a3d;
+  --of-accent-pressed: #d45f16;
+
+  --of-bg: #0c0c0e;
+  --of-surface: #141519;
+  --of-surface-raised: #1a1a1a;
+  --of-surface-hover: #2a2a2a;
+  --of-surface-muted: #3a3a3a;
+
+  --of-text: #ffffff;
+  --of-text-secondary: #dadada;
+  --of-text-muted: #9a9a9a;
+
+  --of-border: rgb(255 255 255 / 0.08);
+  --of-border-strong: rgb(255 255 255 / 0.14);
+  --of-danger: #ef4444;
+  --of-overlay: rgb(0 0 0 / 0.45);
+  --of-fill: rgb(255 255 255 / 0.06);
+  --of-fill-hover: rgb(255 255 255 / 0.1);
+  --of-success: #34d399;
+  --of-success-text: #6ee7b7;
+
+  --of-header-bg: rgb(16 16 18 / 0.78);
+  --of-header-bg-scrolled: rgb(16 16 18 / 0.92);
+  --of-header-bg-hero: rgb(8 8 10 / 0.28);
+  --of-header-border: rgb(255 255 255 / 0.06);
+  --of-header-fg: #dadada;
+  --of-header-fg-hover: #ffffff;
+  --of-header-hover-bg: rgb(255 255 255 / 0.08);
+  --of-header-icon-filter: none;
+
+  --of-menu-bg: rgb(16 16 18 / 0.96);
+  --of-menu-shadow: 0 16px 48px rgb(0 0 0 / 0.45);
+
+  --of-input-bg: rgb(0 0 0 / 0.28);
+  --of-input-fg: #ffffff;
+  --of-input-border: rgb(255 255 255 / 0.12);
+  --of-input-placeholder: #71717a;
+  --of-input-icon: #71717a;
+
+  --of-cta-primary-bg: color-mix(in srgb, var(--of-accent) 14%, transparent);
+  --of-cta-primary-fg: #ffffff;
+  --of-cta-primary-bg-hover: color-mix(in srgb, var(--of-accent) 28%, transparent);
+  --of-cta-primary-glow: color-mix(in srgb, var(--of-accent) 22%, transparent);
+
+  --of-cta-secondary-bg: rgb(0 0 0 / 0.35);
+  --of-cta-secondary-fg: #e4e4e7;
+  --of-cta-secondary-border: rgb(255 255 255 / 0.35);
+  --of-cta-secondary-bg-hover: rgb(255 255 255 / 0.08);
+  --of-cta-secondary-fg-hover: #ffffff;
+  --of-cta-secondary-border-hover: rgb(255 255 255 / 0.5);
+
+  --of-radius-sm: 6px;
+  --of-radius-md: 10px;
+  --of-radius-lg: 14px;
+  --of-radius-xl: 16px;
+  --of-radius-pill: 999px;
+
+  --of-font-sans: 'Rubik', system-ui, -apple-system, sans-serif;
+  --of-font-display: 'Montserrat', sans-serif;
+
+  --color-brand-orange: var(--of-accent);
+  --color-brand-orange-light: var(--of-accent-hover);
+  --color-brand-orange-dark: var(--of-accent-pressed);
+  --color-brand-gray: var(--of-surface-raised);
+  --color-brand-gray-light: var(--of-surface-hover);
+  --color-brand-gray-softer: var(--of-surface-muted);
+  --color-brand-gray-dark: var(--of-bg);
+  --color-brand-text-primary: var(--of-text);
+  --color-brand-text-secondary: var(--of-text-secondary);
+  --color-brand-text-muted: var(--of-text-muted);
+  --radius-sm: var(--of-radius-sm);
+  --radius-md: var(--of-radius-md);
+  --radius-lg: var(--of-radius-lg);
+  --radius-xl: var(--of-radius-xl);
+  --radius-pill: var(--of-radius-pill);
+  --font-sans: var(--of-font-sans);
+}
+
+[data-theme='midnight'] {
+  --of-accent: #f47521;
+  --of-accent-hover: #ff8a3d;
+  --of-accent-pressed: #d45f16;
+
+  --of-bg: #000000;
+  --of-surface: #0a0a0c;
+  --of-surface-raised: #111113;
+  --of-surface-hover: #1c1c1f;
+  --of-surface-muted: #2a2a2e;
+
+  --of-text: #fafafa;
+  --of-text-secondary: #d4d4d8;
+  --of-text-muted: #a1a1aa;
+
+  --of-border: rgb(255 255 255 / 0.07);
+  --of-border-strong: rgb(255 255 255 / 0.12);
+  --of-overlay: rgb(0 0 0 / 0.55);
+}
+
+[data-theme='ember'] {
+  --of-accent: #ff7a2e;
+  --of-accent-hover: #ff924f;
+  --of-accent-pressed: #e05f18;
+
+  --of-bg: #140e0c;
+  --of-surface: #1c1412;
+  --of-surface-raised: #241a16;
+  --of-surface-hover: #33241f;
+  --of-surface-muted: #4a342c;
+
+  --of-text: #fff7ed;
+  --of-text-secondary: #fed7aa;
+  --of-text-muted: #c4a484;
+
+  --of-border: rgb(255 122 46 / 0.12);
+  --of-border-strong: rgb(255 122 46 / 0.22);
+  --of-overlay: rgb(20 14 12 / 0.55);
+}
+
+[data-theme='neon'] {
+  --of-accent: #ff2d95;
+  --of-accent-hover: #ff5aad;
+  --of-accent-pressed: #e01f7d;
+
+  --of-bg: #0c0710;
+  --of-surface: #160e1a;
+  --of-surface-raised: #1e1424;
+  --of-surface-hover: #2a1a32;
+  --of-surface-muted: #3d2448;
+
+  --of-text: #fff5fb;
+  --of-text-secondary: #f5c6e0;
+  --of-text-muted: #c48aaa;
+
+  --of-border: rgb(255 45 149 / 0.16);
+  --of-border-strong: rgb(255 45 149 / 0.28);
+  --of-overlay: rgb(12 7 16 / 0.55);
+}
+
+[data-theme='azure'] {
+  --of-accent: #5ba3d9;
+  --of-accent-hover: #7bb8e4;
+  --of-accent-pressed: #3d8bc4;
+
+  --of-bg: #0b1218;
+  --of-surface: #121a22;
+  --of-surface-raised: #18232d;
+  --of-surface-hover: #22303c;
+  --of-surface-muted: #334656;
+
+  --of-text: #eef6fb;
+  --of-text-secondary: #b8d4e8;
+  --of-text-muted: #7a9bb0;
+
+  --of-border: rgb(91 163 217 / 0.16);
+  --of-border-strong: rgb(91 163 217 / 0.28);
+  --of-overlay: rgb(11 18 24 / 0.55);
+}

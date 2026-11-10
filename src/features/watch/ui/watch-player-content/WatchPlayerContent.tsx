@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Player } from '@/features/player';
 import { LoaderSpinner } from '@/components/ui/InitialLoader/InitialLoader';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
@@ -7,6 +7,7 @@ import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
+import { nextEligibleWatchPlaybackProvider } from '@/features/watch/lib/watch-provider-fallback';
 import { WatchPlayerErrorControls } from './WatchPlayerErrorControls';
 import { resolveWatchPlayerPhase } from './resolveWatchPlayerPhase';
 import './WatchPlayerContent.scss';
@@ -33,7 +34,6 @@ type WatchPlayerContentProps = {
   showErrorBlock: boolean;
   playerShellPending: boolean;
   streamOverlayMessage: { title: string; subtitle: string } | null;
-  anilibertyLanguageMenuEligible: boolean;
   hikkaLanguageMenuEligible: boolean;
   anikotoLanguageMenuEligible: boolean;
 };
@@ -60,7 +60,6 @@ export const WatchPlayerContent = ({
   episodeNum,
   playerShellPending,
   streamOverlayMessage,
-  anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
   anikotoLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
@@ -71,17 +70,42 @@ export const WatchPlayerContent = ({
 
   const overlayCopy =
     streamOverlayMessage ?? {
-      title: 'This player is currently unavailable.',
-      subtitle: 'Please try another episode or server.',
+      title: 'Playback could not continue.',
+      subtitle:
+        'The Ukrainian stream hit a temporary rate limit. Wait a moment and try again, or switch source if another is listed.',
     };
 
   const [builtinErrorStreamKey, setBuiltinErrorStreamKey] = useState<string | null>(null);
+  const playbackFallbackTokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    playbackFallbackTokenRef.current = null;
+  }, [animeId, episodeId]);
 
   const hasBuiltinError = builtinErrorStreamKey === streamKey;
 
   const handleBuiltinError = useCallback(() => {
+    const token = `${animeId}:${episodeId ?? ''}:${watchStreamProvider}`;
+    if (playbackFallbackTokenRef.current !== token) {
+      const next = nextEligibleWatchPlaybackProvider({
+        current: watchStreamProvider,
+        hikkaLanguageMenuEligible,
+      });
+      if (next) {
+        playbackFallbackTokenRef.current = token;
+        setWatchStreamProvider(next);
+        return;
+      }
+    }
     setBuiltinErrorStreamKey(streamKey);
-  }, [streamKey]);
+  }, [
+    animeId,
+    episodeId,
+    watchStreamProvider,
+    hikkaLanguageMenuEligible,
+    setWatchStreamProvider,
+    streamKey,
+  ]);
 
   const phase = resolveWatchPlayerPhase({
     playerShellPending,
@@ -124,7 +148,6 @@ export const WatchPlayerContent = ({
               watchStreamProvider={watchStreamProvider}
               setWatchStreamProvider={setWatchStreamProvider}
               onPlaybackError={handleBuiltinError}
-              anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
               hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
               anikotoLanguageMenuEligible={anikotoLanguageMenuEligible}
             />
@@ -140,7 +163,6 @@ export const WatchPlayerContent = ({
               watchStreamProvider={watchStreamProvider}
               setWatchStreamProvider={setWatchStreamProvider}
               setActiveServerId={setActiveServerId}
-              anilibertyLanguageMenuEligible={anilibertyLanguageMenuEligible}
               hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
               anikotoLanguageMenuEligible={anikotoLanguageMenuEligible}
             />

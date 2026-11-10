@@ -1,7 +1,7 @@
 import { getGenreBrowsePage } from '@/lib/api/genre-hub';
 import { GenreBrowseFilters } from '@/components/genre-hub/GenreBrowseFilters';
 import { GenreBrowseLoadMore } from '@/components/genre-hub/GenreBrowseLoadMore';
-import { EmptyState } from '@/components/ui/states/EmptyState';
+import { I18nEmpty } from '@/components/ui/states/I18nEmpty';
 import { ErrorState } from '@/components/ui/states/ErrorState';
 import {
   getGenreSectionConfig,
@@ -31,7 +31,7 @@ export async function GenreBrowseContent({
       page: 1,
     });
   } catch {
-    return <ErrorState message="Failed to load titles." />;
+    return <ErrorState />;
   }
 
   if (!result || result.items.length === 0) {
@@ -43,7 +43,15 @@ export async function GenreBrowseContent({
           sectionLabel={section.label}
           media={media}
         />
-        <EmptyState message={`No anime found for ${genre} — ${section.label}.`} />
+        <I18nEmpty
+          titleKey="genreHub.noTitles"
+          messageKey="genreHub.noSectionHint"
+          values={{ genre }}
+          tValues={{
+            genre: `genreNames.${genre}`,
+            section: `genreHub.${sectionId}`,
+          }}
+        />
       </div>
     );
   }

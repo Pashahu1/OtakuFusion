@@ -1,3 +1,7 @@
+'use client';
+
+import { useTranslation } from 'react-i18next';
+
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import {
   ANIME_CAROUSEL_POSTER_SIZES,
@@ -14,12 +18,20 @@ type Props = {
 };
 
 export const AnimeSection = ({ title, catalog }: Props) => {
+  const { t } = useTranslation('common');
+
   if (!Array.isArray(catalog)) {
     return null;
   }
 
   if (catalog.length === 0) {
-    return <EmptyState fullPage title={title} message="No anime found" />;
+    return (
+      <EmptyState
+        fullPage
+        title={title}
+        message={t('empty.sectionEmpty')}
+      />
+    );
   }
 
   return (

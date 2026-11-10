@@ -1,4 +1,4 @@
-﻿@use '../../../style/mixins' as *;
+@use '../../../style/mixins' as *;
 
 .profile-edit {
   width: 100%;
@@ -11,7 +11,7 @@
 .profile-edit__title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--of-text);
 }
 
 .profile-edit__subtitle {

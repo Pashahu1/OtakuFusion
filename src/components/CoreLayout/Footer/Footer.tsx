@@ -1,18 +1,30 @@
 'use client';
+
 import Link from 'next/link';
-import './Footer.scss';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+
+import { useTranslation } from 'react-i18next';
+
 import { WEBSITE_NAME } from '@/config/website';
 import { useAuth } from '@/context/AuthContext';
+import { resolveReturnPath, withNextQuery } from '@/features/auth/lib/safe-next-path';
+import './Footer.scss';
 
-export const Footer = () => {
+export function Footer() {
+  const { t } = useTranslation('common');
   const { user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const returnPath = resolveReturnPath(
+    pathname,
+    searchParams.toString() ? `?${searchParams.toString()}` : '',
+  );
 
-  const handleLogout = async () => {
+  async function handleLogout() {
     try {
       setLogoutLoading(true);
       await logout();
@@ -20,27 +32,50 @@ export const Footer = () => {
     } finally {
       setLogoutLoading(false);
     }
-  };
+  }
+
+  const isAuthRoute = pathname.startsWith('/auth');
+
+  if (isAuthRoute) {
+    return (
+      <footer className="footer footer--auth">
+        <nav className="footer__auth-nav" aria-label={t('footer.aria')}>
+          <Link className="footer__link" href="/about">
+            {t('footer.about')}
+          </Link>
+          <Link className="footer__link" href="/privacy-policy">
+            {t('footer.privacy')}
+          </Link>
+          <Link className="footer__link" href="/discover/popular">
+            {t('nav.popular')}
+          </Link>
+        </nav>
+        <p className="footer__legal">
+          &copy; 2026 {WEBSITE_NAME}. {t('footer.rights')}
+        </p>
+      </footer>
+    );
+  }
 
   return (
     <footer className="footer">
       <div className="footer__content">
         <div className="footer__navigation">
-          <h2>Navigation</h2>
+          <h2 className="footer__heading">{t('footer.navigation')}</h2>
           <div className="footer__information">
             <Link className="footer__link" href="/discover/popular">
-              Popular
+              {t('nav.popular')}
             </Link>
             <Link className="footer__link" href="/discover/new">
-              New
+              {t('nav.new')}
             </Link>
             <Link className="footer__link" href="/schedule">
-              Schedule
+              {t('nav.schedule')}
             </Link>
           </div>
         </div>
         <div className="footer__contacts">
-          <h2>Contact Me</h2>
+          <h2 className="footer__heading">{t('footer.contact')}</h2>
           <div className="footer__information">
             <Link
               className="footer__link"
@@ -48,13 +83,8 @@ export const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Image
-                width={24}
-                height={24}
-                src="/icon/github.svg"
-                alt="github-icon"
-              />
-              <span>Github</span>
+              <Image width={20} height={20} src="/icon/github.svg" alt="" />
+              <span>GitHub</span>
             </Link>
             <Link
               className="footer__link"
@@ -62,12 +92,7 @@ export const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Image
-                width={24}
-                height={24}
-                src="/icon/telegram.svg"
-                alt="telegram-icon"
-              />
+              <Image width={20} height={20} src="/icon/telegram.svg" alt="" />
               <span>Telegram</span>
             </Link>
             <Link
@@ -76,57 +101,58 @@ export const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Image
-                width={24}
-                height={24}
-                src="/icon/instagram.svg"
-                alt="instagram-icon"
-              />
+              <Image width={20} height={20} src="/icon/instagram.svg" alt="" />
               <span>Instagram</span>
             </Link>
           </div>
         </div>
         <div className="footer__rules">
-          <h2>{WEBSITE_NAME}</h2>
+          <h2 className="footer__heading">{WEBSITE_NAME}</h2>
           <div className="footer__information">
             <Link className="footer__link" href="/about">
-              About
+              {t('footer.about')}
             </Link>
             <Link className="footer__link" href="/privacy-policy">
-              Privacy Policy
+              {t('footer.privacy')}
             </Link>
           </div>
         </div>
-        <div className="footer__loggin">
-          <h2>Account</h2>
+        <div className="footer__account">
+          <h2 className="footer__heading">{t('footer.account')}</h2>
           <div className="footer__information">
             {user ? (
               <>
                 <Link className="footer__link" href="/profile">
-                  Profile
+                  {t('footer.profile')}
                 </Link>
                 <Link className="footer__link" href="/profile/preferences">
-                  Settings
+                  {t('footer.settings')}
                 </Link>
                 <Link className="footer__link" href="/profile/favorites">
-                  Wish List
+                  {t('footer.favorites')}
                 </Link>
                 <button
                   type="button"
                   className="footer__link"
                   disabled={logoutLoading}
-                  onClick={handleLogout}
+                  onClick={() => void handleLogout()}
                 >
-                  Logout
+                  {t('footer.logout')}
                 </button>
               </>
             ) : (
               <>
-                <Link className="footer__link" href="/auth/register">
-                  Create Account
+                <Link
+                  className="footer__link"
+                  href={withNextQuery('/auth/register', returnPath)}
+                >
+                  {t('footer.createAccount')}
                 </Link>
-                <Link className="footer__link" href="/auth/login">
-                  Log In
+                <Link
+                  className="footer__link"
+                  href={withNextQuery('/auth/login', returnPath)}
+                >
+                  {t('footer.login')}
                 </Link>
               </>
             )}
@@ -134,9 +160,9 @@ export const Footer = () => {
         </div>
       </div>
 
-      <p className="text-center">
-        &copy; 2026 {WEBSITE_NAME} All rights reserved.
+      <p className="footer__legal">
+        &copy; 2026 {WEBSITE_NAME}. {t('footer.rights')}
       </p>
     </footer>
   );
-};
+}

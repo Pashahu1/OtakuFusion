@@ -1,6 +1,7 @@
-﻿import { useCallback, useState, useRef, useEffect } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   DEFAULT_WATCH_STREAM_PROVIDER,
+  normalizeWatchStreamProvider,
   type WatchStreamProvider,
 } from '@/features/watch/lib/watch-provider';
 
@@ -9,14 +10,21 @@ export function useWatchProviderState(
   initialProvider?: WatchStreamProvider,
 ) {
   const [watchStreamProvider, setWatchStreamProviderState] = useState<WatchStreamProvider>(
-    () => initialProvider ?? DEFAULT_WATCH_STREAM_PROVIDER,
+    () =>
+      initialProvider
+        ? normalizeWatchStreamProvider(initialProvider)
+        : DEFAULT_WATCH_STREAM_PROVIDER,
   );
   const [streamLangRevision, setStreamLangRevision] = useState(0);
   const hydratedContinueProviderRef = useRef(false);
 
   useEffect(() => {
     hydratedContinueProviderRef.current = false;
-    setWatchStreamProviderState(initialProvider ?? DEFAULT_WATCH_STREAM_PROVIDER);
+    setWatchStreamProviderState(
+      initialProvider
+        ? normalizeWatchStreamProvider(initialProvider)
+        : DEFAULT_WATCH_STREAM_PROVIDER,
+    );
     setStreamLangRevision(0);
   }, [animeId, initialProvider]);
 
@@ -25,15 +33,16 @@ export function useWatchProviderState(
     if (hydratedContinueProviderRef.current) return;
 
     hydratedContinueProviderRef.current = true;
-    setWatchStreamProviderState(initialProvider);
+    setWatchStreamProviderState(normalizeWatchStreamProvider(initialProvider));
   }, [animeId, initialProvider]);
 
   const setWatchStreamProvider = useCallback((next: WatchStreamProvider) => {
     hydratedContinueProviderRef.current = true;
+    const coerced = normalizeWatchStreamProvider(next);
     setWatchStreamProviderState((prev) => {
-      if (prev === next) return prev;
+      if (prev === coerced) return prev;
       setStreamLangRevision((n) => n + 1);
-      return next;
+      return coerced;
     });
   }, []);
 

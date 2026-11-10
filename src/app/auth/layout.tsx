@@ -4,7 +4,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-dvh w-full flex-col items-center justify-center gap-6 overflow-hidden bg-black px-4 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))] sm:gap-8 sm:px-6 sm:pt-[max(2.5rem,env(safe-area-inset-top))] sm:pb-[max(2.5rem,env(safe-area-inset-bottom))]">
+    <div className="relative flex w-full flex-1 flex-col items-center justify-center gap-6 overflow-hidden bg-[var(--color-brand-gray-dark)] px-4 pt-[calc(60px+max(1rem,env(safe-area-inset-top)))] pb-8 sm:gap-8 sm:px-6">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -26,8 +26,8 @@ export default function AuthLayout({
             radial-gradient(
               ellipse 145% 128% at 50% 50%,
               transparent 0%,
-              rgba(0, 0, 0, 0.55) 58%,
-              #000000 100%
+              rgb(12 12 14 / 0.55) 58%,
+              #0c0c0e 100%
             )
           `,
         }}

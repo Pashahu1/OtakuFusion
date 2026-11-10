@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/Card/Card';
 import { loadDiscoverBrowsePage } from '@/app/discover/[section]/actions';
 import type { DiscoverBrowseResult } from '@/lib/api/discover';
@@ -23,6 +24,7 @@ export function DiscoverBrowseLoadMore({
   initialPage,
   hasNextPage: initialHasNext,
 }: DiscoverBrowseLoadMoreProps) {
+  const { t } = useTranslation('common');
   const [items, setItems] = useState(initialItems);
   const [page, setPage] = useState(initialPage);
   const [hasNextPage, setHasNextPage] = useState(initialHasNext);
@@ -68,9 +70,9 @@ export function DiscoverBrowseLoadMore({
             type="button"
             onClick={loadMore}
             disabled={isPending}
-            className="rounded-md border border-white/15 bg-white/5 px-8 py-3 text-sm font-semibold text-white transition-colors hover:border-brand-orange/50 hover:bg-white/10 disabled:opacity-50"
+            className="catalog-load-more"
           >
-            {isPending ? 'Loading…' : 'Load more'}
+            {isPending ? t('actions.loading') : t('actions.loadMore')}
           </button>
         </div>
       ) : null}

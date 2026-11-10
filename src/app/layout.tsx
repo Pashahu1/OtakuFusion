@@ -6,6 +6,9 @@ import { Suspense } from 'react';
 import { InitialLoader } from '@/components/ui/InitialLoader/InitialLoader';
 import { AppToaster } from '@/components/ui/AppToaster';
 import { AuthProvider } from '@/context/AuthContext';
+import { ThemeProvider } from '@/features/theme/ThemeProvider';
+import { THEME_BOOTSTRAP_SCRIPT } from '@/features/theme/theme';
+import { I18nProvider } from '@/i18n/I18nProvider';
 import type { Viewport } from 'next';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { AuthQueryBridge } from '@/components/providers/auth-query-bridge';
@@ -23,8 +26,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#141414' },
-    { media: '(prefers-color-scheme: light)', color: '#141414' },
+    { media: '(prefers-color-scheme: dark)', color: '#0c0c0e' },
+    { media: '(prefers-color-scheme: light)', color: '#0c0c0e' },
   ],
 };
 
@@ -99,8 +102,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html className="dark" lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
         <link rel="dns-prefetch" href="https://s4.anilist.co" />
         <link rel="dns-prefetch" href="https://artworks.thetvdb.com" />
       </head>
@@ -110,15 +114,19 @@ export default function RootLayout({
       >
         <Suspense fallback={<InitialLoader />}>
           <QueryProvider>
-            <AuthProvider>
-              <AuthQueryBridge />
-              <div className="layout">
-                <Header />
-                <main className="main">{children}</main>
-                <Footer />
-              </div>
-            <AppToaster />
-            </AuthProvider>
+            <I18nProvider>
+              <ThemeProvider>
+                <AuthProvider>
+                  <AuthQueryBridge />
+                  <div className="layout">
+                    <Header />
+                    <main className="main">{children}</main>
+                    <Footer />
+                  </div>
+                  <AppToaster />
+                </AuthProvider>
+              </ThemeProvider>
+            </I18nProvider>
           </QueryProvider>
         </Suspense>
         <Analytics />

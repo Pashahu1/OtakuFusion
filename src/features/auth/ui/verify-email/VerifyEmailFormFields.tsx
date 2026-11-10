@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import { UnderlineField } from '@/components/auth/underline-field';
 import { digitsOnly } from '@/features/auth/lib/verify-email-utils';
 import { cn } from '@/lib/utils';
@@ -21,9 +23,11 @@ export function VerifyEmailFormFields({
   onEmailChange,
   onCodeChange,
 }: VerifyEmailFormFieldsProps) {
+  const { t } = useTranslation('common');
+
   return (
     <div className="space-y-1">
-      <UnderlineField id="verify-email" label="Email address" hasError={emailError}>
+      <UnderlineField id="verify-email" label={t('auth.emailAddress')} hasError={emailError}>
         <input
           id="verify-email"
           type="email"
@@ -56,7 +60,7 @@ export function VerifyEmailFormFields({
             codeError ? 'text-red-400' : 'text-[var(--color-brand-orange)]',
           )}
         >
-          6-digit code
+          {t('auth.sixDigitCode')}
         </label>
         <input
           id="verify-code"
@@ -68,7 +72,7 @@ export function VerifyEmailFormFields({
           onChange={(e) => onCodeChange(digitsOnly(e.target.value, 6))}
           className="w-full bg-transparent py-2 text-center font-mono text-[1.65rem] tracking-[0.45em] text-[var(--color-brand-text-primary)] outline-none placeholder:text-zinc-600 sm:text-3xl sm:tracking-[0.5em]"
           placeholder="••••••"
-          aria-label="Six digit verification code"
+          aria-label={t('auth.sixDigitAria')}
           aria-invalid={codeError}
         />
       </div>

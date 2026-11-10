@@ -13,6 +13,8 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import './ContinueWatchingSection.scss';
 import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
+import { useTranslation } from 'react-i18next';
+
 import { ContinueWatchingCard } from './ContinueWatchingCard';
 
 const STORAGE_KEY = CONTINUE_WATCHING_STORAGE_KEY;
@@ -54,19 +56,21 @@ export function ContinueWatchingSection() {
     };
   }, [refreshList]);
 
+  const { t } = useTranslation('common');
+
   if (list.length === 0) return null;
 
   return (
     <section className="continue-watching-section w-full px-4 md:px-6 lg:px-10">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-title text-brand-text-primary">Continue watching</h2>
+        <h2 className="text-title text-brand-text-primary">{t('home.continueWatching')}</h2>
       </div>
       <div className="continue-watching-slider relative overflow-hidden">
         <button
           id={nextNavId}
           type="button"
           className="continue-watching-nav continue-watching-nav--right"
-          aria-label="Next"
+          aria-label={t('actions.next')}
         >
           <ChevronRight className="h-6 w-6" />
         </button>
@@ -74,7 +78,7 @@ export function ContinueWatchingSection() {
           id={prevNavId}
           type="button"
           className="continue-watching-nav continue-watching-nav--left"
-          aria-label="Previous"
+          aria-label={t('actions.previous')}
         >
           <ChevronLeft className="h-6 w-6" />
         </button>

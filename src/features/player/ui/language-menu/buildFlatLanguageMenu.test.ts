@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildFlatLanguageMenu, languageMenuTooltip } from './buildFlatLanguageMenu';
+import { buildFlatLanguageMenu } from './buildFlatLanguageMenu';
 import { resolveLanguageMenuAnikotoLang } from './resolveLanguageMenuAnikotoLang';
 
 describe('resolveLanguageMenuAnikotoLang', () => {
@@ -17,40 +17,21 @@ describe('resolveLanguageMenuAnikotoLang', () => {
 
 describe('buildFlatLanguageMenu', () => {
   const base = {
-    anilibertyLanguageMenuEligible: false,
     hikkaLanguageMenuEligible: false,
     anikotoLanguageMenuEligible: true,
   };
 
-  it('marks Japanese active when stream resolved sub after failed dub pick', () => {
+  it('hides Japanese and English while Anikoto playback is locked', () => {
     const menu = buildFlatLanguageMenu({
       ...base,
-      watchStreamProvider: 'anikoto',
-      activeServerId: '2',
+      hikkaLanguageMenuEligible: true,
+      watchStreamProvider: 'hikka',
+      activeServerId: '1',
       resolvedStreamLang: 'sub',
     });
 
-    expect(menu.find((item) => item.html === 'Japanese')?.default).toBe(true);
-    expect(menu.find((item) => item.html === 'English')?.default).toBe(false);
-  });
-
-  it('shows Anilibria after provider fallback from hikka', () => {
-    const menu = buildFlatLanguageMenu({
-      ...base,
-      hikkaLanguageMenuEligible: true,
-      anilibertyLanguageMenuEligible: true,
-      watchStreamProvider: 'aniliberty',
-      activeServerId: '1',
-    });
-
-    expect(languageMenuTooltip({
-      ...base,
-      hikkaLanguageMenuEligible: true,
-      anilibertyLanguageMenuEligible: true,
-      watchStreamProvider: 'aniliberty',
-      activeServerId: '1',
-    })).toBe('Anilibria');
-    expect(menu.find((item) => item.html === 'Anilibria')?.default).toBe(true);
-    expect(menu.find((item) => item.html === 'Ukrainian')?.default).toBe(false);
+    expect(menu.find((item) => item.html === 'Japanese')).toBeUndefined();
+    expect(menu.find((item) => item.html === 'English')).toBeUndefined();
+    expect(menu.find((item) => item.html === 'Ukrainian')?.default).toBe(true);
   });
 });

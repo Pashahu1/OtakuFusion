@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -17,15 +18,14 @@ export function ProfileEditPresetAvatars({
   disabled,
   onSelect,
 }: ProfileEditPresetAvatarsProps) {
+  const { t } = useTranslation('common');
   const activeSrc = selectedSrc ?? currentAvatarSrc;
 
   return (
     <div className="profile-edit__picker">
       <div className="profile-edit__picker-head">
-        <h4 className="profile-edit__picker-title">Choose your avatar</h4>
-        <p className="profile-edit__picker-subtitle">
-          Pick a character icon — streaming-style profiles, like Netflix or Disney+.
-        </p>
+        <h4 className="profile-edit__picker-title">{t('profile.chooseAvatar')}</h4>
+        <p className="profile-edit__picker-subtitle">{t('profile.chooseAvatarHint')}</p>
       </div>
 
       <div className="profile-edit__picker-groups">
@@ -45,7 +45,10 @@ export function ProfileEditPresetAvatars({
                       isActive && 'profile-edit__picker-item--active',
                     )}
                     disabled={disabled}
-                    aria-label={`${preset.label} from ${group.title}`}
+                    aria-label={t('profile.avatarFrom', {
+                      name: preset.label,
+                      group: group.title,
+                    })}
                     aria-pressed={isActive}
                     onClick={() => onSelect(preset.src)}
                   >

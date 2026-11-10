@@ -2,7 +2,6 @@ import { restoreCachedAlternateLanguageMenu } from './watchAnimeCatalogUtils';
 import type { ProviderOnlyCatalogLoadInput } from './providerOnlyCatalogLoadTypes';
 import { applyWarmProviderSwap } from './provider-only-load/providerSwapHelpers';
 import { runAnikotoProviderOnlyLoad } from './provider-only-load/runAnikotoProviderOnlyLoad';
-import { runAnilibertyProviderOnlyLoad } from './provider-only-load/runAnilibertyProviderOnlyLoad';
 import { runHikkaProviderOnlyLoad } from './provider-only-load/runHikkaProviderOnlyLoad';
 
 export type { ProviderOnlyCatalogLoadInput } from './providerOnlyCatalogLoadTypes';
@@ -24,8 +23,6 @@ export function runProviderOnlyCatalogLoad(
     applyCtx,
     menuSetters,
     setHikkaCatalogProviderId,
-    setAnilibertyCatalogProviderId,
-    setAnilibertyLanguageMenuEligible,
     setHikkaLanguageMenuEligible,
     setError,
   } = deps;
@@ -57,21 +54,14 @@ export function runProviderOnlyCatalogLoad(
       dataForResolve,
       warm.hikka.episodes,
       warm.hikka.slug,
-      'hikka',
       preserveEpisodeNum ?? null,
       setHikkaCatalogProviderId,
       setHikkaLanguageMenuEligible,
-      setAnilibertyCatalogProviderId,
-      setAnilibertyLanguageMenuEligible,
     );
     return () => {
       input.markCancelled();
       input.abortSignal();
     };
-  }
-
-  if (watchStreamProvider === 'aniliberty') {
-    return runAnilibertyProviderOnlyLoad(input);
   }
 
   if (watchStreamProvider === 'anikoto') {

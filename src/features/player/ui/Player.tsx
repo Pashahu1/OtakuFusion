@@ -25,7 +25,6 @@ export function Player({
   setWatchStreamProvider,
   onPlaybackError,
   onPlaybackSurfaceReady,
-  anilibertyLanguageMenuEligible = false,
   hikkaLanguageMenuEligible = false,
   anikotoLanguageMenuEligible = false,
 }: PlayerProps) {
@@ -54,10 +53,9 @@ export function Player({
     setWatchStreamProvider,
     onPlaybackError,
     onPlaybackSurfaceReady,
-    anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
   });
 
-  return <div ref={artRef} className="relative h-full w-full"></div>;
+  return <div ref={artRef} className="of-player relative h-full w-full"></div>;
 }

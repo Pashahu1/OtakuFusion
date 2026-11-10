@@ -68,14 +68,14 @@
 }
 
 .schedule-event:hover {
-  border-color: rgba(249, 115, 22, 0.45);
-  background: rgba(249, 115, 22, 0.08);
+  border-color: rgb(244 117 33 /  0.45);
+  background: rgb(244 117 33 /  0.08);
   transform: translateY(-1px);
 }
 
 .schedule-event:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.55);
+  box-shadow: 0 0 0 2px rgb(244 117 33 /  0.55);
 }
 
 .schedule-event--no-poster {

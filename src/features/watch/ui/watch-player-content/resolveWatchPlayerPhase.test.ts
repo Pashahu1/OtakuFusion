@@ -53,13 +53,13 @@ describe('resolveWatchPlayerPhase', () => {
     ).toBe('error');
   });
 
-  it('returns idle when built-in error is set but a stale stream url is still present', () => {
+  it('returns error when the built-in player dies even if a stream url is still set', () => {
     expect(
       resolveWatchPlayerPhase({
         ...base,
         hasBuiltinError: true,
         streamUrl: 'https://example.com/stream.m3u8',
       }),
-    ).toBe('idle');
+    ).toBe('error');
   });
 });

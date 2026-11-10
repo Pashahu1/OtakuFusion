@@ -4,11 +4,16 @@
   width: 100%;
 
   &__hero {
-    height: clamp(680px, 88vh, 1040px);
-    min-height: clamp(680px, 88vh, 1040px);
+    height: clamp(560px, 92svh, 1040px);
+    min-height: clamp(560px, 92svh, 1040px);
     margin-top: -60px;
     padding-top: 60px;
     background: linear-gradient(180deg, #1a1b1e 0%, #000 100%);
+
+    @media (max-width: 767px) {
+      height: min(92svh, 640px);
+      min-height: min(92svh, 640px);
+    }
   }
 
   &__recommended {

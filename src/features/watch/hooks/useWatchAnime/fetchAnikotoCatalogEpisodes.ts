@@ -69,7 +69,6 @@ export async function fetchAnikotoCatalogEpisodes(
   return {
     providerId,
     episodes: list,
-    freshLibertyCatalog: null,
     freshHikkaCatalog: null,
   };
 }

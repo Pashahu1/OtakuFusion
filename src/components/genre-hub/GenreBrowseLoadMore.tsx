@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/Card/Card';
 import type { GenreBrowseResult } from '@/lib/api/genre-hub';
 import type { GenreMediaFilter } from '@/shared/data/genre-hub';
@@ -28,6 +29,7 @@ export function GenreBrowseLoadMore({
   initialPage,
   hasNextPage: initialHasNext,
 }: GenreBrowseLoadMoreProps) {
+  const { t } = useTranslation('common');
   const [items, setItems] = useState(initialItems);
   const [page, setPage] = useState(initialPage);
   const [hasNextPage, setHasNextPage] = useState(initialHasNext);
@@ -75,9 +77,9 @@ export function GenreBrowseLoadMore({
             type="button"
             onClick={loadMore}
             disabled={isPending}
-            className="rounded-md border border-white/15 bg-white/5 px-8 py-3 text-sm font-semibold text-white transition-colors hover:border-brand-orange/50 hover:bg-white/10 disabled:opacity-50"
+            className="catalog-load-more"
           >
-            {isPending ? 'Loading…' : 'Load more'}
+            {isPending ? t('actions.loading') : t('actions.loadMore')}
           </button>
         </div>
       ) : null}

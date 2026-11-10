@@ -1,23 +1,35 @@
 .watch-play-page {
   width: 100%;
-  padding: 72px 0 56px;
+  height: 100svh;
+  height: 100dvh;
+  padding: 0;
   box-sizing: border-box;
   background: #000;
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow-x: hidden;
-
-  @media (orientation: landscape) and (max-height: 520px) {
-    padding: 60px 0 0;
-    min-height: 100dvh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  overflow: hidden;
 }
 
-@media (orientation: landscape) and (max-height: 520px) {
-  .watch-play-shell__content {
-    padding-inline: 12px;
-    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
-  }
+html:has(.watch-play-page),
+html.theater-mode {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html:has(.watch-play-page) body,
+html.theater-mode body,
+html:has(.watch-play-page) .layout,
+html.theater-mode .layout,
+html:has(.watch-play-page) .main,
+html.theater-mode .main {
+  min-height: 100svh;
+  min-height: 100dvh;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+html:has(.watch-play-page) .header,
+html.theater-mode .header,
+html:has(.watch-play-page) .footer,
+html.theater-mode .footer {
+  display: none !important;
 }

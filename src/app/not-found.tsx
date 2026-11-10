@@ -2,9 +2,11 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 export default function NotFoundPage() {
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-neutral-950 text-center text-white">
@@ -20,7 +22,7 @@ export default function NotFoundPage() {
             width={400}
             height={200}
             src="/sukuna-404.png"
-            alt="Page not found — 404 illustration"
+            alt={t('notFound.alt')}
             sizes="(max-width: 768px) min(90vw, 400px), 400px"
             className="drop-shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-transform duration-300 hover:drop-shadow-[0_0_40px_rgba(220,38,38,0.7)]"
           />
@@ -37,16 +39,16 @@ export default function NotFoundPage() {
         </h1>
 
         <p className="max-w-sm text-lg text-neutral-400 md:text-xl">
-          Oops... The page you’re looking for doesn’t exist.
+          {t('notFound.message')}
         </p>
 
         <button
           type="button"
           className="group relative mt-8 h-14 w-56 overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 to-orange-600 px-6 text-lg font-semibold shadow-[0_0_30px_rgba(220,38,38,0.3)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(220,38,38,0.5)] active:scale-95"
           onClick={() => router.push('/')}
-          aria-label="Return to Home Page"
+          aria-label={t('notFound.homeAria')}
         >
-          <span className="relative z-10">Return Home</span>
+          <span className="relative z-10">{t('notFound.home')}</span>
           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         </button>
       </div>

@@ -4,6 +4,9 @@ import {
   buildProfileDashboardData,
   formatActivityRelativeTime,
   heatmapWeekColumns,
+  milestoneScale,
+  countToHeatLevel,
+  countToStatLevel,
 } from './profile-stats';
 import type { WatchActivityEntry } from './watch-activity-log';
 
@@ -74,6 +77,44 @@ describe('formatActivityRelativeTime', () => {
     expect(formatActivityRelativeTime(now)).toBe('Today');
     expect(formatActivityRelativeTime(now - 86_400_000)).toBe('Yesterday');
     expect(formatActivityRelativeTime(now - 3 * 86_400_000)).toBe('3 days ago');
+  });
+});
+
+describe('milestoneScale', () => {
+  it('picks a nearby ladder above the current value', () => {
+    expect(milestoneScale(1)).toMatchObject({
+      ticks: [10, 25, 50],
+      max: 50,
+      percent: 2,
+    });
+    expect(milestoneScale(120)).toMatchObject({
+      ticks: [50, 100, 150],
+      max: 150,
+    });
+    expect(milestoneScale(0).percent).toBe(0);
+  });
+});
+
+describe('countToHeatLevel', () => {
+  it('maps episode counts onto the color buckets', () => {
+    expect(countToHeatLevel(0)).toBe(0);
+    expect(countToHeatLevel(1)).toBe(1);
+    expect(countToHeatLevel(3)).toBe(2);
+    expect(countToHeatLevel(5)).toBe(3);
+    expect(countToHeatLevel(8)).toBe(4);
+    expect(countToHeatLevel(12)).toBe(5);
+  });
+});
+
+describe('countToStatLevel', () => {
+  it('shifts palette after 10, then at 25 / 50 / 100', () => {
+    expect(countToStatLevel(6)).toBe(1);
+    expect(countToStatLevel(9)).toBe(1);
+    expect(countToStatLevel(10)).toBe(2);
+    expect(countToStatLevel(24)).toBe(2);
+    expect(countToStatLevel(25)).toBe(3);
+    expect(countToStatLevel(50)).toBe(4);
+    expect(countToStatLevel(100)).toBe(5);
   });
 });
 

@@ -13,6 +13,7 @@ import { useEpisodePreviewObjectUrl } from '@/features/watch/hooks/useEpisodePre
 import { setPendingPlaybackResume } from '@/features/watch/lib/playback-resume-pending';
 import { watchPlayPath } from '@/shared/utils/watch-routes';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
+import { displayCatalogTitle } from '@/i18n/catalog-title';
 import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
 
 const FALLBACK_POSTER_SRC =
@@ -23,6 +24,7 @@ interface ContinueWatchingCardProps {
 }
 
 export function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
+  const catalogTitle = displayCatalogTitle(item) || 'Anime';
   const epParam = continueWatchingEpisodeParam(item);
   const progress = continueWatchingProgressRatio(item.positionSeconds, item.durationSeconds);
   const timeLeft = continueWatchingTimeLeftLabel(item.positionSeconds, item.durationSeconds);
@@ -51,13 +53,13 @@ export function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
             // eslint-disable-next-line @next/next/no-img-element -- blob URL from IndexedDB
             <img
               src={imageSrc}
-              alt={item.title || item.japanese_title || 'Anime'}
+              alt={catalogTitle}
               className="absolute inset-0 h-full w-full object-cover object-center transition duration-300 group-hover:brightness-110"
             />
           ) : (
             <Image
               src={imageSrc}
-              alt={item.title || item.japanese_title || 'Anime'}
+              alt={catalogTitle}
               fill
               quality={92}
               onError={(event) => {
@@ -78,7 +80,7 @@ export function ContinueWatchingCard({ item }: ContinueWatchingCardProps) {
         </div>
         <div className="continue-watching-card__meta">
           <p className="continue-watching-card__series">
-            {item.title || item.japanese_title || 'Anime'}
+            {catalogTitle}
           </p>
           <p className="continue-watching-card__episode">E{epParam}</p>
         </div>

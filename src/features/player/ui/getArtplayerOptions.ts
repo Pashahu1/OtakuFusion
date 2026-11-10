@@ -1,7 +1,6 @@
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control';
 import type Artplayer from 'artplayer';
 import type Hls from 'hls.js';
-import { artplayerPluginUploadSubtitle } from './artplayerPluginUploadSubtitle';
 import artplayerPluginChapter from './artPlayerPluginChapter';
 import { SUBTITLE_DEFAULT_STYLE } from './playerConstants';
 
@@ -11,52 +10,59 @@ import {
   loadingIcon,
   muteIcon,
   pauseIcon,
-  pipIcon,
   playIcon,
   playIconLg,
-  settingsIcon,
   volumeIcon,
 } from './PlayerIcons';
 import { playM3u8 } from './playerStream';
 import { urlLooksLikeHlsStream } from '@/lib/streamMediaType';
+import { ARTPLAYER_NETFLIX_CSS_VAR } from './player-chrome/artplayerCssVar';
+import { getArtplayerSkipControls } from './player-skip/getArtplayerSkipControls';
 import { getPlayerLayers } from './getPlayerLayers';
+import { tStatic } from '@/i18n/t';
+import { createArtplayerAnime4kPlugin } from './anime4k/createArtplayerAnime4kPlugin';
 
 export function getArtplayerOptions(
   userPausedRef: React.RefObject<boolean>,
   onM3u8HlsInstance?: (hls: InstanceType<typeof Hls>, art: Artplayer) => void,
   onM3u8HlsBeforeLoad?: (hls: InstanceType<typeof Hls>) => void,
-  useManualStreamQuality?: boolean,
+  _useManualStreamQuality?: boolean,
 ) {
   return {
     plugins: [
       artplayerPluginHlsControl({
         quality: {
-          control: !useManualStreamQuality,
+          control: false,
           setting: false,
           getName: (level: { height?: number }) => {
             const h = level?.height ?? 0;
-            return h > 0 ? `${h}p` : 'Auto';
+            return h > 0 ? `${h}p` : tStatic('player.auto');
           },
-          title: 'Quality',
-          auto: 'Auto',
+          title: tStatic('player.quality'),
+          auto: tStatic('player.auto'),
         },
       }),
-      artplayerPluginUploadSubtitle(),
       artplayerPluginChapter({
         chapters: [],
       }),
+      createArtplayerAnime4kPlugin(),
     ],
     subtitle: {
       style: SUBTITLE_DEFAULT_STYLE,
       escape: false,
     },
     layers: getPlayerLayers(userPausedRef),
+    controls: getArtplayerSkipControls(),
+    cssVar: ARTPLAYER_NETFLIX_CSS_VAR,
+    moreVideoAttr: {
+      controls: false,
+      playsInline: true,
+      crossOrigin: 'anonymous',
+    },
     icons: {
       play: playIcon,
       pause: pauseIcon,
-      setting: settingsIcon,
       volume: volumeIcon,
-      pip: pipIcon,
       volumeClose: muteIcon,
       state: playIconLg,
       loading: loadingIcon,

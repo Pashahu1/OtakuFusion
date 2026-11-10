@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
@@ -8,7 +9,8 @@ import { Bookmark } from 'lucide-react';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { cn } from '@/lib/utils';
 import { useIsFavoriteAnime } from '@/hooks/useFavorites';
-import { getStreamAvailabilityLabel } from '@/shared/utils/streamAvailabilityLabel';
+import { displayCatalogTitle } from '@/i18n/catalog-title';
+import { getStreamAvailabilityLabel } from '@/features/watch/lib/watch-availability';
 import { buildCardFooterFallbackLine, splitTenPointRating } from './card-meta';
 import { CardHoverPanel } from './CardHoverPanel';
 
@@ -30,6 +32,8 @@ export function Card({
   priority = false,
   posterEager = false,
 }: CardProps) {
+  const { t } = useTranslation('common');
+  const catalogTitle = displayCatalogTitle(anime);
   const fallbackPosterSrc =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='900' viewBox='0 0 600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23111827'/%3E%3Cstop offset='55%25' stop-color='%230b1220'/%3E%3Cstop offset='100%25' stop-color='%2303070d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='900' fill='url(%23g)'/%3E%3Ccircle cx='300' cy='410' r='118' fill='none' stroke='%23334155' stroke-width='20'/%3E%3Cpath d='M165 700c33-92 102-137 135-137s102 45 135 137' fill='none' stroke='%23334155' stroke-width='20' stroke-linecap='round'/%3E%3C/svg%3E";
   const resolvedPosterSrc = useMemo(() => {
@@ -55,7 +59,7 @@ export function Card({
 
   const metaLinePrimary = tv?.showType?.trim() || '';
   const metaLineSecondary = looksLikeEpisodeCount
-    ? `${Number(episodeCountRaw).toLocaleString()} Episodes`
+    ? t('watch.episode', { count: Number(episodeCountRaw) })
     : tv?.duration?.trim() || '';
 
   const ratingParts = tv?.rating ? splitTenPointRating(tv.rating) : null;
@@ -70,9 +74,9 @@ export function Card({
         prefetch
         href={`/watch/${anime.id}`}
         className="absolute inset-0 z-0 block outline-none focus-visible:z-[5] focus-visible:ring-2 focus-visible:ring-[var(--color-brand-orange)] focus-visible:ring-inset"
-        aria-label={`Watch ${anime.title}`}
+        aria-label={t('watch.watchTitle', { title: catalogTitle })}
       >
-        <span className="sr-only">Watch {anime.title}</span>
+        <span className="sr-only">{t('watch.watchTitle', { title: catalogTitle })}</span>
       </Link>
 
       <div className="relative z-10 w-full pointer-events-none">
@@ -80,14 +84,14 @@ export function Card({
           <div className="aspect-[2/3] w-full shrink-0" aria-hidden />
           <div
             className={cn(
-              'flex min-h-[3.25rem] w-full min-w-0 flex-col gap-0.5 bg-black px-2 py-2 transition-opacity duration-300 group-focus-within/card:pointer-events-none group-focus-within/card:opacity-0 group-hover/card:pointer-events-none group-hover/card:opacity-0',
+              'flex min-h-[3.25rem] w-full min-w-0 flex-col gap-0.5 bg-brand-gray-dark px-2 py-2 transition-opacity duration-300 group-focus-within/card:pointer-events-none group-focus-within/card:opacity-0 group-hover/card:pointer-events-none group-hover/card:opacity-0',
             )}
           >
             <p
               className="line-clamp-2 leading-tight font-semibold text-white"
               style={{ fontSize: 'var(--text-card-title)' }}
             >
-              {anime.title}
+              {catalogTitle}
             </p>
             {underTitleSecondary ? (
               <p
@@ -111,7 +115,7 @@ export function Card({
         >
           <Image
             src={posterSrc}
-            alt={`${anime.title} poster`}
+            alt={t('watch.posterAlt', { title: catalogTitle })}
             fill
             quality={posterQuality}
             priority={priority}

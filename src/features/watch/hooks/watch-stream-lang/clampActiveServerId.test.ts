@@ -8,7 +8,7 @@ import { clampActiveServerId } from './clampActiveServerId';
 type ClampInput = {
   id: string | null;
   userChoseDub: boolean;
-  provider: 'aniliberty' | 'hikka' | 'anikoto';
+  provider: 'hikka' | 'anikoto';
   catalogHasDub: boolean;
   episodeHasDub: boolean | undefined;
 };
@@ -68,17 +68,6 @@ const cases: Array<{
       id: WATCH_SERVER_DUB_ID,
       userChoseDub: false,
       provider: 'hikka',
-      catalogHasDub: true,
-      episodeHasDub: true,
-    },
-    expected: WATCH_SERVER_SUB_ID,
-  },
-  {
-    name: 'aniliberty clamps dub to sub',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: false,
-      provider: 'aniliberty',
       catalogHasDub: true,
       episodeHasDub: true,
     },

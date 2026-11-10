@@ -1,4 +1,5 @@
 import { Play, Star } from 'lucide-react';
+import { displayCatalogTitle } from '@/i18n/catalog-title';
 import type { AnimeInfo } from '@/shared/types/GlobalAnimeTypes';
 import { truncateText } from '@/shared/utils/truncate-text';
 import { FavoriteBookmark } from '@/components/Card/FavoriteBookmark';
@@ -26,7 +27,7 @@ export function CardHoverPanel({
     <div className="pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col px-4 pt-4 pb-4 text-left opacity-0 transition-opacity duration-300 ease-out group-focus-within/card:opacity-100 group-hover/card:opacity-100">
       <div className="shrink-0 space-y-2">
         <p className="line-clamp-2 text-[15px] leading-snug font-bold tracking-tight text-white sm:text-base">
-          {anime.title}
+          {displayCatalogTitle(anime)}
         </p>
 
         {ratingParts ? (

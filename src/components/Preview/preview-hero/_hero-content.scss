@@ -10,11 +10,15 @@
     inset: 0;
     z-index: 2;
     box-sizing: border-box;
-    padding-bottom: clamp(240px, 32vh, 360px);
+    padding-bottom: clamp(16px, 3vh, 28px);
     pointer-events: none;
 
     @media (max-width: 1023px) {
       align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      padding-bottom: clamp(88px, 14vh, 140px);
     }
 
     @media (min-width: 1024px) {

@@ -1,4 +1,7 @@
-export { isHardHttpFailure } from './playback-preferences/httpFailure';
+export {
+  isHardHttpFailure,
+  isRetryableHttpFailure,
+} from './playback-preferences/httpFailure';
 export {
   getApproxDisplayShortSidePx,
   getBestLevelIndexForDisplay,
@@ -19,6 +22,7 @@ export {
   type AttachHlsQualityPersistOptions,
 } from './playback-preferences/hlsQualityPersistence';
 export { tryDowngradeHlsQualityLevel } from './playback-preferences/hlsQualityFallback';
+export { lockHlsQualityLevel } from './playback-preferences/lockHlsQualityLevel';
 export {
   readSubtitlePreference,
   writeSubtitlePreference,

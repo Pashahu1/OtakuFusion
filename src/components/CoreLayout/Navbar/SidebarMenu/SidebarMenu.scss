@@ -10,10 +10,10 @@
   bottom: 0;
   width: 100%;
   padding: 20px 0;
-  background-color: #11101a;
+  background-color: var(--of-menu-bg);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #ff640a transparent;
+  scrollbar-color: var(--color-brand-orange, #f47521) transparent;
   z-index: 99;
 
   &--enter {
@@ -52,7 +52,8 @@
     align-items: center;
     justify-content: center;
     width: auto;
-    height: 40px;
+    min-height: 44px;
+    height: 44px;
   }
 
   &::-webkit-scrollbar {
@@ -60,8 +61,8 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: #ff640a;
-    border-radius: 10px;
+    background-color: var(--color-brand-orange, #f47521);
+    border-radius: var(--radius-md, 10px);
   }
 }
 

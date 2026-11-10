@@ -16,7 +16,6 @@ export interface UseArtplayerLanguageMenuParams {
   setActiveServerId: PlayerProps['setActiveServerId'];
   watchStreamProvider: PlayerProps['watchStreamProvider'];
   setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
-  anilibertyLanguageMenuEligible: PlayerProps['anilibertyLanguageMenuEligible'];
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
   anikotoLanguageMenuEligible: PlayerProps['anikotoLanguageMenuEligible'];
   resolvedStreamLang?: 'sub' | 'dub' | null;
@@ -36,7 +35,6 @@ export function useArtplayerLanguageMenu({
   setActiveServerId,
   watchStreamProvider,
   setWatchStreamProvider,
-  anilibertyLanguageMenuEligible,
   hikkaLanguageMenuEligible,
   anikotoLanguageMenuEligible,
   resolvedStreamLang,
@@ -50,7 +48,6 @@ export function useArtplayerLanguageMenu({
   const watchStreamProviderRef = useRef(watchStreamProvider);
   const setWatchStreamProviderRef = useRef(setWatchStreamProvider);
   const setActiveServerIdRef = useRef(setActiveServerId);
-  const anilibertyEligibleRef = useRef(anilibertyLanguageMenuEligible ?? false);
   const hikkaEligibleRef = useRef(hikkaLanguageMenuEligible ?? false);
   const anikotoEligibleRef = useRef(anikotoLanguageMenuEligible ?? false);
   const resolvedStreamLangRef = useRef(resolvedStreamLang ?? null);
@@ -72,7 +69,6 @@ export function useArtplayerLanguageMenu({
     watchStreamProviderRef.current = watchStreamProvider;
     setWatchStreamProviderRef.current = setWatchStreamProvider;
     setActiveServerIdRef.current = setActiveServerId;
-    anilibertyEligibleRef.current = anilibertyLanguageMenuEligible ?? false;
     hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
     anikotoEligibleRef.current = anikotoLanguageMenuEligible ?? false;
     resolvedStreamLangRef.current = resolvedStreamLang ?? null;
@@ -82,7 +78,6 @@ export function useArtplayerLanguageMenu({
     watchStreamProvider,
     setWatchStreamProvider,
     setActiveServerId,
-    anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
     resolvedStreamLang,
@@ -97,7 +92,6 @@ export function useArtplayerLanguageMenu({
       watchStreamProvider: watchStreamProviderRef.current,
       setWatchStreamProvider: (next) => setWatchStreamProviderRef.current(next),
       setActiveServerId: (id) => setActiveServerIdRef.current(id),
-      anilibertyLanguageMenuEligible: anilibertyEligibleRef.current,
       hikkaLanguageMenuEligible: hikkaEligibleRef.current,
       anikotoLanguageMenuEligible: anikotoEligibleRef.current,
       resolvedStreamLang: resolvedStreamLangRef.current,
@@ -134,7 +128,6 @@ export function useArtplayerLanguageMenu({
   useEffect(() => {
     syncLanguageMenuIfReady();
   }, [
-    anilibertyLanguageMenuEligible,
     hikkaLanguageMenuEligible,
     anikotoLanguageMenuEligible,
     watchStreamProvider,
@@ -144,5 +137,5 @@ export function useArtplayerLanguageMenu({
     syncLanguageMenuIfReady,
   ]);
 
-  return { syncLanguageMenuIfReady, anilibertyEligibleRef, hikkaEligibleRef };
+  return { syncLanguageMenuIfReady, hikkaEligibleRef };
 }

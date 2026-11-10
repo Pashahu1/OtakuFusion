@@ -1,12 +1,12 @@
-﻿// Release schedule â€” aligned with profile panel styling (#141519, orange accents)
+// Release schedule â€” aligned with profile panel styling (#141519, orange accents)
 
 .anime-schedule {
   width: 100%;
   min-width: 0;
   font-family: var(--font-sans);
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: #141519;
+  border: 1px solid var(--of-border);
+  background: var(--of-surface);
   overflow: hidden;
   box-shadow: 0 12px 40px rgb(0 0 0 / 0.28);
 }
@@ -32,7 +32,7 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(249, 115, 22, 0.5) rgba(255, 255, 255, 0.05);
+  scrollbar-color: rgb(244 117 33 /  0.5) rgba(255, 255, 255, 0.05);
 }
 
 .schedule-days--compact::-webkit-scrollbar {
@@ -41,7 +41,7 @@
 
 .schedule-days--compact::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(249, 115, 22, 0.45);
+  background: rgb(244 117 33 /  0.45);
 }
 
 .schedule-day {
@@ -56,7 +56,7 @@
   border: none;
   border-right: 1px solid rgba(255, 255, 255, 0.04);
   background: transparent;
-  color: #a1a1aa;
+  color: var(--of-text-muted);
   cursor: pointer;
   transition:
     background 0.12s ease,
@@ -69,17 +69,17 @@
 
 .schedule-day:hover {
   background: rgba(255, 255, 255, 0.04);
-  color: #fff;
+  color: var(--of-text);
 }
 
 .schedule-day--active {
-  color: #fff;
-  background: rgba(249, 115, 22, 0.14);
-  box-shadow: inset 0 -2px 0 0 var(--color-brand-orange, #f97316);
+  color: var(--of-text);
+  background: rgb(244 117 33 /  0.14);
+  box-shadow: inset 0 -2px 0 0 var(--color-brand-orange, #f47521);
 }
 
 .schedule-day--today:not(.schedule-day--active) .schedule-day__num {
-  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.45);
+  box-shadow: inset 0 0 0 1px rgb(244 117 33 /  0.45);
 }
 
 .schedule-day__name {
@@ -118,6 +118,6 @@
   line-height: 1.125rem;
   text-align: center;
   color: #0a0a0a;
-  background: var(--color-brand-orange, #f97316);
+  background: var(--color-brand-orange, #f47521);
 }
 

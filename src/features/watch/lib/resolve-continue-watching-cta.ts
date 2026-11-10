@@ -1,3 +1,4 @@
+import { tStatic } from '@/i18n/t';
 import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import { watchPlayPath } from '@/shared/utils/watch-routes';
@@ -88,8 +89,8 @@ export function buildWatchCtaModel(
     episodeNum,
     playHref: watchPlayPath(animeId, episodeNum),
     ctaLabel: isContinue
-      ? `Continue Watching E${episodeNum}`
-      : `Start Watching E${episodeNum}`,
+      ? tStatic('watch.continueWatching', { episode: episodeNum })
+      : tStatic('watch.startWatching', { episode: episodeNum }),
     variant: isContinue ? 'continue' : 'watch',
     isPlayable: true,
   };
@@ -99,7 +100,7 @@ export function buildWatchUnavailableCtaModel(): WatchCtaModel {
   return {
     episodeNum: '',
     playHref: '',
-    ctaLabel: 'Not available yet',
+    ctaLabel: tStatic('watch.unavailable'),
     variant: 'unavailable',
     isPlayable: false,
   };
