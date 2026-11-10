@@ -54,7 +54,8 @@ function syncVariantQualityOptions(
         const url = item.url?.trim() ?? '';
         return url && id === `variant:${item.height}:${url}`;
       });
-      const nextUrl = variant?.url?.trim();
+      if (!variant) return;
+      const nextUrl = variant.url?.trim();
       if (!nextUrl) return;
       writeHlsQualityPreference({ height: variant.height });
       switchArtplayerToPlaylist(art, streamInfo, nextUrl);

@@ -58,6 +58,6 @@ export function bindNetflixVolumeControl(art: Artplayer, root: HTMLElement): voi
   });
 
   art.on('video:volumechange', sync);
-  art.on('volume', sync);
+  art.on('muted', sync);
   sync();
 }
