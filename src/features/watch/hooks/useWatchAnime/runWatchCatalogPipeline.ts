@@ -106,6 +106,7 @@ export async function runWatchCatalogPipeline(
   const applyOpts: ApplyWatchCatalogSuccessOpts = {
     forceFuzzy,
     freshHikkaCatalog: fetched.freshHikkaCatalog,
+    ukrainianPlayable: fetched.ukrainianPlayable,
     preserveEpisodeNum,
     settleLoading,
   };

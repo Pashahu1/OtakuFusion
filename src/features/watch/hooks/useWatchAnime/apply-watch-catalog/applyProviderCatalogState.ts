@@ -7,7 +7,10 @@ import type {
 export function applyProviderCatalogState(
   ctx: ApplyWatchCatalogSuccessContext,
   providerId: string,
-  opts: Pick<ApplyWatchCatalogSuccessOpts, 'forceFuzzy' | 'freshHikkaCatalog'>,
+  opts: Pick<
+    ApplyWatchCatalogSuccessOpts,
+    'forceFuzzy' | 'freshHikkaCatalog' | 'ukrainianPlayable'
+  >,
 ): void {
   const {
     animeId,
@@ -20,5 +23,5 @@ export function applyProviderCatalogState(
     writeVerifiedHikkaMapping(animeId, providerId);
   }
   setHikkaCatalogProviderId(providerId);
-  setHikkaLanguageMenuEligible(true);
+  setHikkaLanguageMenuEligible(opts.ukrainianPlayable !== false);
 }

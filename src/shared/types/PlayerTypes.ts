@@ -1,3 +1,4 @@
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { AnimeData } from './animeDetailsTypes';
 import type { EpisodesTypes } from './EpisodesListTypes';
@@ -26,6 +27,10 @@ export interface PlayerProps {
   setActiveServerId: (id: string | null) => void;
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (provider: WatchStreamProvider) => void;
+  playbackAudio: WatchPlaybackAudio;
+  setPlaybackAudio: (audio: WatchPlaybackAudio) => void;
+  anikotoJapaneseEligible?: boolean;
+  anikotoEnglishEligible?: boolean;
   onPlaybackError?: () => void;
   /** First stable frame / playback — so shell can remove loader without flash. */
   onPlaybackSurfaceReady?: () => void;

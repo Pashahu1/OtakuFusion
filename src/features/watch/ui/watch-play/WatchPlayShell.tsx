@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { formatEpisodeDuration } from '@/features/watch/lib/format-episode-duration';
+import type { WatchPlaybackLanguages } from '@/features/watch/lib/watch-availability';
 import { findWatchEpisode } from '@/features/watch/lib/watch-play-episode-utils';
 import { WatchPlayerContent } from '@/features/watch/ui/watch-player-content/WatchPlayerContent';
 import { WatchPlayEpisodesPanel } from './WatchPlayEpisodesPanel';
@@ -36,6 +37,10 @@ export function WatchPlayShell() {
     playerShellPending,
     watchStreamProvider,
     setWatchStreamProvider,
+    playbackAudio,
+    setPlaybackAudio,
+    anikotoJapaneseEligible,
+    anikotoEnglishEligible,
     streamOverlayMessage,
     hikkaLanguageMenuEligible,
   } = watch;
@@ -52,6 +57,11 @@ export function WatchPlayShell() {
     [animeInfo?.animeInfo?.tvInfo?.duration],
   );
 
+  const playbackLanguages: WatchPlaybackLanguages = {
+    ukrainian: hikkaLanguageMenuEligible,
+    japanese: anikotoJapaneseEligible,
+    english: anikotoEnglishEligible,
+  };
   const seriesTitle = animeInfo?.title ?? '';
   const posterUrl = animeInfo?.poster ?? '';
   const handleEpisodeSelect = (id: string) => {
@@ -83,6 +93,10 @@ export function WatchPlayShell() {
           setActiveServerId={setActiveServerId}
           watchStreamProvider={watchStreamProvider}
           setWatchStreamProvider={setWatchStreamProvider}
+          playbackAudio={playbackAudio}
+          setPlaybackAudio={setPlaybackAudio}
+          anikotoJapaneseEligible={anikotoJapaneseEligible}
+          anikotoEnglishEligible={anikotoEnglishEligible}
           showErrorBlock={showErrorBlock}
           playerShellPending={playerShellPending}
           streamOverlayMessage={streamOverlayMessage}
@@ -104,6 +118,7 @@ export function WatchPlayShell() {
         episodes={episodes ?? []}
         currentEpisodeId={episodeId}
         seriesTitle={seriesTitle}
+        languages={playbackLanguages}
         posterUrl={posterUrl}
         episodeDuration={episodeDuration}
         watchedEpisodes={watchedEpisodes}

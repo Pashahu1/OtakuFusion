@@ -18,6 +18,10 @@ export interface UseArtplayerInstanceParams {
   setActiveServerId: PlayerProps['setActiveServerId'];
   watchStreamProvider: PlayerProps['watchStreamProvider'];
   setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
+  playbackAudio: PlayerProps['playbackAudio'];
+  setPlaybackAudio: PlayerProps['setPlaybackAudio'];
+  anikotoJapaneseEligible: PlayerProps['anikotoJapaneseEligible'];
+  anikotoEnglishEligible: PlayerProps['anikotoEnglishEligible'];
   onPlaybackError: PlayerProps['onPlaybackError'];
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];

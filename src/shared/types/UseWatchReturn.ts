@@ -6,6 +6,7 @@ import type { SubtitleItem } from './PlayerTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
 import type { AnimeData } from './animeDetailsTypes';
 
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 
 export interface UseWatchReturn {
@@ -32,6 +33,10 @@ export interface UseWatchReturn {
   setActiveServerId: Dispatch<SetStateAction<string | null>>;
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (provider: WatchStreamProvider) => void;
+  playbackAudio: WatchPlaybackAudio;
+  setPlaybackAudio: (audio: WatchPlaybackAudio) => void;
+  anikotoJapaneseEligible: boolean;
+  anikotoEnglishEligible: boolean;
   streamErrorCode: string | null;
   /** Ukrainian (Hikka Features) item in Language menu. */
   hikkaLanguageMenuEligible: boolean;

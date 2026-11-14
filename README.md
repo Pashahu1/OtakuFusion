@@ -23,9 +23,9 @@
 
 OtakuFusion is a full-stack **Next.js 16** (App Router) app for browsing and watching anime.
 
-- **Metadata** comes from **AniList**.
-- **Live playback today** is **Ukrainian** via **Hikka** (server-side resolve → HLS).
-- The player is **Artplayer + HLS.js**, with skip intro/outro, quality, enhance, and continue watching.
+- **Metadata** comes from **AniList**. The episode list stays on that numbering.
+- **Audio** is chosen separately from the catalog: **Ukrainian** via **Hikka**, **Japanese** and **English** via **Anikoto**.
+- The player is **Artplayer + HLS.js**, with skip intro/outro, an HLS quality ladder, Anime4K enhance, and continue watching.
 - UI language is **English / Українська / Deutsch** (client i18n). Catalog titles, genres, and episode names stay **English** (API data).
 
 **Live demo:** [https://otaku-fusion.vercel.app/](https://otaku-fusion.vercel.app/)
@@ -36,28 +36,27 @@ This is a **portfolio / educational project**, not a licensed commercial streami
 
 ## Playback
 
-| Track | Provider | Status |
-|-------|----------|--------|
-| **Ukrainian** | Hikka | **Available** — default live stream |
-| **Japanese (Sub)** | — | **Not offered** |
-| **English (Dub)** | — | **Not offered** |
+The episode catalog does not change when the audio track changes. Ukrainian, Japanese, and English are playback choices on the same episode number.
 
-Playback is Ukrainian (Hikka) only. Saved Anikoto continue-watching prefs remap to Hikka.
+| Track | Source | When it is offered |
+|-------|--------|--------------------|
+| **Japanese** | Anikoto (`type=sub`) | Default when the title match has Japanese audio |
+| **English** | Anikoto (`type=dub`) | Only when the dub playlist is a different file from the Japanese one |
+| **Ukrainian** | Hikka | Only when the player file matches the open season (part, arc, year) |
 
-Default provider for new sessions is **Hikka (UA)**.
+If Japanese is missing, playback falls back to Ukrainian when Hikka is eligible, otherwise to English when that dub exists. The series page lists only the languages that passed these checks. Subtitles are marked available in the player when Japanese or English audio exists; a Ukrainian-only title stays “none”.
+
+Continue watching stores progress on the Hikka catalog. It does not restore the last Japanese or English choice — the next visit starts on Japanese again when that track exists.
 
 ```mermaid
 flowchart LR
-  subgraph persist [Written and saved today]
-    Prefs["Continue watching<br/>watchStreamProvider + streamLang"]
-  end
-
-  subgraph live [Playback available]
-    UA["Ukrainian — Hikka HLS"]
-  end
-
-  Prefs --> live
-  live --> Player["Artplayer + HLS.js"]
+  Catalog["AniList episode list"] --> Resolve["/api/watch/resolve"]
+  Resolve --> UA["Ukrainian — Hikka HLS"]
+  Resolve --> JA["Japanese — Anikoto sub"]
+  Resolve --> EN["English — Anikoto dub"]
+  UA --> Player["Artplayer + HLS.js"]
+  JA --> Player
+  EN --> Player
 ```
 
 ---
@@ -93,9 +92,11 @@ For **watch**, **HLS playback**, and **account** flows, open the [live demo](htt
 
 ### Watch
 
-- Custom **Artplayer** UI — HLS quality ladder, skip intro/outro, next episode, optional Anime4K enhance
-- **Continue watching** — progress, resume position, and stream prefs (saved Anikoto values remap to Hikka)
-- Server-side **stream resolve** (`/api/watch/resolve`) with retries
+- Custom **Artplayer** UI — HLS quality ladder, scrolling subtitle list, skip intro/outro, next episode
+- **Anime4K enhance** (Off / Restore / Quality / Auto) runs on the GPU after the file is downloaded. It is separate from the HLS quality ladder
+- Progress bar keeps a light track; only the played portion is orange
+- **Continue watching** — progress and resume position. Audio falls back to Japanese on the next visit when that track exists
+- Server-side **stream resolve** (`/api/watch/resolve`) for Hikka and Anikoto
 - Optional **Cloudflare HLS relay** for CDN segments that need Referer / CORS
 
 ### Discover
@@ -128,7 +129,7 @@ For **watch**, **HLS playback**, and **account** flows, open the [live demo](htt
 | Auth | JWT (`jose` HS256) + HTTP-only cookies |
 | Database | MongoDB (Mongoose) |
 | Metadata | AniList GraphQL |
-| Streams | Hikka (Ukrainian HLS) |
+| Streams | Hikka (Ukrainian HLS), Anikoto (Japanese / English HLS) |
 | Tests | Vitest |
 
 ---
@@ -150,6 +151,7 @@ flowchart LR
   subgraph bff [Next.js BFF]
     Resolve["/api/watch/resolve"]
     HikkaCatalog["/api/hikka/catalog"]
+    AnikotoMatch["/api/anikoto/match"]
     Proxy["/api/m3u8-proxy"]
     AniListAPI["/api/anilist/graphql"]
   end
@@ -157,11 +159,14 @@ flowchart LR
   subgraph server [Server]
     WR[watch-resolve]
     HikkaClient[Hikka client]
+    AnikotoClient[Anikoto client]
     WR --> HikkaClient
+    WR --> AnikotoClient
   end
 
   subgraph external [External]
     HikkaAPI[Hikka Features]
+    AnikotoAPI[Anikoto API]
     AniList[AniList GraphQL]
     DB[(MongoDB)]
     Relay[Cloudflare HLS relay]
@@ -169,24 +174,31 @@ flowchart LR
 
   Pages --> Resolve
   Pages --> HikkaCatalog
+  Pages --> AnikotoMatch
   Pages --> AniListAPI
   Player --> Proxy
   Player --> Relay
   Resolve --> WR
   HikkaCatalog --> HikkaClient
+  AnikotoMatch --> AnikotoClient
   HikkaClient --> HikkaAPI
+  AnikotoClient --> AnikotoAPI
   Relay --> HikkaAPI
   Pages --> DB
   AniListAPI --> AniList
 ```
 
-**Live resolve (Hikka / UA):**
+**Catalog and Ukrainian audio**
 
-1. Client loads the Ukrainian catalog via `POST /api/hikka/catalog`.
-2. `GET /api/watch/resolve?provider=hikka` extracts a playable HLS URL.
-3. Artplayer plays the stream (direct, `/api/m3u8-proxy`, or `NEXT_PUBLIC_M3U8_PROXY_BASE`).
+1. `POST /api/hikka/catalog` resolves the Hikka title and episode list.
+2. The first player file is checked against the open title (arc, part, season folder). A mismatch hides Ukrainian and keeps the AniList episode count.
+3. `GET /api/watch/resolve` without `playback_audio` extracts the Ukrainian HLS URL.
 
-**Japanese / English:** not offered. Playback stays on Hikka only.
+**Japanese and English**
+
+1. `GET /api/anikoto/match` scores the AniList title against Anikoto search hits (season, stage, episode count).
+2. `playback_audio=ja|en` asks Anikoto for `type=sub` or `type=dub` on the same episode number.
+3. English is returned only when its playlist URL differs from the Japanese one. Artplayer plays the stream through `/api/m3u8-proxy` with the provider Referer.
 
 ---
 
@@ -194,13 +206,16 @@ flowchart LR
 
 | Area | What to expect |
 |------|----------------|
-| **Japanese / English** | Not offered. |
-| **Third-party streams** | UA playback depends on Hikka. Coverage and uptime are not under our control. |
+| **Title match** | Anikoto and Hikka are matched by title, season, and episode count. A rare split cour can still land on the wrong entry when the file path has no season marker. |
+| **English dub** | Hidden when Anikoto serves the same playlist for `sub` and `dub`. |
+| **Ukrainian dub** | Hidden when the Hikka player file belongs to another part or season. |
+| **Third-party streams** | Coverage and uptime depend on Hikka and Anikoto. |
 | **Hikka on Vercel** | Upstream may block the server IP — set **`HIKKA_FEATURES_RELAY_BASE`** if Ukrainian tracks return 403. |
+| **Anikoto on Vercel** | The JSON API needs no extra env. Megaplay HLS can still fail if the CDN blocks Vercel IPs through the m3u8 proxy. |
 | **HLS on Vercel** | Some CDNs need **`NEXT_PUBLIC_M3U8_PROXY_BASE`** (`workers/hls-relay`). Same-origin `/api/m3u8-proxy` is fine locally. |
 | **Catalog copy** | Series titles, genres, and episode names stay English (API). Only chrome/UI is translated. |
 | **Account** | Register/login and favorites work; email verification is optional. |
-| **Scope** | No native app, offline/PWA, or guaranteed audio track for every episode. Continue watching is browser `localStorage`; favorites are MongoDB for signed-in users. |
+| **Scope** | No native app, offline/PWA, or guaranteed audio track for every episode. Continue watching is browser `localStorage` and does not restore Japanese or English. Favorites are MongoDB for signed-in users. |
 
 ---
 
@@ -211,7 +226,8 @@ flowchart LR
 | Node.js 22 | Yes | Matches CI |
 | MongoDB | Yes | Auth, favorites |
 | SMTP | Yes | Verification emails |
-| Hikka | Yes for UA playback | Direct or `HIKKA_FEATURES_RELAY_BASE` |
+| Hikka | Yes for Ukrainian playback | Direct or `HIKKA_FEATURES_RELAY_BASE` |
+| Anikoto | No extra setup | Public API; override with `ANIKOTO_API_BASE` |
 | `NEXT_PUBLIC_SITE_URL` | Recommended | Metadata |
 | Cloudinary | Optional | Avatars |
 | TVDB API key | Optional | Hero clear logos |
@@ -315,6 +331,7 @@ Set `NEXT_PUBLIC_M3U8_PROXY_BASE` to the worker URL, then restart / redeploy the
 | `TVDB_API_KEY` | Hero artwork |
 | `CLOUDINARY_*` | Avatar upload |
 | `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | CDN hosts that skip `/api/m3u8-proxy` |
+| `ANIKOTO_API_BASE` | Anikoto API origin. Default `https://anikoto-api.vercel.app` |
 
 Never commit `.env` or secrets. Use **`.env.local`** for development.
 
@@ -346,6 +363,7 @@ src/
 │   ├── api/
 │   │   ├── watch/resolve/
 │   │   ├── hikka/
+│   │   ├── anikoto/
 │   │   ├── m3u8-proxy/
 │   │   ├── auth/
 │   │   └── anilist/
@@ -355,7 +373,7 @@ src/
 │   ├── watch/                # Catalog, resolve, continue watching, CTA
 │   ├── player/               # Artplayer, HLS, language menu, layers
 │   ├── auth/ profile/ theme/ discover/
-├── server/                   # Server-only clients (Hikka, resolve)
+├── server/                   # Server-only clients (Hikka, Anikoto, resolve)
 ├── i18n/                     # en / uk / de dictionaries
 ├── components/               # Shared chrome (header, cards, calendar)
 ├── lib/ models/ shared/
@@ -386,8 +404,9 @@ workers/
 - [ ] Home — spotlight + rows
 - [ ] Search returns results
 - [ ] Watch page — episode list
-- [ ] Player — **Ukrainian** HLS plays
-- [ ] Language menu does **not** offer Japanese / English
+- [ ] Player starts on **Japanese** when Anikoto has it, otherwise Ukrainian or English
+- [ ] Language menu and the series page list only tracks that exist
+- [ ] A title whose Hikka file is another season does not offer Ukrainian
 - [ ] Register / login persists after refresh
 - [ ] Settings — theme + UI language chips (en / uk / de)
 

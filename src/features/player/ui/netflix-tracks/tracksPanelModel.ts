@@ -65,6 +65,13 @@ export function patchTracksPanelModel(
   renderTracksPanel(art, next);
 }
 
+function revealActiveTrack(list: HTMLElement): void {
+  const active = list.querySelector<HTMLElement>('[aria-current="true"]');
+  if (!active) return;
+  const nextTop = active.offsetTop - list.clientHeight / 2 + active.offsetHeight / 2;
+  list.scrollTop = Math.max(0, nextTop);
+}
+
 function optionButton(
   option: { id: string; label: string; active: boolean },
   kind: 'audio' | 'sub' | 'quality' | 'enhance',
@@ -106,6 +113,7 @@ export function renderTracksPanel(art: Artplayer, model: TracksPanelModel): void
   }
   if (subList) {
     subList.innerHTML = model.subtitles.map((item) => optionButton(item, 'sub')).join('');
+    revealActiveTrack(subList);
   }
   if (qualityList) {
     qualityList.innerHTML = model.quality.map((item) => optionButton(item, 'quality')).join('');

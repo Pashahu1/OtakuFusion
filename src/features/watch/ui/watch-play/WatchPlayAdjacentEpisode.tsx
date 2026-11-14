@@ -1,9 +1,13 @@
 'use client';
 
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 import { Play } from 'lucide-react';
 import { WATCH_PLAY_NEXT_THUMB_QUALITY } from '@/lib/anime-card-poster';
-import { formatEpisodeLangLine } from '@/features/watch/lib/watch-availability';
+import {
+  formatEpisodeLangLine,
+  type WatchPlaybackLanguages,
+} from '@/features/watch/lib/watch-availability';
 import { getEpisodeNumberFromId } from '@/shared/utils/episodeUtils';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { thumbnailUrl, LIST_THUMBNAIL_RES } from '@/shared/utils/thumbnail-url';
@@ -12,6 +16,7 @@ import './WatchPlayAdjacentEpisode.scss';
 interface WatchPlayAdjacentEpisodeProps {
   label: string;
   episode: EpisodesTypes;
+  languages: WatchPlaybackLanguages;
   posterUrl: string;
   progressRatio: number;
   onSelect: (episodeId: string) => void;
@@ -20,16 +25,18 @@ interface WatchPlayAdjacentEpisodeProps {
 export function WatchPlayAdjacentEpisode({
   label,
   episode,
+  languages,
   posterUrl,
   progressRatio,
   onSelect,
 }: WatchPlayAdjacentEpisodeProps) {
+  const { t } = useTranslation('common');
   const episodeId =
     getEpisodeNumberFromId(episode.id) ?? String(episode.episode_no);
   const thumbSrc = thumbnailUrl(posterUrl, LIST_THUMBNAIL_RES);
   const epLabel = `E${episode.episode_no}`;
   const titleLine = episode.title ? `${epLabel} — ${episode.title}` : epLabel;
-  const langLine = formatEpisodeLangLine(episode);
+  const langLine = formatEpisodeLangLine(languages, t);
 
   return (
     <aside className="watch-play-adjacent" aria-labelledby={`watch-play-adjacent-${episodeId}`}>

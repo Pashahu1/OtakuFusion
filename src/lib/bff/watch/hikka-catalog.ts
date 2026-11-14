@@ -10,6 +10,7 @@ export interface HikkaCatalogBffOk {
   episodes: GetEpisodesResult['episodes'];
   totalEpisodes: number;
   availableTeams?: Array<{ source: HikkaWatchSource; team: string; episodeCount: number }>;
+  ukrainianPlayable?: boolean;
 }
 
 export interface HikkaCatalogBffErr {

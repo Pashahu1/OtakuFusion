@@ -2,10 +2,10 @@ import { unstable_cache } from 'next/cache';
 import { fetchHikkaWatchV2 } from '@/lib/catalog/providers/hikka/hikkaFeaturesClient';
 import {
   mapHikkaTeamEpisodes,
-  pickDefaultHikkaCatalog,
   type HikkaCatalogPick,
 } from '@/lib/catalog/providers/hikka/mapHikkaCatalog';
 import { resolveHikkaSlug } from '@/lib/catalog/providers/hikka/resolveHikkaSlug';
+import { resolveHikkaTeamForTitles } from '@/lib/catalog/providers/hikka/verifyHikkaTeam';
 import { buildCatalogSearchTermsFromFields } from '@/lib/catalog/catalog-hints';
 import { catalogHintsFromBody } from '@/server/catalog/catalogRequestSchema';
 import type { CatalogLookupBody } from '@/server/catalog/catalogLookupTypes';
@@ -16,12 +16,37 @@ export interface HikkaCatalogResolved {
   pick: HikkaCatalogPick;
   episodes: EpisodesTypes[];
   totalEpisodes: number;
+  ukrainianPlayable: boolean;
+}
+
+function placeholderEpisodes(count: number, title: string): EpisodesTypes[] {
+  const total = Math.min(Math.max(Math.floor(count), 0), 500);
+  const episodes: EpisodesTypes[] = [];
+  for (let episodeNo = 1; episodeNo <= total; episodeNo += 1) {
+    episodes.push({
+      episode_no: episodeNo,
+      id: String(episodeNo),
+      data_id: episodeNo,
+      jname: title,
+      title: `Episode ${episodeNo}`,
+      japanese_title: `Episode ${episodeNo}`,
+      hasSub: false,
+      hasDub: false,
+    });
+  }
+  return episodes;
 }
 
 async function resolveHikkaCatalogUncached(
   input: CatalogLookupBody
 ): Promise<HikkaCatalogResolved | null> {
   const hints = catalogHintsFromBody(input);
+  const terms = buildCatalogSearchTermsFromFields({
+    title: input.title,
+    romaji_title: input.romaji_title,
+    japanese_title: input.japanese_title,
+    synonyms: input.synonyms,
+  });
   const slug = await resolveHikkaSlug({
     malId: hints.malId,
     title: input.title,
@@ -35,18 +60,22 @@ async function resolveHikkaCatalogUncached(
   const watch = await fetchHikkaWatchV2(slug);
   if (!watch) return null;
 
-  const pick = pickDefaultHikkaCatalog(watch);
-  if (!pick) return null;
+  const team = await resolveHikkaTeamForTitles(watch, terms);
+  if (!team) return null;
 
   const displayTitle = input.title.trim() || input.romaji_title?.trim() || 'Anime';
-  const episodes = mapHikkaTeamEpisodes(watch, pick, displayTitle);
+  const linkedEpisodes = mapHikkaTeamEpisodes(watch, team.pick, displayTitle);
+  const seasonEpisodes = placeholderEpisodes(hints.episodeCount ?? 0, displayTitle);
+  const episodes =
+    team.ukrainianPlayable || !seasonEpisodes.length ? linkedEpisodes : seasonEpisodes;
   if (!episodes.length) return null;
 
   return {
     hikkaSlug: slug,
-    pick,
+    pick: team.pick,
     episodes,
     totalEpisodes: episodes.length,
+    ukrainianPlayable: team.ukrainianPlayable,
   };
 }
 
@@ -58,7 +87,7 @@ function catalogCacheKey(input: CatalogLookupBody): string {
     synonyms: input.synonyms,
   });
   const mal = input.mal_id != null ? String(input.mal_id) : '';
-  return `hikka-catalog-v1:${input.anilistId.trim()}:${mal}:${terms[0] ?? input.title}`;
+  return `hikka-catalog-v5:${input.anilistId.trim()}:${mal}:${terms[0] ?? input.title}`;
 }
 
 export async function resolveHikkaCatalogCached(

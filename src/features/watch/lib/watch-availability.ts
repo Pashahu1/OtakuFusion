@@ -10,6 +10,23 @@ export interface CatalogTvLangCounts {
 
 export type WatchLangBadge = 'dub' | 'sub';
 
+export interface WatchPlaybackLanguages {
+  ukrainian: boolean;
+  japanese: boolean;
+  english: boolean;
+}
+
+export function formatPlaybackLanguageLine(
+  languages: WatchPlaybackLanguages,
+  t: (key: string) => string,
+): string {
+  const labels: string[] = [];
+  if (languages.ukrainian) labels.push(t('watch.audioUkrainian'));
+  if (languages.japanese) labels.push(t('watch.audioJapanese'));
+  if (languages.english) labels.push(t('watch.audioEnglish'));
+  return labels.join(' · ');
+}
+
 /** Playback is Ukrainian dub only (Hikka). */
 export function isUkrainianDubOnlyPlayback(): boolean {
   return true;
@@ -23,12 +40,10 @@ export function episodePlayableLangBadges(
 }
 
 export function formatEpisodeLangLine(
-  item?: EpisodeLangFlags,
-  ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
+  languages: WatchPlaybackLanguages,
+  t: (key: string) => string,
 ): string {
-  return episodePlayableLangBadges(item, ukrainianDubOnly)
-    .map((badge) => (badge === 'dub' ? 'Dub' : 'Sub'))
-    .join(' | ');
+  return formatPlaybackLanguageLine(languages, t);
 }
 
 export function seriesCatalogLangBadges(
@@ -49,16 +64,21 @@ export function getStreamAvailabilityLabel(
 export function watchDocumentTitleI18nKey(
   _ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
 ): 'watch.documentTitleUkrainian' | 'watch.documentTitleSubDub' {
-  return 'watch.documentTitleUkrainian';
+  return 'watch.documentTitleSubDub';
 }
 
 export function buildWatchAvailabilityLines(
   t: (key: string) => string,
-  _tv?: CatalogTvLangCounts,
-  _ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
+  languages: WatchPlaybackLanguages,
+  pending = false,
 ): { audio: string; subtitles: string } {
-  return {
-    audio: t('watch.audioUkrainian'),
-    subtitles: t('watch.subtitlesNone'),
-  };
+  const audio = formatPlaybackLanguageLine(languages, t);
+  if (!audio && pending) return { audio: '', subtitles: '' };
+  if (languages.japanese || languages.english) {
+    return { audio, subtitles: t('watch.hardsub') };
+  }
+  if (languages.ukrainian) {
+    return { audio, subtitles: t('watch.subtitlesNone') };
+  }
+  return { audio: t('watch.unavailable'), subtitles: t('watch.unavailable') };
 }

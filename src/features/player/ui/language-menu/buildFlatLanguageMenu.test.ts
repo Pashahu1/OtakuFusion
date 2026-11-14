@@ -3,23 +3,39 @@ import { describe, expect, it } from 'vitest';
 import { buildFlatLanguageMenu } from './buildFlatLanguageMenu';
 
 describe('buildFlatLanguageMenu', () => {
-  it('shows only Ukrainian when Hikka catalog is eligible', () => {
+  it('shows Ukrainian, Japanese, and English when each source is eligible', () => {
     const menu = buildFlatLanguageMenu({
+      playbackAudio: 'uk',
       hikkaLanguageMenuEligible: true,
-      watchStreamProvider: 'hikka',
+      anikotoJapaneseEligible: true,
+      anikotoEnglishEligible: true,
     });
 
-    expect(menu.map((item) => item.html)).toEqual(['Ukrainian']);
+    expect(menu.map((item) => item.html)).toEqual(['Ukrainian', 'Japanese', 'English']);
     expect(menu.find((item) => item.html === 'Ukrainian')?.default).toBe(true);
-    expect(menu.find((item) => item.html === 'Japanese')).toBeUndefined();
-    expect(menu.find((item) => item.html === 'English')).toBeUndefined();
+    expect(menu.find((item) => item.html === 'Japanese')?.__mode).toBe('anikoto-ja');
+    expect(menu.find((item) => item.html === 'English')?.__mode).toBe('anikoto-en');
   });
 
-  it('is empty when Hikka catalog is missing', () => {
+  it('hides an audio track the title does not have', () => {
+    const menu = buildFlatLanguageMenu({
+      playbackAudio: 'ja',
+      hikkaLanguageMenuEligible: true,
+      anikotoJapaneseEligible: true,
+      anikotoEnglishEligible: false,
+    });
+
+    expect(menu.map((item) => item.html)).toEqual(['Ukrainian', 'Japanese']);
+    expect(menu.find((item) => item.html === 'Japanese')?.default).toBe(true);
+  });
+
+  it('is empty when no audio source is eligible', () => {
     expect(
       buildFlatLanguageMenu({
+        playbackAudio: 'uk',
         hikkaLanguageMenuEligible: false,
-        watchStreamProvider: 'hikka',
+        anikotoJapaneseEligible: false,
+        anikotoEnglishEligible: false,
       }),
     ).toEqual([]);
   });

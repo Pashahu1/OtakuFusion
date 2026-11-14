@@ -1,3 +1,4 @@
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import { DEFAULT_WATCH_STREAM_PROVIDER } from '@/features/watch/lib/watch-provider';
 
 export type WatchResolveStreamProvider = 'hikka';
@@ -16,6 +17,12 @@ export interface WatchResolveParams {
   keyword?: string;
   localAnimeId?: string;
   streamProvider?: WatchResolveStreamProvider;
+  playbackAudio?: WatchPlaybackAudio;
+  romajiTitle?: string;
+  japaneseTitle?: string;
+  synonyms?: string;
+  showType?: string;
+  episodeCount?: number | null;
 }
 
 export interface WatchResolveResponse {
@@ -87,6 +94,19 @@ export async function resolveWatchStream(
   const sp = params.streamProvider ?? DEFAULT_WATCH_STREAM_PROVIDER;
   query.set('stream_provider', 'hikka');
   void sp;
+
+  if (params.romajiTitle?.trim()) query.set('romaji_title', params.romajiTitle.trim());
+  if (params.japaneseTitle?.trim()) query.set('japanese_title', params.japaneseTitle.trim());
+  if (params.synonyms?.trim()) query.set('synonyms', params.synonyms.trim());
+  if (params.showType?.trim()) query.set('format', params.showType.trim());
+  if (params.episodeCount != null && params.episodeCount > 0) {
+    query.set('episodes', String(Math.floor(params.episodeCount)));
+  }
+
+  const playbackAudio = params.playbackAudio ?? 'uk';
+  if (playbackAudio === 'ja' || playbackAudio === 'en') {
+    query.set('playback_audio', playbackAudio);
+  }
 
   const res = await fetch(`/api/watch/resolve?${query.toString()}`, {
     method: 'GET',

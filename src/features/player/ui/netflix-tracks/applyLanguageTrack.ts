@@ -1,19 +1,27 @@
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
+import { playbackAudioFromMenuMode } from '@/features/player/ui/language-menu/buildFlatLanguageMenu';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 
 export interface ApplyLanguageTrackDeps {
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   setActiveServerId: (id: string | null) => void;
+  setPlaybackAudio?: (next: WatchPlaybackAudio) => void;
 }
 
 export function applyLanguageTrack(
   item: Record<string, unknown>,
   deps: ApplyLanguageTrackDeps,
 ): void {
-  const { setWatchStreamProvider, setActiveServerId } = deps;
+  const { setWatchStreamProvider, setActiveServerId, setPlaybackAudio } = deps;
+  const mode = typeof item.__mode === 'string' ? item.__mode : undefined;
+  const playbackAudio = playbackAudioFromMenuMode(
+    mode === 'hikka' || mode === 'anikoto-ja' || mode === 'anikoto-en' ? mode : undefined,
+  );
 
-  if (item.__mode === 'hikka') {
-    setWatchStreamProvider('hikka');
-    persistServerPref('sub', null);
+  if (playbackAudio) {
+    setPlaybackAudio?.(playbackAudio);
+    if (playbackAudio === 'uk') setWatchStreamProvider('hikka');
+    persistServerPref(playbackAudio === 'en' ? 'dub' : 'sub', null);
     return;
   }
 

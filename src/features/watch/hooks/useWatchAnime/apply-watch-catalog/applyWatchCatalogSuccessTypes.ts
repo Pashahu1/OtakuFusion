@@ -34,6 +34,7 @@ export interface ApplyWatchCatalogSuccessContext {
 export interface ApplyWatchCatalogSuccessOpts {
   forceFuzzy: boolean;
   freshHikkaCatalog: HikkaCatalogBffOk | null;
+  ukrainianPlayable?: boolean;
   preserveEpisodeNum: string | null;
   settleLoading: { current: boolean };
 }

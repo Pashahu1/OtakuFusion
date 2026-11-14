@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { Play } from 'lucide-react';
 import { formatEpisodeCardTitle } from '@/features/watch/lib/format-episode-card-title';
-import { formatEpisodeLangLine } from '@/features/watch/lib/watch-availability';
+import { formatEpisodeLangLine, type WatchPlaybackLanguages } from '@/features/watch/lib/watch-availability';
 import { episodeThumbObjectPosition } from '@/features/watch/lib/episode-thumb-position';
 import { WATCH_EPISODE_THUMB_QUALITY } from '@/lib/anime-card-poster';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
@@ -16,6 +16,7 @@ interface WatchEpisodeCardProps {
   posterUrl: string;
   episodePreviewUrl?: string | null;
   seriesTitle: string;
+  languages: WatchPlaybackLanguages;
   episodeDuration: string | null;
   isActive: boolean;
   isWatched: boolean;
@@ -29,6 +30,7 @@ export function WatchEpisodeCard({
   posterUrl,
   episodePreviewUrl,
   seriesTitle,
+  languages,
   episodeDuration,
   isActive,
   isWatched,
@@ -39,6 +41,7 @@ export function WatchEpisodeCard({
   const { t } = useTranslation('common');
   const epLabel = `E${item.episode_no}`;
   const title = formatEpisodeCardTitle(seriesTitle, item.episode_no, item.title);
+  const languageLine = formatEpisodeLangLine(languages, t);
   const isFiller = item.filler === true;
   const remoteThumbSrc = thumbnailUrl(posterUrl, LIST_THUMBNAIL_RES);
   const thumbSrc = episodePreviewUrl ?? remoteThumbSrc;
@@ -110,7 +113,7 @@ export function WatchEpisodeCard({
       </div>
       <div className="watch-episode-card__body">
         <p className="watch-episode-card__title">{title}</p>
-        <p className="watch-episode-card__langs">{formatEpisodeLangLine(item)}</p>
+        {languageLine ? <p className="watch-episode-card__langs">{languageLine}</p> : null}
       </div>
     </button>
   );

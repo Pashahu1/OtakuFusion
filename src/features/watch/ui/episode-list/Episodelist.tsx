@@ -1,3 +1,4 @@
+import type { WatchPlaybackLanguages } from '@/features/watch/lib/watch-availability';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,7 @@ interface EpisodelistProps {
   totalEpisodes: number;
   watchedEpisodes?: Record<string, boolean>;
   seriesTitle: string;
+  languages: WatchPlaybackLanguages;
   posterUrl: string;
   episodeDuration?: string | null;
 }
@@ -33,6 +35,7 @@ export function Episodelist({
   totalEpisodes,
   watchedEpisodes = {},
   seriesTitle,
+  languages,
   posterUrl,
   episodeDuration = null,
 }: EpisodelistProps) {
@@ -107,6 +110,7 @@ export function Episodelist({
           watchedEpisodes={watchedEpisodes}
           posterUrl={posterUrl}
           seriesTitle={seriesTitle}
+          languages={languages}
           episodeDuration={episodeDuration}
           onSelectEpisode={handleEpisodeSelect}
         />

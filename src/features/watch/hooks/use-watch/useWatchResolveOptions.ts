@@ -1,6 +1,10 @@
 import { useCallback, useMemo } from 'react';
 
 import {
+  playbackAudioToStreamLang,
+  type WatchPlaybackAudio,
+} from '@/features/watch/lib/playback-audio';
+import {
   DEFAULT_WATCH_STREAM_PROVIDER,
   type WatchStreamProvider,
 } from '@/features/watch/lib/watch-provider';
@@ -18,6 +22,8 @@ interface UseWatchResolveOptionsInput {
   animeId: string;
   anime: WatchAnimeCatalogSlice;
   watchStreamProvider: WatchStreamProvider;
+  playbackAudio: WatchPlaybackAudio;
+  anikotoMatchPending: boolean;
   streamLangRevision: number;
   resolverLang: 'sub' | 'dub';
   episodeHasDubForResolve: boolean | undefined;
@@ -31,6 +37,8 @@ export function useWatchResolveOptions({
   animeId,
   anime,
   watchStreamProvider,
+  playbackAudio,
+  anikotoMatchPending,
   streamLangRevision,
   resolverLang,
   episodeHasDubForResolve,
@@ -42,10 +50,17 @@ export function useWatchResolveOptions({
   const streamAnimeMeta = useMemo(() => {
     const a = anime.animeInfo;
     if (!a) return null;
+    const episodeTotal = Number(a.animeInfo?.tvInfo?.episodeTotal ?? '');
     return {
       id: a.id,
       mal_id: a.mal_id ?? null,
       title: a.title,
+      romaji_title: a.romaji_title,
+      japanese_title: a.japanese_title,
+      synonyms: a.animeInfo?.Synonyms,
+      showType: a.showType,
+      episodeCount:
+        Number.isFinite(episodeTotal) && episodeTotal > 0 ? Math.floor(episodeTotal) : null,
     };
   }, [anime.animeInfo]);
 
@@ -73,7 +88,10 @@ export function useWatchResolveOptions({
       providerAnimeId: selectProviderAnimeId(anime, watchStreamProvider),
       episodeEpToken,
       episodeHasDub: episodeHasDubForResolve,
-      preferredLang: resolverLang,
+      preferredLang:
+        playbackAudio === 'uk' ? resolverLang : playbackAudioToStreamLang(playbackAudio),
+      playbackAudio,
+      anikotoMatchPending,
       onPlaybackLangResolved,
       watchStreamProvider,
       streamLangRevision,
@@ -90,6 +108,8 @@ export function useWatchResolveOptions({
       episodeEpToken,
       episodeHasDubForResolve,
       resolverLang,
+      playbackAudio,
+      anikotoMatchPending,
       onPlaybackLangResolved,
       streamLangRevision,
       episodeDubStateKey,

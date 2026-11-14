@@ -15,5 +15,6 @@ export interface HikkaResolveParams {
   origin: string;
   hikkaSlug: string;
   epTokenOverride?: string | null;
+  titleTerms?: string[];
 }
 

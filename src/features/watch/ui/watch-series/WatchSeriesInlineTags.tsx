@@ -7,32 +7,25 @@ import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { localizeGenreName } from '@/i18n/localize-genre';
 import { genreToSlug } from '@/shared/utils/genre-slug';
 import {
-  isUkrainianDubOnlyPlayback,
-  seriesCatalogLangBadges,
+  formatPlaybackLanguageLine,
+  type WatchPlaybackLanguages,
 } from '@/features/watch/lib/watch-availability';
 
 interface WatchSeriesInlineTagsProps {
   animeInfo: AnimeData;
+  languages: WatchPlaybackLanguages;
   /** Play page: Sub | Dub only (no genre links). */
   showGenres?: boolean;
-  /** Play page: show active playback mode instead of catalog Sub | Dub. */
-  playbackLang?: 'sub' | 'dub';
 }
 
 export function WatchSeriesInlineTags({
   animeInfo,
+  languages,
   showGenres = true,
-  playbackLang,
 }: WatchSeriesInlineTagsProps) {
   const { t } = useTranslation('common');
-  const tv = animeInfo.animeInfo?.tvInfo;
   const genres = animeInfo.animeInfo?.Genres ?? [];
-  const catalogBadges = seriesCatalogLangBadges(tv);
-  const shownPlaybackLang = playbackLang
-    ? isUkrainianDubOnlyPlayback()
-      ? 'dub'
-      : playbackLang
-    : undefined;
+  const languageLine = formatPlaybackLanguageLine(languages, t);
 
   const parts: { id: string; node: ReactNode }[] = [];
 
@@ -47,26 +40,11 @@ export function WatchSeriesInlineTags({
     });
   }
 
-  if (shownPlaybackLang) {
+  if (languageLine) {
     parts.push({
-      id: 'playback',
-      node: (
-        <span className="watch-series-tags__lang">
-          {shownPlaybackLang === 'dub' ? 'Dubbed' : 'Subtitled'}
-        </span>
-      ),
+      id: 'audio',
+      node: <span className="watch-series-tags__lang">{languageLine}</span>,
     });
-  } else {
-    for (const badge of catalogBadges) {
-      parts.push({
-        id: badge,
-        node: (
-          <span className="watch-series-tags__lang">
-            {badge === 'dub' ? 'Dub' : 'Sub'}
-          </span>
-        ),
-      });
-    }
   }
 
   return (
@@ -75,7 +53,7 @@ export function WatchSeriesInlineTags({
         <span key={id} className="watch-series-tags__segment">
           {index > 0 ? (
             <span className="watch-series-tags__sep" aria-hidden>
-              {playbackLang ? '•' : '|'}
+              •
             </span>
           ) : null}
           {node}

@@ -2,50 +2,36 @@
 
 import { useTranslation } from 'react-i18next';
 
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
-import {
-  buildFlatLanguageMenu,
-  type LangMenuLeaf,
-} from '@/features/player/ui/language-menu/buildFlatLanguageMenu';
-import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
+import { buildFlatLanguageMenu } from '@/features/player/ui/language-menu/buildFlatLanguageMenu';
+import { applyLanguageTrack } from '@/features/player/ui/netflix-tracks/applyLanguageTrack';
 
 interface WatchPlayerErrorControlsProps {
-  activeServerId: string | null;
-  watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   setActiveServerId: (id: string | null) => void;
+  playbackAudio: WatchPlaybackAudio;
+  setPlaybackAudio: (next: WatchPlaybackAudio) => void;
   hikkaLanguageMenuEligible: boolean;
-}
-
-function applyLanguageMenuSelection(
-  item: LangMenuLeaf,
-  setWatchStreamProvider: (next: WatchStreamProvider) => void,
-  setActiveServerId: (id: string | null) => void,
-): void {
-  const mode = item.__mode;
-
-  if (mode === 'hikka') {
-    setWatchStreamProvider('hikka');
-    try {
-      localStorage.setItem(STORAGE_SERVER_TYPE, 'sub');
-      localStorage.removeItem('server_name');
-    } catch {
-      /* ignore */
-    }
-  }
+  anikotoJapaneseEligible: boolean;
+  anikotoEnglishEligible: boolean;
 }
 
 export function WatchPlayerErrorControls({
-  activeServerId,
-  watchStreamProvider,
   setWatchStreamProvider,
   setActiveServerId,
+  playbackAudio,
+  setPlaybackAudio,
   hikkaLanguageMenuEligible,
+  anikotoJapaneseEligible,
+  anikotoEnglishEligible,
 }: WatchPlayerErrorControlsProps) {
   const { t } = useTranslation('common');
   const options = buildFlatLanguageMenu({
-    watchStreamProvider,
+    playbackAudio,
     hikkaLanguageMenuEligible,
+    anikotoJapaneseEligible,
+    anikotoEnglishEligible,
   });
 
   if (options.length === 0) return null;
@@ -68,7 +54,11 @@ export function WatchPlayerErrorControls({
                 : 'watch-player-content__error-control'
             }
             onClick={() =>
-              applyLanguageMenuSelection(item, setWatchStreamProvider, setActiveServerId)
+              applyLanguageTrack(item as unknown as Record<string, unknown>, {
+                setWatchStreamProvider,
+                setActiveServerId,
+                setPlaybackAudio,
+              })
             }
           >
             {item.html}

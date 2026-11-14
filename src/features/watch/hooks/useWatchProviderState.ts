@@ -1,4 +1,5 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import {
   DEFAULT_WATCH_STREAM_PROVIDER,
   normalizeWatchStreamProvider,
@@ -16,6 +17,7 @@ export function useWatchProviderState(
         : DEFAULT_WATCH_STREAM_PROVIDER,
   );
   const [streamLangRevision, setStreamLangRevision] = useState(0);
+  const [playbackAudio, setPlaybackAudioState] = useState<WatchPlaybackAudio>('ja');
   const hydratedContinueProviderRef = useRef(false);
 
   useEffect(() => {
@@ -25,6 +27,7 @@ export function useWatchProviderState(
         ? normalizeWatchStreamProvider(initialProvider)
         : DEFAULT_WATCH_STREAM_PROVIDER,
     );
+    setPlaybackAudioState('ja');
     setStreamLangRevision(0);
   }, [animeId, initialProvider]);
 
@@ -46,9 +49,19 @@ export function useWatchProviderState(
     });
   }, []);
 
+  const setPlaybackAudio = useCallback((next: WatchPlaybackAudio) => {
+    setPlaybackAudioState((prev) => {
+      if (prev === next) return prev;
+      setStreamLangRevision((n) => n + 1);
+      return next;
+    });
+  }, []);
+
   return {
     watchStreamProvider,
     setWatchStreamProvider,
+    playbackAudio,
+    setPlaybackAudio,
     streamLangRevision,
     setStreamLangRevision,
   };

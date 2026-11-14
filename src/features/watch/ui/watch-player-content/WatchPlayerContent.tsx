@@ -6,6 +6,7 @@ import type { StreamingData } from '@/shared/types/StreamingTypes';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { nextEligibleWatchPlaybackProvider } from '@/features/watch/lib/watch-provider-fallback';
 import { WatchPlayerErrorControls } from './WatchPlayerErrorControls';
@@ -31,6 +32,10 @@ type WatchPlayerContentProps = {
   setActiveServerId: (id: string | null) => void;
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (p: WatchStreamProvider) => void;
+  playbackAudio: WatchPlaybackAudio;
+  setPlaybackAudio: (audio: WatchPlaybackAudio) => void;
+  anikotoJapaneseEligible: boolean;
+  anikotoEnglishEligible: boolean;
   showErrorBlock: boolean;
   playerShellPending: boolean;
   streamOverlayMessage: { title: string; subtitle: string } | null;
@@ -55,6 +60,10 @@ export const WatchPlayerContent = ({
   setActiveServerId,
   watchStreamProvider,
   setWatchStreamProvider,
+  playbackAudio,
+  setPlaybackAudio,
+  anikotoJapaneseEligible,
+  anikotoEnglishEligible,
   showErrorBlock,
   episodeNum,
   playerShellPending,
@@ -62,8 +71,9 @@ export const WatchPlayerContent = ({
   hikkaLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
   const streamKey = useMemo(
-    () => `${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl ?? ''}`,
-    [animeId, episodeId, watchStreamProvider, activeServerId, streamUrl]
+    () =>
+      `${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${playbackAudio}:${activeServerId ?? ''}:${streamUrl ?? ''}`,
+    [animeId, episodeId, watchStreamProvider, playbackAudio, activeServerId, streamUrl]
   );
 
   const overlayCopy =
@@ -145,6 +155,10 @@ export const WatchPlayerContent = ({
               setActiveServerId={setActiveServerId}
               watchStreamProvider={watchStreamProvider}
               setWatchStreamProvider={setWatchStreamProvider}
+              playbackAudio={playbackAudio}
+              setPlaybackAudio={setPlaybackAudio}
+              anikotoJapaneseEligible={anikotoJapaneseEligible}
+              anikotoEnglishEligible={anikotoEnglishEligible}
               onPlaybackError={handleBuiltinError}
               hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
             />
@@ -156,10 +170,12 @@ export const WatchPlayerContent = ({
             <span className="watch-player-content__error-title">{overlayCopy.title}</span>
             <span className="watch-player-content__error-sub">{overlayCopy.subtitle}</span>
             <WatchPlayerErrorControls
-              activeServerId={activeServerId}
-              watchStreamProvider={watchStreamProvider}
               setWatchStreamProvider={setWatchStreamProvider}
               setActiveServerId={setActiveServerId}
+              setPlaybackAudio={setPlaybackAudio}
+              playbackAudio={playbackAudio}
+              anikotoJapaneseEligible={anikotoJapaneseEligible}
+              anikotoEnglishEligible={anikotoEnglishEligible}
               hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
             />
           </div>

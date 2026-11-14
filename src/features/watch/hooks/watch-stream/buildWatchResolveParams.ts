@@ -32,5 +32,11 @@ export function buildWatchResolveParams(
     episode: episodeNumber,
     lang: preferredLang,
     streamProvider: 'hikka' as const,
+    playbackAudio: activeOpts.playbackAudio,
+    romajiTitle: streamAnime.romaji_title,
+    japaneseTitle: streamAnime.japanese_title,
+    synonyms: streamAnime.synonyms,
+    showType: streamAnime.showType,
+    episodeCount: streamAnime.episodeCount,
   };
 }

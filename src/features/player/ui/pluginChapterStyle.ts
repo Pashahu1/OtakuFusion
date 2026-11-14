@@ -17,9 +17,8 @@ export const pluginChapterStyle = `
     inset: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 0;
     height: 100%;
-    transform: scaleY(1.25);
 }
 .artplayer-plugin-chapter .art-chapters .art-chapter {
     display: flex;
@@ -30,14 +29,16 @@ export const pluginChapterStyle = `
     position: relative;
     cursor: pointer;
     width: 100%;
-    height: 50%;
-    border-radius: 10px;
-    overflow: hidden;
-    transition: height var(--art-transition-duration) ease;
-    background-color: var(--art-progress-color);
-}
-.artplayer-plugin-chapter .art-chapters .art-chapter:hover .art-chapter-inner {
     height: 100%;
+    border-radius: 999px;
+    overflow: hidden;
+    background-color: rgb(255 255 255 / 0.28);
+}
+.artplayer-plugin-chapter .art-chapters .art-progress-played {
+    background: var(--art-theme, #f47521);
+}
+.artplayer-plugin-chapter .art-chapters .art-progress-loaded {
+    background: rgb(255 255 255 / 0.42);
 }
 .artplayer-plugin-chapter .art-chapter-title {
     display: none;

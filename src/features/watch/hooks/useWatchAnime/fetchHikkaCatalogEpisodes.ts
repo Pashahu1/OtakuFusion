@@ -10,6 +10,7 @@ export async function fetchHikkaCatalogEpisodes(
   let providerId: string | null = null;
   let list: ProviderCatalogFetchResult['episodes'] = [];
   let freshHikkaCatalog: ProviderCatalogFetchResult['freshHikkaCatalog'] = null;
+  let ukrainianPlayable = true;
 
   if (!forceFuzzy) {
     const cachedH = readVerifiedHikkaMapping(animeId);
@@ -24,6 +25,7 @@ export async function fetchHikkaCatalogEpisodes(
         ) {
           providerId = cachedH.hikkaSlug;
           list = catalog.episodes ?? [];
+          ukrainianPlayable = catalog.ukrainianPlayable !== false;
         }
       } catch {
         providerId = null;
@@ -46,11 +48,13 @@ export async function fetchHikkaCatalogEpisodes(
     freshHikkaCatalog = catalog;
     providerId = catalog.hikkaSlug.trim();
     list = catalog.episodes ?? [];
+    ukrainianPlayable = catalog.ukrainianPlayable !== false;
   }
 
   return {
     providerId,
     episodes: list,
     freshHikkaCatalog,
+    ukrainianPlayable,
   };
 }

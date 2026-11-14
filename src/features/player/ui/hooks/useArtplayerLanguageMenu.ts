@@ -16,7 +16,11 @@ export interface UseArtplayerLanguageMenuParams {
   setActiveServerId: PlayerProps['setActiveServerId'];
   watchStreamProvider: PlayerProps['watchStreamProvider'];
   setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
+  playbackAudio: PlayerProps['playbackAudio'];
+  setPlaybackAudio: PlayerProps['setPlaybackAudio'];
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
+  anikotoJapaneseEligible: PlayerProps['anikotoJapaneseEligible'];
+  anikotoEnglishEligible: PlayerProps['anikotoEnglishEligible'];
   resolvedStreamLang?: 'sub' | 'dub' | null;
   animeId: string | null | undefined;
   episodeId: PlayerProps['episodeId'];
@@ -34,7 +38,11 @@ export function useArtplayerLanguageMenu({
   setActiveServerId,
   watchStreamProvider,
   setWatchStreamProvider,
+  playbackAudio,
+  setPlaybackAudio,
   hikkaLanguageMenuEligible,
+  anikotoJapaneseEligible,
+  anikotoEnglishEligible,
   resolvedStreamLang,
   animeId,
   episodeId,
@@ -47,6 +55,10 @@ export function useArtplayerLanguageMenu({
   const setWatchStreamProviderRef = useRef(setWatchStreamProvider);
   const setActiveServerIdRef = useRef(setActiveServerId);
   const hikkaEligibleRef = useRef(hikkaLanguageMenuEligible ?? false);
+  const playbackAudioRef = useRef(playbackAudio);
+  const setPlaybackAudioRef = useRef(setPlaybackAudio);
+  const anikotoJapaneseRef = useRef(anikotoJapaneseEligible ?? false);
+  const anikotoEnglishRef = useRef(anikotoEnglishEligible ?? false);
   const resolvedStreamLangRef = useRef(resolvedStreamLang ?? null);
   const onLanguageSwitchResumeRef = useRef(onLanguageSwitchResume);
   const animeIdRef = useRef(animeId);
@@ -67,6 +79,10 @@ export function useArtplayerLanguageMenu({
     setWatchStreamProviderRef.current = setWatchStreamProvider;
     setActiveServerIdRef.current = setActiveServerId;
     hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
+    playbackAudioRef.current = playbackAudio;
+    setPlaybackAudioRef.current = setPlaybackAudio;
+    anikotoJapaneseRef.current = anikotoJapaneseEligible ?? false;
+    anikotoEnglishRef.current = anikotoEnglishEligible ?? false;
     resolvedStreamLangRef.current = resolvedStreamLang ?? null;
   }, [
     servers,
@@ -74,7 +90,11 @@ export function useArtplayerLanguageMenu({
     watchStreamProvider,
     setWatchStreamProvider,
     setActiveServerId,
+    playbackAudio,
+    setPlaybackAudio,
     hikkaLanguageMenuEligible,
+    anikotoJapaneseEligible,
+    anikotoEnglishEligible,
     resolvedStreamLang,
   ]);
 
@@ -87,7 +107,11 @@ export function useArtplayerLanguageMenu({
       watchStreamProvider: watchStreamProviderRef.current,
       setWatchStreamProvider: (next) => setWatchStreamProviderRef.current(next),
       setActiveServerId: (id) => setActiveServerIdRef.current(id),
+      setPlaybackAudio: (next) => setPlaybackAudioRef.current(next),
+      playbackAudio: playbackAudioRef.current,
       hikkaLanguageMenuEligible: hikkaEligibleRef.current,
+      anikotoJapaneseEligible: anikotoJapaneseRef.current,
+      anikotoEnglishEligible: anikotoEnglishRef.current,
       resolvedStreamLang: resolvedStreamLangRef.current,
       onBeforeLanguageSwitch: (player) => {
         const current = player.currentTime;
@@ -123,6 +147,9 @@ export function useArtplayerLanguageMenu({
     syncLanguageMenuIfReady();
   }, [
     hikkaLanguageMenuEligible,
+    anikotoJapaneseEligible,
+    anikotoEnglishEligible,
+    playbackAudio,
     watchStreamProvider,
     activeServerId,
     resolvedStreamLang,

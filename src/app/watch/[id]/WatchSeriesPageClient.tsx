@@ -6,7 +6,9 @@ import { useTranslation } from 'react-i18next';
 
 import { Episodelist } from '@/features/watch';
 import { WatchEpisodesEmptySection } from '@/features/watch/ui/episode-list/WatchEpisodesEmptySection';
+import { useAnikotoAudioAvailability } from '@/features/watch/hooks/useAnikotoAudioAvailability';
 import { useWatchSeries } from '@/features/watch/hooks/useWatchSeries';
+import type { WatchPlaybackLanguages } from '@/features/watch/lib/watch-availability';
 import { useWatchSpotlightArtwork } from '@/features/watch/hooks/useWatchSpotlightArtwork';
 import { buildWatchHeroModel } from '@/features/watch/lib/buildWatchHeroModel';
 import { WatchSeriesHero } from '@/features/watch/ui/watch-series/WatchSeriesHero';
@@ -31,7 +33,17 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
     totalEpisodes,
     episodeId,
     nextEpisodeSchedule,
+    hikkaLanguageMenuEligible,
+    providerCatalogPending,
   } = useWatchSeries(animeId);
+  const anikotoAudio = useAnikotoAudioAvailability(animeInfo);
+  const playbackLanguages: WatchPlaybackLanguages = {
+    ukrainian: !providerCatalogPending && hikkaLanguageMenuEligible,
+    japanese: anikotoAudio.status === 'ready' && anikotoAudio.japanese,
+    english: anikotoAudio.status === 'ready' && anikotoAudio.english,
+  };
+  const languagesPending =
+    providerCatalogPending || anikotoAudio.status !== 'ready';
   useWatchPageDocumentTitle(animeInfo, animeId);
 
   const { data: spotlightArtwork, isPending: heroArtworkPending } =
@@ -83,6 +95,8 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
       <WatchSeriesHero
         hero={heroModel!}
         animeInfo={animeInfo!}
+        languages={playbackLanguages}
+        languagesPending={languagesPending}
         playHref={playHref}
         ctaLabel={ctaLabel}
         isCtaPlayable={isPlayable}
@@ -101,6 +115,7 @@ export default function WatchSeriesPageClient({ animeId }: { animeId: string }) 
           totalEpisodes={totalEpisodes ?? 0}
           watchedEpisodes={watchedEpisodes}
           seriesTitle={animeInfo!.title ?? ''}
+          languages={playbackLanguages}
           posterUrl={animeInfo!.poster ?? ''}
           episodeDuration={episodeDuration}
         />

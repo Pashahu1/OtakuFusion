@@ -17,6 +17,11 @@ import { useWatchCatalogProviderFallback } from './useWatchCatalogProviderFallba
 import { readContinueWatchingPlaybackPrefs } from '@/features/watch/lib/read-continue-watching-playback-prefs';
 
 import { useRestoreContinueWatchingPlayback } from './useRestoreContinueWatchingPlayback';
+import { useAnikotoAudioAvailability } from './useAnikotoAudioAvailability';
+import {
+  isAnikotoMatchPending,
+  resolveStartupPlaybackAudio,
+} from '@/features/watch/lib/playback-audio';
 
 export function useWatch(
   animeId: string,
@@ -30,11 +35,25 @@ export function useWatch(
   const {
     watchStreamProvider,
     setWatchStreamProvider,
+    playbackAudio,
+    setPlaybackAudio,
     streamLangRevision,
     setStreamLangRevision,
   } = useWatchProviderState(animeId, continuePlaybackPrefs?.watchStreamProvider);
 
   const anime = useWatchAnime(animeId, initialEpisodeId, watchStreamProvider);
+  const anikotoAudio = useAnikotoAudioAvailability(anime.animeInfo);
+  const effectivePlaybackAudio = resolveStartupPlaybackAudio({
+    selected: playbackAudio,
+    matchStatus: anikotoAudio.status,
+    hasJapanese: anikotoAudio.japanese,
+    hasEnglish: anikotoAudio.english,
+    hikkaEligible: anime.hikkaLanguageMenuEligible,
+  });
+  const anikotoMatchPending = isAnikotoMatchPending({
+    audio: effectivePlaybackAudio,
+    matchStatus: anikotoAudio.status,
+  });
 
   const dubFromTv = anime.animeInfo?.animeInfo?.tvInfo?.has_dub ?? 0;
 
@@ -77,6 +96,8 @@ export function useWatch(
     animeId,
     anime,
     watchStreamProvider,
+    playbackAudio: effectivePlaybackAudio,
+    anikotoMatchPending,
     streamLangRevision,
     resolverLang,
     episodeHasDubForResolve,
@@ -148,6 +169,10 @@ export function useWatch(
     setActiveServerId,
     watchStreamProvider,
     setWatchStreamProvider,
+    playbackAudio: effectivePlaybackAudio,
+    setPlaybackAudio,
+    anikotoJapaneseEligible: anikotoAudio.japanese,
+    anikotoEnglishEligible: anikotoAudio.english,
     streamErrorCode: stream.errorCode,
     streamOverlayMessage,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,

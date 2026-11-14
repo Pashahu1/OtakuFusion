@@ -5,11 +5,16 @@ import { useTranslation } from 'react-i18next';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { localizeGenreName } from '@/i18n/localize-genre';
 import { genreToSlug } from '@/shared/utils/genre-slug';
-import { buildWatchAvailabilityLines } from '@/features/watch/lib/watch-availability';
+import {
+  buildWatchAvailabilityLines,
+  type WatchPlaybackLanguages,
+} from '@/features/watch/lib/watch-availability';
 import './WatchSeriesDetails.scss';
 
 interface WatchSeriesDetailsProps {
   animeInfo: AnimeData | null;
+  languages: WatchPlaybackLanguages;
+  languagesPending?: boolean;
   isExpanded: boolean;
   onToggleExpanded: () => void;
   /** Rendered inside the series hero (Crunchyroll-style combined block). */
@@ -18,16 +23,15 @@ interface WatchSeriesDetailsProps {
 
 export function WatchSeriesDetails({
   animeInfo,
+  languages,
+  languagesPending = false,
   isExpanded,
   onToggleExpanded,
   embedded = false,
 }: WatchSeriesDetailsProps) {
   const { t } = useTranslation('common');
   const overview = animeInfo?.animeInfo?.Overview?.trim();
-  const { audio, subtitles } = buildWatchAvailabilityLines(
-    t,
-    animeInfo?.animeInfo?.tvInfo,
-  );
+  const { audio, subtitles } = buildWatchAvailabilityLines(t, languages, languagesPending);
   const genres = animeInfo?.animeInfo?.Genres ?? [];
   const details = animeInfo?.animeInfo;
 
@@ -64,14 +68,18 @@ export function WatchSeriesDetails({
         </div>
 
         <div className="watch-series-details__meta">
-          <p className="watch-series-details__meta-row">
-            <span className="watch-series-details__label">{t('watch.audio')}</span>
-            <span>{audio}</span>
-          </p>
-          <p className="watch-series-details__meta-row">
-            <span className="watch-series-details__label">{t('watch.subtitles')}</span>
-            <span>{subtitles}</span>
-          </p>
+          {audio ? (
+            <p className="watch-series-details__meta-row">
+              <span className="watch-series-details__label">{t('watch.audio')}</span>
+              <span>{audio}</span>
+            </p>
+          ) : null}
+          {subtitles ? (
+            <p className="watch-series-details__meta-row">
+              <span className="watch-series-details__label">{t('watch.subtitles')}</span>
+              <span>{subtitles}</span>
+            </p>
+          ) : null}
 
           {isExpanded && details ? (
             <div className="watch-series-details__extended">

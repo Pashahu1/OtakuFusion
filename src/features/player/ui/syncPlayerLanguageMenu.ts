@@ -1,5 +1,6 @@
 import type Artplayer from 'artplayer';
 
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
 import { hardStopWatchPlayerSurface } from './hooks/artplayer-hls/hardStopPlayerMedia';
@@ -18,7 +19,11 @@ export interface SyncPlayerLanguageMenuParams {
   watchStreamProvider: WatchStreamProvider;
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   setActiveServerId: (id: string | null) => void;
+  setPlaybackAudio: (next: WatchPlaybackAudio) => void;
+  playbackAudio: WatchPlaybackAudio;
   hikkaLanguageMenuEligible: boolean;
+  anikotoJapaneseEligible: boolean;
+  anikotoEnglishEligible: boolean;
   resolvedStreamLang?: 'sub' | 'dub' | null;
   onBeforeLanguageSwitch?: (art: Artplayer) => LanguageSwitchResumeContext | null;
 }
@@ -28,12 +33,13 @@ export function syncPlayerLanguageMenu(
   params: SyncPlayerLanguageMenuParams,
 ): void {
   const {
-    activeServerIdRef,
-    watchStreamProvider,
     setWatchStreamProvider,
     setActiveServerId,
+    setPlaybackAudio,
+    playbackAudio,
     hikkaLanguageMenuEligible,
-    resolvedStreamLang,
+    anikotoJapaneseEligible,
+    anikotoEnglishEligible,
     onBeforeLanguageSwitch,
   } = params;
 
@@ -50,8 +56,10 @@ export function syncPlayerLanguageMenu(
   }
 
   const menuInput = {
-    watchStreamProvider,
+    playbackAudio,
     hikkaLanguageMenuEligible,
+    anikotoJapaneseEligible,
+    anikotoEnglishEligible,
   };
 
   const flatLanguage = buildFlatLanguageMenu(menuInput);
@@ -77,6 +85,7 @@ export function syncPlayerLanguageMenu(
       applyLanguageTrack(item as unknown as Record<string, unknown>, {
         setWatchStreamProvider,
         setActiveServerId,
+        setPlaybackAudio,
       });
     },
   });

@@ -11,6 +11,7 @@ export function buildWatchStreamGenerationKey(
     opts.animeId,
     opts.episodeId,
     opts.watchStreamProvider,
+    opts.playbackAudio,
     String(opts.streamLangRevision),
     opts.preferredLang,
     opts.episodeDubStateKey,
@@ -32,6 +33,7 @@ export function buildWatchStreamResolveEffectKey(
       'blocked',
       generationKey,
       opts.providerCatalogPending ? 'pending' : 'ready',
+      opts.anikotoMatchPending ? 'audio-pending' : 'audio-ready',
       opts.episodesSourceProvider ?? 'none',
       opts.providerAnimeId ?? '',
     ].join('|');
@@ -47,6 +49,7 @@ export function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): bo
 
   if (epSource != null && epSource !== sp) return true;
   if (opts.providerCatalogPending === true) return true;
+  if (opts.anikotoMatchPending) return true;
 
   const providerId = opts.providerAnimeId?.trim() ?? '';
   const needsProviderCatalog = sp === 'hikka';

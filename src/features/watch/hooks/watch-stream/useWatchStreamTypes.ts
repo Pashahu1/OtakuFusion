@@ -1,6 +1,7 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { SubtitleItem } from '@/shared/types/PlayerTypes';
 import type { StreamingData } from '@/shared/types/StreamingTypes';
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 
 export interface UseWatchStreamReturn {
@@ -19,6 +20,11 @@ export interface WatchStreamAnimeMeta {
   id: string;
   mal_id: number | null;
   title: string;
+  romaji_title?: string;
+  japanese_title?: string;
+  synonyms?: string;
+  showType?: string;
+  episodeCount?: number | null;
 }
 
 export interface WatchResolveOptions {
@@ -29,6 +35,9 @@ export interface WatchResolveOptions {
   episodeEpToken?: string | null;
   episodeHasDub?: boolean;
   preferredLang: 'sub' | 'dub';
+  playbackAudio: WatchPlaybackAudio;
+  /** Japanese/English resolve waits until the Anikoto title match finishes. */
+  anikotoMatchPending?: boolean;
   onPlaybackLangResolved?: (lang: 'sub' | 'dub') => void;
   watchStreamProvider: WatchStreamProvider;
   streamLangRevision: number;

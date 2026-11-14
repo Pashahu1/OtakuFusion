@@ -11,6 +11,7 @@ import { WatchSeriesDetails } from './WatchSeriesDetails';
 import { useHeroImageAccent } from '@/features/watch/hooks/useHeroImageAccent';
 import { useWatchHeroBackgroundImage } from '@/features/watch/hooks/useWatchHeroBackgroundImage';
 import type { SpotlightAnime } from '@/shared/types/GlobalAnimeTypes';
+import type { WatchPlaybackLanguages } from '@/features/watch/lib/watch-availability';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { WATCH_HERO_BG_QUALITY } from '@/lib/anime-card-poster';
 import { WatchSeriesSaveButton } from './WatchSeriesSaveButton';
@@ -33,6 +34,8 @@ function animeDataToFavorite(anime: AnimeData) {
 interface WatchSeriesHeroProps {
   hero: SpotlightAnime;
   animeInfo: AnimeData;
+  languages: WatchPlaybackLanguages;
+  languagesPending?: boolean;
   playHref: string;
   ctaLabel: string;
   isCtaPlayable?: boolean;
@@ -44,6 +47,8 @@ interface WatchSeriesHeroProps {
 export function WatchSeriesHero({
   hero,
   animeInfo,
+  languages,
+  languagesPending = false,
   playHref,
   ctaLabel,
   isCtaPlayable = true,
@@ -108,7 +113,7 @@ export function WatchSeriesHero({
           <div className="watch-series-hero__spacer" aria-hidden />
           <div className="watch-series-hero__branding">
             <HeroSlideTitle anime={hero} priority />
-            <WatchSeriesInlineTags animeInfo={animeInfo} />
+            <WatchSeriesInlineTags animeInfo={animeInfo} languages={languages} />
             <WatchSeriesRatingRow scorePercent={hero.scorePercent} />
             <div className="watch-series-hero__actions">
               {isCtaPlayable ? (
@@ -132,6 +137,8 @@ export function WatchSeriesHero({
             <WatchSeriesDetails
               embedded
               animeInfo={animeInfo}
+              languages={languages}
+              languagesPending={languagesPending}
               isExpanded={isDetailsExpanded}
               onToggleExpanded={onToggleDetails}
             />

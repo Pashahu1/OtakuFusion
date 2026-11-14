@@ -1,3 +1,4 @@
+import { hikkaSourceContradictsCatalog } from '@/lib/catalog/providers/hikka/hikkaCatalogIdentity';
 import { decodeHikkaEpToken } from '@/lib/catalog/providers/hikka/hikkaEpToken';
 import { fetchHikkaWatchV2 } from '@/lib/catalog/providers/hikka/hikkaFeaturesClient';
 import {
@@ -16,7 +17,7 @@ import type { StreamingType } from '@/shared/types/StreamingTypes';
 export async function computeHikkaWatchResolveOutcome(
   params: HikkaResolveParams
 ): Promise<WatchResolveOutcome> {
-  const { startedAt, episode, origin, hikkaSlug, epTokenOverride } = params;
+  const { startedAt, episode, origin, hikkaSlug, epTokenOverride, titleTerms } = params;
   const probeCfg = readWatchProbeConfig('sub');
 
   try {
@@ -60,6 +61,20 @@ export async function computeHikkaWatchResolveOutcome(
     }
 
     const m3u8 = await extractHikkaM3u8Cached(pageUrl);
+    if (
+      m3u8 &&
+      titleTerms?.length &&
+      hikkaSourceContradictsCatalog(m3u8, titleTerms)
+    ) {
+      return {
+        status: 404,
+        body: {
+          success: false,
+          error: 'no_working_source',
+          reason: 'hikka_source_mismatch',
+        },
+      };
+    }
     if (!m3u8) {
       return {
         status: 404,

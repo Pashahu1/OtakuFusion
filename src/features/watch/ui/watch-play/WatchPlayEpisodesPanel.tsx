@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
+import type { WatchPlaybackLanguages } from '@/features/watch/lib/watch-availability';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import { WatchEpisodeGrid } from '@/features/watch/ui/shared/WatchEpisodeGrid';
 import './WatchPlayEpisodesPanel.scss';
@@ -14,6 +15,7 @@ interface WatchPlayEpisodesPanelProps {
   episodes: EpisodesTypes[];
   currentEpisodeId: string | null;
   seriesTitle: string;
+  languages: WatchPlaybackLanguages;
   posterUrl: string;
   episodeDuration: string | null;
   watchedEpisodes: Record<string, boolean>;
@@ -28,6 +30,7 @@ export function WatchPlayEpisodesPanel({
   episodes,
   currentEpisodeId,
   seriesTitle,
+  languages,
   posterUrl,
   episodeDuration,
   watchedEpisodes,
@@ -119,6 +122,7 @@ export function WatchPlayEpisodesPanel({
             watchedEpisodes={watchedEpisodes}
             posterUrl={posterUrl}
             seriesTitle={seriesTitle}
+            languages={languages}
             episodeDuration={episodeDuration}
             showNowPlayingBadge
             onSelectEpisode={(episodeId) => {

@@ -9,6 +9,7 @@ export interface ProviderCatalogFetchResult {
   providerId: string;
   episodes: EpisodesTypes[];
   freshHikkaCatalog: HikkaCatalogBffOk | null;
+  ukrainianPlayable: boolean;
 }
 
 export interface CatalogFetchBaseParams {

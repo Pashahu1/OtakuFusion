@@ -31,8 +31,12 @@ interface WatchAnimeCatalogSlice {
     id: string;
     mal_id: number | null;
     title: string;
+    romaji_title?: string;
+    japanese_title?: string;
+    showType?: string;
     animeInfo?: {
       Status?: string;
+      Synonyms?: string;
       tvInfo?: { episodeTotal?: string; has_dub?: number };
     };
   } | null;

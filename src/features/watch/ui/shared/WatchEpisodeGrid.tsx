@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import type { WatchPlaybackLanguages } from '@/features/watch/lib/watch-availability';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import {
   episodeMatchesSelection,
@@ -17,6 +18,7 @@ export interface WatchEpisodeGridProps {
   watchedEpisodes: Record<string, boolean>;
   posterUrl: string;
   seriesTitle: string;
+  languages: WatchPlaybackLanguages;
   episodeDuration: string | null;
   onSelectEpisode: (episodeId: string) => void;
   className?: string;
@@ -30,6 +32,7 @@ export function WatchEpisodeGrid({
   watchedEpisodes,
   posterUrl,
   seriesTitle,
+  languages,
   episodeDuration,
   onSelectEpisode,
   className,
@@ -63,6 +66,7 @@ export function WatchEpisodeGrid({
             episodePreviewUrl={previewMap[epKey] ?? null}
             progressRatio={progressRatio}
             seriesTitle={seriesTitle}
+            languages={languages}
             episodeDuration={episodeDuration}
             isActive={isActive}
             isWatched={isWatched}

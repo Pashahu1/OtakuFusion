@@ -4,7 +4,7 @@ import { PLAYER_THEME_COLOR } from '../playerConstants';
 export const ARTPLAYER_NETFLIX_CSS_VAR = {
   '--art-theme': PLAYER_THEME_COLOR,
   '--art-progress-color': PLAYER_THEME_COLOR,
-  '--art-progress-height': '4px',
+  '--art-progress-height': '3px',
   '--art-hover-color': '#ffffff',
   '--art-loaded-color': 'rgba(255, 255, 255, 0.42)',
   '--art-highlight-color': 'rgba(255, 255, 255, 0.55)',
@@ -13,7 +13,7 @@ export const ARTPLAYER_NETFLIX_CSS_VAR = {
   '--art-control-height': '44px',
   '--art-control-icon-size': '24px',
   '--art-control-icon-scale': 1,
-  '--art-indicator-size': '14px',
+  '--art-indicator-size': '12px',
   '--art-indicator-scale': 1,
   '--art-volume-height': '96px',
   '--art-state-size': '88px',

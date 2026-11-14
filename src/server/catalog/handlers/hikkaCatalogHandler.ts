@@ -45,5 +45,6 @@ export async function runHikkaCatalog(
     episodes: resolved.episodes,
     totalEpisodes: resolved.totalEpisodes,
     availableTeams: resolved.pick.availableTeams,
+    ukrainianPlayable: resolved.ukrainianPlayable,
   };
 }
