@@ -80,6 +80,7 @@ export const ContinueWatchingEntrySchema = z.object({
     .optional()
     .transform((v) => (v === 'anikoto' ? 'hikka' : v)),
   streamLang: z.enum(['sub', 'dub']).optional(),
+  playbackAudio: z.enum(['uk', 'ja', 'en']).optional(),
 });
 
 export const ContinueWatchingPutSchema = z.union([

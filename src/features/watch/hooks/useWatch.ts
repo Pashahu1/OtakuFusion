@@ -39,7 +39,11 @@ export function useWatch(
     setPlaybackAudio,
     streamLangRevision,
     setStreamLangRevision,
-  } = useWatchProviderState(animeId, continuePlaybackPrefs?.watchStreamProvider);
+  } = useWatchProviderState(
+    animeId,
+    continuePlaybackPrefs?.watchStreamProvider,
+    continuePlaybackPrefs?.playbackAudio,
+  );
 
   const anime = useWatchAnime(animeId, initialEpisodeId, watchStreamProvider);
   const anikotoAudio = useAnikotoAudioAvailability(anime.animeInfo);
@@ -84,6 +88,7 @@ export function useWatch(
     skipRestore: continuePlaybackPrefs != null,
     setWatchStreamProvider,
     setActiveServerId,
+    setPlaybackAudio,
   });
 
   const playerShellPending = computePlayerShellPending({

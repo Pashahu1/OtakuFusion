@@ -2,6 +2,8 @@
 
 import { useRef, useCallback, useEffect } from 'react';
 
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
+import { playbackAudioToStreamLang } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import {
   updateContinueWatching,
@@ -15,7 +17,7 @@ export interface UseArtplayerContinueWatchingParams {
   episodeId: PlayerProps['episodeId'];
   episodeNum: PlayerProps['episodeNum'];
   watchStreamProvider: WatchStreamProvider;
-  streamLang: 'sub' | 'dub';
+  playbackAudio: WatchPlaybackAudio;
 }
 
 /**
@@ -26,26 +28,28 @@ export function useArtplayerContinueWatching({
   episodeId,
   episodeNum,
   watchStreamProvider,
-  streamLang,
+  playbackAudio,
 }: UseArtplayerContinueWatchingParams) {
   const animeInfoRef = useRef(animeInfo);
   const episodeIdRef = useRef(episodeId);
   const episodeNumRef = useRef(episodeNum);
   const watchStreamProviderRef = useRef(watchStreamProvider);
-  const streamLangRef = useRef(streamLang);
+  const playbackAudioRef = useRef(playbackAudio);
 
   useEffect(() => {
     animeInfoRef.current = animeInfo;
     episodeIdRef.current = episodeId;
     episodeNumRef.current = episodeNum;
     watchStreamProviderRef.current = watchStreamProvider;
-    streamLangRef.current = streamLang;
+    playbackAudioRef.current = playbackAudio;
   });
 
   const playbackContext = useCallback((): ContinueWatchingPlaybackContext => {
+    const audio = playbackAudioRef.current;
     return {
       watchStreamProvider: watchStreamProviderRef.current,
-      streamLang: streamLangRef.current,
+      streamLang: playbackAudioToStreamLang(audio),
+      playbackAudio: audio,
     };
   }, []);
 

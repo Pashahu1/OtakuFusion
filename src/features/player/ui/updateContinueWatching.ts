@@ -1,4 +1,5 @@
 import { isBlockedAnimeInfo } from '@/lib/anime-content-policy';
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import {
   MAX_CONTINUE_WATCHING_ENTRIES,
@@ -22,6 +23,7 @@ export interface ContinueWatchingProgress {
 export interface ContinueWatchingPlaybackContext {
   watchStreamProvider?: WatchStreamProvider;
   streamLang?: 'sub' | 'dub';
+  playbackAudio?: WatchPlaybackAudio;
 }
 
 /**
@@ -66,6 +68,7 @@ export function updateContinueWatching(
       watchStreamProvider:
         playback?.watchStreamProvider ?? existing?.watchStreamProvider,
       streamLang: playback?.streamLang ?? existing?.streamLang,
+      playbackAudio: playback?.playbackAudio ?? existing?.playbackAudio,
     };
 
     if (progress) {
@@ -78,6 +81,9 @@ export function updateContinueWatching(
     }
     if (playback?.streamLang) {
       newEntry.streamLang = playback.streamLang;
+    }
+    if (playback?.playbackAudio) {
+      newEntry.playbackAudio = playback.playbackAudio;
     }
 
     writeContinueWatchingList(

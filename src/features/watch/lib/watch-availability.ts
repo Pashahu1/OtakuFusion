@@ -53,12 +53,15 @@ export function seriesCatalogLangBadges(
   return ['dub'];
 }
 
-/** Card footer: what the user can actually play today. */
+/**
+ * Home cards have no per-title audio match, so they do not claim a dub.
+ * The card falls back to format, episode count, and duration.
+ */
 export function getStreamAvailabilityLabel(
   _tv?: CatalogTvLangCounts,
   _ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
 ): string | null {
-  return 'Dub';
+  return null;
 }
 
 export function watchDocumentTitleI18nKey(

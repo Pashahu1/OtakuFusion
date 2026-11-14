@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { isUkrainianDubOnlyPlayback } from '@/features/watch/lib/watch-availability';
 
 interface BuildWatchPageMetadataInput {
   title: string;
@@ -15,9 +14,7 @@ export function buildWatchPageMetadata({
   episodeLabel,
 }: BuildWatchPageMetadataInput): Metadata {
   const baseTitle = episodeLabel ? `Watch ${title}${episodeLabel}` : `Watch ${title}`;
-  const pageTitle = isUkrainianDubOnlyPlayback()
-    ? `${baseTitle} · Ukrainian Dub`
-    : `${baseTitle} · Sub/Dub`;
+  const pageTitle = `${baseTitle} · Sub/Dub`;
   const trimmedDescription = description?.trim().slice(0, 200);
   const posterUrl = poster?.trim();
   const images = posterUrl

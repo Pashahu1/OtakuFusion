@@ -11,7 +11,6 @@ import { findContinueWatchingEntry } from '@/features/watch/lib/resolve-continue
 import { readContinueWatchingList } from '@/features/watch/lib/continue-watching-list';
 import { continueWatchingEpisodeParam } from '@/features/watch/lib/continue-watching-display';
 import { peekPendingPlaybackResume } from '@/features/watch/lib/playback-resume-pending';
-import { isWatchDubServerId } from '@/shared/data/servers';
 import { normalizeEpisodeStorageKey } from '@/shared/utils/episodeUtils';
 import { destroyArtplayerInstance, readPlayerDeferStrictInit } from './useArtplayerHls';
 import { buildArtplayerStreamBootKey } from './artplayer-instance/buildArtplayerStreamBootKey';
@@ -65,8 +64,6 @@ export function useArtplayerInstance({
     onPlaybackErrorRef.current = onPlaybackError;
   });
 
-  const streamLang: 'sub' | 'dub' = isWatchDubServerId(activeServerId) ? 'dub' : 'sub';
-
   const resolvedStreamLang = useMemo((): 'sub' | 'dub' | null => {
     const raw = streamInfo?.streamingLink?.[0]?.type;
     return raw === 'dub' || raw === 'sub' ? raw : null;
@@ -77,7 +74,7 @@ export function useArtplayerInstance({
     episodeId,
     episodeNum,
     watchStreamProvider,
-    streamLang,
+    playbackAudio,
   });
 
   const resumePositionSeconds = useMemo((): number | undefined => {

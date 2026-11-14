@@ -65,6 +65,11 @@ export function normalizeContinueWatchingEntry(
   const streamLangRaw = item.streamLang;
   const streamLang =
     streamLangRaw === 'sub' || streamLangRaw === 'dub' ? streamLangRaw : undefined;
+  const playbackAudioRaw = item.playbackAudio;
+  const playbackAudio =
+    playbackAudioRaw === 'uk' || playbackAudioRaw === 'ja' || playbackAudioRaw === 'en'
+      ? playbackAudioRaw
+      : undefined;
 
   const entry: ContinueWatchingEntry = {
     id,
@@ -85,6 +90,7 @@ export function normalizeContinueWatchingEntry(
     updatedAt,
     watchStreamProvider,
     streamLang,
+    playbackAudio,
   };
 
   if (mediaHasBlockedGenre(entry.genres)) return null;

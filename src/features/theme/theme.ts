@@ -18,6 +18,7 @@ export const THEME_SWATCHES: Record<AppTheme, ThemeSwatch> = {
   ember: { bg: '#140e0c', surface: '#1c1412', accent: '#ff7a2e' },
   neon: { bg: '#0c0710', surface: '#160e1a', accent: '#ff2d95' },
   azure: { bg: '#0b1218', surface: '#121a22', accent: '#5ba3d9' },
+  newyear: { bg: '#07111a', surface: '#10202c', accent: '#e4c15a' },
 };
 
 export function isAppTheme(value: unknown): value is AppTheme {

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { findContinueWatchingEntry } from '@/features/watch/lib/resolve-continue-watching-cta';
 import { readContinueWatchingList } from '@/features/watch/lib/continue-watching-list';
@@ -13,6 +14,7 @@ interface UseRestoreContinueWatchingPlaybackInput {
   skipRestore?: boolean;
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   setActiveServerId: (id: string | null) => void;
+  setPlaybackAudio: (next: WatchPlaybackAudio) => void;
 }
 
 /**
@@ -26,6 +28,7 @@ export function useRestoreContinueWatchingPlayback({
   skipRestore = false,
   setWatchStreamProvider,
   setActiveServerId,
+  setPlaybackAudio,
 }: UseRestoreContinueWatchingPlaybackInput): void {
   const appliedRef = useRef<string | null>(null);
 
@@ -50,6 +53,9 @@ export function useRestoreContinueWatchingPlayback({
     if (entry.streamLang === 'dub' || entry.streamLang === 'sub') {
       setActiveServerId(watchServerIdFromLang(entry.streamLang));
     }
+    if (entry.playbackAudio === 'uk' || entry.playbackAudio === 'ja' || entry.playbackAudio === 'en') {
+      setPlaybackAudio(entry.playbackAudio);
+    }
   }, [
     animeId,
     episodeId,
@@ -57,5 +63,6 @@ export function useRestoreContinueWatchingPlayback({
     skipRestore,
     setWatchStreamProvider,
     setActiveServerId,
+    setPlaybackAudio,
   ]);
 }

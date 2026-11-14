@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ContinueWatchingEntry } from '@/shared/types/ContinueWatchingEntry';
-import { mergeContinueWatchingLists } from './continue-watching-list';
+import { mergeContinueWatchingLists, parseContinueWatchingList } from './continue-watching-list';
 
 function entry(
   partial: Partial<ContinueWatchingEntry> & Pick<ContinueWatchingEntry, 'id'>,
@@ -21,6 +21,13 @@ describe('mergeContinueWatchingLists', () => {
     expect(mergeContinueWatchingLists(local, remote)).toEqual([
       expect.objectContaining({ id: '10', episodeId: '2', positionSeconds: 40 }),
     ]);
+  });
+
+  it('keeps the saved playback audio', () => {
+    const raw = JSON.stringify([
+      entry({ id: '101922', episodeId: '1', updatedAt: 5, playbackAudio: 'uk' }),
+    ]);
+    expect(parseContinueWatchingList(raw)[0]?.playbackAudio).toBe('uk');
   });
 
   it('unions different titles and sorts by recency', () => {

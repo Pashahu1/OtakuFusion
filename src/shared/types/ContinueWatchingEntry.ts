@@ -16,4 +16,6 @@ export interface ContinueWatchingEntry {
   updatedAt?: number;
   watchStreamProvider?: 'hikka';
   streamLang?: 'sub' | 'dub';
+  /** Last audio the viewer actually played: Ukrainian, Japanese, or English. */
+  playbackAudio?: 'uk' | 'ja' | 'en';
 }

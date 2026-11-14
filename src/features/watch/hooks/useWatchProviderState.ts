@@ -9,6 +9,7 @@ import {
 export function useWatchProviderState(
   animeId: string,
   initialProvider?: WatchStreamProvider,
+  initialPlaybackAudio?: WatchPlaybackAudio,
 ) {
   const [watchStreamProvider, setWatchStreamProviderState] = useState<WatchStreamProvider>(
     () =>
@@ -17,7 +18,9 @@ export function useWatchProviderState(
         : DEFAULT_WATCH_STREAM_PROVIDER,
   );
   const [streamLangRevision, setStreamLangRevision] = useState(0);
-  const [playbackAudio, setPlaybackAudioState] = useState<WatchPlaybackAudio>('ja');
+  const [playbackAudio, setPlaybackAudioState] = useState<WatchPlaybackAudio>(
+    () => initialPlaybackAudio ?? 'ja',
+  );
   const hydratedContinueProviderRef = useRef(false);
 
   useEffect(() => {
@@ -27,9 +30,9 @@ export function useWatchProviderState(
         ? normalizeWatchStreamProvider(initialProvider)
         : DEFAULT_WATCH_STREAM_PROVIDER,
     );
-    setPlaybackAudioState('ja');
+    setPlaybackAudioState(initialPlaybackAudio ?? 'ja');
     setStreamLangRevision(0);
-  }, [animeId, initialProvider]);
+  }, [animeId, initialProvider, initialPlaybackAudio]);
 
   useEffect(() => {
     if (!initialProvider) return;

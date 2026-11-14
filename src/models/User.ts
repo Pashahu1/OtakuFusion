@@ -16,6 +16,7 @@ const ContinueWatchingEntrySchema = new mongoose.Schema(
     updatedAt: { type: Number },
     watchStreamProvider: { type: String, enum: ['hikka', 'anikoto'] }, // anikoto kept for legacy docs; reads remap to hikka
     streamLang: { type: String, enum: ['sub', 'dub'] },
+    playbackAudio: { type: String, enum: ['uk', 'ja', 'en'] },
   },
   { _id: false },
 );

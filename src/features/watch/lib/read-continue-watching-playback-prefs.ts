@@ -1,3 +1,4 @@
+import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import { normalizeWatchStreamProvider } from '@/features/watch/lib/watch-provider';
 
@@ -8,6 +9,7 @@ import { findContinueWatchingEntry } from './resolve-continue-watching-cta';
 export interface ContinueWatchingPlaybackPrefs {
   watchStreamProvider?: WatchStreamProvider;
   streamLang?: 'sub' | 'dub';
+  playbackAudio?: WatchPlaybackAudio;
   positionSeconds?: number;
 }
 
@@ -35,6 +37,9 @@ export function readContinueWatchingPlaybackPrefs(
   }
   if (entry.streamLang === 'sub' || entry.streamLang === 'dub') {
     prefs.streamLang = entry.streamLang;
+  }
+  if (entry.playbackAudio === 'uk' || entry.playbackAudio === 'ja' || entry.playbackAudio === 'en') {
+    prefs.playbackAudio = entry.playbackAudio;
   }
   if (entry.positionSeconds != null && Number.isFinite(entry.positionSeconds)) {
     prefs.positionSeconds = Math.floor(entry.positionSeconds);

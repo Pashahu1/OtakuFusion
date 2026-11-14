@@ -16,7 +16,7 @@ describe('watch availability copy', () => {
   it('keeps the catalog card badge', () => {
     expect(episodePlayableLangBadges({ hasSub: true, hasDub: false })).toEqual(['dub']);
     expect(seriesCatalogLangBadges({ has_sub: 12, has_dub: 0 })).toEqual(['dub']);
-    expect(getStreamAvailabilityLabel({ has_sub: 12, has_dub: 4 })).toBe('Dub');
+    expect(getStreamAvailabilityLabel({ has_sub: 12, has_dub: 4 })).toBeNull();
     expect(watchDocumentTitleI18nKey()).toBe('watch.documentTitleSubDub');
   });
 
