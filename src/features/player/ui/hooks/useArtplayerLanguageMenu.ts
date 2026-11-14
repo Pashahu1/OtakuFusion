@@ -93,7 +93,6 @@ export function useArtplayerLanguageMenu({
       setWatchStreamProvider: (next) => setWatchStreamProviderRef.current(next),
       setActiveServerId: (id) => setActiveServerIdRef.current(id),
       hikkaLanguageMenuEligible: hikkaEligibleRef.current,
-      anikotoLanguageMenuEligible: anikotoEligibleRef.current,
       resolvedStreamLang: resolvedStreamLangRef.current,
       onBeforeLanguageSwitch: (player) => {
         const current = player.currentTime;

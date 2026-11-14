@@ -75,7 +75,6 @@ export function useWatchStreamLang({
   }, [langState.userChoseDub]);
 
   useEffect(() => {
-    if (watchStreamProvider === 'anikoto') return;
     setLangState((prev) => {
       if (!isWatchDubServerId(prev.activeServerId)) return prev;
       return {
@@ -131,9 +130,6 @@ export function useWatchStreamLang({
 
   const resolverLang = useMemo<'sub' | 'dub'>(() => {
     if (watchStreamProvider === 'hikka') return 'sub';
-    if (watchStreamProvider === 'anikoto') {
-      return isWatchDubServerId(activeServerId) ? 'dub' : 'sub';
-    }
     if (!isWatchDubServerId(activeServerId)) return 'sub';
     return 'dub';
   }, [watchStreamProvider, activeServerId]);

@@ -39,10 +39,10 @@ This is a **portfolio / educational project**, not a licensed commercial streami
 | Track | Provider | Status |
 |-------|----------|--------|
 | **Ukrainian** | Hikka | **Available** — default live stream |
-| **Japanese (Sub)** | — | **Retired** — `/api/anikoto/*` returns **410 Gone** |
-| **English (Dub)** | — | **Retired** — `/api/anikoto/*` returns **410 Gone** |
+| **Japanese (Sub)** | — | **Not offered** |
+| **English (Dub)** | — | **Not offered** |
 
-Japanese / English are not served. The leftover UI flag stays off; do not point the app at an Anikoto scraper. Continue watching may still store an old `watchStreamProvider` value — it remaps to Hikka.
+Playback is Ukrainian (Hikka) only. Saved Anikoto continue-watching prefs remap to Hikka.
 
 Default provider for new sessions is **Hikka (UA)**.
 
@@ -56,15 +56,8 @@ flowchart LR
     UA["Ukrainian — Hikka HLS"]
   end
 
-  subgraph gated [Playback retired]
-    JP["Japanese Sub — 410"]
-    EN["English Dub — 410"]
-  end
-
   Prefs --> live
-  Prefs -.-> gated
   live --> Player["Artplayer + HLS.js"]
-  gated -.->|410 Gone| Player
 ```
 
 ---
@@ -135,7 +128,7 @@ For **watch**, **HLS playback**, and **account** flows, open the [live demo](htt
 | Auth | JWT (`jose` HS256) + HTTP-only cookies |
 | Database | MongoDB (Mongoose) |
 | Metadata | AniList GraphQL |
-| Streams | Hikka (live UA); `/api/anikoto/*` is 410 Gone |
+| Streams | Hikka (Ukrainian HLS) |
 | Tests | Vitest |
 
 ---
@@ -157,7 +150,6 @@ flowchart LR
   subgraph bff [Next.js BFF]
     Resolve["/api/watch/resolve"]
     HikkaCatalog["/api/hikka/catalog"]
-    AnikotoBFF["/api/anikoto/* 410"]
     Proxy["/api/m3u8-proxy"]
     AniListAPI["/api/anilist/graphql"]
   end
@@ -165,14 +157,11 @@ flowchart LR
   subgraph server [Server]
     WR[watch-resolve]
     HikkaClient[Hikka client]
-    AnikotoClient[Anikoto client]
     WR --> HikkaClient
-    WR -.->|not served| AnikotoClient
   end
 
   subgraph external [External]
     HikkaAPI[Hikka Features]
-    AnikotoAPI[Anikoto API]
     AniList[AniList GraphQL]
     DB[(MongoDB)]
     Relay[Cloudflare HLS relay]
@@ -185,9 +174,7 @@ flowchart LR
   Player --> Relay
   Resolve --> WR
   HikkaCatalog --> HikkaClient
-  AnikotoBFF --> AnikotoClient
   HikkaClient --> HikkaAPI
-  AnikotoClient -.->|410 Gone| AnikotoAPI
   Relay --> HikkaAPI
   Pages --> DB
   AniListAPI --> AniList
@@ -199,7 +186,7 @@ flowchart LR
 2. `GET /api/watch/resolve?provider=hikka` extracts a playable HLS URL.
 3. Artplayer plays the stream (direct, `/api/m3u8-proxy`, or `NEXT_PUBLIC_M3U8_PROXY_BASE`).
 
-**Anikoto (JP sub · EN dub):** `/api/anikoto/*` is **410 Gone**. Playback stays on Hikka only.
+**Japanese / English:** not offered. Playback stays on Hikka only.
 
 ---
 
@@ -207,7 +194,7 @@ flowchart LR
 
 | Area | What to expect |
 |------|----------------|
-| **Japanese / English** | Not offered. `/api/anikoto/*` is **410 Gone**. |
+| **Japanese / English** | Not offered. |
 | **Third-party streams** | UA playback depends on Hikka. Coverage and uptime are not under our control. |
 | **Hikka on Vercel** | Upstream may block the server IP — set **`HIKKA_FEATURES_RELAY_BASE`** if Ukrainian tracks return 403. |
 | **HLS on Vercel** | Some CDNs need **`NEXT_PUBLIC_M3U8_PROXY_BASE`** (`workers/hls-relay`). Same-origin `/api/m3u8-proxy` is fine locally. |
@@ -359,7 +346,6 @@ src/
 │   ├── api/
 │   │   ├── watch/resolve/
 │   │   ├── hikka/
-│   │   ├── anikoto/          # JP/EN BFF retired (410 Gone)
 │   │   ├── m3u8-proxy/
 │   │   ├── auth/
 │   │   └── anilist/
@@ -369,7 +355,7 @@ src/
 │   ├── watch/                # Catalog, resolve, continue watching, CTA
 │   ├── player/               # Artplayer, HLS, language menu, layers
 │   ├── auth/ profile/ theme/ discover/
-├── server/                   # Server-only clients (Hikka, Anikoto, resolve)
+├── server/                   # Server-only clients (Hikka, resolve)
 ├── i18n/                     # en / uk / de dictionaries
 ├── components/               # Shared chrome (header, cards, calendar)
 ├── lib/ models/ shared/
@@ -401,7 +387,7 @@ workers/
 - [ ] Search returns results
 - [ ] Watch page — episode list
 - [ ] Player — **Ukrainian** HLS plays
-- [ ] Language menu does **not** offer Japanese / English (`/api/anikoto/*` is 410)
+- [ ] Language menu does **not** offer Japanese / English
 - [ ] Register / login persists after refresh
 - [ ] Settings — theme + UI language chips (en / uk / de)
 

@@ -2,7 +2,6 @@ import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type { NextEpisodeScheduleResult } from '@/shared/types/GlobalAnimeTypes';
-import { readVerifiedAnikotoMapping } from '@/features/watch/lib/provider-mapping-cache';
 import { readWatchAnimeHydratedState } from '@/features/watch/lib/watch-catalog-session-hydrate';
 
 export interface WatchAnimeInitialState {
@@ -43,19 +42,17 @@ export function createInitialWatchAnimeState(
     };
   }
 
-  const cachedAnikoto = readVerifiedAnikotoMapping(animeId);
-
   return {
     animeInfo: hydrated.animeInfo,
     episodes: hydrated.episodes,
     hikkaCatalogProviderId: hydrated.hikkaCatalogProviderId,
-    anikotoCatalogProviderId: cachedAnikoto?.anikotoSlug ?? null,
+    anikotoCatalogProviderId: null,
     totalEpisodes: hydrated.totalEpisodes,
     episodeId: hydrated.episodeId,
     animeInfoLoading: false,
     nextEpisodeSchedule: hydrated.nextEpisodeSchedule,
     hikkaLanguageMenuEligible: hydrated.hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible: Boolean(cachedAnikoto?.anikotoSlug),
+    anikotoLanguageMenuEligible: false,
     providerCatalogPending: false,
     episodesSourceProvider: hydrated.episodesSourceProvider,
   };

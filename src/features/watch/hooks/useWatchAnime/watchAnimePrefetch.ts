@@ -1,14 +1,9 @@
-import { postAnikotoCatalog } from '@/lib/bff/watch/anikoto-catalog';
 import { postHikkaCatalog, type HikkaCatalogBffOk } from '@/lib/bff/watch/hikka-catalog';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import { catalogBodyFromAnimeData } from './watchAnimeCatalogUtils';
 import type { MutableRefObject } from 'react';
 import type { WarmAlternateCatalogEntry } from './types';
-import {
-  readVerifiedAnikotoMapping,
-  writeVerifiedAnikotoMapping,
-  writeVerifiedHikkaMapping,
-} from '@/features/watch/lib/provider-mapping-cache';
+import { writeVerifiedHikkaMapping } from '@/features/watch/lib/provider-mapping-cache';
 import { upsertWarmHikkaCatalog } from './watchAnimeWarmCatalog';
 
 async function delayMs(ms: number, signal: AbortSignal): Promise<void> {
@@ -27,32 +22,6 @@ async function delayMs(ms: number, signal: AbortSignal): Promise<void> {
   });
 }
 
-export function prefetchAnikotoMapping(
-  dataForResolve: AnimeData,
-  localAnimeId: string,
-  signal: AbortSignal,
-  isCancelled: () => boolean,
-  onEligible?: () => void,
-): void {
-  const cached = readVerifiedAnikotoMapping(localAnimeId);
-  const catalogPayload = {
-    ...catalogBodyFromAnimeData(dataForResolve, localAnimeId),
-    ...(cached?.anikotoSlug ? { anikotoSlug: cached.anikotoSlug } : {}),
-  };
-
-  void (async () => {
-    try {
-      const catalog = await postAnikotoCatalog(catalogPayload, signal);
-      if (isCancelled() || signal.aborted) return;
-      if (!catalog.success || !catalog.anikotoSlug?.trim()) return;
-      writeVerifiedAnikotoMapping(localAnimeId, catalog.anikotoSlug.trim());
-      onEligible?.();
-    } catch {
-      // background prefetch — ignore
-    }
-  })();
-}
-
 export function prefetchHikkaMapping(
   dataForResolve: AnimeData,
   localAnimeId: string,
@@ -60,7 +29,7 @@ export function prefetchHikkaMapping(
   isCancelled: () => boolean,
   onEligible: () => void,
   onWarm?: (catalog: HikkaCatalogBffOk) => void,
-  warmCatalogsRef?: MutableRefObject<WarmAlternateCatalogEntry | null>
+  warmCatalogsRef?: MutableRefObject<WarmAlternateCatalogEntry | null>,
 ): void {
   const catalogPayload = catalogBodyFromAnimeData(dataForResolve, localAnimeId);
   void (async () => {
@@ -84,7 +53,7 @@ export function prefetchHikkaMapping(
       onWarm?.(alt);
       onEligible();
     } catch {
-
+      /* background prefetch — ignore */
     }
   })();
 }

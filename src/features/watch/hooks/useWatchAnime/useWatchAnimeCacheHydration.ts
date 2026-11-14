@@ -1,9 +1,6 @@
 import { useEffect, useLayoutEffect } from 'react';
 
-import {
-  ANIKOTO_PLAYBACK_ENABLED,
-  type WatchStreamProvider,
-} from '@/features/watch/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import {
   applyWatchAnimeHydratedState,
   readWatchAnimeHydratedState,
@@ -11,10 +8,6 @@ import {
 import { readWatchCatalogSessionCache } from '@/features/watch/lib/watch-catalog-session-cache';
 
 import type { WatchAnimeState } from './useWatchAnimeState';
-import {
-  applyCachedAnikotoLanguageMenu,
-} from './watchAnimeCatalogUtils';
-import { prefetchAnikotoMapping } from './watchAnimePrefetch';
 import { resetWatchAnimeLoadState } from './watchAnimeInitialState';
 
 interface UseWatchAnimeCacheHydrationParams {
@@ -92,26 +85,6 @@ export function useWatchAnimeCacheHydration({
         setProviderCatalogPending,
         setError,
       });
-      if (
-        ANIKOTO_PLAYBACK_ENABLED &&
-        !applyCachedAnikotoLanguageMenu(animeId, {
-          setAnikotoCatalogProviderId,
-          setAnikotoLanguageMenuEligible,
-        })
-      ) {
-        const controller = new AbortController();
-        prefetchAnikotoMapping(
-          cached.animeInfo,
-          animeId,
-          controller.signal,
-          () => controller.signal.aborted,
-          () => {
-            if (!controller.signal.aborted) {
-              setAnikotoLanguageMenuEligible(true);
-            }
-          },
-        );
-      }
       return;
     }
 

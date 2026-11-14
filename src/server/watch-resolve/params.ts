@@ -17,11 +17,6 @@ export function parseEpisodeNumber(sp: URLSearchParams): number | null {
 }
 
 export function missingSeriesIdError(provider: WatchResolveStreamProvider): string {
-  if (provider === 'hikka') {
-    return 'ani_id is required (Hikka slug from catalog)';
-  }
-  if (provider === 'anikoto') {
-    return 'ani_id is required (Anikoto slug from catalog)';
-  }
-  return 'ani_id is required (provider series id from catalog)';
+  void provider;
+  return 'ani_id is required (Hikka slug from catalog)';
 }

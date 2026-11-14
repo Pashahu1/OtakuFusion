@@ -2,8 +2,6 @@ import type Artplayer from 'artplayer';
 
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 import type { ServerInfo } from '@/shared/types/GlobalAnimeTypes';
-import { isWatchDubServerId } from '@/shared/data/servers';
-
 import { hardStopWatchPlayerSurface } from './hooks/artplayer-hls/hardStopPlayerMedia';
 import { applyLanguageTrack } from './netflix-tracks/applyLanguageTrack';
 import { patchTracksPanelModel } from './netflix-tracks/tracksPanelModel';
@@ -21,7 +19,6 @@ export interface SyncPlayerLanguageMenuParams {
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   setActiveServerId: (id: string | null) => void;
   hikkaLanguageMenuEligible: boolean;
-  anikotoLanguageMenuEligible: boolean;
   resolvedStreamLang?: 'sub' | 'dub' | null;
   onBeforeLanguageSwitch?: (art: Artplayer) => LanguageSwitchResumeContext | null;
 }
@@ -36,7 +33,6 @@ export function syncPlayerLanguageMenu(
     setWatchStreamProvider,
     setActiveServerId,
     hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
     resolvedStreamLang,
     onBeforeLanguageSwitch,
   } = params;
@@ -53,20 +49,9 @@ export function syncPlayerLanguageMenu(
     /* setting may not exist yet */
   }
 
-  const anikotoActiveLang: 'sub' | 'dub' | null =
-    watchStreamProvider === 'anikoto'
-      ? isWatchDubServerId(activeServerIdRef.current)
-        ? 'dub'
-        : 'sub'
-      : null;
-
   const menuInput = {
     watchStreamProvider,
     hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
-    activeServerId: activeServerIdRef.current,
-    anikotoActiveLang,
-    resolvedStreamLang,
   };
 
   const flatLanguage = buildFlatLanguageMenu(menuInput);

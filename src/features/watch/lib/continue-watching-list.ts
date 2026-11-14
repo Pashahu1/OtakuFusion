@@ -59,7 +59,7 @@ export function normalizeContinueWatchingEntry(
     watchStreamProviderRaw === 'anilibria' || watchStreamProviderRaw === 'aniliberty'
       ? 'hikka'
       : watchStreamProviderRaw === 'hikka' || watchStreamProviderRaw === 'anikoto'
-        ? watchStreamProviderRaw
+        ? 'hikka'
         : undefined;
 
   const streamLangRaw = item.streamLang;

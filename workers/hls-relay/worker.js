@@ -1,6 +1,6 @@
 /**
  * Edge HLS relay — optional alternative to Vercel `/api/m3u8-proxy`.
- * Avoids serverless buffering/timeouts on disguised CDN segments (Anikoto / sugevideo).
+ * Avoids serverless buffering/timeouts on disguised CDN segments.
  *
  * Deploy: npx wrangler deploy (from this folder)
  * App env: NEXT_PUBLIC_M3U8_PROXY_BASE=https://<your-worker>.workers.dev

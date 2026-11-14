@@ -62,7 +62,6 @@ export function useWatchAnime(
 
   const providerAnimeId = resolveProviderAnimeId(watchStreamProvider, {
     hikkaCatalogProviderId: state.hikkaCatalogProviderId,
-    anikotoCatalogProviderId: state.anikotoCatalogProviderId,
   });
 
   return {

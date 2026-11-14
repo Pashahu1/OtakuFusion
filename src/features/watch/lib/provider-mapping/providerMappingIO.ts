@@ -1,12 +1,6 @@
 import { providerMappingClientStore as clientStore } from './providerMappingClientStore';
-import {
-  ANIKOTO_MAPPING_KEY,
-  getMappingCacheKey,
-} from './providerMappingKeys';
-import type {
-  VerifiedAnikotoMapping,
-  VerifiedHikkaMapping,
-} from './providerMappingTypes';
+import { getMappingCacheKey } from './providerMappingKeys';
+import type { VerifiedHikkaMapping } from './providerMappingTypes';
 
 export { getMappingCacheKey } from './providerMappingKeys';
 
@@ -26,30 +20,5 @@ export function writeVerifiedHikkaMapping(localAnimeId: string, hikkaSlug: strin
   clientStore.set(
     getMappingCacheKey(localAnimeId, 'hikka'),
     JSON.stringify({ hikkaSlug: hikkaSlug.trim() }),
-  );
-}
-
-export function clearVerifiedAnikotoMapping(localAnimeId: string): void {
-  clientStore.remove(ANIKOTO_MAPPING_KEY(localAnimeId));
-}
-
-export function readVerifiedAnikotoMapping(localAnimeId: string): VerifiedAnikotoMapping | null {
-  const raw = clientStore.get(ANIKOTO_MAPPING_KEY(localAnimeId));
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as { anikotoSlug?: string };
-    if (!parsed || typeof parsed.anikotoSlug !== 'string' || !parsed.anikotoSlug.trim()) {
-      return null;
-    }
-    return { anikotoSlug: parsed.anikotoSlug.trim() };
-  } catch {
-    return null;
-  }
-}
-
-export function writeVerifiedAnikotoMapping(localAnimeId: string, anikotoSlug: string): void {
-  clientStore.set(
-    ANIKOTO_MAPPING_KEY(localAnimeId),
-    JSON.stringify({ anikotoSlug: anikotoSlug.trim() }),
   );
 }

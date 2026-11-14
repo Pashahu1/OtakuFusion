@@ -13,7 +13,7 @@ export const STORAGE_SERVER_TYPE = 'server_type';
 
 /** Artplayer language menu: Japanese / sub track. */
 export const WATCH_SERVER_SUB_ID = '1';
-/** Artplayer language menu: English dub track (Anikoto). */
+/** Artplayer language menu: dub track id (legacy). */
 export const WATCH_SERVER_DUB_ID = '2';
 
 export function watchServerIdFromLang(lang: 'sub' | 'dub'): string {

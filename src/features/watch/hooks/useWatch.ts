@@ -5,7 +5,6 @@ import { useWatchAnime } from './useWatchAnime';
 import { useWatchStream } from './useWatchStream';
 import { useWatchProviderState } from './useWatchProviderState';
 import { useWatchStreamLang } from './useWatchStreamLang';
-import { useWatchProviderGate } from './useWatchProviderGate';
 import { useWatchDubFallback } from './useWatchDubFallback';
 import { useWatchStreamOverlay } from './useWatchStreamOverlay';
 import {
@@ -15,7 +14,6 @@ import {
 import { useWatchResolveOptions } from './use-watch/useWatchResolveOptions';
 import { useWatchOppositePrefetch } from './use-watch/useWatchOppositePrefetch';
 import { useWatchCatalogProviderFallback } from './useWatchCatalogProviderFallback';
-import { useWatchAnikotoDubUnavailableFallback } from './useWatchAnikotoDubUnavailableFallback';
 import { readContinueWatchingPlaybackPrefs } from '@/features/watch/lib/read-continue-watching-playback-prefs';
 
 import { useRestoreContinueWatchingPlayback } from './useRestoreContinueWatchingPlayback';
@@ -92,28 +90,12 @@ export function useWatch(
 
   const streamHardExhausted = useWatchDubFallback();
 
-  useWatchAnikotoDubUnavailableFallback({
-    watchStreamProvider,
-    activeServerId,
-    streamErrorCode: stream.errorCode,
-    setActiveServerIdRaw,
-  });
-
   useWatchCatalogProviderFallback({
     animeId,
     watchStreamProvider,
     error: anime.error,
     providerCatalogPending: anime.providerCatalogPending,
     setWatchStreamProvider,
-  });
-
-  useWatchProviderGate({
-    watchStreamProvider,
-    setWatchStreamProvider,
-    animeInfoLoading: anime.animeInfoLoading,
-    providerCatalogPending: anime.providerCatalogPending,
-    hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
   });
 
   useWatchOppositePrefetch({

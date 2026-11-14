@@ -7,12 +7,7 @@ import {
   buildFlatLanguageMenu,
   type LangMenuLeaf,
 } from '@/features/player/ui/language-menu/buildFlatLanguageMenu';
-import {
-  isWatchDubServerId,
-  STORAGE_SERVER_TYPE,
-  WATCH_SERVER_DUB_ID,
-  WATCH_SERVER_SUB_ID,
-} from '@/shared/data/servers';
+import { STORAGE_SERVER_TYPE } from '@/shared/data/servers';
 
 interface WatchPlayerErrorControlsProps {
   activeServerId: string | null;
@@ -38,30 +33,6 @@ function applyLanguageMenuSelection(
     } catch {
       /* ignore */
     }
-    return;
-  }
-
-  if (mode === 'anikoto-sub') {
-    setWatchStreamProvider('anikoto');
-    setActiveServerId(WATCH_SERVER_SUB_ID);
-    try {
-      localStorage.setItem(STORAGE_SERVER_TYPE, 'sub');
-      localStorage.removeItem('server_name');
-    } catch {
-      /* ignore */
-    }
-    return;
-  }
-
-  if (mode === 'anikoto-dub') {
-    setWatchStreamProvider('anikoto');
-    setActiveServerId(WATCH_SERVER_DUB_ID);
-    try {
-      localStorage.setItem(STORAGE_SERVER_TYPE, 'dub');
-      localStorage.removeItem('server_name');
-    } catch {
-      /* ignore */
-    }
   }
 }
 
@@ -71,21 +42,11 @@ export function WatchPlayerErrorControls({
   setWatchStreamProvider,
   setActiveServerId,
   hikkaLanguageMenuEligible,
-  anikotoLanguageMenuEligible,
 }: WatchPlayerErrorControlsProps) {
   const { t } = useTranslation('common');
-  const anikotoActiveLang =
-    watchStreamProvider === 'anikoto'
-      ? isWatchDubServerId(activeServerId)
-        ? 'dub'
-        : 'sub'
-      : null;
-
   const options = buildFlatLanguageMenu({
     watchStreamProvider,
     hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
-    anikotoActiveLang,
   });
 
   if (options.length === 0) return null;

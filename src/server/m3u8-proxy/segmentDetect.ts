@@ -1,4 +1,4 @@
-/** Anikoto / sugevideo CDN disguises HLS segments as static assets. */
+/** Some CDNs disguise HLS segments as static assets. */
 const DISGUISED_SEGMENT_PATH = /\/seg-\d+[-/]/i;
 
 const BINARY_SEGMENT_EXT = /\.(ts|m4s|aac|mp4|webm|mkv)(\?|$)/i;

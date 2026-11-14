@@ -8,19 +8,13 @@ export const WATCH_RESOLVE_UPSTREAM_HINTS: Record<string, string> = {
   'no_working_source|hikka_m3u8_not_found':
     'Could not extract a playable stream from the Ukrainian source page. Try another episode or provider.',
   'no_working_source|hikka_stream_probe_failed':
-    'Ukrainian stream is blocked or unavailable. Try Japanese or refresh later.',
-  'no_working_source|anikoto_stream_empty|sub_not_available':
-    'Anikoto has no Japanese stream for this episode yet. Try another episode or Ukrainian.',
-  'no_working_source|anikoto_stream_empty|dub_not_available':
-    'Anikoto has no English dub for this episode yet. Try Japanese or Ukrainian.',
-  'no_working_source|anikoto_stream_probe_failed':
-    'Anikoto stream is blocked by the CDN (403). Switch to Ukrainian (Hikka) in the player menu.',
+    'Ukrainian stream is blocked or unavailable. Refresh later.',
   hikka_catalog_not_found:
     'No Ukrainian dub catalog was found for this title on Hikka Features.',
   hikka_features_forbidden:
     'Hikka Features blocked the server (403). On Vercel set HIKKA_FEATURES_RELAY_BASE; locally add it to .env.local and restart `npm run dev`.',
   'ani_id is required (Hikka slug from catalog)':
-    'Ukrainian catalog is still loading or missing. Wait a moment, refresh, or switch to Japanese and back.',
+    'Ukrainian catalog is still loading or missing. Wait a moment or refresh.',
   'lang must be sub or dub':
     'Invalid stream language parameter. Refresh the page or toggle Sub/Dub.',
 };

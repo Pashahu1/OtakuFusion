@@ -5,152 +5,22 @@ import {
 } from '@/shared/data/servers';
 import { clampActiveServerId } from './clampActiveServerId';
 
-type ClampInput = {
-  id: string | null;
-  userChoseDub: boolean;
-  provider: 'hikka' | 'anikoto';
-  catalogHasDub: boolean;
-  episodeHasDub: boolean | undefined;
-};
-
-const cases: Array<{
-  name: string;
-  input: ClampInput;
-  expected: string | null;
-}> = [
-  {
-    name: 'userChoseDub keeps dub on hikka',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: true,
-      provider: 'hikka',
-      catalogHasDub: false,
-      episodeHasDub: false,
-    },
-    expected: WATCH_SERVER_DUB_ID,
-  },
-  {
-    name: 'userChoseDub keeps dub on anikoto when catalog and episode have dub',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: true,
-      provider: 'anikoto',
-      catalogHasDub: true,
-      episodeHasDub: true,
-    },
-    expected: WATCH_SERVER_DUB_ID,
-  },
-  {
-    name: 'userChoseDub keeps dub on anikoto even without catalog dub',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: true,
-      provider: 'anikoto',
-      catalogHasDub: false,
-      episodeHasDub: false,
-    },
-    expected: WATCH_SERVER_DUB_ID,
-  },
-  {
-    name: 'hikka keeps sub id',
-    input: {
-      id: WATCH_SERVER_SUB_ID,
-      userChoseDub: false,
-      provider: 'hikka',
-      catalogHasDub: true,
-      episodeHasDub: true,
-    },
-    expected: WATCH_SERVER_SUB_ID,
-  },
-  {
-    name: 'hikka clamps dub to sub',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: false,
-      provider: 'hikka',
-      catalogHasDub: true,
-      episodeHasDub: true,
-    },
-    expected: WATCH_SERVER_SUB_ID,
-  },
-  {
-    name: 'hikka preserves null id',
-    input: {
-      id: null,
-      userChoseDub: false,
-      provider: 'hikka',
-      catalogHasDub: false,
-      episodeHasDub: undefined,
-    },
-    expected: null,
-  },
-  {
-    name: 'anikoto keeps sub id',
-    input: {
-      id: WATCH_SERVER_SUB_ID,
-      userChoseDub: false,
-      provider: 'anikoto',
-      catalogHasDub: false,
-      episodeHasDub: false,
-    },
-    expected: WATCH_SERVER_SUB_ID,
-  },
-  {
-    name: 'anikoto clamps dub when catalog has no dub',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: false,
-      provider: 'anikoto',
-      catalogHasDub: false,
-      episodeHasDub: undefined,
-    },
-    expected: WATCH_SERVER_SUB_ID,
-  },
-  {
-    name: 'anikoto clamps dub when episode explicitly has no dub',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: false,
-      provider: 'anikoto',
-      catalogHasDub: true,
-      episodeHasDub: false,
-    },
-    expected: WATCH_SERVER_SUB_ID,
-  },
-  {
-    name: 'anikoto keeps dub when episode dub is unknown',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: false,
-      provider: 'anikoto',
-      catalogHasDub: true,
-      episodeHasDub: undefined,
-    },
-    expected: WATCH_SERVER_DUB_ID,
-  },
-  {
-    name: 'anikoto keeps dub when episode has dub',
-    input: {
-      id: WATCH_SERVER_DUB_ID,
-      userChoseDub: false,
-      provider: 'anikoto',
-      catalogHasDub: true,
-      episodeHasDub: true,
-    },
-    expected: WATCH_SERVER_DUB_ID,
-  },
-];
-
 describe('clampActiveServerId', () => {
-  it.each(cases)('$name', ({ input, expected }) => {
+  it('keeps dub when the user chose dub', () => {
     expect(
-      clampActiveServerId(
-        input.id,
-        input.userChoseDub,
-        input.provider,
-        input.catalogHasDub,
-        input.episodeHasDub,
-      ),
-    ).toBe(expected);
+      clampActiveServerId(WATCH_SERVER_DUB_ID, true, 'hikka', false, false),
+    ).toBe(WATCH_SERVER_DUB_ID);
+  });
+
+  it('clamps dub to sub for Hikka when the user did not choose dub', () => {
+    expect(
+      clampActiveServerId(WATCH_SERVER_DUB_ID, false, 'hikka', true, true),
+    ).toBe(WATCH_SERVER_SUB_ID);
+  });
+
+  it('keeps sub id', () => {
+    expect(
+      clampActiveServerId(WATCH_SERVER_SUB_ID, false, 'hikka', true, true),
+    ).toBe(WATCH_SERVER_SUB_ID);
   });
 });

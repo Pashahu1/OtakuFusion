@@ -1,7 +1,3 @@
-import {
-  WATCH_SERVER_DUB_ID,
-  WATCH_SERVER_SUB_ID,
-} from '@/shared/data/servers';
 import type { WatchStreamProvider } from '@/lib/watch-provider';
 
 export interface ApplyLanguageTrackDeps {
@@ -18,18 +14,6 @@ export function applyLanguageTrack(
   if (item.__mode === 'hikka') {
     setWatchStreamProvider('hikka');
     persistServerPref('sub', null);
-    return;
-  }
-  if (item.__mode === 'anikoto-sub') {
-    setWatchStreamProvider('anikoto');
-    setActiveServerId(WATCH_SERVER_SUB_ID);
-    persistServerPref('sub', null);
-    return;
-  }
-  if (item.__mode === 'anikoto-dub') {
-    setWatchStreamProvider('anikoto');
-    setActiveServerId(WATCH_SERVER_DUB_ID);
-    persistServerPref('dub', null);
     return;
   }
 

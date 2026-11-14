@@ -1,5 +1,3 @@
-import { ANIKOTO_PLAYBACK_ENABLED } from '@/features/watch/lib/watch-provider';
-
 export interface EpisodeLangFlags {
   hasSub?: boolean;
   hasDub?: boolean;
@@ -12,26 +10,20 @@ export interface CatalogTvLangCounts {
 
 export type WatchLangBadge = 'dub' | 'sub';
 
-/** Hikka is Ukrainian dub. JP/EN stay out of the player until Anikoto is live. */
+/** Playback is Ukrainian dub only (Hikka). */
 export function isUkrainianDubOnlyPlayback(): boolean {
-  return !ANIKOTO_PLAYBACK_ENABLED;
+  return true;
 }
 
 export function episodePlayableLangBadges(
-  item: EpisodeLangFlags,
-  ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
+  _item?: EpisodeLangFlags,
+  _ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
 ): WatchLangBadge[] {
-  if (ukrainianDubOnly) return ['dub'];
-
-  const badges: WatchLangBadge[] = [];
-  if (item.hasDub) badges.push('dub');
-  if (item.hasSub !== false) badges.push('sub');
-  if (!badges.length) badges.push('sub');
-  return badges;
+  return ['dub'];
 }
 
 export function formatEpisodeLangLine(
-  item: EpisodeLangFlags,
+  item?: EpisodeLangFlags,
   ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
 ): string {
   return episodePlayableLangBadges(item, ukrainianDubOnly)
@@ -40,59 +32,33 @@ export function formatEpisodeLangLine(
 }
 
 export function seriesCatalogLangBadges(
-  tv: CatalogTvLangCounts | undefined,
-  ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
+  _tv?: CatalogTvLangCounts,
+  _ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
 ): WatchLangBadge[] {
-  if (ukrainianDubOnly) return ['dub'];
-
-  const hasSub = (tv?.has_sub ?? 0) > 0;
-  const hasDub = (tv?.has_dub ?? 0) > 0;
-  if (hasSub && hasDub) return ['sub', 'dub'];
-  if (hasDub) return ['dub'];
-  return ['sub'];
+  return ['dub'];
 }
 
 /** Card footer: what the user can actually play today. */
 export function getStreamAvailabilityLabel(
-  tv: CatalogTvLangCounts | undefined,
-  ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
+  _tv?: CatalogTvLangCounts,
+  _ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
 ): string | null {
-  if (ukrainianDubOnly) return 'Dub';
-  if (!tv) return null;
-  const hasSub = (tv.has_sub ?? 0) > 0;
-  const hasDub = (tv.has_dub ?? 0) > 0;
-  if (hasSub && hasDub) return 'Sub | Dub';
-  if (hasSub) return 'Sub';
-  if (hasDub) return 'Dub';
-  return null;
+  return 'Dub';
 }
 
 export function watchDocumentTitleI18nKey(
-  ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
+  _ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
 ): 'watch.documentTitleUkrainian' | 'watch.documentTitleSubDub' {
-  return ukrainianDubOnly
-    ? 'watch.documentTitleUkrainian'
-    : 'watch.documentTitleSubDub';
+  return 'watch.documentTitleUkrainian';
 }
 
 export function buildWatchAvailabilityLines(
   t: (key: string) => string,
-  tv?: CatalogTvLangCounts,
-  ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
+  _tv?: CatalogTvLangCounts,
+  _ukrainianDubOnly: boolean = isUkrainianDubOnlyPlayback(),
 ): { audio: string; subtitles: string } {
-  if (ukrainianDubOnly) {
-    return {
-      audio: t('watch.audioUkrainian'),
-      subtitles: t('watch.subtitlesNone'),
-    };
-  }
-
-  const hasDub = (tv?.has_dub ?? 0) > 0;
-  const hasSub = (tv?.has_sub ?? 0) > 0;
   return {
-    audio: hasDub
-      ? `${t('watch.audioJapanese')}, ${t('watch.audioEnglish')}`
-      : t('watch.audioJapanese'),
-    subtitles: hasSub ? t('watch.hardsub') : t('watch.hardsubAlt'),
+    audio: t('watch.audioUkrainian'),
+    subtitles: t('watch.subtitlesNone'),
   };
 }

@@ -1,9 +1,6 @@
 import { getWatchAnimeCatalogMeta } from '@/lib/api/anime-info';
-import { readVerifiedAnikotoMapping } from '@/features/watch/lib/provider-mapping-cache';
 import { readWatchCatalogSessionCache } from '@/features/watch/lib/watch-catalog-session-cache';
 import { getWatchAnimeErrorMessage } from './watchAnimeCatalogUtils';
-import { ANIKOTO_PLAYBACK_ENABLED } from '@/features/watch/lib/watch-provider';
-import { prefetchAnikotoMapping } from './watchAnimePrefetch';
 import type { WatchAnimeCatalogLoadParams } from './watchAnimeCatalogLoadTypes';
 import type { WatchCatalogLoadEffectDeps } from './watchCatalogLoadDeps';
 
@@ -77,14 +74,6 @@ export function runInitialWatchCatalogLoad(input: InitialWatchCatalogLoadInput):
   setHikkaLanguageMenuEligible(false);
   setAnikotoLanguageMenuEligible(false);
 
-  const cachedAnikoto = readVerifiedAnikotoMapping(animeId);
-  if (cachedAnikoto?.anikotoSlug) {
-    setAnikotoCatalogProviderId(cachedAnikoto.anikotoSlug);
-    if (ANIKOTO_PLAYBACK_ENABLED) {
-      setAnikotoLanguageMenuEligible(true);
-    }
-  }
-
   const fetchInitial = async () => {
     const settleLoading = { current: true };
     try {
@@ -99,14 +88,6 @@ export function runInitialWatchCatalogLoad(input: InitialWatchCatalogLoadInput):
       if (!dataForResolve) {
         setError('No anime data available.');
         return;
-      }
-
-      if (ANIKOTO_PLAYBACK_ENABLED && deps.watchStreamProvider !== 'anikoto') {
-        prefetchAnikotoMapping(dataForResolve, animeId, signal, isCancelled, () => {
-          if (!isCancelled()) {
-            setAnikotoLanguageMenuEligible(true);
-          }
-        });
       }
 
       try {

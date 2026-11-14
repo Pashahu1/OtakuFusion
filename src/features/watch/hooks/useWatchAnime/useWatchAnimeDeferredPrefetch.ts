@@ -1,14 +1,7 @@
 import { useCallback } from 'react';
-import {
-  ANIKOTO_PLAYBACK_ENABLED,
-  type WatchStreamProvider,
-} from '@/features/watch/lib/watch-provider';
+import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { WarmAlternateCatalogEntry } from './types';
-import {
-  prefetchAnikotoMapping,
-  prefetchHikkaMapping,
-} from './watchAnimePrefetch';
 
 export interface UseWatchAnimeDeferredPrefetchParams {
   animeId: string;
@@ -24,70 +17,11 @@ export interface UseWatchAnimeDeferredPrefetchParams {
   setAnikotoLanguageMenuEligible: (v: boolean) => void;
 }
 
+/** Opposite-provider prefetch retired with Anikoto. */
 export function useWatchAnimeDeferredPrefetch(
-  params: UseWatchAnimeDeferredPrefetchParams
+  _params: UseWatchAnimeDeferredPrefetchParams,
 ): () => void {
-  const {
-    animeId,
-    warmCatalogsRef,
-    deferredOppositePrefetchRef,
-    oppositePrefetchDoneRef,
-    oppositePrefetchAbortRef,
-    setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible,
-  } = params;
-
   return useCallback(() => {
-    const pending = deferredOppositePrefetchRef.current;
-    if (!pending || pending.animeId !== animeId) return;
-    if (oppositePrefetchDoneRef.current === animeId) return;
-    oppositePrefetchDoneRef.current = animeId;
-
-    oppositePrefetchAbortRef.current?.abort();
-    const controller = new AbortController();
-    oppositePrefetchAbortRef.current = controller;
-    const { signal } = controller;
-    const isCancelled = () => oppositePrefetchAbortRef.current !== controller;
-
-    if (pending.provider === 'hikka') {
-      if (ANIKOTO_PLAYBACK_ENABLED) {
-        prefetchAnikotoMapping(
-          pending.data,
-          animeId,
-          signal,
-          () => isCancelled() || signal.aborted,
-          () => {
-            if (!isCancelled() && !signal.aborted) {
-              setAnikotoLanguageMenuEligible(true);
-            }
-          }
-        );
-      }
-      return;
-    }
-
-    if (pending.provider === 'anikoto') {
-      prefetchHikkaMapping(
-        pending.data,
-        animeId,
-        signal,
-        () => isCancelled() || signal.aborted,
-        () => {
-          if (!isCancelled() && !signal.aborted) {
-            setHikkaLanguageMenuEligible(true);
-          }
-        },
-        undefined,
-        warmCatalogsRef
-      );
-    }
-  }, [
-    animeId,
-    warmCatalogsRef,
-    deferredOppositePrefetchRef,
-    oppositePrefetchAbortRef,
-    oppositePrefetchDoneRef,
-    setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible,
-  ]);
+    /* no-op */
+  }, []);
 }

@@ -2,7 +2,7 @@ import type { WatchProbeConfig } from '@/lib/watchResolveProbe';
 
 export type WatchLang = 'sub' | 'dub';
 
-export type WatchResolveStreamProvider = 'hikka' | 'anikoto';
+export type WatchResolveStreamProvider = 'hikka';
 
 export interface WatchResolveOutcome {
   status: number;
@@ -17,10 +17,3 @@ export interface HikkaResolveParams {
   epTokenOverride?: string | null;
 }
 
-export interface AnikotoResolveParams {
-  startedAt: number;
-  episode: number;
-  origin: string;
-  anikotoSlug: string;
-  lang: WatchLang;
-}

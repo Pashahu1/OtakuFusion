@@ -31,9 +31,6 @@ export function buildWatchResolveParams(
     episodeHasDub: refs.episodeHasDubRef.current,
     episode: episodeNumber,
     lang: preferredLang,
-    streamProvider:
-      activeOpts.watchStreamProvider === 'anikoto'
-        ? ('anikoto' as const)
-        : ('hikka' as const),
+    streamProvider: 'hikka' as const,
   };
 }

@@ -70,9 +70,8 @@ export function selectProviderAnimeId(
   >,
   watchStreamProvider: WatchStreamProvider,
 ): string | null {
-  if (watchStreamProvider === 'hikka') return anime.hikkaCatalogProviderId;
-  if (watchStreamProvider === 'anikoto') return anime.anikotoCatalogProviderId;
-  return null;
+  void watchStreamProvider;
+  return anime.hikkaCatalogProviderId;
 }
 
 export function selectActiveEpisodeNum(

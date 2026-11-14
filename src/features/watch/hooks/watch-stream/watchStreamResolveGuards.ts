@@ -49,7 +49,7 @@ export function isWatchResolveBlocked(opts: WatchResolveOptions | undefined): bo
   if (opts.providerCatalogPending === true) return true;
 
   const providerId = opts.providerAnimeId?.trim() ?? '';
-  const needsProviderCatalog = sp === 'hikka' || sp === 'anikoto';
+  const needsProviderCatalog = sp === 'hikka';
   if (needsProviderCatalog && !providerId) return true;
   return false;
 }

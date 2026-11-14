@@ -75,7 +75,10 @@ export const ContinueWatchingEntrySchema = z.object({
   positionSeconds: z.number().nonnegative().max(86_400).optional(),
   durationSeconds: z.number().positive().max(86_400).optional(),
   updatedAt: z.number().int().nonnegative().optional(),
-  watchStreamProvider: z.enum(['hikka', 'anikoto']).optional(),
+  watchStreamProvider: z
+    .enum(['hikka', 'anikoto'])
+    .optional()
+    .transform((v) => (v === 'anikoto' ? 'hikka' : v)),
   streamLang: z.enum(['sub', 'dub']).optional(),
 });
 

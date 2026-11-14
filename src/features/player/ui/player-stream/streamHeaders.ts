@@ -1,6 +1,6 @@
 import { decodeStreamUrlForInspection } from '@/lib/streamMediaType';
 import { stripOriginFromHeaders } from '@/lib/streamProxyHeaders';
-import { DEFAULT_REFERER, HLS_CDN_FALLBACK_REFERER, ANIKOTO_EMBED_REFERER } from '../playerConstants';
+import { DEFAULT_REFERER, HLS_CDN_FALLBACK_REFERER, VIDWISH_EMBED_REFERER } from '../playerConstants';
 
 export interface StreamInfoForHeaders {
   streamingLink?: Array<{ iframe?: string; request_headers?: Record<string, string> }> | unknown;
@@ -108,7 +108,7 @@ export function getStreamHeaders(
   ) {
     const lower = playlistUrl.toLowerCase();
     if (lower.includes('watching.onl') || lower.includes('sugevideo.xyz')) {
-      headers.Referer = ANIKOTO_EMBED_REFERER;
+      headers.Referer = VIDWISH_EMBED_REFERER;
     } else {
       headers.Referer = HLS_CDN_FALLBACK_REFERER;
     }

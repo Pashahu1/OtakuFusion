@@ -1,6 +1,6 @@
 import { DEFAULT_WATCH_STREAM_PROVIDER } from '@/features/watch/lib/watch-provider';
 
-export type WatchResolveStreamProvider = 'hikka' | 'anikoto';
+export type WatchResolveStreamProvider = 'hikka';
 
 export interface WatchResolveParams {
   anilistId?: number;
@@ -85,7 +85,8 @@ export async function resolveWatchStream(
   query.set('episode', String(params.episode));
   query.set('lang', params.lang === 'dub' ? 'dub' : 'sub');
   const sp = params.streamProvider ?? DEFAULT_WATCH_STREAM_PROVIDER;
-  query.set('stream_provider', sp === 'anikoto' ? 'anikoto' : 'hikka');
+  query.set('stream_provider', 'hikka');
+  void sp;
 
   const res = await fetch(`/api/watch/resolve?${query.toString()}`, {
     method: 'GET',

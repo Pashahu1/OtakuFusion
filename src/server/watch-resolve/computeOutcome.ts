@@ -1,10 +1,8 @@
 import {
-  getNormalizedLang,
   getStreamProvider,
   missingSeriesIdError,
   parseEpisodeNumber,
 } from '@/server/watch-resolve/params';
-import { computeAnikotoWatchResolveOutcome } from '@/server/watch-resolve/providers/anikotoResolver';
 import { computeHikkaWatchResolveOutcome } from '@/server/watch-resolve/providers/hikkaResolver';
 import type { WatchResolveOutcome } from '@/server/watch-resolve/types';
 
@@ -15,7 +13,6 @@ export async function computeWatchResolveOutcome(
 ): Promise<WatchResolveOutcome> {
   const startedAt = Date.now();
   const url = new URL(req.url);
-  const lang = getNormalizedLang(url.searchParams);
   const episode = parseEpisodeNumber(url.searchParams);
 
   if (episode == null) {
@@ -45,31 +42,11 @@ export async function computeWatchResolveOutcome(
 
   const epTokenOverride = url.searchParams.get('ep_token')?.trim() || null;
 
-  if (provider === 'hikka') {
-    return computeHikkaWatchResolveOutcome({
-      startedAt,
-      episode,
-      origin,
-      hikkaSlug: seriesId,
-      epTokenOverride,
-    });
-  }
-
-  if (provider === 'anikoto') {
-    return computeAnikotoWatchResolveOutcome({
-      startedAt,
-      episode,
-      origin,
-      anikotoSlug: seriesId,
-      lang,
-    });
-  }
-
-  return {
-    status: 400,
-    body: {
-      success: false,
-      error: 'unsupported stream_provider',
-    },
-  };
+  return computeHikkaWatchResolveOutcome({
+    startedAt,
+    episode,
+    origin,
+    hikkaSlug: seriesId,
+    epTokenOverride,
+  });
 }

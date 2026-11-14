@@ -10,10 +10,7 @@ import {
   fetchProviderCatalogEpisodes,
   hydrateCachedProviderIds,
 } from './fetchProviderCatalogEpisodes';
-import {
-  ANIKOTO_MAPPING_KEY,
-  getMappingCacheKey,
-} from '@/features/watch/lib/provider-mapping-cache';
+import { getMappingCacheKey } from '@/features/watch/lib/provider-mapping-cache';
 
 export interface RunWatchCatalogPipelineParams {
   watchStreamProvider: WatchStreamProvider;
@@ -38,11 +35,8 @@ export interface RunWatchCatalogPipelineParams {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
-function emptyCatalogErrorMessage(provider: WatchStreamProvider): string {
-  if (provider === 'hikka') {
-    return 'Ukrainian sources returned an empty episode list. Try another provider.';
-  }
-  return 'English sources returned an empty episode list. Try another provider.';
+function emptyCatalogErrorMessage(_provider: WatchStreamProvider): string {
+  return 'Ukrainian sources returned an empty episode list. Try again later.';
 }
 
 export async function runWatchCatalogPipeline(
@@ -75,7 +69,6 @@ export async function runWatchCatalogPipeline(
     animeId,
     forceFuzzy,
     isAborted,
-    setAnikotoCatalogProviderId: (id) => setAnikotoCatalogProviderId(id),
   });
 
   const fetched = await fetchProviderCatalogEpisodes({
@@ -93,11 +86,7 @@ export async function runWatchCatalogPipeline(
 
   if (!list.length) {
     try {
-      if (watchStreamProvider === 'anikoto') {
-        localStorage.removeItem(ANIKOTO_MAPPING_KEY(animeId));
-      } else {
-        localStorage.removeItem(getMappingCacheKey(animeId, watchStreamProvider));
-      }
+      localStorage.removeItem(getMappingCacheKey(animeId, watchStreamProvider));
     } catch {
 
     }
