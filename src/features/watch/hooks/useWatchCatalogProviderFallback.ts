@@ -14,7 +14,7 @@ interface UseWatchCatalogProviderFallbackInput {
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
 }
 
-/** On catalog failure, advance Anikoto → Hikka once per anime+provider. */
+/** On catalog failure, do not hop providers — Hikka is the only stream. */
 export function useWatchCatalogProviderFallback({
   animeId,
   watchStreamProvider,

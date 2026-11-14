@@ -41,7 +41,6 @@ interface WatchAnimeCatalogSlice {
   providerCatalogPending: boolean;
   episodesSourceProvider: WatchStreamProvider | null;
   hikkaCatalogProviderId: string | null;
-  anikotoCatalogProviderId: string | null;
 }
 
 export function selectEpisodeEpToken(
@@ -66,7 +65,7 @@ export function selectEpisodeEpToken(
 export function selectProviderAnimeId(
   anime: Pick<
     WatchAnimeCatalogSlice,
-    'hikkaCatalogProviderId' | 'anikotoCatalogProviderId'
+    'hikkaCatalogProviderId'
   >,
   watchStreamProvider: WatchStreamProvider,
 ): string | null {

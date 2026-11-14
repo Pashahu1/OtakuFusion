@@ -15,7 +15,6 @@ interface WatchPlayerErrorControlsProps {
   setWatchStreamProvider: (next: WatchStreamProvider) => void;
   setActiveServerId: (id: string | null) => void;
   hikkaLanguageMenuEligible: boolean;
-  anikotoLanguageMenuEligible: boolean;
 }
 
 function applyLanguageMenuSelection(

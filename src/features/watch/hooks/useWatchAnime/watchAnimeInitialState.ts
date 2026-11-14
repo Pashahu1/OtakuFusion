@@ -8,13 +8,11 @@ export interface WatchAnimeInitialState {
   animeInfo: AnimeData | null;
   episodes: EpisodesTypes[] | null;
   hikkaCatalogProviderId: string | null;
-  anikotoCatalogProviderId: string | null;
   totalEpisodes: number | null;
   episodeId: string | null;
   animeInfoLoading: boolean;
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   hikkaLanguageMenuEligible: boolean;
-  anikotoLanguageMenuEligible: boolean;
   providerCatalogPending: boolean;
   episodesSourceProvider: WatchStreamProvider | null;
 }
@@ -30,13 +28,11 @@ export function createInitialWatchAnimeState(
       animeInfo: null,
       episodes: null,
       hikkaCatalogProviderId: null,
-      anikotoCatalogProviderId: null,
       totalEpisodes: null,
       episodeId: null,
       animeInfoLoading: false,
       nextEpisodeSchedule: null,
       hikkaLanguageMenuEligible: false,
-      anikotoLanguageMenuEligible: false,
       providerCatalogPending: false,
       episodesSourceProvider: null,
     };
@@ -46,13 +42,11 @@ export function createInitialWatchAnimeState(
     animeInfo: hydrated.animeInfo,
     episodes: hydrated.episodes,
     hikkaCatalogProviderId: hydrated.hikkaCatalogProviderId,
-    anikotoCatalogProviderId: null,
     totalEpisodes: hydrated.totalEpisodes,
     episodeId: hydrated.episodeId,
     animeInfoLoading: false,
     nextEpisodeSchedule: hydrated.nextEpisodeSchedule,
     hikkaLanguageMenuEligible: hydrated.hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible: false,
     providerCatalogPending: false,
     episodesSourceProvider: hydrated.episodesSourceProvider,
   };

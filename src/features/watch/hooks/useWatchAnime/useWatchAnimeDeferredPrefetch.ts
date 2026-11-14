@@ -14,10 +14,9 @@ export interface UseWatchAnimeDeferredPrefetchParams {
   oppositePrefetchDoneRef: React.MutableRefObject<string | null>;
   oppositePrefetchAbortRef: React.MutableRefObject<AbortController | null>;
   setHikkaLanguageMenuEligible: (v: boolean) => void;
-  setAnikotoLanguageMenuEligible: (v: boolean) => void;
 }
 
-/** Opposite-provider prefetch retired with Anikoto. */
+/** Opposite-provider prefetch retired — Hikka is the only stream. */
 export function useWatchAnimeDeferredPrefetch(
   _params: UseWatchAnimeDeferredPrefetchParams,
 ): () => void {

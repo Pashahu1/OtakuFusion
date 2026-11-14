@@ -7,7 +7,7 @@ import {
 } from '@/server/m3u8-proxy/segmentDetect';
 
 describe('segmentDetect', () => {
-  it('detects disguised Anikoto HLS segments', () => {
+  it('detects disguised HLS segments', () => {
     const url =
       'https://uj9e5.sugevideo.xyz/anime/abc/seg-1-f2-v1-a1.jpg';
     expect(looksLikeHlsSegmentUrl(url)).toBe(true);

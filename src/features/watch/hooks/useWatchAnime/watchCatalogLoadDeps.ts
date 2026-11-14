@@ -2,7 +2,7 @@ import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { ApplyWatchCatalogSuccessContext } from './applyWatchCatalogSuccess';
 import { runWatchCatalogPipeline } from './runWatchCatalogPipeline';
-import type { AlternateLanguageMenuSetters, StableWatchLoadSnapshot } from './types';
+import type { StableWatchLoadSnapshot } from './types';
 import type { WatchAnimeCatalogLoadParams } from './watchAnimeCatalogLoadTypes';
 
 export interface WatchCatalogPipelineRunParams {
@@ -20,12 +20,9 @@ export interface WatchCatalogLoadEffectDeps {
   signal: AbortSignal;
   isAborted: () => boolean;
   applyCtx: ApplyWatchCatalogSuccessContext;
-  menuSetters: AlternateLanguageMenuSetters;
   runPipeline: (pipelineParams: WatchCatalogPipelineRunParams) => Promise<void>;
   setHikkaCatalogProviderId: WatchAnimeCatalogLoadParams['setHikkaCatalogProviderId'];
-  setAnikotoCatalogProviderId: WatchAnimeCatalogLoadParams['setAnikotoCatalogProviderId'];
   setHikkaLanguageMenuEligible: WatchAnimeCatalogLoadParams['setHikkaLanguageMenuEligible'];
-  setAnikotoLanguageMenuEligible: WatchAnimeCatalogLoadParams['setAnikotoLanguageMenuEligible'];
   setEpisodes: WatchAnimeCatalogLoadParams['setEpisodes'];
   setTotalEpisodes: WatchAnimeCatalogLoadParams['setTotalEpisodes'];
   setEpisodeId: WatchAnimeCatalogLoadParams['setEpisodeId'];
@@ -64,24 +61,15 @@ export function buildWatchCatalogLoadEffectDeps(
     setAnimeInfo,
     setEpisodes,
     setHikkaCatalogProviderId,
-    setAnikotoCatalogProviderId,
     setTotalEpisodes,
     setEpisodeId,
     setAnimeInfoLoading,
     setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible,
     setProviderCatalogPending,
     setEpisodesSourceProvider,
     setEpisodeRemapPass,
     setError,
   } = params;
-
-  const menuSetters: AlternateLanguageMenuSetters = {
-    setHikkaCatalogProviderId,
-    setHikkaLanguageMenuEligible,
-    setAnikotoCatalogProviderId,
-    setAnikotoLanguageMenuEligible,
-  };
 
   const applyCtx: ApplyWatchCatalogSuccessContext = {
     animeId,
@@ -92,16 +80,13 @@ export function buildWatchCatalogLoadEffectDeps(
     stableWatchLoadRef,
     warmCatalogsRef,
     deferredOppositePrefetchRef,
-    menuSetters,
     setAnimeInfo,
     setEpisodes,
     setHikkaCatalogProviderId,
-    setAnikotoCatalogProviderId,
     setTotalEpisodes,
     setEpisodeId,
     setAnimeInfoLoading,
     setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible,
     setProviderCatalogPending,
     setEpisodesSourceProvider,
   };
@@ -120,9 +105,7 @@ export function buildWatchCatalogLoadEffectDeps(
       isAborted,
       applyCtx,
       setHikkaCatalogProviderId,
-      setAnikotoCatalogProviderId,
       setHikkaLanguageMenuEligible,
-      setAnikotoLanguageMenuEligible,
       setEpisodes,
       setTotalEpisodes,
       setEpisodeId,
@@ -137,12 +120,9 @@ export function buildWatchCatalogLoadEffectDeps(
     signal,
     isAborted,
     applyCtx,
-    menuSetters,
     runPipeline,
     setHikkaCatalogProviderId,
-    setAnikotoCatalogProviderId,
     setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible,
     setEpisodes,
     setTotalEpisodes,
     setEpisodeId,

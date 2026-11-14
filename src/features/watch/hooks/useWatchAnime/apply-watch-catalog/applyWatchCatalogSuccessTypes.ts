@@ -3,7 +3,6 @@ import type { WatchStreamProvider } from '@/features/watch/lib/watch-provider';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 import type { EpisodesTypes } from '@/shared/types/EpisodesListTypes';
 import type {
-  AlternateLanguageMenuSetters,
   StableWatchLoadSnapshot,
   WarmAlternateCatalogEntry,
 } from '../types';
@@ -21,7 +20,6 @@ export interface ApplyWatchCatalogSuccessContext {
     data: AnimeData;
     provider: WatchStreamProvider;
   } | null>;
-  menuSetters: AlternateLanguageMenuSetters;
   setAnimeInfo: React.Dispatch<React.SetStateAction<AnimeData | null>>;
   setEpisodes: React.Dispatch<React.SetStateAction<EpisodesTypes[] | null>>;
   setHikkaCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -29,8 +27,6 @@ export interface ApplyWatchCatalogSuccessContext {
   setEpisodeId: React.Dispatch<React.SetStateAction<string | null>>;
   setAnimeInfoLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setHikkaLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
-  setAnikotoCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
-  setAnikotoLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
   setProviderCatalogPending: React.Dispatch<React.SetStateAction<boolean>>;
   setEpisodesSourceProvider: React.Dispatch<React.SetStateAction<WatchStreamProvider | null>>;
 }

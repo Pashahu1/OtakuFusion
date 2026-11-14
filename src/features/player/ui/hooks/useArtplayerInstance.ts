@@ -52,7 +52,6 @@ export function useArtplayerInstance({
   onPlaybackError,
   onPlaybackSurfaceReady,
   hikkaLanguageMenuEligible,
-  anikotoLanguageMenuEligible,
 }: UseArtplayerInstanceParams) {
   const artRef = useRef<HTMLDivElement>(null);
   const artInstanceRef = useRef<Artplayer | null>(null);
@@ -133,7 +132,6 @@ export function useArtplayerInstance({
     watchStreamProvider,
     setWatchStreamProvider,
     hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
     resolvedStreamLang,
     animeId: localAnimeId,
     episodeId,

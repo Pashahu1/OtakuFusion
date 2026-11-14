@@ -14,9 +14,7 @@ export interface UseWatchAnimeReturn {
   nextEpisodeSchedule: NextEpisodeScheduleResult | null;
   error: string | null;
   hikkaLanguageMenuEligible: boolean;
-  anikotoLanguageMenuEligible: boolean;
   hikkaCatalogProviderId: string | null;
-  anikotoCatalogProviderId: string | null;
   providerCatalogPending: boolean;
 
   episodesSourceProvider: WatchStreamProvider | null;
@@ -26,13 +24,6 @@ export interface UseWatchAnimeReturn {
 export interface WarmAlternateCatalogEntry {
   animeId: string;
   hikka?: { slug: string; episodes: EpisodesTypes[] };
-}
-
-export interface AlternateLanguageMenuSetters {
-  setHikkaCatalogProviderId: (id: string) => void;
-  setHikkaLanguageMenuEligible: (v: boolean) => void;
-  setAnikotoCatalogProviderId: (id: string) => void;
-  setAnikotoLanguageMenuEligible: (v: boolean) => void;
 }
 
 export interface StableWatchLoadSnapshot {

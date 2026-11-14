@@ -17,7 +17,6 @@ export interface UseArtplayerLanguageMenuParams {
   watchStreamProvider: PlayerProps['watchStreamProvider'];
   setWatchStreamProvider: PlayerProps['setWatchStreamProvider'];
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
-  anikotoLanguageMenuEligible: PlayerProps['anikotoLanguageMenuEligible'];
   resolvedStreamLang?: 'sub' | 'dub' | null;
   animeId: string | null | undefined;
   episodeId: PlayerProps['episodeId'];
@@ -36,7 +35,6 @@ export function useArtplayerLanguageMenu({
   watchStreamProvider,
   setWatchStreamProvider,
   hikkaLanguageMenuEligible,
-  anikotoLanguageMenuEligible,
   resolvedStreamLang,
   animeId,
   episodeId,
@@ -49,7 +47,6 @@ export function useArtplayerLanguageMenu({
   const setWatchStreamProviderRef = useRef(setWatchStreamProvider);
   const setActiveServerIdRef = useRef(setActiveServerId);
   const hikkaEligibleRef = useRef(hikkaLanguageMenuEligible ?? false);
-  const anikotoEligibleRef = useRef(anikotoLanguageMenuEligible ?? false);
   const resolvedStreamLangRef = useRef(resolvedStreamLang ?? null);
   const onLanguageSwitchResumeRef = useRef(onLanguageSwitchResume);
   const animeIdRef = useRef(animeId);
@@ -70,7 +67,6 @@ export function useArtplayerLanguageMenu({
     setWatchStreamProviderRef.current = setWatchStreamProvider;
     setActiveServerIdRef.current = setActiveServerId;
     hikkaEligibleRef.current = hikkaLanguageMenuEligible ?? false;
-    anikotoEligibleRef.current = anikotoLanguageMenuEligible ?? false;
     resolvedStreamLangRef.current = resolvedStreamLang ?? null;
   }, [
     servers,
@@ -79,7 +75,6 @@ export function useArtplayerLanguageMenu({
     setWatchStreamProvider,
     setActiveServerId,
     hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
     resolvedStreamLang,
   ]);
 
@@ -128,7 +123,6 @@ export function useArtplayerLanguageMenu({
     syncLanguageMenuIfReady();
   }, [
     hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
     watchStreamProvider,
     activeServerId,
     resolvedStreamLang,

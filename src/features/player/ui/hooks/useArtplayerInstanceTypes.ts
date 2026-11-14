@@ -21,5 +21,4 @@ export interface UseArtplayerInstanceParams {
   onPlaybackError: PlayerProps['onPlaybackError'];
   onPlaybackSurfaceReady: PlayerProps['onPlaybackSurfaceReady'];
   hikkaLanguageMenuEligible: PlayerProps['hikkaLanguageMenuEligible'];
-  anikotoLanguageMenuEligible: PlayerProps['anikotoLanguageMenuEligible'];
 }

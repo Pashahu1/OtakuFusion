@@ -38,7 +38,6 @@ export function WatchPlayShell() {
     setWatchStreamProvider,
     streamOverlayMessage,
     hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
   } = watch;
 
   const [episodesPanelOpen, setEpisodesPanelOpen] = useState(false);
@@ -88,7 +87,6 @@ export function WatchPlayShell() {
           playerShellPending={playerShellPending}
           streamOverlayMessage={streamOverlayMessage}
           hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
-          anikotoLanguageMenuEligible={anikotoLanguageMenuEligible}
         />
         <WatchTheaterChrome
           animeId={animeId}

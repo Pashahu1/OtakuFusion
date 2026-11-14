@@ -32,8 +32,6 @@ export interface WatchAnimeCatalogLoadParams {
   >;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   setHikkaLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
-  setAnikotoCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
-  setAnikotoLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
   setProviderCatalogPending: React.Dispatch<React.SetStateAction<boolean>>;
   setEpisodesSourceProvider: React.Dispatch<
     React.SetStateAction<WatchStreamProvider | null>

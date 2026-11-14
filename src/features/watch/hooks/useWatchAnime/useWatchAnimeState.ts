@@ -32,12 +32,6 @@ export function useWatchAnimeState(
   const [hikkaCatalogProviderId, setHikkaCatalogProviderId] = useState<string | null>(
     initial.hikkaCatalogProviderId,
   );
-  const [anikotoCatalogProviderId, setAnikotoCatalogProviderId] = useState<string | null>(
-    initial.anikotoCatalogProviderId,
-  );
-  const [anikotoLanguageMenuEligible, setAnikotoLanguageMenuEligible] = useState(
-    initial.anikotoLanguageMenuEligible,
-  );
   const [providerCatalogPending, setProviderCatalogPending] = useState(initial.providerCatalogPending);
   const [episodesSourceProvider, setEpisodesSourceProvider] = useState<WatchStreamProvider | null>(
     initial.episodesSourceProvider,
@@ -74,28 +68,24 @@ export function useWatchAnimeState(
     animeInfo,
     episodes,
     hikkaCatalogProviderId,
-    anikotoCatalogProviderId,
     totalEpisodes,
     episodeId,
     animeInfoLoading,
     nextEpisodeSchedule,
     error,
     hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible,
     providerCatalogPending,
     episodesSourceProvider,
     episodeRemapPass,
     setAnimeInfo,
     setEpisodes,
     setHikkaCatalogProviderId,
-    setAnikotoCatalogProviderId,
     setTotalEpisodes,
     setEpisodeId,
     setAnimeInfoLoading,
     setNextEpisodeSchedule,
     setError,
     setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible,
     setProviderCatalogPending,
     setEpisodesSourceProvider,
     setEpisodeRemapPass,

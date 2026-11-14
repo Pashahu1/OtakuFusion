@@ -151,7 +151,6 @@ export function useWatch(
     streamErrorCode: stream.errorCode,
     streamOverlayMessage,
     hikkaLanguageMenuEligible: anime.hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible: anime.anikotoLanguageMenuEligible,
     playbackLang: resolverLang,
   };
 }

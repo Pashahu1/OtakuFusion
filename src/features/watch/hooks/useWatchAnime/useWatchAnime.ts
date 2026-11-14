@@ -29,7 +29,6 @@ export function useWatchAnime(
     oppositePrefetchDoneRef: state.oppositePrefetchDoneRef,
     oppositePrefetchAbortRef: state.oppositePrefetchAbortRef,
     setHikkaLanguageMenuEligible: state.setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible: state.setAnikotoLanguageMenuEligible,
   });
 
   useWatchAnimeCatalogLoad({
@@ -47,14 +46,12 @@ export function useWatchAnime(
     setAnimeInfo: state.setAnimeInfo,
     setEpisodes: state.setEpisodes,
     setHikkaCatalogProviderId: state.setHikkaCatalogProviderId,
-    setAnikotoCatalogProviderId: state.setAnikotoCatalogProviderId,
     setTotalEpisodes: state.setTotalEpisodes,
     setEpisodeId: state.setEpisodeId,
     setAnimeInfoLoading: state.setAnimeInfoLoading,
     setNextEpisodeSchedule: state.setNextEpisodeSchedule,
     setError: state.setError,
     setHikkaLanguageMenuEligible: state.setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible: state.setAnikotoLanguageMenuEligible,
     setProviderCatalogPending: state.setProviderCatalogPending,
     setEpisodesSourceProvider: state.setEpisodesSourceProvider,
     setEpisodeRemapPass: state.setEpisodeRemapPass,
@@ -67,7 +64,6 @@ export function useWatchAnime(
   return {
     animeInfo: state.animeInfo,
     hikkaCatalogProviderId: state.hikkaCatalogProviderId,
-    anikotoCatalogProviderId: state.anikotoCatalogProviderId,
     providerAnimeId,
     episodes: state.episodes,
     totalEpisodes: state.totalEpisodes,
@@ -77,7 +73,6 @@ export function useWatchAnime(
     nextEpisodeSchedule: state.nextEpisodeSchedule,
     error: state.error,
     hikkaLanguageMenuEligible: state.hikkaLanguageMenuEligible,
-    anikotoLanguageMenuEligible: state.anikotoLanguageMenuEligible,
     providerCatalogPending: state.providerCatalogPending,
     episodesSourceProvider: state.episodesSourceProvider,
     runDeferredOppositeProviderPrefetch,

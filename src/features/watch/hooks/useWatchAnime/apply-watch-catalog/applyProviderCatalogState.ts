@@ -1,5 +1,4 @@
 import { writeVerifiedHikkaMapping } from '@/features/watch/lib/provider-mapping-cache';
-import { restoreCachedAlternateLanguageMenu } from '../watchAnimeCatalogUtils';
 import type {
   ApplyWatchCatalogSuccessContext,
   ApplyWatchCatalogSuccessOpts,
@@ -12,18 +11,14 @@ export function applyProviderCatalogState(
 ): void {
   const {
     animeId,
-    menuSetters,
     setHikkaCatalogProviderId,
     setHikkaLanguageMenuEligible,
   } = ctx;
-  const { forceFuzzy, freshHikkaCatalog } = opts;
+  const { freshHikkaCatalog } = opts;
 
   if (freshHikkaCatalog) {
     writeVerifiedHikkaMapping(animeId, providerId);
   }
   setHikkaCatalogProviderId(providerId);
   setHikkaLanguageMenuEligible(true);
-  if (!forceFuzzy) {
-    restoreCachedAlternateLanguageMenu(animeId, 'hikka', menuSetters);
-  }
 }

@@ -1,4 +1,3 @@
-import { restoreCachedAlternateLanguageMenu } from './watchAnimeCatalogUtils';
 import type { ProviderOnlyCatalogLoadInput } from './providerOnlyCatalogLoadTypes';
 import { applyWarmProviderSwap } from './provider-only-load/providerSwapHelpers';
 import { runHikkaProviderOnlyLoad } from './provider-only-load/runHikkaProviderOnlyLoad';
@@ -20,7 +19,6 @@ export function runProviderOnlyCatalogLoad(
     animeId,
     watchStreamProvider,
     applyCtx,
-    menuSetters,
     setHikkaCatalogProviderId,
     setHikkaLanguageMenuEligible,
     setError,
@@ -37,7 +35,6 @@ export function runProviderOnlyCatalogLoad(
 
   setProviderCatalogPending(true);
   setError(null);
-  restoreCachedAlternateLanguageMenu(animeId, watchStreamProvider, menuSetters);
 
   const preserveEpisodeNum = input.episodeIdRef.current;
   const warm = warmCatalogsRef.current;

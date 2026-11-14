@@ -30,7 +30,6 @@ export interface PlayerProps {
   /** First stable frame / playback — so shell can remove loader without flash. */
   onPlaybackSurfaceReady?: () => void;
   hikkaLanguageMenuEligible?: boolean;
-  anikotoLanguageMenuEligible?: boolean;
   localAnimeId: string;
 }
 

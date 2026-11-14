@@ -25,9 +25,7 @@ export interface RunWatchCatalogPipelineParams {
   isAborted: () => boolean;
   applyCtx: ApplyWatchCatalogSuccessContext;
   setHikkaCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
-  setAnikotoCatalogProviderId: React.Dispatch<React.SetStateAction<string | null>>;
   setHikkaLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
-  setAnikotoLanguageMenuEligible: React.Dispatch<React.SetStateAction<boolean>>;
   setEpisodes: React.Dispatch<React.SetStateAction<EpisodesTypes[] | null>>;
   setTotalEpisodes: React.Dispatch<React.SetStateAction<number | null>>;
   setEpisodeId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -55,9 +53,7 @@ export async function runWatchCatalogPipeline(
     isAborted,
     applyCtx,
     setHikkaCatalogProviderId,
-    setAnikotoCatalogProviderId,
     setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible,
     setEpisodes,
     setTotalEpisodes,
     setEpisodeId,
@@ -97,9 +93,7 @@ export async function runWatchCatalogPipeline(
     }
     setError(emptyCatalogErrorMessage(watchStreamProvider));
     setHikkaCatalogProviderId(null);
-    setAnikotoCatalogProviderId(null);
     setHikkaLanguageMenuEligible(false);
-    setAnikotoLanguageMenuEligible(false);
     setEpisodes([]);
     setTotalEpisodes(0);
     setEpisodeId(null);

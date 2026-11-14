@@ -16,8 +16,6 @@ export interface InitialWatchCatalogLoadInput {
   setNextEpisodeSchedule: WatchAnimeCatalogLoadParams['setNextEpisodeSchedule'];
   setProviderCatalogPending: WatchAnimeCatalogLoadParams['setProviderCatalogPending'];
   setHikkaLanguageMenuEligible: WatchAnimeCatalogLoadParams['setHikkaLanguageMenuEligible'];
-  setAnikotoLanguageMenuEligible: WatchAnimeCatalogLoadParams['setAnikotoLanguageMenuEligible'];
-  setAnikotoCatalogProviderId: WatchAnimeCatalogLoadParams['setAnikotoCatalogProviderId'];
   isCancelled: () => boolean;
   markCancelled: () => void;
   abortSignal: () => void;
@@ -36,8 +34,6 @@ export function runInitialWatchCatalogLoad(input: InitialWatchCatalogLoadInput):
     setNextEpisodeSchedule,
     setProviderCatalogPending,
     setHikkaLanguageMenuEligible,
-    setAnikotoLanguageMenuEligible,
-    setAnikotoCatalogProviderId,
     isCancelled,
   } = input;
   const {
@@ -72,7 +68,6 @@ export function runInitialWatchCatalogLoad(input: InitialWatchCatalogLoadInput):
   setProviderCatalogPending(true);
   setError(null);
   setHikkaLanguageMenuEligible(false);
-  setAnikotoLanguageMenuEligible(false);
 
   const fetchInitial = async () => {
     const settleLoading = { current: true };
@@ -105,8 +100,6 @@ export function runInitialWatchCatalogLoad(input: InitialWatchCatalogLoadInput):
         setError(getWatchAnimeErrorMessage(episodesError));
         setHikkaEligible(false);
         setHikkaCatalogProviderId(null);
-        setAnikotoLanguageMenuEligible(false);
-        setAnikotoCatalogProviderId(null);
         setEpisodes([]);
         setTotalEpisodes(0);
         setEpisodeId(null);

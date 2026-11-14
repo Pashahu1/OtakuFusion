@@ -35,7 +35,6 @@ type WatchPlayerContentProps = {
   playerShellPending: boolean;
   streamOverlayMessage: { title: string; subtitle: string } | null;
   hikkaLanguageMenuEligible: boolean;
-  anikotoLanguageMenuEligible: boolean;
 };
 
 export const WatchPlayerContent = ({
@@ -61,7 +60,6 @@ export const WatchPlayerContent = ({
   playerShellPending,
   streamOverlayMessage,
   hikkaLanguageMenuEligible,
-  anikotoLanguageMenuEligible,
 }: WatchPlayerContentProps) => {
   const streamKey = useMemo(
     () => `${animeId}:${episodeId ?? ''}:${watchStreamProvider}:${activeServerId ?? ''}:${streamUrl ?? ''}`,
@@ -149,7 +147,6 @@ export const WatchPlayerContent = ({
               setWatchStreamProvider={setWatchStreamProvider}
               onPlaybackError={handleBuiltinError}
               hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
-              anikotoLanguageMenuEligible={anikotoLanguageMenuEligible}
             />
           </div>
         )}
@@ -164,7 +161,6 @@ export const WatchPlayerContent = ({
               setWatchStreamProvider={setWatchStreamProvider}
               setActiveServerId={setActiveServerId}
               hikkaLanguageMenuEligible={hikkaLanguageMenuEligible}
-              anikotoLanguageMenuEligible={anikotoLanguageMenuEligible}
             />
           </div>
         )}
