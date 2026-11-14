@@ -1,8 +1,7 @@
 export type WatchStreamProvider = 'hikka' | 'anikoto';
 
 /**
- * Flip to `true` when Anikoto `/api/stream` returns a live `m3u8` again.
- * While false, Japanese/English stay out of the player.
+ * Anikoto BFF is retired (`/api/anikoto/*` → 410). Keep false — do not re-enable.
  */
 export const ANIKOTO_PLAYBACK_ENABLED = false;
 

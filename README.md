@@ -39,16 +39,10 @@ This is a **portfolio / educational project**, not a licensed commercial streami
 | Track | Provider | Status |
 |-------|----------|--------|
 | **Ukrainian** | Hikka | **Available** — default live stream |
-| **Japanese (Sub)** | Anikoto | **Unavailable** — code and prefs exist, playback is gated off |
-| **English (Dub)** | Anikoto | **Unavailable** — code and prefs exist, playback is gated off |
+| **Japanese (Sub)** | — | **Retired** — `/api/anikoto/*` returns **410 Gone** |
+| **English (Dub)** | — | **Retired** — `/api/anikoto/*` returns **410 Gone** |
 
-Japanese sub and English dub are implemented as a real **sub / dub** structure:
-
-- BFF routes: `/api/anikoto/catalog`, `/api/anikoto/episodes`, `/api/anikoto/stream`
-- Resolve: `/api/watch/resolve?provider=anikoto&lang=sub|dub`
-- Continue watching persists `watchStreamProvider` + `streamLang` (`sub` | `dub`) in `localStorage`
-
-**Those tracks cannot be played right now.** Anikoto is locked with `ANIKOTO_PLAYBACK_ENABLED = false` until `/api/stream` returns a live `m3u8` again. When that happens, flip the flag in `src/features/watch/lib/watch-provider.ts` — saved JP/EN prefs will restore.
+Japanese / English are not served. The leftover UI flag stays off; do not point the app at an Anikoto scraper. Continue watching may still store an old `watchStreamProvider` value — it remaps to Hikka.
 
 Default provider for new sessions is **Hikka (UA)**.
 
@@ -62,15 +56,15 @@ flowchart LR
     UA["Ukrainian — Hikka HLS"]
   end
 
-  subgraph gated [Playback unavailable]
-    JP["Japanese Sub — Anikoto"]
-    EN["English Dub — Anikoto"]
+  subgraph gated [Playback retired]
+    JP["Japanese Sub — 410"]
+    EN["English Dub — 410"]
   end
 
   Prefs --> live
   Prefs -.-> gated
   live --> Player["Artplayer + HLS.js"]
-  gated -.->|gated off| Player
+  gated -.->|410 Gone| Player
 ```
 
 ---
@@ -107,7 +101,7 @@ For **watch**, **HLS playback**, and **account** flows, open the [live demo](htt
 ### Watch
 
 - Custom **Artplayer** UI — HLS quality ladder, skip intro/outro, next episode, optional Anime4K enhance
-- **Continue watching** — progress, resume position, provider, and `sub`/`dub` prefs (JP/EN prefs are stored even while those streams are off)
+- **Continue watching** — progress, resume position, and stream prefs (saved Anikoto values remap to Hikka)
 - Server-side **stream resolve** (`/api/watch/resolve`) with retries
 - Optional **Cloudflare HLS relay** for CDN segments that need Referer / CORS
 
@@ -141,7 +135,7 @@ For **watch**, **HLS playback**, and **account** flows, open the [live demo](htt
 | Auth | JWT (`jose` HS256) + HTTP-only cookies |
 | Database | MongoDB (Mongoose) |
 | Metadata | AniList GraphQL |
-| Streams | Hikka (live UA), Anikoto (JP/EN — gated) |
+| Streams | Hikka (live UA); `/api/anikoto/*` is 410 Gone |
 | Tests | Vitest |
 
 ---
@@ -163,7 +157,7 @@ flowchart LR
   subgraph bff [Next.js BFF]
     Resolve["/api/watch/resolve"]
     HikkaCatalog["/api/hikka/catalog"]
-    AnikotoBFF["/api/anikoto/* gated"]
+    AnikotoBFF["/api/anikoto/* 410"]
     Proxy["/api/m3u8-proxy"]
     AniListAPI["/api/anilist/graphql"]
   end
@@ -173,7 +167,7 @@ flowchart LR
     HikkaClient[Hikka client]
     AnikotoClient[Anikoto client]
     WR --> HikkaClient
-    WR --> AnikotoClient
+    WR -.->|not served| AnikotoClient
   end
 
   subgraph external [External]
@@ -193,7 +187,7 @@ flowchart LR
   HikkaCatalog --> HikkaClient
   AnikotoBFF --> AnikotoClient
   HikkaClient --> HikkaAPI
-  AnikotoClient -.->|unavailable| AnikotoAPI
+  AnikotoClient -.->|410 Gone| AnikotoAPI
   Relay --> HikkaAPI
   Pages --> DB
   AniListAPI --> AniList
@@ -205,7 +199,7 @@ flowchart LR
 2. `GET /api/watch/resolve?provider=hikka` extracts a playable HLS URL.
 3. Artplayer plays the stream (direct, `/api/m3u8-proxy`, or `NEXT_PUBLIC_M3U8_PROXY_BASE`).
 
-**Gated resolve (Anikoto / JP sub · EN dub):** same shape, not served to the player until `ANIKOTO_PLAYBACK_ENABLED` is true.
+**Anikoto (JP sub · EN dub):** `/api/anikoto/*` is **410 Gone**. Playback stays on Hikka only.
 
 ---
 
@@ -213,7 +207,7 @@ flowchart LR
 
 | Area | What to expect |
 |------|----------------|
-| **Japanese / English** | Sub/dub **structure and saved prefs work**. **Playback is unavailable** until Anikoto returns a live `m3u8`. |
+| **Japanese / English** | Not offered. `/api/anikoto/*` is **410 Gone**. |
 | **Third-party streams** | UA playback depends on Hikka. Coverage and uptime are not under our control. |
 | **Hikka on Vercel** | Upstream may block the server IP — set **`HIKKA_FEATURES_RELAY_BASE`** if Ukrainian tracks return 403. |
 | **HLS on Vercel** | Some CDNs need **`NEXT_PUBLIC_M3U8_PROXY_BASE`** (`workers/hls-relay`). Same-origin `/api/m3u8-proxy` is fine locally. |
@@ -234,7 +228,6 @@ flowchart LR
 | `NEXT_PUBLIC_SITE_URL` | Recommended | Metadata |
 | Cloudinary | Optional | Avatars |
 | TVDB API key | Optional | Hero clear logos |
-| `ANIKOTO_API_BASE` | Optional | JP/EN — unused while playback is gated |
 | Cloudflare HLS relay | Optional | `workers/hls-relay` |
 
 ---
@@ -334,7 +327,6 @@ Set `NEXT_PUBLIC_M3U8_PROXY_BASE` to the worker URL, then restart / redeploy the
 |----------|---------|
 | `TVDB_API_KEY` | Hero artwork |
 | `CLOUDINARY_*` | Avatar upload |
-| `ANIKOTO_API_BASE` | Japanese / English provider (gated; not used for playback today) |
 | `NEXT_PUBLIC_HLS_DIRECT_HOST_SUFFIXES` | CDN hosts that skip `/api/m3u8-proxy` |
 
 Never commit `.env` or secrets. Use **`.env.local`** for development.
@@ -367,7 +359,7 @@ src/
 │   ├── api/
 │   │   ├── watch/resolve/
 │   │   ├── hikka/
-│   │   ├── anikoto/          # JP/EN BFF (gated)
+│   │   ├── anikoto/          # JP/EN BFF retired (410 Gone)
 │   │   ├── m3u8-proxy/
 │   │   ├── auth/
 │   │   └── anilist/
@@ -409,7 +401,7 @@ workers/
 - [ ] Search returns results
 - [ ] Watch page — episode list
 - [ ] Player — **Ukrainian** HLS plays
-- [ ] Language menu does **not** offer Japanese / English until Anikoto is re-enabled
+- [ ] Language menu does **not** offer Japanese / English (`/api/anikoto/*` is 410)
 - [ ] Register / login persists after refresh
 - [ ] Settings — theme + UI language chips (en / uk / de)
 

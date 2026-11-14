@@ -1,14 +1,15 @@
-import { getAnikotoApiBaseUrl } from '@/server/anikoto/config';
-
 const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 
-export function anikotoConfigGuard(): Response | null {
-  try {
-    getAnikotoApiBaseUrl();
-    return null;
-  } catch {
-    return Response.json({ error: 'anikoto_api_base_missing' }, { status: 503, headers: NO_STORE });
-  }
+/** Anikoto BFF is retired. Env (`ANIKOTO_API_BASE`) must not re-open these routes. */
+export function anikotoGoneResponse(): Response {
+  return Response.json(
+    { error: 'anikoto_gone' },
+    { status: 410, headers: NO_STORE },
+  );
+}
+
+export function anikotoConfigGuard(): Response {
+  return anikotoGoneResponse();
 }
 
 export function anikotoRouteError(e: unknown, fallback: string): Response {
