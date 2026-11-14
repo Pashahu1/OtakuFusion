@@ -83,21 +83,30 @@ export async function computeAnikotoWatchResolveOutcome(
     const probeCfg = readWatchProbeConfig(streamType);
 
     for (const server of ANIKOTO_STREAM_SERVERS) {
-      const mapped = await fetchAnikotoStream({
-        id: resolved.id,
-        episode,
-        server,
-        type: streamType,
-      });
-      if (!mapped) continue;
-      if (audio === 'en') {
-        const japanese = await fetchAnikotoStream({
+      let mapped;
+      try {
+        mapped = await fetchAnikotoStream({
           id: resolved.id,
           episode,
           server,
-          type: 'sub',
+          type: streamType,
         });
-        if (!anikotoDubPlaylistIsDistinct(japanese?.url ?? null, mapped.url)) continue;
+      } catch {
+        continue;
+      }
+      if (!mapped) continue;
+      if (audio === 'en') {
+        try {
+          const japanese = await fetchAnikotoStream({
+            id: resolved.id,
+            episode,
+            server,
+            type: 'sub',
+          });
+          if (!anikotoDubPlaylistIsDistinct(japanese?.url ?? null, mapped.url)) continue;
+        } catch {
+          continue;
+        }
       }
 
       const candidate = toCandidate(mapped, server, streamType);
@@ -150,12 +159,42 @@ export async function computeAnikotoWatchResolveOutcome(
       };
     }
 
+    // Anikoto often returns no playlist to a datacenter IP. The browser can
+    // request the same stream directly, so hand the matched id back.
     return {
-      status: 404,
+      status: 200,
       body: {
-        success: false,
-        error: 'no_working_source',
-        reason: unavailableReason(audio),
+        success: true,
+        client_stream: {
+          id: resolved.id,
+          episode,
+          type: streamType,
+          servers: [...ANIKOTO_STREAM_SERVERS],
+        },
+        resolved_anime: {
+          ani_id: resolved.id,
+          slug: resolved.id,
+          status: 'verified',
+          resolved_by: 'fuzzy_last_resort',
+        },
+        episode: {
+          number: episode,
+          ep_token: String(episode),
+          hasSub: audio === 'ja',
+          hasDub: audio === 'en',
+        },
+        fallback: {
+          applied: false,
+          from: null,
+          to: null,
+          reason: null,
+        },
+        debug: {
+          latency_ms: Date.now() - startedAt,
+          requested_lang: streamType,
+          playback_audio: audio,
+          client_stream: true,
+        },
       },
     };
   } catch (error) {

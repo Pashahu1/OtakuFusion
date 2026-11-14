@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { anikotoEnglishPlaylistIsDistinct } from '@/features/watch/lib/fetch-anikoto-client-stream';
 import type { AnimeData } from '@/shared/types/animeDetailsTypes';
 
 export interface AnikotoAudioAvailability {
@@ -72,6 +73,7 @@ export function useAnikotoAudioAvailability(
         }
         const payload = (await response.json()) as {
           success?: boolean;
+          id?: string;
           hasJapanese?: boolean;
           hasEnglish?: boolean;
         };
@@ -79,10 +81,24 @@ export function useAnikotoAudioAvailability(
           setAvailability(UNAVAILABLE);
           return;
         }
+        let english = payload.hasEnglish === true;
+        const matchedId = payload.id?.trim() ?? '';
+        if (english && matchedId) {
+          try {
+            const distinct = await anikotoEnglishPlaylistIsDistinct(
+              matchedId,
+              controller.signal,
+            );
+            if (distinct === false) english = false;
+          } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') return;
+          }
+        }
+        if (controller.signal.aborted) return;
         setAvailability({
           status: 'ready',
           japanese: payload.hasJapanese === true,
-          english: payload.hasEnglish === true,
+          english,
         });
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') return;

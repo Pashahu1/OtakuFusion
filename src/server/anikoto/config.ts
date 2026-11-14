@@ -1,9 +1,15 @@
-export const ANIKOTO_STREAM_SERVERS = ['hd-1', 'hd-2', 'hd-3'] as const;
+import {
+  ANIKOTO_PUBLIC_API_BASE,
+  ANIKOTO_STREAM_SERVERS,
+  type AnikotoStreamServerName,
+} from '@/lib/catalog/providers/anikoto/anikotoApiBase';
 
-export type AnikotoStreamServer = (typeof ANIKOTO_STREAM_SERVERS)[number];
+export { ANIKOTO_STREAM_SERVERS };
+
+export type AnikotoStreamServer = AnikotoStreamServerName;
 
 export function getAnikotoApiBaseUrl(): string {
   const raw = process.env.ANIKOTO_API_BASE?.trim();
-  const base = raw && raw.length > 0 ? raw : 'https://anikoto-api.vercel.app';
+  const base = raw && raw.length > 0 ? raw : ANIKOTO_PUBLIC_API_BASE;
   return base.replace(/\/+$/, '');
 }

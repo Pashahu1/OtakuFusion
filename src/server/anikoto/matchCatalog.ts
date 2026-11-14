@@ -9,6 +9,7 @@ import {
 import type { AnikotoMatchHints } from '@/lib/catalog/providers/anikoto/anikotoTypes';
 
 import { anikotoDubPlaylistIsDistinct } from '@/lib/catalog/providers/anikoto/mapAnikotoStream';
+import { resolveAnikotoEnglishAvailability } from '@/lib/catalog/providers/anikoto/pickAnikotoPlayback';
 
 import { fetchAnikotoStream, searchAnikoto } from './client';
 import { ANIKOTO_STREAM_SERVERS } from './config';
@@ -38,14 +39,15 @@ function matchCacheKey(input: AnikotoMatchQuery): string {
   ].join('|');
 }
 
-async function englishAudioIsDistinct(id: string): Promise<boolean> {
+async function englishAudioIsDistinct(id: string): Promise<boolean | null> {
   const server = ANIKOTO_STREAM_SERVERS[0];
-  if (!server) return false;
+  if (!server) return null;
   const [sub, dub] = await Promise.all([
     fetchAnikotoStream({ id, episode: 1, server, type: 'sub' }),
     fetchAnikotoStream({ id, episode: 1, server, type: 'dub' }),
   ]);
-  return anikotoDubPlaylistIsDistinct(sub?.url ?? null, dub?.url ?? null);
+  if (!sub?.url || !dub?.url) return null;
+  return anikotoDubPlaylistIsDistinct(sub.url, dub.url);
 }
 
 async function toMatchResult(hit: {
@@ -58,7 +60,10 @@ async function toMatchResult(hit: {
   let hasEnglish = anikotoHitHasEnglish(hit);
   if (hasEnglish) {
     try {
-      hasEnglish = await englishAudioIsDistinct(hit.id);
+      hasEnglish = resolveAnikotoEnglishAvailability(
+        true,
+        await englishAudioIsDistinct(hit.id),
+      );
     } catch {
       hasEnglish = anikotoHitHasEnglish(hit);
     }

@@ -1,6 +1,11 @@
 import type { WatchPlaybackAudio } from '@/features/watch/lib/playback-audio';
 import { DEFAULT_WATCH_STREAM_PROVIDER } from '@/features/watch/lib/watch-provider';
 
+import {
+  completeAnikotoClientStream,
+  type AnikotoClientStreamRequest,
+} from './fetch-anikoto-client-stream';
+
 export type WatchResolveStreamProvider = 'hikka';
 
 export interface WatchResolveParams {
@@ -55,6 +60,7 @@ export interface WatchResolveResponse {
     reason: string | null;
   };
   debug: { latency_ms: number };
+  client_stream?: AnikotoClientStreamRequest;
   stream_provider?: WatchResolveStreamProvider;
   segments?: {
     intro: { start: number; end: number } | null;
@@ -138,6 +144,14 @@ export async function resolveWatchStream(
     const reason =
       typeof reasonRaw === 'string' && reasonRaw.trim() ? reasonRaw.trim() : '';
     throw new Error(reason ? `${message}|${reason}` : message);
+  }
+  if (json.client_stream && !json.stream?.url?.trim()) {
+    const playback = await completeAnikotoClientStream(json.client_stream, signal);
+    return {
+      ...json,
+      stream: playback.stream,
+      segments: playback.segments,
+    };
   }
   return json;
 }
