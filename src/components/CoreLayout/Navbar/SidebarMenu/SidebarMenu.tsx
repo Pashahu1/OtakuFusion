@@ -8,9 +8,10 @@ import { DISCOVER_NAV_SECTIONS } from "@/shared/data/discover-nav";
 import { NavLink } from "@/components/NavLink/NavLink";
 import "./SidebarMenu.scss";
 import { useEffect, useState, type RefObject } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
-  menuRef: RefObject<HTMLDivElement | null>;
+  menuRef: RefObject<HTMLElement | null>;
   close: () => void;
 };
 
@@ -18,21 +19,31 @@ export function SidebarMenu({ menuRef, close }: Props) {
   const { t } = useTranslation("common");
   const [isCategoryOpen, setCategoryOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const handleOpenCategory = () => {
     setCategoryOpen((prev) => !prev);
   };
 
   useEffect(() => {
-    setTimeout(() => setIsVisible(true), 10);
-    return () => setIsVisible(false);
+    setMounted(true);
+    const frame = requestAnimationFrame(() => setIsVisible(true));
+    return () => {
+      cancelAnimationFrame(frame);
+      setIsVisible(false);
+    };
   }, []);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <aside
-      className={`aside-bar ${isVisible ? "aside-bar--enter" : "aside-bar--exit"
-        }`}
+      id="mobile-nav-menu"
+      className={`aside-bar ${isVisible ? "aside-bar--enter" : "aside-bar--exit"}`}
       ref={menuRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("nav.menu")}
     >
       <NavLink className="aside-bar__link" href="/schedule" onClick={close}>
         {t("nav.schedule")}
@@ -50,20 +61,20 @@ export function SidebarMenu({ menuRef, close }: Props) {
       ))}
 
       <div className="aside-bar__category">
-        <div
-          className="aside-bar__link"
-          onClick={(e) => {
-            e.preventDefault();
-            handleOpenCategory();
-          }}
+        <button
+          type="button"
+          className="aside-bar__link aside-bar__category-toggle"
+          aria-expanded={isCategoryOpen}
+          onClick={handleOpenCategory}
         >
           {t("nav.categories")}
-        </div>
+        </button>
 
         <div
-          className={`aside-bar__category-content ${isCategoryOpen ? "aside-bar__category-content--open" : ""
-            }`}
-          aria-label={t('nav.mobileCategory')}
+          className={`aside-bar__category-content ${
+            isCategoryOpen ? "aside-bar__category-content--open" : ""
+          }`}
+          aria-label={t("nav.mobileCategory")}
         >
           {genres.map((item, idx) => (
             <NavLink
@@ -77,6 +88,7 @@ export function SidebarMenu({ menuRef, close }: Props) {
           ))}
         </div>
       </div>
-    </aside>
+    </aside>,
+    document.body,
   );
 }

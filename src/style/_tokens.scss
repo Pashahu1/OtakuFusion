@@ -39,7 +39,7 @@
   --of-header-hover-bg: rgb(255 255 255 / 0.08);
   --of-header-icon-filter: none;
 
-  --of-menu-bg: rgb(16 16 18 / 0.96);
+  --of-menu-bg: var(--of-bg);
   --of-menu-shadow: 0 16px 48px rgb(0 0 0 / 0.45);
 
   --of-input-bg: rgb(0 0 0 / 0.28);

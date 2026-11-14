@@ -1,29 +1,38 @@
 'use client';
 import { NavLink } from '@/components/NavLink/NavLink';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 import './NavbarMobile.scss';
 import { SidebarMenu } from '../SidebarMenu/SidebarMenu';
 import { useDropdown } from '@/hooks/useDropdown';
 
 export function NavbarMobile() {
+  const { t } = useTranslation('common');
   const { isOpen, triggerRef, toggle, menuRef, close } = useDropdown<
-    HTMLImageElement,
-    HTMLDivElement
+    HTMLButtonElement,
+    HTMLElement
   >();
 
   return (
     <div className="navbar__mobile">
-      <div className="navbar__mobile-content" ref={triggerRef}>
+      <div className="navbar__mobile-content">
         {isOpen && <SidebarMenu menuRef={menuRef} close={close} />}
-        <div className="burger-wrapper" ref={triggerRef} onClick={toggle}>
+        <button
+          type="button"
+          className="burger-wrapper"
+          ref={triggerRef}
+          onClick={toggle}
+          aria-expanded={isOpen}
+          aria-controls="mobile-nav-menu"
+          aria-label={isOpen ? t('nav.menuClose') : t('nav.menuOpen')}
+        >
           {isOpen ? (
             <Image
               className="burger-menu"
               width={24}
               height={24}
               src="/icon/burgerMenuOpen.svg"
-              alt="burger"
-              aria-label="Open Burger Menu"
+              alt=""
             />
           ) : (
             <Image
@@ -31,11 +40,10 @@ export function NavbarMobile() {
               width={24}
               height={24}
               src="/icon/burgerMenu.svg"
-              alt="burger"
-              aria-label="Close Burger Menu"
+              alt=""
             />
           )}
-        </div>
+        </button>
       </div>
 
       <NavLink href="/">

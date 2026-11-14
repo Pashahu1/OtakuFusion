@@ -7,7 +7,10 @@
     "simulcast": "Simulcast",
     "genres": "Genres",
     "categoriesAria": "Anime-Kategorien",
-    "mobileCategory": "Kategorien"
+    "mobileCategory": "Kategorien",
+    "menu": "Menü",
+    "menuOpen": "Menü öffnen",
+    "menuClose": "Menü schließen"
   },
   "footer": {
     "aria": "Fußzeile",

@@ -227,4 +227,5 @@ body.body--backdrop.menu-open::before {
 body.body--hidden,
 html.body--hidden {
   overflow: hidden;
+  overscroll-behavior: none;
 }

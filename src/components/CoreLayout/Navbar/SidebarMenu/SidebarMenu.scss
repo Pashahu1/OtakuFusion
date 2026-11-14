@@ -1,44 +1,49 @@
 @use '../../../../style/mixins' as *;
 
 .aside-bar {
+  --aside-bar-top: var(--of-header-height, 60px);
+
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 60px;
-  left: 0;
+  top: var(--aside-bar-top);
   right: 0;
+  left: 0;
   bottom: 0;
   width: 100%;
-  padding: 20px 0;
-  background-color: var(--of-menu-bg);
+  height: calc(100vh - var(--aside-bar-top));
+  height: calc(100dvh - var(--aside-bar-top));
+  padding: 12px 0 max(20px, env(safe-area-inset-bottom, 0px));
+  background-color: var(--of-bg);
+  color: var(--of-text);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--color-brand-orange, #f47521) transparent;
   z-index: 99;
 
   &--enter {
     transform: translateY(0);
-    opacity: 1;
     pointer-events: auto;
   }
 
   &--exit {
-    transform: translateY(-20px);
-    opacity: 0;
+    transform: translateY(-12px);
     pointer-events: none;
   }
 
   @include respond(tablet) {
     max-width: 300px;
+    border-right: 1px solid var(--of-border);
+
     &--enter {
       transform: translateX(0);
-      opacity: 1;
       pointer-events: auto;
     }
 
     &--exit {
-      transform: translateX(-20px);
-      opacity: 0;
+      transform: translateX(-16px);
       pointer-events: none;
     }
   }
@@ -54,6 +59,15 @@
     width: auto;
     min-height: 44px;
     height: 44px;
+    color: var(--of-text);
+    background: transparent;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  &__category-toggle {
+    width: 100%;
   }
 
   &::-webkit-scrollbar {
@@ -70,7 +84,7 @@
   overflow-y: auto;
   max-height: 0;
   transition: max-height 0.3s ease;
-  background-color: rgba(74, 78, 88, 0.502);
+  background-color: var(--of-surface);
 }
 
 .aside-bar__category-content--open {
