@@ -19,6 +19,7 @@ const THEME_LABEL_KEYS: Record<AppTheme, string> = {
   ember: 'settings.themeEmber',
   neon: 'settings.themeNeon',
   azure: 'settings.themeAzure',
+  newyear: 'settings.themeNewYear',
 };
 
 export function ProfileSettingsAppearanceCard() {

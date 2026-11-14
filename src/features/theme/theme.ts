@@ -1,6 +1,6 @@
 export const THEME_STORAGE_KEY = 'otakufusion:theme';
 
-export const APP_THEMES = ['dark', 'midnight', 'ember', 'neon', 'azure'] as const;
+export const APP_THEMES = ['dark', 'midnight', 'ember', 'neon', 'azure', 'newyear'] as const;
 
 export type AppTheme = (typeof APP_THEMES)[number];
 

@@ -147,6 +147,33 @@
   --of-overlay: rgb(12 7 16 / 0.55);
 }
 
+[data-theme='newyear'] {
+  --of-accent: #e4c15a;
+  --of-accent-hover: #f0d48a;
+  --of-accent-pressed: #c9a227;
+
+  --of-bg: #07111a;
+  --of-surface: #10202c;
+  --of-surface-raised: #162a38;
+  --of-surface-hover: #1e3848;
+  --of-surface-muted: #2c4a5c;
+
+  --of-text: #f7fbff;
+  --of-text-secondary: #d5e4ef;
+  --of-text-muted: #8eafc4;
+
+  --of-border: rgb(228 193 90 / 0.16);
+  --of-border-strong: rgb(228 193 90 / 0.3);
+  --of-overlay: rgb(7 17 26 / 0.58);
+
+  --of-header-bg: rgb(7 17 26 / 0.82);
+  --of-header-bg-scrolled: rgb(7 17 26 / 0.94);
+  --of-header-bg-hero: rgb(7 17 26 / 0.34);
+  --of-header-border: transparent;
+  --of-header-fg: #e7eef4;
+  --of-header-fg-hover: #ffffff;
+}
+
 [data-theme='azure'] {
   --of-accent: #5ba3d9;
   --of-accent-hover: #7bb8e4;

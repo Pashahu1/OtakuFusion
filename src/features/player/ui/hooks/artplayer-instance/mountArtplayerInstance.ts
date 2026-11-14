@@ -1,6 +1,5 @@
 import Artplayer from 'artplayer';
 
-import { PLAYER_THEME_COLOR } from '../../playerConstants';
 import { getStreamFullUrl, getStreamHeaders } from '../../playerStream';
 import { getArtplayerOptions } from '../../getArtplayerOptions';
 import { setupPlayerReady } from '../../setupPlayerReady';
@@ -101,7 +100,7 @@ export function mountArtplayerInstance({
     fastForward: true,
     aspectRatio: false,
     subtitleOffset: false,
-    theme: PLAYER_THEME_COLOR,
+    theme: 'var(--of-accent)',
     ...getArtplayerOptions(
       userPausedRef,
       (hls, player) => hlsRuntime.onM3u8HlsInstance(hls, player),

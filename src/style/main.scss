@@ -1,4 +1,6 @@
 @use './tokens';
+@use './new-year'; // winter atmosphere for the New Year theme
+
 @use './variables' as *;
 @use './mixins' as *;
 @use './reset.scss' as *;

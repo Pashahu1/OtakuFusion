@@ -9,6 +9,7 @@ describe('parseAppTheme', () => {
     expect(parseAppTheme('ember')).toBe('ember');
     expect(parseAppTheme('neon')).toBe('neon');
     expect(parseAppTheme('azure')).toBe('azure');
+    expect(parseAppTheme('newyear')).toBe('newyear');
   });
 
   it('falls back to dark', () => {

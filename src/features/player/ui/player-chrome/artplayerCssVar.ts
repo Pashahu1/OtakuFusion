@@ -1,9 +1,7 @@
-import { PLAYER_THEME_COLOR } from '../playerConstants';
-
-/** Artplayer CSS variables — Netflix-like density, brand accent. */
+/** Artplayer CSS variables — Netflix-like density, follows the active theme accent. */
 export const ARTPLAYER_NETFLIX_CSS_VAR = {
-  '--art-theme': PLAYER_THEME_COLOR,
-  '--art-progress-color': PLAYER_THEME_COLOR,
+  '--art-theme': 'var(--of-accent)',
+  '--art-progress-color': 'var(--of-accent)',
   '--art-progress-height': '3px',
   '--art-hover-color': '#ffffff',
   '--art-loaded-color': 'rgba(255, 255, 255, 0.42)',

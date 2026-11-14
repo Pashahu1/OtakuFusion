@@ -26,7 +26,6 @@ export const HLS_CDN_FALLBACK_REFERER = 'https://anikage.cc/';
 export const HLS_CDN_FALLBACK_ORIGIN = 'https://anikage.cc';
 
 export const DEFAULT_REFERER = 'https://megacloud.club/';
-export const PLAYER_THEME_COLOR = '#f47521';
 export const PLAYER_SKIP_SECONDS = 10;
 export const SUBTITLE_NONE_ID = 'off';
 export const SUBTITLE_NONE_LABEL = 'None';

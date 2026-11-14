@@ -297,6 +297,7 @@
     "themeEmber": "Ember",
     "themeNeon": "Neon",
     "themeAzure": "Azure",
+    "themeNewYear": "New Year",
     "language": "Language",
     "changePassword": "Change password",
     "signedInAs": "Signed in as {{email}}",
